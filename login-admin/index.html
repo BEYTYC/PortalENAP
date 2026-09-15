@@ -4,27 +4,237 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portal ENAP - Acceso Administrativo</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://alcdn.msauth.net/browser/3.7.0/js/msal-browser.min.js"></script>
+  <style>
+    :root {
+      --navy-deep: #0a1c33;
+      --navy: #0f2847;
+      --navy-light: #1c3e66;
+      --gold: #c8a24d;
+      --gold-soft: #e4cd94;
+      --bg: #f6f7f9;
+      --text: #16233a;
+      --text-muted: #6b7688;
+      --border: #e3e6ec;
+      font-family: "Sora", -apple-system, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      background: var(--bg);
+    }
+
+    /* ---------- Panel izquierdo: identidad institucional ---------- */
+    .panel-brand {
+      position: relative;
+      background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-light) 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 64px 56px;
+      overflow: hidden;
+    }
+
+    .panel-brand::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        repeating-linear-gradient(115deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 64px);
+      pointer-events: none;
+    }
+
+    .brand-mark {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-mark svg { width: 42px; height: 42px; flex-shrink: 0; }
+
+    .brand-mark span {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--gold-soft);
+    }
+
+    .brand-heading {
+      position: relative;
+      max-width: 420px;
+    }
+
+    .brand-heading .gold-rule {
+      width: 56px;
+      height: 3px;
+      background: var(--gold);
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
+
+    .brand-heading h1 {
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-heading p {
+      margin-top: 16px;
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.72);
+      font-weight: 400;
+    }
+
+    .brand-footer {
+      position: relative;
+      font-size: 13px;
+      color: rgba(255,255,255,0.5);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-footer .dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--gold);
+    }
+
+    /* ---------- Panel derecho: formulario ---------- */
+    .panel-form {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .form-card {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .form-card h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .form-card .subtitle {
+      margin-top: 6px;
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-bottom: 36px;
+    }
+
+    #error-box {
+      display: none;
+      margin-bottom: 20px;
+      background: #fdf2f2;
+      border: 1px solid #f3caca;
+      border-radius: 10px;
+      padding: 13px 16px;
+    }
+
+    #error-box.visible { display: block; }
+
+    #error-msg {
+      font-size: 13.5px;
+      color: #9b2c2c;
+      line-height: 1.5;
+    }
+
+    #btn-login {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--navy);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 15px 20px;
+      font-family: inherit;
+      font-size: 14.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    #btn-login:hover:not(:disabled) { background: var(--navy-light); }
+    #btn-login:disabled { background: #9aa5b1; cursor: not-allowed; }
+
+    #btn-login svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .form-footer {
+      margin-top: 28px;
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    @media (max-width: 860px) {
+      body { grid-template-columns: 1fr; }
+      .panel-brand { padding: 40px 32px; min-height: 260px; }
+      .brand-heading h1 { font-size: 28px; }
+    }
+  </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex items-center justify-center px-4">
+<body>
 
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
-    <div class="flex flex-col items-center text-center mb-8">
-      <div class="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mb-4">
-        <span class="text-white font-bold text-xl">EN</span>
+  <div class="panel-brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2v20M12 22c-4.5 0-7-2.5-7-6M12 22c4.5 0 7-2.5 7-6M6 10h12M9 5.5a3 3 0 106 0 3 3 0 00-6 0z"
+          stroke="#c8a24d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <span>ESCUELA NAVAL DE CADETES &ldquo;ALMIRANTE PADILLA&rdquo;</span>
+    </div>
+
+    <div class="brand-heading">
+      <div class="gold-rule"></div>
+      <h1>Portal ENAP</h1>
+      <p>Plataforma institucional de gestión académica. Acceso restringido a personal autorizado con roles administrativos asignados.</p>
+    </div>
+
+    <div class="brand-footer">
+      <span class="dot"></span>
+      <span>Cartagena de Indias, Colombia</span>
+    </div>
+  </div>
+
+  <div class="panel-form">
+    <div class="form-card">
+      <h2>Acceso administrativo</h2>
+      <p class="subtitle">Inicia sesión con tu cuenta institucional para continuar</p>
+
+      <div id="error-box">
+        <p id="error-msg"></p>
       </div>
-      <h1 class="text-2xl font-bold text-slate-900">Portal ENAP</h1>
-      <p class="text-sm text-slate-500 mt-2">Acceso administrativo institucional</p>
-    </div>
 
-    <div id="error-box" class="hidden mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3">
-      <p id="error-msg" class="text-sm text-red-700"></p>
-    </div>
+      <button id="btn-login">
+        <svg viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+        </svg>
+        Iniciar sesión con cuenta institucional
+      </button>
 
-    <button id="btn-login" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm rounded-lg px-4 py-3">
-      Iniciar sesión con cuenta institucional ENAP
-    </button>
+      <p class="form-footer">Solo personal con roles activos en el sistema podrá acceder al panel.</p>
+    </div>
   </div>
 
   <script type="module" src="./login.js"></script>
