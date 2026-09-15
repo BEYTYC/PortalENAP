@@ -15,9 +15,14 @@ function mapCeremonia(item) {
   };
 }
 
+// Convierte el valor de un <input type="datetime-local"> (ej. "2026-09-20T14:00")
+// al formato ISO completo con segundos y zona horaria que SharePoint exige
+// (ej. "2026-09-20T14:00:00.000Z"). Sin esto, Graph responde 400 Bad Request.
+function aISOCompleto(valorFormulario) {
+  return new Date(valorFormulario).toISOString();
+}
+
 export async function listarCeremonias() {
-  // No usamos $orderby en la petición: Graph lo rechaza en columnas
-  // no indexadas de SharePoint. Ordenamos aquí mismo, en JavaScript.
   const items = await getListItems(LISTS.CEREMONIAS);
   const ceremonias = items.map(mapCeremonia);
   ceremonias.sort((a, b) => new Date(b.fechaCeremonia) - new Date(a.fechaCeremonia));
@@ -36,9 +41,9 @@ export async function listarCeremoniasVigentes() {
 export async function crearCeremonia(data, usuario) {
   const created = await createListItem(LISTS.CEREMONIAS, {
     Title: data.nombre,
-    FechaCeremonia: data.fechaCeremonia,
-    InicioRecepcion: data.inicioRecepcion,
-    CierreRecepcion: data.cierreRecepcion,
+    FechaCeremonia: aISOCompleto(data.fechaCeremonia),
+    InicioRecepcion: aISOCompleto(data.inicioRecepcion),
+    CierreRecepcion: aISOCompleto(data.cierreRecepcion),
     Estado: data.estado || "Activa",
   });
 
@@ -59,35 +64,4 @@ export async function actualizarCeremonia(itemId, data, usuario) {
 
   await updateListItem(LISTS.CEREMONIAS, itemId, {
     Title: data.nombre,
-    FechaCeremonia: data.fechaCeremonia,
-    InicioRecepcion: data.inicioRecepcion,
-    CierreRecepcion: data.cierreRecepcion,
-    Estado: data.estado,
-  });
-
-  await createListItem(LISTS.HISTORIAL_CEREMONIAS, {
-    Title: `Modificación - ${data.nombre}`,
-    CeremoniaId: String(itemId),
-    Accion: "MODIFICACION",
-    UsuarioResponsable: usuario,
-    FechaCambio: new Date().toISOString(),
-    Detalle: JSON.stringify({ antes: antes.fields, despues: data }),
-  });
-
-  const actualizado = await getListItemById(LISTS.CEREMONIAS, itemId);
-  return mapCeremonia(actualizado);
-}
-
-export async function historialDeCeremonia(ceremoniaId) {
-  const items = await getListItems(
-    LISTS.HISTORIAL_CEREMONIAS,
-    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'`
-  );
-  const historial = items.map((i) => ({
-    accion: i.fields.Accion,
-    usuario: i.fields.UsuarioResponsable,
-    fecha: i.fields.FechaCambio,
-  }));
-  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  return historial;
-}
+    FechaCeremonia:
