@@ -6,7 +6,10 @@ export const msalConfig = {
   auth: {
     clientId: "be68b5b7-e7eb-45e2-98f4-e5ffd8888ce6",
     authority: "https://login.microsoftonline.com/common",
-    redirectUri: window.location.origin + window.location.pathname,
+    // Redirección fija que coincide EXACTO con la ya registrada en Azure AD.
+    // Como el login es tipo popup, no importa desde qué página lo inicies:
+    // siempre "aterriza" aquí y el popup se cierra solo.
+    redirectUri: window.location.origin + "/",
   },
   cache: {
     cacheLocation: "sessionStorage",
