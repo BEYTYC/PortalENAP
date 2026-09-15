@@ -1,3 +1,5 @@
+// src/auth/msalConfig.js
+
 export const msalConfig = {
   auth: {
     clientId: "be68b5b7-e7eb-45e2-98f4-e5ffd8888ce6",
