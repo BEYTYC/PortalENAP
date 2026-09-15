@@ -64,4 +64,35 @@ export async function actualizarCeremonia(itemId, data, usuario) {
 
   await updateListItem(LISTS.CEREMONIAS, itemId, {
     Title: data.nombre,
-    FechaCeremonia:
+    FechaCeremonia: aISOCompleto(data.fechaCeremonia),
+    InicioRecepcion: aISOCompleto(data.inicioRecepcion),
+    CierreRecepcion: aISOCompleto(data.cierreRecepcion),
+    Estado: data.estado,
+  });
+
+  await createListItem(LISTS.HISTORIAL_CEREMONIAS, {
+    Title: `Modificación - ${data.nombre}`,
+    CeremoniaId: String(itemId),
+    Accion: "MODIFICACION",
+    UsuarioResponsable: usuario,
+    FechaCambio: new Date().toISOString(),
+    Detalle: JSON.stringify({ antes: antes.fields, despues: data }),
+  });
+
+  const actualizado = await getListItemById(LISTS.CEREMONIAS, itemId);
+  return mapCeremonia(actualizado);
+}
+
+export async function historialDeCeremonia(ceremoniaId) {
+  const items = await getListItems(
+    LISTS.HISTORIAL_CEREMONIAS,
+    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'`
+  );
+  const historial = items.map((i) => ({
+    accion: i.fields.Accion,
+    usuario: i.fields.UsuarioResponsable,
+    fecha: i.fields.FechaCambio,
+  }));
+  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  return historial;
+}
