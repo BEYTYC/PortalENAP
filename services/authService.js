@@ -1,50 +1,131 @@
-import axios from 'axios';
+// src/services/authService.js
 
-/**
- * Servicio para verificar los permisos y roles del usuario autenticado
- * consultando la lista de SharePoint ENAP_Permisos_Usuarios.
- */
-export async function verificarPermisosUsuario(accessToken) {
-    try {
-        if (!accessToken) {
-            throw new Error('No se proporcionó un token de acceso válido.');
-        }
+import { PublicClientApplication } from "@azure/msal-browser";
+import { msalConfig, loginRequest, graphConfig } from "../auth/msalConfig";
 
-        // 1. Obtener el correo del usuario autenticado mediante Microsoft Graph
-        const graphResponse = await axios.get('https://graph.microsoft.com/v1.0/me', {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        });
-        
-        const userEmail = graphResponse.data.mail || graphResponse.data.userPrincipalName;
+export const msalInstance = new PublicClientApplication(msalConfig);
 
-        // 2. Consultar la lista de SharePoint ENAP_Permisos_Usuarios 
-        // para verificar si el usuario está Activo y qué rol o roles posee.
-        const permisoSharePoint = await consultarPermisoEnSharePoint(accessToken, userEmail);
+const SHAREPOINT_SITE = "https://escuelanaval.sharepoint.com";
+const LIST_NAME = "ENAP_Permisos_Usuarios";
 
-        if (!permisoSharePoint || permisoSharePoint.Estado !== 'Activo') {
-            throw new Error('Acceso denegado o usuario inactivo en el sistema.');
-        }
+async function callGraphApi(endpoint, accessToken) {
+  const response = await fetch(endpoint, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+  });
 
-        return {
-            email: userEmail,
-            rol: permisoSharePoint.Rol,
-            activo: true
-        };
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Graph API error (${response.status}): ${errorBody}`);
+  }
 
-    } catch (error) {
-        console.error('Error de autenticación y validación de permisos:', error);
-        throw error;
-    }
+  return response.json();
 }
 
-async function consultarPermisoEnSharePoint(accessToken, email) {
-    // Aquí se realiza la petición a la lista de SharePoint utilizando el token
-    // para buscar la coincidencia con el correo (Title) y verificar el campo Estado y Rol.
-    
-    // Ejemplo de estructura de retorno basada en tu lista ENAP_Permisos_Usuarios:
-    return {
-        Title: email,
-        Rol: "ADMIN", // O el rol que tenga asignado en la fila de SharePoint
-        Estado: "Activo"
-    };
+async function getAccessToken(scopes) {
+  const account = msalInstance.getAllAccounts()[0];
+  if (!account) {
+    throw new Error("No hay una cuenta autenticada activa.");
+  }
+
+  try {
+    const result = await msalInstance.acquireTokenSilent({
+      scopes,
+      account,
+    });
+    return result.accessToken;
+  } catch (silentError) {
+    const result = await msalInstance.acquireTokenPopup({
+      scopes,
+      account,
+    });
+    return result.accessToken;
+  }
+}
+
+async function getAuthenticatedUser() {
+  const accessToken = await getAccessToken(loginRequest.scopes);
+  const profile = await callGraphApi(graphConfig.graphMeEndpoint, accessToken);
+  return {
+    profile,
+    accessToken,
+  };
+}
+
+async function getSiteId(accessToken, siteUrl) {
+  const url = new URL(siteUrl);
+  const hostname = url.hostname;
+  const sitePath = url.pathname;
+
+  const endpoint = `https://graph.microsoft.com/v1.0/sites/${hostname}:${sitePath}`;
+  const site = await callGraphApi(endpoint, accessToken);
+  return site.id;
+}
+
+async function getUserRolesFromSharePoint(userEmail, accessToken) {
+  const siteId = await getSiteId(accessToken, SHAREPOINT_SITE);
+
+  const endpoint =
+    `https://graph.microsoft.com/v1.0/sites/${siteId}/lists/${LIST_NAME}/items` +
+    `?expand=fields&$top=999`;
+
+  const data = await callGraphApi(endpoint, accessToken);
+  const items = data.value || [];
+
+  const normalizedEmail = userEmail.trim().toLowerCase();
+
+  const activeRoleRows = items.filter((item) => {
+    const fields = item.fields || {};
+    const rowEmail = (fields.Title || "").trim().toLowerCase();
+    const rowEstado = (fields.Estado || "").trim().toLowerCase();
+    return rowEmail === normalizedEmail && rowEstado === "activo";
+  });
+
+  const roles = activeRoleRows
+    .map((row) => row.fields.Rol)
+    .filter((rol) => Boolean(rol))
+    .map((rol) => rol.trim().toUpperCase());
+
+  const uniqueRoles = [...new Set(roles)];
+
+  return uniqueRoles;
+}
+
+export async function login() {
+  const loginResponse = await msalInstance.loginPopup(loginRequest);
+  msalInstance.setActiveAccount(loginResponse.account);
+
+  const { profile, accessToken } = await getAuthenticatedUser();
+  const userEmail = profile.mail || profile.userPrincipalName;
+
+  const roles = await getUserRolesFromSharePoint(userEmail, accessToken);
+
+  if (roles.length === 0) {
+    throw new Error(
+      "Su cuenta no tiene roles activos asignados en el Portal ENAP. Contacte al administrador."
+    );
+  }
+
+  return {
+    user: {
+      displayName: profile.displayName,
+      email: userEmail,
+      jobTitle: profile.jobTitle || null,
+    },
+    roles,
+  };
+}
+
+export function logout() {
+  const account = msalInstance.getAllAccounts()[0];
+  return msalInstance.logoutPopup({ account });
+}
+
+export function hasRole(userRoles, requiredRoles) {
+  if (!Array.isArray(userRoles)) return false;
+  return requiredRoles.some((role) => userRoles.includes(role));
 }
