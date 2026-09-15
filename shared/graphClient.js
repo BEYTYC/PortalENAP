@@ -30,6 +30,10 @@ async function graphFetch(endpoint, options = {}) {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      // Necesario para poder filtrar ($filter) por columnas de SharePoint
+      // que no están indexadas (como "Estado" o "Rol"). Sin esto, Graph
+      // responde 400 Bad Request en cualquier consulta con $filter.
+      "Prefer": "HonorNonIndexedQueriesWarningMayFailRandomly",
       ...(options.headers || {}),
     },
   });
