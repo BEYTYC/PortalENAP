@@ -4,8 +4,7 @@
 
 export const msalConfig = {
   auth: {
-    clientId: "d0326150-ca40-47f0-87cb-201c9fc721cd",
-    // Apunta directo al tenant de la ENAP
+    clientId: "be68b5b7-e7eb-45e2-98f4-e5ffd88b8ce6",
     authority: "https://login.microsoftonline.com/f53f66b3-ea23-461a-b6ff-01654042a799",
     redirectUri: window.location.origin + "/",
   },
