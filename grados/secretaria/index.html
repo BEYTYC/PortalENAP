@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ceremonias de Grado - Secretaría</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://alcdn.msauth.net/browser/3.7.0/js/msal-browser.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-6">
+
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-bold text-slate-900">Gestión de Ceremonias de Grado</h1>
+      <button id="btn-nueva" class="bg-slate-900 text-white text-sm rounded-lg px-4 py-2">+ Nueva ceremonia</button>
+    </div>
+
+    <div id="alerta" class="hidden mb-4 rounded-lg px-4 py-3 text-sm"></div>
+
+    <div id="form-container" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm p-6 mb-6"></div>
+
+    <div id="loading" class="text-center text-slate-500 py-10">Cargando ceremonias...</div>
+    <div id="tabla-container" class="hidden bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"></div>
+  </div>
+
+  <script type="module" src="./ceremonias.js"></script>
+</body>
+</html>

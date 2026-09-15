@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solicitud de Grado - Portal ENAP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://alcdn.msauth.net/browser/3.7.0/js/msal-browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-6">
+
+  <div class="max-w-xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 p-8">
+    <h1 class="text-xl font-bold text-slate-900 mb-1">Solicitud de Grado</h1>
+    <p class="text-sm text-slate-500 mb-6">Escuela Naval de Cadetes "Almirante Padilla"</p>
+
+    <div id="alerta" class="hidden mb-4 rounded-lg px-4 py-3 text-sm"></div>
+    <div id="acceso" class="text-center py-10">
+      <button id="btn-login" class="bg-slate-900 text-white text-sm rounded-lg px-5 py-3">Iniciar sesión con cuenta institucional</button>
+    </div>
+
+    <form id="form-solicitud" class="hidden space-y-4"></form>
+    <div id="resultado" class="hidden text-center py-8"></div>
+  </div>
+
+  <script type="module" src="./solicitud.js"></script>
+</body>
+</html>
