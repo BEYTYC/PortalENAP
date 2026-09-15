@@ -1,11 +1,13 @@
 // shared/graphClient.js
 
-import { msalInstance, loginScopes } from "./msalConfig.js";
+import { msalInstance, loginScopes, msalReady } from "./msalConfig.js";
 import { SHAREPOINT_SITE } from "./spConfig.js";
 
 let cachedSiteId = null;
 
 export async function getAccessToken() {
+  await msalReady;
+
   const account = msalInstance.getAllAccounts()[0];
   if (!account) throw new Error("No hay una sesión activa.");
 
@@ -42,7 +44,6 @@ async function graphFetch(endpoint, options = {}) {
 
 async function getSiteId() {
   if (cachedSiteId) return cachedSiteId;
-  // Sitio raíz: se pide directo por hostname, sin ":/sites/..."
   const site = await graphFetch(`/sites/${SHAREPOINT_SITE}`);
   cachedSiteId = site.id;
   return cachedSiteId;
