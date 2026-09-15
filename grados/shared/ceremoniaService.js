@@ -16,8 +16,12 @@ function mapCeremonia(item) {
 }
 
 export async function listarCeremonias() {
-  const items = await getListItems(LISTS.CEREMONIAS, "&$orderby=fields/FechaCeremonia desc");
-  return items.map(mapCeremonia);
+  // No usamos $orderby en la petición: Graph lo rechaza en columnas
+  // no indexadas de SharePoint. Ordenamos aquí mismo, en JavaScript.
+  const items = await getListItems(LISTS.CEREMONIAS);
+  const ceremonias = items.map(mapCeremonia);
+  ceremonias.sort((a, b) => new Date(b.fechaCeremonia) - new Date(a.fechaCeremonia));
+  return ceremonias;
 }
 
 export async function listarCeremoniasVigentes() {
@@ -77,11 +81,13 @@ export async function actualizarCeremonia(itemId, data, usuario) {
 export async function historialDeCeremonia(ceremoniaId) {
   const items = await getListItems(
     LISTS.HISTORIAL_CEREMONIAS,
-    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'&$orderby=fields/FechaCambio desc`
+    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'`
   );
-  return items.map((i) => ({
+  const historial = items.map((i) => ({
     accion: i.fields.Accion,
     usuario: i.fields.UsuarioResponsable,
     fecha: i.fields.FechaCambio,
   }));
+  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+  return historial;
 }
