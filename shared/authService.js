@@ -10,23 +10,18 @@ export async function login() {
   const loginResponse = await msalInstance.loginPopup({ scopes: loginScopes });
   msalInstance.setActiveAccount(loginResponse.account);
 
-  // No usamos el accessToken que viene directo de loginPopup —
-  // en algunos navegadores (Chrome bloqueando cookies de terceros)
-  // puede venir vacío. Pedimos uno "fresco" ya confirmado con
-  // acquireTokenSilent, que es la forma recomendada de obtener
-  // tokens para llamar APIs justo después del login.
   const tokenResult = await msalInstance.acquireTokenSilent({
     scopes: loginScopes,
     account: loginResponse.account,
   });
-
-  console.log("[authService] Token obtenido, longitud:", tokenResult.accessToken?.length || 0);
 
   const graphMe = await fetch("https://graph.microsoft.com/v1.0/me", {
     headers: { Authorization: `Bearer ${tokenResult.accessToken}` },
   }).then((r) => r.json());
 
   const email = graphMe.mail || graphMe.userPrincipalName;
+  console.log("[authService] Correo detectado en Microsoft:", JSON.stringify(email));
+
   const roles = await obtenerRoles(email);
 
   return {
@@ -37,10 +32,21 @@ export async function login() {
 
 export async function obtenerRoles(email) {
   const normalizado = email.trim().toLowerCase();
+
+  // Traemos TODOS los registros con Estado = Activo, sin filtrar aún por
+  // correo, para poder ver en consola qué hay realmente en la lista.
   const items = await getListItems(
     LISTS.PERMISOS,
     `&$filter=fields/Estado eq 'Activo'`
   );
+
+  console.log(`[authService] Filas con Estado=Activo encontradas: ${items.length}`);
+  items.forEach((i, idx) => {
+    console.log(
+      `[authService] Fila ${idx}: Title="${i.fields.Title}" | Rol="${i.fields.Rol}" | Estado="${i.fields.Estado}"`
+    );
+  });
+  console.log(`[authService] Buscando coincidencia con: "${normalizado}"`);
 
   const roles = items
     .filter((i) => (i.fields.Title || "").trim().toLowerCase() === normalizado)
