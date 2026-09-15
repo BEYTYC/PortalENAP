@@ -1,10 +1,12 @@
 // shared/authService.js
 
-import { msalInstance, loginScopes } from "./msalConfig.js";
+import { msalInstance, loginScopes, msalReady } from "./msalConfig.js";
 import { getListItems } from "./graphClient.js";
 import { LISTS } from "./spConfig.js";
 
 export async function login() {
+  await msalReady;
+
   const loginResponse = await msalInstance.loginPopup({ scopes: loginScopes });
   msalInstance.setActiveAccount(loginResponse.account);
 
@@ -40,7 +42,8 @@ export function hasRole(userRoles, requiredRoles) {
   return requiredRoles.some((r) => userRoles.includes(r));
 }
 
-export function logout() {
+export async function logout() {
+  await msalReady;
   const account = msalInstance.getAllAccounts()[0];
   return msalInstance.logoutPopup({ account });
 }
