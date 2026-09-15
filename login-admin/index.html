@@ -10,15 +10,15 @@
   <script src="https://alcdn.msauth.net/browser/3.7.0/js/msal-browser.min.js"></script>
   <style>
     :root {
-      --navy-deep: #0a1c33;
-      --navy: #0f2847;
-      --navy-light: #1c3e66;
-      --gold: #c8a24d;
-      --gold-soft: #e4cd94;
+      --navy-950: #071c3c;
+      --navy-800: #0b2a5b;
+      --navy-700: #123a73;
+      --gold-400: #c9a227;
+      --gold-500: #a8861d;
+      --gold-700: #846813;
       --bg: #f6f7f9;
       --text: #16233a;
-      --text-muted: #6b7688;
-      --border: #e3e6ec;
+      --text-muted: #64748b;
       font-family: "Sora", -apple-system, sans-serif;
     }
 
@@ -34,12 +34,12 @@
     /* ---------- Panel izquierdo: identidad institucional ---------- */
     .panel-brand {
       position: relative;
-      background: linear-gradient(160deg, var(--navy-deep) 0%, var(--navy) 55%, var(--navy-light) 100%);
+      background: linear-gradient(160deg, var(--navy-950) 0%, var(--navy-800) 60%, var(--navy-700) 100%);
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 64px 56px;
+      padding: 60px 56px;
       overflow: hidden;
     }
 
@@ -59,30 +59,59 @@
       gap: 14px;
     }
 
-    .brand-mark svg { width: 42px; height: 42px; flex-shrink: 0; }
+    .brand-mark img {
+      width: 46px;
+      height: 46px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .brand-mark .brand-text-fallback {
+      width: 46px;
+      height: 46px;
+      border: 1.5px solid var(--gold-400);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--gold-400);
+      flex-shrink: 0;
+    }
 
     .brand-mark span {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.04em;
-      color: var(--gold-soft);
+      color: #e6d6a8;
+    }
+
+    .eyebrow {
+      position: relative;
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gold-400);
+      letter-spacing: 0.02em;
+      margin-bottom: 18px;
     }
 
     .brand-heading {
       position: relative;
-      max-width: 420px;
+      max-width: 440px;
     }
 
     .brand-heading .gold-rule {
       width: 56px;
       height: 3px;
-      background: var(--gold);
+      background: var(--gold-400);
       border-radius: 2px;
-      margin-bottom: 24px;
+      margin-bottom: 22px;
     }
 
     .brand-heading h1 {
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 700;
       line-height: 1.15;
       letter-spacing: -0.01em;
@@ -107,7 +136,7 @@
 
     .brand-footer .dot {
       width: 5px; height: 5px; border-radius: 50%;
-      background: var(--gold);
+      background: var(--gold-400);
     }
 
     /* ---------- Panel derecho: formulario ---------- */
@@ -159,11 +188,12 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
-      background: var(--navy);
+      background: var(--navy-800);
       color: white;
       border: none;
+      border-bottom: 2.5px solid var(--gold-500);
       border-radius: 10px;
-      padding: 15px 20px;
+      padding: 14.5px 20px;
       font-family: inherit;
       font-size: 14.5px;
       font-weight: 600;
@@ -171,8 +201,8 @@
       transition: background 0.15s ease;
     }
 
-    #btn-login:hover:not(:disabled) { background: var(--navy-light); }
-    #btn-login:disabled { background: #9aa5b1; cursor: not-allowed; }
+    #btn-login:hover:not(:disabled) { background: var(--navy-700); }
+    #btn-login:disabled { background: #9aa5b1; border-bottom-color: transparent; cursor: not-allowed; }
 
     #btn-login svg { width: 18px; height: 18px; flex-shrink: 0; }
 
@@ -186,8 +216,8 @@
 
     @media (max-width: 860px) {
       body { grid-template-columns: 1fr; }
-      .panel-brand { padding: 40px 32px; min-height: 260px; }
-      .brand-heading h1 { font-size: 28px; }
+      .panel-brand { padding: 40px 32px; min-height: 280px; }
+      .brand-heading h1 { font-size: 27px; }
     }
   </style>
 </head>
@@ -195,17 +225,16 @@
 
   <div class="panel-brand">
     <div class="brand-mark">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2v20M12 22c-4.5 0-7-2.5-7-6M12 22c4.5 0 7-2.5 7-6M6 10h12M9 5.5a3 3 0 106 0 3 3 0 00-6 0z"
-          stroke="#c8a24d" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-      </svg>
+      <img src="../shared/assets/logo-enap.png" alt="Escudo ENAP"
+        onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'brand-text-fallback',textContent:'EN'}))" />
       <span>ESCUELA NAVAL DE CADETES &ldquo;ALMIRANTE PADILLA&rdquo;</span>
     </div>
 
     <div class="brand-heading">
+      <p class="eyebrow">Proyecto de Transformación Digital · Oficina de Estadística</p>
       <div class="gold-rule"></div>
       <h1>Portal ENAP</h1>
-      <p>Plataforma institucional de gestión académica. Acceso restringido a personal autorizado con roles administrativos asignados.</p>
+      <p>Plataforma institucional de gestión académica, desarrollada en el marco del Proyecto de Transformación Digital de la Oficina de Estadística. Acceso restringido a personal autorizado.</p>
     </div>
 
     <div class="brand-footer">
