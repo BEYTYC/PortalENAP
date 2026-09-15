@@ -5,7 +5,8 @@
 export const msalConfig = {
   auth: {
     clientId: "be68b5b7-e7eb-45e2-98f4-e5ffd8888ce6",
-    authority: "https://login.microsoftonline.com/common",
+    // Apunta directo al tenant de la ENAP en vez del endpoint genérico "common"
+    authority: "https://login.microsoftonline.com/f53f66b3-ea23-461a-b6ff-01654042a799",
     redirectUri: window.location.origin + "/",
   },
   cache: {
@@ -21,6 +22,4 @@ export const msalInstance = new window.msal.PublicClientApplication(msalConfig);
 
 // A partir de la versión 3 de MSAL.js hay que inicializar antes de usar
 // cualquier otro método (loginPopup, acquireTokenSilent, etc.).
-// Este "promise" se exporta para que authService.js y graphClient.js
-// esperen a que termine antes de hacer nada más.
 export const msalReady = msalInstance.initialize();
