@@ -42,6 +42,7 @@ async function graphFetch(endpoint, options = {}) {
 
 async function getSiteId() {
   if (cachedSiteId) return cachedSiteId;
+  // Sitio raíz: se pide directo por hostname, sin ":/sites/..."
   const site = await graphFetch(`/sites/${SHAREPOINT_SITE}`);
   cachedSiteId = site.id;
   return cachedSiteId;
