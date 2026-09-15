@@ -1,49 +1,45 @@
-// shared/authService.js
+// login-admin/login.js
 
-import { msalInstance, loginScopes, msalReady } from "./msalConfig.js";
-import { getListItems } from "./graphClient.js";
-import { LISTS } from "./spConfig.js";
+import { login } from "../shared/authService.js";
 
-export async function login() {
-  await msalReady;
+const btn = document.getElementById("btn-login");
+const errorBox = document.getElementById("error-box");
+const errorMsg = document.getElementById("error-msg");
 
-  const loginResponse = await msalInstance.loginPopup({ scopes: loginScopes });
-  msalInstance.setActiveAccount(loginResponse.account);
+btn.addEventListener("click", async () => {
+  console.log("[1] Clic detectado, iniciando proceso de login...");
+  errorBox.classList.remove("visible");
+  btn.disabled = true;
+  btn.textContent = "Verificando credenciales...";
 
-  const graphMe = await fetch("https://graph.microsoft.com/v1.0/me", {
-    headers: { Authorization: `Bearer ${loginResponse.accessToken}` },
-  }).then((r) => r.json());
+  try {
+    console.log("[2] Llamando a login()...");
+    const { user, roles } = await login();
+    console.log("[3] login() terminó bien. Usuario:", user, "Roles:", roles);
 
-  const email = graphMe.mail || graphMe.userPrincipalName;
-  const roles = await obtenerRoles(email);
+    if (roles.length === 0) {
+      console.log("[4] El usuario no tiene roles activos.");
+      throw new Error("Su cuenta no tiene roles activos asignados. Contacte al administrador.");
+    }
 
-  return {
-    user: { displayName: graphMe.displayName, email },
-    roles,
-  };
-}
+    sessionStorage.setItem("enap_user", JSON.stringify(user));
+    sessionStorage.setItem("enap_roles", JSON.stringify(roles));
+    console.log("[5] Guardado en sessionStorage. Redirigiendo...");
 
-export async function obtenerRoles(email) {
-  const normalizado = email.trim().toLowerCase();
-  const items = await getListItems(
-    LISTS.PERMISOS,
-    `&$filter=fields/Estado eq 'Activo'`
-  );
-
-  const roles = items
-    .filter((i) => (i.fields.Title || "").trim().toLowerCase() === normalizado)
-    .map((i) => (i.fields.Rol || "").trim().toUpperCase())
-    .filter(Boolean);
-
-  return [...new Set(roles)];
-}
-
-export function hasRole(userRoles, requiredRoles) {
-  return requiredRoles.some((r) => userRoles.includes(r));
-}
-
-export async function logout() {
-  await msalReady;
-  const account = msalInstance.getAllAccounts()[0];
-  return msalInstance.logoutPopup({ account });
-}
+    if (roles.includes("SAC") || roles.includes("ADMIN")) {
+      console.log("[6] Redirigiendo a grados/secretaria/");
+      window.location.href = "../grados/secretaria/index.html";
+    } else {
+      console.log("[6] Redirigiendo a index.html");
+      window.location.href = "../index.html";
+    }
+  } catch (err) {
+    console.error("[ERROR] Falló en algún punto:", err);
+    errorMsg.textContent = err.message || "Ocurrió un error al iniciar sesión.";
+    errorBox.classList.add("visible");
+  } finally {
+    console.log("[7] Bloque finally ejecutado (esto se ejecuta siempre, con o sin error).");
+    btn.disabled = false;
+    btn.textContent = "Iniciar sesión con cuenta institucional ENAP";
+  }
+});
