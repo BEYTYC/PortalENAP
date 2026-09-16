@@ -809,7 +809,6 @@
   <div id="viewHome">
     <div class="wrap">
       <div class="center">
-        <span class="draft-badge">Boceto para revisión — aún no conectado</span>
         <div class="eyebrow">Oficina de Estadística</div>
         <h2 class="hero-title">Portal de Servicios Digitales</h2>
         <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
@@ -1903,8 +1902,13 @@
       key: 'facultades', nombre: 'Facultades', icon: 'facultades',
       items: [
         { nombre: 'Generación de Balances', status: 'soon' },
-        { nombre: 'Aprobación de Grado', status: 'ok' },
-        { nombre: 'Solicitud de Grado — Estudiantes', status: 'link', href: 'titulacion/index.html' },
+        // TEMPORAL: mientras el módulo de Titulación se publica como sitio
+        // aparte (con su propio dominio y su backend en SharePoint — ver
+        // DEPLOY.md / BACKEND_SHAREPOINT.md del proyecto "titulacion"), esta
+        // entrada lo abre embebido aquí mismo (viewTitulacion/iframe). En
+        // cuanto exista la URL pública definitiva, este item debe pasar a
+        // status:'link' con esa URL, igual que cualquier otro enlace externo.
+        { nombre: 'Solicitud de Grado — Estudiantes', status: 'ok' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -1970,7 +1974,7 @@
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
-          else if (item.status === 'ok' && item.nombre === 'Aprobación de Grado') abrirSubsistema('viewTitulacion', 'Aprobación de Grado');
+          else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado — Estudiantes') abrirSubsistema('viewTitulacion', 'Solicitud de Grado — Estudiantes');
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
           else if (item.status === 'link') window.location.href = item.href;
