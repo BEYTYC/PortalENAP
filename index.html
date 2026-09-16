@@ -212,11 +212,11 @@
   .cde-note{ margin-top:9px; font-size:10.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewGrados{
+  #viewRegistro, #viewTitulacion{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewGrados[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -424,15 +424,6 @@
       src="titulacion/index.html?embedded=1"
     ></iframe>
   </div>
-
-  <div id="viewGrados" hidden>
-    <iframe
-      id="gradosFrame"
-      class="registro-iframe"
-      title="Gestión de Ceremonias de Grado"
-      src="grados/secretaria/index.html?embedded=1"
-    ></iframe>
-  </div>
 </main>
 
 <footer>
@@ -473,8 +464,6 @@
         { nombre: 'Aprobación de Grado', status: 'ok' },
         { nombre: 'Solicitud de Grado — Estudiantes', status: 'link', href: 'titulacion/index.html' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
-        { nombre: 'Ceremonias de Grado — Secretaría', status: 'ok' },
-        { nombre: 'Radicación de Grado — Estudiantes', status: 'link', href: 'grados/radicacion/index.html' },
       ],
     },
     {
@@ -532,7 +521,6 @@
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Grado') abrirSubsistema('viewTitulacion', 'Aprobación de Grado');
-          else if (item.status === 'ok' && item.nombre === 'Ceremonias de Grado — Secretaría') abrirSubsistema('viewGrados', 'Ceremonias de Grado');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
           else if (item.status === 'link') window.location.href = item.href;
           else showToast(`«${item.nombre}» aún no está construido — próxima fase.`);
