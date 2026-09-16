@@ -1,7 +1,8 @@
 // shared/spConfig.js
+// IMPORTANTE: reemplaza SHAREPOINT_SITE por la URL real de tu sitio antes de usar.
+// Formato: "tutenant.sharepoint.com:/sites/NombreDelSitio"
 
-// Sitio raíz de SharePoint (sin /sites/ porque la lista vive en el sitio principal del tenant)
-export const SHAREPOINT_SITE = "escuelanaval.sharepoint.com";
+export const SHAREPOINT_SITE = "TUTENANT.sharepoint.com:/sites/PortalENAP";
 
 export const LISTS = {
   PERMISOS: "ENAP_Permisos_Usuarios",

@@ -15,18 +15,9 @@ function mapCeremonia(item) {
   };
 }
 
-// Convierte el valor de un <input type="datetime-local"> (ej. "2026-09-20T14:00")
-// al formato ISO completo con segundos y zona horaria que SharePoint exige
-// (ej. "2026-09-20T14:00:00.000Z"). Sin esto, Graph responde 400 Bad Request.
-function aISOCompleto(valorFormulario) {
-  return new Date(valorFormulario).toISOString();
-}
-
 export async function listarCeremonias() {
-  const items = await getListItems(LISTS.CEREMONIAS);
-  const ceremonias = items.map(mapCeremonia);
-  ceremonias.sort((a, b) => new Date(b.fechaCeremonia) - new Date(a.fechaCeremonia));
-  return ceremonias;
+  const items = await getListItems(LISTS.CEREMONIAS, "&$orderby=fields/FechaCeremonia desc");
+  return items.map(mapCeremonia);
 }
 
 export async function listarCeremoniasVigentes() {
@@ -41,9 +32,9 @@ export async function listarCeremoniasVigentes() {
 export async function crearCeremonia(data, usuario) {
   const created = await createListItem(LISTS.CEREMONIAS, {
     Title: data.nombre,
-    FechaCeremonia: aISOCompleto(data.fechaCeremonia),
-    InicioRecepcion: aISOCompleto(data.inicioRecepcion),
-    CierreRecepcion: aISOCompleto(data.cierreRecepcion),
+    FechaCeremonia: data.fechaCeremonia,
+    InicioRecepcion: data.inicioRecepcion,
+    CierreRecepcion: data.cierreRecepcion,
     Estado: data.estado || "Activa",
   });
 
@@ -64,9 +55,9 @@ export async function actualizarCeremonia(itemId, data, usuario) {
 
   await updateListItem(LISTS.CEREMONIAS, itemId, {
     Title: data.nombre,
-    FechaCeremonia: aISOCompleto(data.fechaCeremonia),
-    InicioRecepcion: aISOCompleto(data.inicioRecepcion),
-    CierreRecepcion: aISOCompleto(data.cierreRecepcion),
+    FechaCeremonia: data.fechaCeremonia,
+    InicioRecepcion: data.inicioRecepcion,
+    CierreRecepcion: data.cierreRecepcion,
     Estado: data.estado,
   });
 
@@ -86,13 +77,11 @@ export async function actualizarCeremonia(itemId, data, usuario) {
 export async function historialDeCeremonia(ceremoniaId) {
   const items = await getListItems(
     LISTS.HISTORIAL_CEREMONIAS,
-    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'`
+    `&$filter=fields/CeremoniaId eq '${ceremoniaId}'&$orderby=fields/FechaCambio desc`
   );
-  const historial = items.map((i) => ({
+  return items.map((i) => ({
     accion: i.fields.Accion,
     usuario: i.fields.UsuarioResponsable,
     fecha: i.fields.FechaCambio,
   }));
-  historial.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  return historial;
 }

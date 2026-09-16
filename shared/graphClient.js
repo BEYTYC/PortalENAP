@@ -1,13 +1,11 @@
 // shared/graphClient.js
 
-import { msalInstance, loginScopes, msalReady } from "./msalConfig.js";
+import { msalInstance, loginScopes } from "./msalConfig.js";
 import { SHAREPOINT_SITE } from "./spConfig.js";
 
 let cachedSiteId = null;
 
 export async function getAccessToken() {
-  await msalReady;
-
   const account = msalInstance.getAllAccounts()[0];
   if (!account) throw new Error("No hay una sesión activa.");
 
@@ -30,10 +28,6 @@ async function graphFetch(endpoint, options = {}) {
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
-      // Necesario para poder filtrar ($filter) por columnas de SharePoint
-      // que no están indexadas (como "Estado" o "Rol"). Sin esto, Graph
-      // responde 400 Bad Request en cualquier consulta con $filter.
-      "Prefer": "HonorNonIndexedQueriesWarningMayFailRandomly",
       ...(options.headers || {}),
     },
   });
