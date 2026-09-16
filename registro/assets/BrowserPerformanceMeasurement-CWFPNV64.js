@@ -1,0 +1,1 @@
+import{BrowserPerformanceMeasurement as e}from"./dist-BhPycIWN.js";export{e as BrowserPerformanceMeasurement};

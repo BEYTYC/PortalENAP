@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="robots" content="noindex" />
+<!-- Título deliberado (lo pide Microsoft en la documentación del "redirect
+     bridge"): evita que el hash con el código de autorización quede visible
+     como título de la pestaña/ventana en el historial del navegador. -->
+<title>Iniciando sesión</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: #0a2540;
+    color: #ffffff;
+  }
+</style>
+</head>
+<body>
+<!--
+  PÁGINA PUENTE DE MSAL ("redirect bridge") — NO ES UNA PANTALLA DEL PORTAL.
+
+  A partir de @azure/msal-browser v5, el flujo de "loginPopup" necesita que
+  la ventana emergente vuelva a ESTA página mínima (no al index.html
+  completo). Esta página solo hace una cosa: toma la respuesta de Microsoft
+  que viene en la URL y la manda por un BroadcastChannel a la pestaña
+  principal (broadcastResponseToMainFrame), que es justo el mecanismo que
+  usa MSAL v5 para cerrar la ventana emergente sola — ya no depende de
+  window.opener, así que no lo rompen las políticas COOP.
+
+  Por eso el redirectUri de la app apunta aquí y no a index.html: si apunta
+  a index.html, todo el Portal se vuelve a cargar dentro del popup (el bug
+  que veníamos arrastrando) y esa comunicación nunca ocurre.
+
+  IMPORTANTE: esta URL exacta (https://enap.vercel.app/redirect.html) debe
+  agregarse como Redirect URI (tipo SPA) en el App Registration de Entra ID
+  ("Registro de Cursos de Extensión — ENAP"), o Microsoft va a rechazar el
+  login con "redirect_uri_mismatch".
+-->
+<p>Procesando el inicio de sesión…</p>
+<script src="msal-redirect-bridge.min.js"></script>
+<script>
+  window.msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
+    console.error('[PortalENAP] Error en el puente de redireccion de MSAL:', error);
+  });
+</script>
+</body>
+</html>
