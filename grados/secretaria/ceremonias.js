@@ -11,8 +11,27 @@ const alerta = document.getElementById("alerta");
 const loading = document.getElementById("loading");
 const tablaContainer = document.getElementById("tabla-container");
 const formContainer = document.getElementById("form-container");
+const btnVolver = document.getElementById("btn-volver");
 
 let usuarioActual = null;
+
+// Detecta si esta página fue cargada dentro de un iframe del portal
+// (Portal Estadístico ENAP) mediante el parámetro ?embedded=1, igual
+// que hacen los demás módulos (registro, titulacion).
+const embebido = new URLSearchParams(window.location.search).get("embedded") === "1";
+
+if (embebido) {
+  btnVolver.hidden = false;
+  btnVolver.addEventListener("click", () => {
+    // Mismo origen: se puede llamar directo a la función del portal.
+    if (window.parent && typeof window.parent.volverAlPortal === "function") {
+      window.parent.volverAlPortal();
+    } else {
+      // Respaldo por si el portal está en otro origen algún día.
+      window.parent.postMessage("volverAlInicio", "*");
+    }
+  });
+}
 
 function mostrarAlerta(msg, tipo = "error") {
   alerta.textContent = msg;
