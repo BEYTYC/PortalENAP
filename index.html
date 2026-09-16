@@ -18,9 +18,74 @@
     margin:0; background:var(--bg); color:var(--text);
     font-family:"Aptos Display", Aptos, "Segoe UI Variable Text", "Segoe UI", "Libre Franklin", system-ui, sans-serif;
     font-weight:400;
-    display:grid; grid-template-rows:auto auto 1fr auto;
     height:100vh; height:100dvh;
     overflow:hidden;
+  }
+  /* El portal en sí (cabecera+menú+contenido+pie) solo se muestra
+     después de iniciar sesión. Antes vivía directo en body con este
+     grid; ahora vive en #portalShell para poder ocultarlo entero
+     detrás de la pantalla de login. */
+  #portalShell{
+    display:grid; grid-template-rows:auto auto 1fr auto;
+    height:100%;
+  }
+  #portalShell[hidden]{ display:none; }
+
+  /* ---------- Pantalla de login institucional ---------- */
+  #loginGate{
+    height:100%; display:grid; grid-template-columns:1.05fr 1fr;
+    font-family: inherit;
+  }
+  #loginGate[hidden]{ display:none; }
+  #loginGate .panel-brand{
+    position:relative; overflow:hidden;
+    background:linear-gradient(160deg, var(--navy-950) 0%, var(--navy-800) 60%, var(--navy-700) 100%);
+    color:#fff; display:flex; flex-direction:column; justify-content:space-between; padding:60px 56px;
+  }
+  #loginGate .panel-brand::before{
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background-image:repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0px, rgba(255,255,255,.035) 1px, transparent 1px, transparent 64px);
+  }
+  #loginGate .panel-brand::after{
+    content:''; position:absolute; right:-60px; bottom:-60px; width:420px; height:420px;
+    background:url("shared/assets/logo-enap.png") no-repeat center / contain;
+    opacity:.06; filter:grayscale(1) brightness(3); pointer-events:none;
+  }
+  #loginGate .brand-mark{ position:relative; display:flex; align-items:center; gap:18px; }
+  #loginGate .brand-mark img{ height:92px; width:auto; flex-shrink:0; }
+  #loginGate .brand-mark-text{ display:flex; flex-direction:column; gap:4px; }
+  #loginGate .brand-mark-text .escuela{ font-size:13px; font-weight:700; letter-spacing:.04em; color:#ddb84f; }
+  #loginGate .brand-mark-text .oficina{ font-size:12px; font-weight:500; letter-spacing:.06em; color:rgba(255,255,255,.55); text-transform:uppercase; }
+  #loginGate .eyebrow{ position:relative; display:inline-block; font-size:12px; font-weight:600; color:var(--gold-500); letter-spacing:.02em; margin-bottom:18px; }
+  #loginGate .brand-heading{ position:relative; max-width:460px; }
+  #loginGate .brand-heading .gold-rule{ width:56px; height:3px; background:var(--gold-500); border-radius:2px; margin-bottom:22px; }
+  #loginGate .brand-heading h1{ font-size:36px; font-weight:700; line-height:1.18; letter-spacing:-0.01em; }
+  #loginGate .brand-heading p{ margin-top:16px; font-size:15px; line-height:1.6; color:rgba(255,255,255,.72); font-weight:400; }
+  #loginGate .brand-footer{ position:relative; font-size:13px; color:rgba(255,255,255,.5); display:flex; align-items:center; gap:10px; }
+  #loginGate .brand-footer .dot{ width:5px; height:5px; border-radius:50%; background:var(--gold-500); }
+  #loginGate .panel-form{ position:relative; display:flex; align-items:center; justify-content:center; padding:40px; }
+  #loginGate .form-card{ width:100%; max-width:380px; }
+  #loginGate .form-card h2{ font-size:22px; font-weight:700; color:var(--text); }
+  #loginGate .form-card .subtitle{ margin-top:6px; font-size:14px; color:var(--text-muted); margin-bottom:36px; }
+  #loginGate #loginError{ display:none; margin-bottom:20px; background:#fdf2f2; border:1px solid #f3caca; border-radius:10px; padding:13px 16px; }
+  #loginGate #loginError.visible{ display:block; }
+  #loginGate #loginError p{ font-size:13.5px; color:#9b2c2c; line-height:1.5; }
+  #btnIniciarSesion{
+    width:100%; display:flex; align-items:center; justify-content:center; gap:10px;
+    background:var(--navy-800); color:#fff; border:none; border-bottom:2.5px solid var(--gold-600);
+    border-radius:10px; padding:14.5px 20px; font-family:inherit; font-size:14.5px; font-weight:600; cursor:pointer;
+  }
+  #btnIniciarSesion:hover:not(:disabled){ background:var(--navy-700); }
+  #btnIniciarSesion:disabled{ background:#9aa5b1; border-bottom-color:transparent; cursor:not-allowed; }
+  #btnIniciarSesion svg{ width:18px; height:18px; flex-shrink:0; }
+  #loginGate .form-footer{ margin-top:28px; font-size:12.5px; color:var(--text-muted); line-height:1.6; text-align:center; }
+  #loginGate .dev-credit{ position:absolute; right:24px; bottom:18px; font-size:11.5px; color:#9aa5b1; }
+  @media (max-width:860px){
+    #loginGate{ grid-template-columns:1fr; grid-template-rows:auto auto; }
+    #loginGate .panel-brand{ padding:40px 32px; min-height:280px; }
+    #loginGate .brand-heading h1{ font-size:27px; }
+    #loginGate .brand-mark img{ height:72px; }
+    #loginGate .dev-credit{ position:static; margin-top:32px; text-align:center; }
   }
   h1,h2,h3{text-wrap:balance; margin:0; font-weight:600;}
   button{font-family:inherit;}
@@ -289,7 +354,50 @@
 
   @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@3/lib/msal-browser.min.js"></script>
 
+<div id="loginGate">
+  <div class="panel-brand">
+    <div class="brand-mark">
+      <img src="shared/assets/logo-enap.png" alt="Escudo Escuela Naval de Cadetes Almirante Padilla"
+        onerror="this.style.display='none'" />
+      <div class="brand-mark-text">
+        <span class="escuela">ESCUELA NAVAL DE CADETES &ldquo;ALMIRANTE PADILLA&rdquo;</span>
+        <span class="oficina">Oficina de Estadística</span>
+      </div>
+    </div>
+    <div class="brand-heading">
+      <p class="eyebrow">Proyecto de Transformación Digital · Oficina de Estadística</p>
+      <div class="gold-rule"></div>
+      <h1>Portal Estadístico ENAP</h1>
+      <p>Plataforma institucional de gestión académica, desarrollada en el marco del Proyecto de Transformación Digital de la Oficina de Estadística. Acceso restringido a personal autorizado.</p>
+    </div>
+    <div class="brand-footer">
+      <span class="dot"></span>
+      <span>Cartagena de Indias, Colombia</span>
+    </div>
+  </div>
+  <div class="panel-form">
+    <div class="form-card">
+      <h2>Acceso al portal</h2>
+      <p class="subtitle">Inicia sesión con tu cuenta institucional para continuar</p>
+      <div id="loginError"><p id="loginErrorMsg"></p></div>
+      <button id="btnIniciarSesion">
+        <svg viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022" />
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00" />
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef" />
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900" />
+        </svg>
+        Iniciar sesión con cuenta institucional
+      </button>
+      <p class="form-footer">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
+    </div>
+    <p class="dev-credit">Desarrollado por: PD02 Beyty P. Camargo M.</p>
+  </div>
+</div>
+
+<div id="portalShell" hidden>
 <header class="masthead">
   <div class="deco" aria-hidden="true">
     <svg viewBox="0 0 300 110" preserveAspectRatio="xMaxYMid slice">
@@ -447,6 +555,7 @@
 </footer>
 
 <div class="toast" id="toast">Este módulo aún no está disponible.</div>
+</div><!-- /#portalShell -->
 
 <script>
   const ICONS = {
@@ -593,4 +702,50 @@
   }
 
   renderNav();
+</script>
+
+<script type="module">
+  import { login } from "./shared/authService.js";
+
+  const loginGate = document.getElementById("loginGate");
+  const portalShell = document.getElementById("portalShell");
+  const btnIniciarSesion = document.getElementById("btnIniciarSesion");
+  const loginError = document.getElementById("loginError");
+  const loginErrorMsg = document.getElementById("loginErrorMsg");
+
+  function mostrarPortal() {
+    loginGate.hidden = true;
+    portalShell.hidden = false;
+  }
+
+  // Si ya había una sesión de este usuario en esta pestaña (guardada por
+  // un login anterior), no le volvemos a pedir que inicie sesión.
+  const sesionGuardada = sessionStorage.getItem("enap_user");
+  if (sesionGuardada) {
+    mostrarPortal();
+  }
+
+  btnIniciarSesion.addEventListener("click", async () => {
+    loginError.classList.remove("visible");
+    btnIniciarSesion.disabled = true;
+    btnIniciarSesion.textContent = "Verificando credenciales...";
+
+    try {
+      const { user, roles } = await login();
+
+      if (roles.length === 0) {
+        throw new Error("Su cuenta no tiene roles activos asignados en el sistema. Contacte al administrador.");
+      }
+
+      sessionStorage.setItem("enap_user", JSON.stringify(user));
+      sessionStorage.setItem("enap_roles", JSON.stringify(roles));
+      mostrarPortal();
+    } catch (err) {
+      loginErrorMsg.textContent = err.message || "Ocurrió un error al iniciar sesión.";
+      loginError.classList.add("visible");
+    } finally {
+      btnIniciarSesion.disabled = false;
+      btnIniciarSesion.textContent = "Iniciar sesión con cuenta institucional";
+    }
+  });
 </script>
