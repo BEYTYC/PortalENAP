@@ -1026,6 +1026,10 @@
   }
 
   const SHAREPOINT_HOSTNAME = 'escuelanaval.sharepoint.com';
+  // Sitio dedicado creado para centralizar Titulacion (ENAP_Ceremonias,
+  // ENAP_Solicitudes, ENAP_Bitacora_Titulacion, ENAP_Permisos_Usuarios, etc.
+  // ya no viven en el sitio raiz del tenant, sino aqui).
+  const SHAREPOINT_SITE_PATH = 'sites/TitulacionENAP';
   const LISTA_PERMISOS = 'ENAP_Permisos_Usuarios';
   const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
@@ -1085,8 +1089,8 @@
 
   async function resolverSiteId(cuenta) {
     const token = await adquirirToken(graphSpRequest.scopes, cuenta);
-    const resp = await fetch(`${GRAPH_BASE}/sites/${SHAREPOINT_HOSTNAME}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!resp.ok) throw new Error(`No se pudo resolver el sitio de SharePoint "${SHAREPOINT_HOSTNAME}" (${resp.status}).`);
+    const resp = await fetch(`${GRAPH_BASE}/sites/${SHAREPOINT_HOSTNAME}:/${SHAREPOINT_SITE_PATH}:`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) throw new Error(`No se pudo resolver el sitio de SharePoint "${SHAREPOINT_HOSTNAME}/${SHAREPOINT_SITE_PATH}" (${resp.status}).`);
     return (await resp.json()).id;
   }
 
