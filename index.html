@@ -554,6 +554,7 @@
   .panel-app__modal-eyebrow svg{width:14px; height:14px; flex:none;}
   .panel-app__modal h3{margin:0 0 4px; color:#0a2540; font-size:1.22rem; font-weight:700; letter-spacing:-.01em;}
   .panel-app__modal-sub{margin:0 0 20px; color:#64748b; font-size:.82rem; line-height:1.5;}
+  .panel-app__hint{margin:6px 0 0; color:#64748b; font-size:.78rem; line-height:1.45;}
   .panel-app__modal-fields{display:flex; flex-direction:column; gap:16px;}
   .panel-app__modal-fields > div{display:flex; flex-direction:column; gap:6px;}
   .panel-app__modal-fields > .panel-app__modal-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
@@ -721,9 +722,17 @@
           <input type="date" id="sacFechaCeremonia" />
         </div>
         <div>
-          <label for="sacFechaLimite">Fecha límite de documentos</label>
-          <input type="date" id="sacFechaLimite" />
+          <label for="sacFechaLimiteSolicitud">Fecha límite de solicitud del estudiante</label>
+          <input type="date" id="sacFechaLimiteSolicitud" />
         </div>
+      </div>
+      <div>
+        <!-- Cargue de documentos + aval del decano de cada facultad. Antes se
+             llamaba "Fecha límite de documentos"; se deja el mismo nombre
+             interno de columna en SharePoint (FechaLimiteDocumentos) para no
+             romper lo ya guardado, solo cambia la etiqueta visible. -->
+        <label for="sacFechaLimite">Fecha límite de validación de facultades (documentos y aval del decano)</label>
+        <input type="date" id="sacFechaLimite" />
       </div>
       <div>
         <label for="sacEstado">Estado</label>
@@ -732,6 +741,11 @@
           <option value="Activa">Activa</option>
           <option value="Cerrada">Cerrada</option>
         </select>
+        <p class="panel-app__hint">
+          Esto es solo informativo: si la ceremonia aparece disponible para el
+          estudiante ya NO depende de este campo, sino únicamente de si hoy es
+          antes o después de la "Fecha límite de solicitud del estudiante".
+        </p>
       </div>
       <div>
         <label for="sacObservaciones">Observaciones</label>
@@ -1392,10 +1406,22 @@
   // de ENAP_Ceremonias. Asumo estas columnas, con sus NOMBRES INTERNOS
   // de SharePoint (que pueden no coincidir con el nombre visible si la
   // columna se creo con espacios o tildes):
-  //   Title                  -> Nombre de la ceremonia
-  //   FechaCeremonia         -> Fecha de la ceremonia (Date)
-  //   FechaLimiteDocumentos  -> Fecha limite de documentos (Date)
-  //   Estado                 -> "Activa" | "Cerrada" | "Borrador" (texto)
+  //   Title                       -> Nombre de la ceremonia
+  //   FechaCeremonia              -> Fecha de la ceremonia (Date)
+  //   FechaLimiteSolicitudEstudiante -> Fecha limite de solicitud del estudiante (Date) —
+  //                                  esta es la que decide si la ceremonia sale
+  //                                  ACTIVA o en gris en el Portal del estudiante
+  //                                  (hoy <= esta fecha => activa), ver api/ceremonia.js
+  //                                  en el proyecto "titulacion".
+  //   FechaLimiteDocumentos       -> Fecha limite de VALIDACION DE FACULTADES:
+  //                                  cargue de documentos + aval del decano
+  //                                  (Date) — nombre interno sin cambiar para no
+  //                                  romper lo ya guardado; la etiqueta visible
+  //                                  del formulario ya dice "validación de
+  //                                  facultades".
+  //   Estado                 -> "Activa" | "Cerrada" | "Borrador" (texto,
+  //                              SOLO INFORMATIVO -- ya no decide si el
+  //                              estudiante ve la ceremonia disponible)
   //   Observaciones          -> texto libre
   // Verifica estos nombres internos en SharePoint (Configuracion de la
   // lista -> Columnas -> abrir cada columna: el nombre interno sale en
@@ -1490,6 +1516,7 @@
     const c = (ceremoniaExistente && ceremoniaExistente.fields) || {};
     document.getElementById('sacNombre').value = c.Title || '';
     document.getElementById('sacFechaCeremonia').value = (c.FechaCeremonia || '').slice(0, 10);
+    document.getElementById('sacFechaLimiteSolicitud').value = (c.FechaLimiteSolicitudEstudiante || '').slice(0, 10);
     document.getElementById('sacFechaLimite').value = (c.FechaLimiteDocumentos || '').slice(0, 10);
     document.getElementById('sacEstado').value = c.Estado || 'Borrador';
     document.getElementById('sacObservaciones').value = c.Observaciones || '';
@@ -1525,11 +1552,17 @@
     errorEl.classList.remove('show');
     const nombre = document.getElementById('sacNombre').value.trim();
     const fechaCeremonia = document.getElementById('sacFechaCeremonia').value;
+    const fechaLimiteSolicitud = document.getElementById('sacFechaLimiteSolicitud').value;
     const fechaLimite = document.getElementById('sacFechaLimite').value;
     const estado = document.getElementById('sacEstado').value;
     const observaciones = document.getElementById('sacObservaciones').value.trim();
     if (!nombre) {
       errorEl.textContent = 'El nombre de la ceremonia es obligatorio.';
+      errorEl.classList.add('show');
+      return;
+    }
+    if (!fechaCeremonia || !fechaLimiteSolicitud || !fechaLimite) {
+      errorEl.textContent = 'Las 3 fechas son obligatorias: fecha de la ceremonia, fecha límite de solicitud del estudiante y fecha límite de validación de facultades.';
       errorEl.classList.add('show');
       return;
     }
@@ -1555,7 +1588,8 @@
       const camposDeseados = [
         { valor: nombre, candidatos: ['Title', 'Nombre', 'Nombre de la ceremonia'], etiqueta: 'Nombre' },
         { valor: fechaCeremonia || null, candidatos: ['FechaCeremonia', 'Fecha de la ceremonia', 'Fecha_ceremonia'], etiqueta: 'Fecha de la ceremonia' },
-        { valor: fechaLimite || null, candidatos: ['FechaLimiteDocumentos', 'Fecha limite de documentos', 'Fecha limite', 'FechaLimite'], etiqueta: 'Fecha límite de documentos' },
+        { valor: fechaLimiteSolicitud || null, candidatos: ['FechaLimiteSolicitudEstudiante', 'Fecha limite de solicitud del estudiante', 'Fecha limite solicitud estudiante'], etiqueta: 'Fecha límite de solicitud del estudiante' },
+        { valor: fechaLimite || null, candidatos: ['FechaLimiteDocumentos', 'Fecha limite de validacion de facultades', 'Fecha limite de documentos', 'Fecha limite', 'FechaLimite'], etiqueta: 'Fecha límite de validación de facultades' },
         { valor: estado, candidatos: ['Estado'], etiqueta: 'Estado' },
         { valor: observaciones, candidatos: ['Observaciones'], etiqueta: 'Observaciones' },
       ];
