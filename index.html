@@ -1087,17 +1087,30 @@
     return resp.json();
   }
 
+  // ---------------------------------------------------------------
+  // Errores de Graph CON el codigo HTTP adjunto (err.status), para poder
+  // distinguir despues "no tienes permiso" (403) de "no existe" (404) de
+  // un fallo real, y traducirlos a un mensaje entendible en vez de dejar
+  // la pantalla colgada o en blanco. Ver mensajeErrorGraph() mas abajo.
+  // ---------------------------------------------------------------
+  function errorGraph(status, contexto, detalle) {
+    const err = new Error(`${contexto} (${status}).${detalle ? ' ' + detalle : ''}`);
+    err.status = status;
+    err.contexto = contexto;
+    return err;
+  }
+
   async function resolverSiteId(cuenta) {
     const token = await adquirirToken(graphSpRequest.scopes, cuenta);
     const resp = await fetch(`${GRAPH_BASE}/sites/${SHAREPOINT_HOSTNAME}:/${SHAREPOINT_SITE_PATH}:`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!resp.ok) throw new Error(`No se pudo resolver el sitio de SharePoint "${SHAREPOINT_HOSTNAME}/${SHAREPOINT_SITE_PATH}" (${resp.status}).`);
+    if (!resp.ok) throw errorGraph(resp.status, `No se pudo resolver el sitio de SharePoint "${SHAREPOINT_HOSTNAME}/${SHAREPOINT_SITE_PATH}"`);
     return (await resp.json()).id;
   }
 
   async function resolverListaId(siteId, cuenta) {
     const token = await adquirirToken(graphSpRequest.scopes, cuenta);
     const resp = await fetch(`${GRAPH_BASE}/sites/${siteId}/lists/${encodeURIComponent(LISTA_PERMISOS)}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!resp.ok) throw new Error(`No se pudo encontrar la lista "${LISTA_PERMISOS}" en el sitio (${resp.status}).`);
+    if (!resp.ok) throw errorGraph(resp.status, `No se pudo encontrar la lista "${LISTA_PERMISOS}" en el sitio`);
     return (await resp.json()).id;
   }
 
@@ -1116,7 +1129,7 @@
     const filas = [];
     while (url) {
       const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!resp.ok) throw new Error(`No se pudo leer la lista "${LISTA_PERMISOS}" (${resp.status}).`);
+      if (!resp.ok) throw errorGraph(resp.status, `No se pudo leer la lista "${LISTA_PERMISOS}"`);
       const data = await resp.json();
       filas.push(...(data.value || []));
       url = data['@odata.nextLink'] || null;
@@ -1179,7 +1192,7 @@
     if (cacheListaId[nombreLista]) return cacheListaId[nombreLista];
     const token = await adquirirToken(graphSpRequest.scopes, cuenta);
     const resp = await fetch(`${GRAPH_BASE}/sites/${siteId}/lists/${encodeURIComponent(nombreLista)}`, { headers: { Authorization: `Bearer ${token}` } });
-    if (!resp.ok) throw new Error(`No se pudo encontrar la lista "${nombreLista}" en el sitio (${resp.status}).`);
+    if (!resp.ok) throw errorGraph(resp.status, `No se pudo encontrar la lista "${nombreLista}" en el sitio`);
     const id = (await resp.json()).id;
     cacheListaId[nombreLista] = id;
     return id;
@@ -1193,7 +1206,7 @@
     const filas = [];
     while (url) {
       const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-      if (!resp.ok) throw new Error(`No se pudo leer la lista "${nombreLista}" (${resp.status}).`);
+      if (!resp.ok) throw errorGraph(resp.status, `No se pudo leer la lista "${nombreLista}"`);
       const data = await resp.json();
       filas.push(...(data.value || []));
       url = data['@odata.nextLink'] || null;
@@ -1210,7 +1223,7 @@
     });
     if (!resp.ok) {
       const detalle = await resp.text().catch(() => '');
-      throw new Error(`No se pudo crear el elemento (${resp.status}). ${detalle}`);
+      throw errorGraph(resp.status, 'No se pudo crear el elemento', detalle);
     }
     return resp.json();
   }
@@ -1224,6 +1237,32 @@
   // Columnas -> abrir la columna -> se lee en la URL como "Field=...".
   function mensajeErrorGraph(error) {
     const bruto = error instanceof Error ? error.message : String(error);
+    const status = error && error.status;
+
+    // 403 -- el sitio/lista existe, pero la cuenta con la que se inicio
+    // sesion no es miembro del sitio de SharePoint. No es un error de
+    // codigo ni algo que se arregle reintentando: hay que agregar esa
+    // cuenta como miembro del sitio, o entrar con otra que si lo sea.
+    if (status === 403) {
+      const correoActual = (window.PortalENAP && window.PortalENAP.sesion
+        && window.PortalENAP.sesion.perfil
+        && (window.PortalENAP.sesion.perfil.mail || window.PortalENAP.sesion.perfil.userPrincipalName)) || '';
+      return `No tienes permisos de acceso en el sitio de SharePoint "${SHAREPOINT_SITE_PATH}"`
+        + (correoActual ? ` con la cuenta ${correoActual}` : '')
+        + `. Verifica que esa cuenta esté agregada como miembro del sitio `
+        + `(https://${SHAREPOINT_HOSTNAME}/${SHAREPOINT_SITE_PATH} → ⚙️ → Permisos del sitio → Agregar miembros), `
+        + `o cierra sesión y entra con otra cuenta que sí tenga acceso.`;
+    }
+
+    // 404 -- la cuenta puede entrar, pero el sitio o la lista no estan
+    // donde el codigo los busca (se movieron, se renombraron, o todavia
+    // no se han creado).
+    if (status === 404) {
+      return `No se encontró en SharePoint lo que el Portal está buscando: ${error.contexto || bruto}. `
+        + `Revisa que el sitio "${SHAREPOINT_SITE_PATH}" y esa lista existan con ese nombre exacto `
+        + `(si se movieron o se renombraron, hay que actualizarlo en el código).`;
+    }
+
     const m = bruto.match(/Field '([^']+)' is not recognized/i);
     if (m) {
       return `La columna interna "${m[1]}" no existe en esa lista de SharePoint (o tiene otro nombre interno). `
@@ -1251,7 +1290,7 @@
     const resp = await fetch(`${GRAPH_BASE}/sites/${siteId}/lists/${listaId}/columns?$select=name,displayName`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    if (!resp.ok) throw new Error(`No se pudieron leer las columnas de la lista (${resp.status}).`);
+    if (!resp.ok) throw errorGraph(resp.status, 'No se pudieron leer las columnas de la lista');
     const columnas = (await resp.json()).value || [];
     cacheColumnasLista[clave] = columnas;
     return columnas;
@@ -1289,7 +1328,7 @@
     });
     if (!resp.ok) {
       const detalle = await resp.text().catch(() => '');
-      throw new Error(`No se pudo actualizar el elemento (${resp.status}). ${detalle}`);
+      throw errorGraph(resp.status, 'No se pudo actualizar el elemento', detalle);
     }
     return resp.json();
   }
@@ -1343,7 +1382,7 @@
       adminEstadoLista = { siteId, listaId, filas };
       pintarTablaAdmin();
     } catch (error) {
-      document.getElementById('adminTablaBody').innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${error instanceof Error ? error.message : String(error)}</td></tr>`;
+      document.getElementById('adminTablaBody').innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${mensajeErrorGraph(error)}</td></tr>`;
     }
   }
 
@@ -1441,6 +1480,8 @@
     const cuentas = (await getMsal()).getAllAccounts();
     if (!cuentas.length) return;
     selector.innerHTML = '<option value="">Cargando ceremonias…</option>';
+    const avisoPrevio = document.getElementById('sacAvisoCeremonias');
+    if (avisoPrevio) avisoPrevio.remove();
     try {
       const { siteId, listaId, filas } = await leerFilasDeLista(LISTA_CEREMONIAS, cuentas[0]);
       ceremoniasEstadoLista = { siteId, listaId, filas };
@@ -1456,7 +1497,20 @@
       }).join('');
       actualizarBadgeSolicitudes(selector.value);
     } catch (error) {
-      selector.innerHTML = '<option value="">Error al cargar ceremonias</option>';
+      // Antes esto solo quedaba en la consola y el usuario veia un selector
+      // vacio sin explicacion. Ahora el motivo real (sin permisos, lista
+      // inexistente, etc.) se muestra en pantalla.
+      const mensaje = mensajeErrorGraph(error);
+      selector.innerHTML = '<option value="">No se pudieron cargar las ceremonias</option>';
+      const avisoId = 'sacAvisoCeremonias';
+      let aviso = document.getElementById(avisoId);
+      if (!aviso) {
+        aviso = document.createElement('p');
+        aviso.id = avisoId;
+        aviso.style.cssText = 'margin:8px 0 0;color:#b3261e;font-size:.82rem;line-height:1.45;';
+        if (selector.parentElement) selector.parentElement.appendChild(aviso);
+      }
+      aviso.textContent = mensaje;
       console.error('[PortalENAP] Error cargando ' + LISTA_CEREMONIAS + ':', error);
     }
   }
@@ -1592,7 +1646,7 @@
       const camposDeseados = [
         { valor: nombre, candidatos: ['Title', 'Nombre', 'Nombre de la ceremonia'], etiqueta: 'Nombre' },
         { valor: fechaCeremonia || null, candidatos: ['FechaCeremonia', 'Fecha de la ceremonia', 'Fecha_ceremonia'], etiqueta: 'Fecha de la ceremonia' },
-        { valor: fechaLimiteSolicitud || null, candidatos: ['FechaLimiteSolicitudEstudiante', 'Fecha limite de solicitud del estudiante', 'Fecha limite solicitud estudiante'], etiqueta: 'Fecha límite de solicitud del estudiante' },
+        { valor: fechaLimiteSolicitud || null, candidatos: ['FechaLimiteSolicitud', 'FechaLimiteSolicitudEstudiante', 'Fecha limite de solicitud', 'Fecha limite de solicitud del estudiante', 'Fecha limite solicitud estudiante', 'FechaLimiteEstudiante'], etiqueta: 'Fecha límite de solicitud del estudiante' },
         { valor: fechaLimite || null, candidatos: ['FechaLimiteDocumentos', 'Fecha limite de validacion de facultades', 'Fecha limite de documentos', 'Fecha limite', 'FechaLimite'], etiqueta: 'Fecha límite de validación de facultades' },
         { valor: estado, candidatos: ['Estado'], etiqueta: 'Estado' },
         { valor: observaciones, candidatos: ['Observaciones'], etiqueta: 'Observaciones' },
@@ -1851,7 +1905,14 @@
     mostrarCargando(true);
     try {
       const instance = await getMsal();
-      const resultado = await instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI });
+      // prompt: 'select_account' -- obliga a Azure AD a mostrar SIEMPRE el
+      // selector de cuentas (incluida la opcion "Usar otra cuenta"), en vez
+      // de reutilizar en silencio la sesion de Microsoft que ya este activa
+      // en ese navegador. Sin esto, si alguien ya inicio sesion antes (con
+      // su cuenta personal o con otra institucional) en esa misma maquina,
+      // el popup entraba directo con esa cuenta sin dar oportunidad de
+      // cambiar.
+      const resultado = await instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
       if (resultado && resultado.account) {
         const sesion = await obtenerRolesUsuario(resultado.account);
         window.PortalENAP.sesion = sesion;
@@ -1860,7 +1921,12 @@
         mostrarVistasSegunSesion(sesion);
       }
     } catch (error) {
-      mostrarError(error instanceof Error ? error.message : String(error));
+      // Cualquier fallo aqui (403 por cuenta sin acceso al sitio, 404 por
+      // lista inexistente, etc.) deja la pantalla de login visible con el
+      // mensaje traducido -- asi el usuario puede simplemente volver a
+      // pulsar "Iniciar sesion" y elegir OTRA cuenta en el selector, en vez
+      // de quedarse con una pantalla colgada o un error crudo de Graph.
+      mostrarError(mensajeErrorGraph(error));
     } finally {
       mostrarCargando(false);
     }
