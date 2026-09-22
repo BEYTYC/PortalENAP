@@ -1177,15 +1177,32 @@
     return Array.from(new Set(roles));
   }
 
+  // CAMBIO IMPORTANTE: antes esto leia ENAP_Permisos_Usuarios directamente
+  // desde el navegador con el permiso delegado de la propia persona, lo cual
+  // exigia -- ademas de tener un rol activo en la lista -- ser tambien
+  // miembro del sitio de SharePoint "TitulacionENAP". Eso iba en contra del
+  // diseño real: la lista de permisos debe ser la UNICA puerta de entrada,
+  // no un requisito extra encima de la membresia del sitio. Ahora esto llama
+  // a /api/roles (ver ese archivo), que corre en el servidor con
+  // credenciales de aplicacion -- asi cualquier cuenta institucional con un
+  // rol activo en la lista puede entrar al Portal, sin que nadie tenga que
+  // agregarla ademas como miembro de ningun sitio de SharePoint.
   async function obtenerRolesUsuario(cuenta) {
     const perfil = await obtenerPerfil(cuenta);
     const correo = perfil.mail || perfil.userPrincipalName;
     if (!correo) throw new Error('El usuario autenticado no tiene un correo asociado en su perfil de Microsoft.');
-    const siteId = await resolverSiteId(cuenta);
-    const listaId = await resolverListaId(siteId, cuenta);
-    const filas = await leerFilas(siteId, listaId, cuenta);
-    const roles = normalizarRoles(filas, correo);
-    if (roles.length === 0) {
+    const accessToken = await adquirirToken(loginRequest.scopes, cuenta);
+    const resp = await fetch('/api/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ correo, accessToken }),
+    });
+    if (!resp.ok) {
+      const detalle = await resp.json().catch(() => ({}));
+      throw errorGraph(resp.status, detalle.error || 'No se pudo consultar el rol del usuario', detalle.detail);
+    }
+    const { roles } = await resp.json();
+    if (!roles || roles.length === 0) {
       throw new Error(`El usuario "${correo}" no tiene roles activos asignados en "${LISTA_PERMISOS}". Contacte al administrador del Portal para que le asigne un rol.`);
     }
     return { perfil, roles };

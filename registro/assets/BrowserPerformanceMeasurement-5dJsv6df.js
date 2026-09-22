@@ -1,0 +1,1 @@
+import{BrowserPerformanceMeasurement as e}from"./dist-Cv_xEGfd.js";export{e as BrowserPerformanceMeasurement};
