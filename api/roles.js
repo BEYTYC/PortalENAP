@@ -122,16 +122,48 @@ async function resolveSiteId(token) {
 
 let cachedListId = null;
 
+function normalizar(texto) {
+  return String(texto || '').trim().toLowerCase();
+}
+
+/**
+ * OJO: una busqueda directa por nombre (GET /sites/{id}/lists/{nombre}) exige
+ * una coincidencia EXACTA contra el campo interno "name" de la lista, que en
+ * SharePoint puede ser distinto de su "displayName" visible (por ejemplo si
+ * la lista se creo con un nombre y luego se le cambio el titulo, o si se
+ * genero un sufijo interno al moverla/copiarla de sitio). Eso fue lo que
+ * causaba el error real reportado: "No se encontro la lista
+ * ENAP_Permisos_Usuarios en el sitio (404)" aunque la lista sí existiera con
+ * ese titulo visible. En su lugar, se enumeran TODAS las listas del sitio y
+ * se busca coincidencia por "name" O "displayName" (normalizados), igual que
+ * ya hace de forma probada el proyecto hermano "titulacion" en
+ * api/_lib/graphSharePoint.js.
+ */
 async function resolveListId(token, siteId) {
   if (cachedListId) return cachedListId;
-  const resp = await fetch(`${GRAPH_BASE}/sites/${siteId}/lists/${encodeURIComponent(LISTA_PERMISOS)}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  if (!resp.ok) {
-    throw errorConEstado(`No se encontró la lista "${LISTA_PERMISOS}" en el sitio (${resp.status}).`, 502, await resp.text());
+  const objetivo = normalizar(LISTA_PERMISOS);
+  const listas = [];
+  let url = `${GRAPH_BASE}/sites/${siteId}/lists?$select=id,name,displayName&$top=200`;
+  while (url) {
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) {
+      throw errorConEstado(`No se pudieron listar las listas del sitio (${resp.status}).`, 502, await resp.text());
+    }
+    const data = await resp.json();
+    listas.push(...(data.value || []));
+    url = data['@odata.nextLink'] || null;
   }
-  const data = await resp.json();
-  cachedListId = data.id;
+  const encontrada = listas.find(
+    (l) => normalizar(l.name) === objetivo || normalizar(l.displayName) === objetivo,
+  );
+  if (!encontrada) {
+    const disponibles = listas.map((l) => l.displayName || l.name).filter(Boolean).join(', ') || '(el sitio no tiene listas visibles con estas credenciales)';
+    throw errorConEstado(
+      `No se encontró la lista "${LISTA_PERMISOS}" en el sitio. Listas disponibles: ${disponibles}.`,
+      502,
+    );
+  }
+  cachedListId = encontrada.id;
   return cachedListId;
 }
 
