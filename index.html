@@ -160,6 +160,20 @@
     margin-left:auto; flex:none; width:8px; height:8px; border-radius:50%;
     background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.18);
   }
+  .dropdown button .chev-sub{ margin-left:auto; flex:none; transition:transform .15s ease; }
+  .dropdown button[aria-expanded="true"] .chev-sub{ transform:rotate(180deg); }
+
+  /* Submenu anidado (p. ej. "Descarga de Balances Académicos"): se despliega
+     debajo de su propio boton, dentro del mismo panel -- no es un flyout
+     lateral, para que funcione igual con mouse, teclado y tactil/movil. */
+  .subitems{ display:none; flex-direction:column; gap:0; padding:2px 0 4px 14px; }
+  .subitems.show{ display:flex; }
+  .subitems a{
+    display:flex; align-items:center; gap:8px; width:100%; text-align:left; text-decoration:none;
+    border-radius:8px; padding:6px 12px; font-size:12.5px; color:var(--text); cursor:pointer;
+  }
+  .subitems a:hover{ background:var(--navy-50); }
+  .subitems a .dl-icon{ flex:none; opacity:.6; }
 
   /* ---------- Contenido principal ---------- */
   main{
@@ -1729,6 +1743,16 @@
 
   let sesionEsSimulada = false;
 
+  // Parametro que sobrevive al reload de mas abajo para que, apenas vuelve a
+  // cargar la pagina despues de cerrar sesion, se abra DE UNA VEZ el selector
+  // de cuenta de Microsoft -- en vez de dejar al usuario mirando el Portal
+  // con el boton "Iniciar sesion" y tener que hacerle clic aparte. Es lo mas
+  // parecido a "que vuelva a la pagina de inicio de sesion de Microsoft" que
+  // se puede lograr sin reescribir todo el flujo de login (que hoy usa
+  // popup, no redireccion completa, a proposito -- ver comentarios de
+  // manejarLogin).
+  const PARAM_RELOGIN = 'reloginTrasCierre';
+
   async function manejarLogout() {
     if (sesionEsSimulada) {
       // Sesion de modo de pruebas: no hubo login real de MSAL, asi que no
@@ -1737,23 +1761,28 @@
       window.location.reload();
       return;
     }
+    const url = new URL(window.location.href);
+    url.searchParams.set(PARAM_RELOGIN, '1');
     try {
       const instance = await getMsal();
       // OJO -- postLogoutRedirectUri es a donde navega el POPUP de logout
       // antes de que MSAL lo cierre solo. Si aqui se pone REDIRECT_URI (el
       // Portal completo), el popup carga todo el Portal adentro y ya no se
       // cierra solo -- el mismo bug que el login, pero en logout. Por eso
-      // usa BRIDGE_REDIRECT_URI (redirect.html), igual que loginPopup.
+      // usa BRIDGE_REDIRECT_URI (redirect.html), igual que loginPopup -- y
+      // redirect.html ahora se cierra solo aunque sea un logout (ver ese
+      // archivo), que era el motivo real por el que esa ventana se quedaba
+      // abierta despues de cerrar sesion.
       await instance.logoutPopup({ postLogoutRedirectUri: BRIDGE_REDIRECT_URI, mainWindowRedirectUri: REDIRECT_URI });
       window.PortalENAP.sesion = null;
-      window.location.reload();
+      window.location.href = url.toString();
     } catch (error) {
       // Si el popup de cierre de sesion falla (bloqueado, cancelado, etc.)
       // igual limpiamos la sesion local y recargamos, para no dejar al
       // usuario atascado con el boton sin efecto.
       console.error('[PortalENAP] Error cerrando sesion:', error);
       window.PortalENAP.sesion = null;
-      window.location.reload();
+      window.location.href = url.toString();
     }
   }
 
@@ -1989,7 +2018,18 @@
     });
 
     activarModoPruebas();
-    procesarSesion();
+    procesarSesion().then(() => {
+      // Si venimos de un cierre de sesion (ver PARAM_RELOGIN en
+      // manejarLogout), y de verdad no quedo ninguna cuenta activa, se abre
+      // el selector de cuenta de Microsoft de inmediato, sin esperar a que
+      // el usuario le haga clic a "Iniciar sesion".
+      const url = new URL(window.location.href);
+      if (url.searchParams.get(PARAM_RELOGIN) === '1') {
+        url.searchParams.delete(PARAM_RELOGIN);
+        window.history.replaceState({}, '', url.toString());
+        if (!window.PortalENAP.sesion) manejarLogin();
+      }
+    });
   });
 })();
 </script>
@@ -2005,7 +2045,26 @@
     {
       key: 'facultades', nombre: 'Facultades', icon: 'facultades',
       items: [
-        { nombre: 'Generación de Balances', status: 'soon' },
+        {
+          nombre: 'Descarga de Balances Académicos', status: 'submenu',
+          sub: [
+            { nombre: 'Balance Administración', archivo: 'balances/Balance_Administracion.xlsm' },
+            { nombre: 'Balance Administración Marítima', archivo: 'balances/Balance_Administracion_Maritima.xlsm' },
+            { nombre: 'Balance Ciencias Náuticas — Puente', archivo: 'balances/Balance_Ciencias_Nauticas_Puente.xlsm' },
+            { nombre: 'Balance Ciencias Náuticas — Máquinas', archivo: 'balances/Balance_Ciencias_Nauticas_Maquinas.xlsm' },
+            { nombre: 'Balance Ciencias Navales — Oficiales Navales', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Navales.xlsm' },
+            { nombre: 'Balance Ciencias Navales — Oficiales de Infantería de Marina', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Infanteria_Marina.xlsm' },
+            { nombre: 'Balance Especialización en Gestión Logística', archivo: 'balances/Balance_Especializacion_Gestion_Logistica.xlsm' },
+            { nombre: 'Balance Especialización en Política y Estrategia Marítima', archivo: 'balances/Balance_Especializacion_Politica_Estrategia_Maritima.xlsm' },
+            { nombre: 'Balance Ingeniería Electrónica', archivo: 'balances/Balance_Ingenieria_Electronica.xlsm' },
+            { nombre: 'Balance Ingeniería Naval', archivo: 'balances/Balance_Ingenieria_Naval.xlsm' },
+            { nombre: 'Balance Maestría en Ingeniería Naval', archivo: 'balances/Balance_Maestria_Ingenieria_Naval.xltm' },
+            { nombre: 'Balance Maestría en Gestión Logística', archivo: 'balances/Balance_Maestria_Gestion_Logistica.xlsm' },
+            { nombre: 'Balance Maestría en Oceanografía', archivo: 'balances/Balance_Maestria_Oceanografia.xlsm' },
+            { nombre: 'Balance Oceanografía Física', archivo: 'balances/Balance_Oceanografia_Fisica.xlsm' },
+            { nombre: 'Balance Manual', archivo: 'balances/Balance_Manual.xlsx' },
+          ],
+        },
         // TEMPORAL: mientras el módulo de Titulación se publica como sitio
         // aparte (con su propio dominio y su backend en SharePoint — ver
         // DEPLOY.md / BACKEND_SHAREPOINT.md del proyecto "titulacion"), esta
@@ -2068,6 +2127,36 @@
         // tiene alguno de esos roles -- sin sesion, o sin ese rol, ni
         // siquiera aparecen en el menu.
         if (item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r))) continue;
+
+        // Submenu anidado (p. ej. "Descarga de Balances Académicos"): el
+        // boton solo abre/cierra su propia lista de enlaces de descarga
+        // dentro del mismo panel -- no navega a ningun lado por si mismo.
+        if (item.status === 'submenu') {
+          const btnSub = document.createElement('button');
+          btnSub.type = 'button';
+          btnSub.setAttribute('aria-expanded', 'false');
+          btnSub.innerHTML = `<span class="label">${item.nombre}</span>
+            <svg class="chev-sub" width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+          const lista = document.createElement('div');
+          lista.className = 'subitems';
+          for (const sub of item.sub) {
+            const a = document.createElement('a');
+            a.href = sub.archivo;
+            a.setAttribute('download', '');
+            a.innerHTML = `<svg class="dl-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${sub.nombre}</span>`;
+            a.addEventListener('click', () => closeAllNav());
+            lista.appendChild(a);
+          }
+          btnSub.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const abierto = lista.classList.toggle('show');
+            btnSub.setAttribute('aria-expanded', String(abierto));
+          });
+          dd.appendChild(btnSub);
+          dd.appendChild(lista);
+          continue;
+        }
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.innerHTML = item.status === 'ok'

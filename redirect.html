@@ -46,6 +46,20 @@
 <script>
   window.msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
     console.error('[PortalENAP] Error en el puente de redireccion de MSAL:', error);
+  }).then(function () {
+    // Respaldo: en un LOGOUT (logoutPopup), Microsoft trae aqui de vuelta
+    // sin ningun "hash" de respuesta que difundir (eso solo existe en login/
+    // renovacion de token) -- el puente de arriba no tiene nada que hacer y,
+    // sin este respaldo, la ventana se quedaba abierta para siempre mostrando
+    // "Procesando el inicio de sesion...". Si esta pagina es una ventana
+    // emergente (tiene "opener") y sigue abierta un instante despues, se
+    // cierra sola. Si ya se cerro por el puente de arriba (login normal),
+    // esto no hace nada.
+    setTimeout(function () {
+      if (window.opener) {
+        try { window.close(); } catch (e) { /* nada mas que hacer aqui */ }
+      }
+    }, 600);
   });
 </script>
 </body>
