@@ -101,6 +101,36 @@ async function validarCorreoAutenticado(userAccessToken, correoEsperado) {
 
 let cachedSiteId = null;
 
+function normalizar(texto) {
+  return String(texto || '').trim().toLowerCase();
+}
+
+/**
+ * Confirmado en producción (mismo caso que ya se documentó y resolvió en el
+ * proyecto hermano "titulacion"): la búsqueda por ruta
+ * `/sites/{hostname}:/sites/TitulacionENAP:` puede resolver, sin dar ningún
+ * error, un sitio equivocado -- un sitio raíz/antiguo del mismo hostname que
+ * quedó casi vacío, con solo la biblioteca "Documentos" por defecto -- en vez
+ * del sitio real donde viven las listas ENAP_*. Por eso no basta con que la
+ * llamada responda 200: hay que VERIFICAR que el sitio resuelto de verdad
+ * tenga la lista que buscamos, y si no la tiene, buscar entre todos los
+ * sitios visibles para esta aplicación hasta encontrar el que sí la tiene.
+ */
+async function listaExisteEnSitio(token, siteId, listName) {
+  const objetivo = normalizar(listName);
+  let url = `${GRAPH_BASE}/sites/${siteId}/lists?$select=name,displayName`;
+  while (url) {
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    for (const lista of data.value || []) {
+      if (normalizar(lista.name) === objetivo || normalizar(lista.displayName) === objetivo) return true;
+    }
+    url = data['@odata.nextLink'] || null;
+  }
+  return false;
+}
+
 async function resolveSiteId(token) {
   if (cachedSiteId) return cachedSiteId;
   const { GRAPH_SITE_ID, GRAPH_SITE_PATH } = process.env;
@@ -108,23 +138,93 @@ async function resolveSiteId(token) {
     cachedSiteId = GRAPH_SITE_ID.trim();
     return cachedSiteId;
   }
-  const ruta = (GRAPH_SITE_PATH && GRAPH_SITE_PATH.trim()) || DEFAULT_SITE_PATH;
-  const resp = await fetch(`${GRAPH_BASE}/sites/${SITE_HOSTNAME}:/${ruta.replace(/^\/+|\/+$/g, '')}:`, {
+  if (GRAPH_SITE_PATH) {
+    const ruta = GRAPH_SITE_PATH.trim().replace(/^\/+|\/+$/g, '');
+    const resp = await fetch(`${GRAPH_BASE}/sites/${SITE_HOSTNAME}:/${ruta}:`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!resp.ok) {
+      throw errorConEstado(`No se pudo resolver el sitio de SharePoint en la ruta configurada (GRAPH_SITE_PATH="${GRAPH_SITE_PATH}") (${resp.status}).`, 502, await resp.text());
+    }
+    const data = await resp.json();
+    cachedSiteId = data.id;
+    return cachedSiteId;
+  }
+
+  // Sin variables de entorno: se intenta el sitio dedicado conocido, pero
+  // SIEMPRE se verifica que de verdad tenga la lista de permisos antes de
+  // darlo por bueno.
+  const defaultResp = await fetch(`${GRAPH_BASE}/sites/${SITE_HOSTNAME}:/${DEFAULT_SITE_PATH}:`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  if (!resp.ok) {
-    throw errorConEstado(`No se pudo resolver el sitio de SharePoint "${ruta}" (${resp.status}).`, 502, await resp.text());
+  if (defaultResp.ok) {
+    const sitioDefecto = await defaultResp.json();
+    if (await listaExisteEnSitio(token, sitioDefecto.id, LISTA_PERMISOS)) {
+      cachedSiteId = sitioDefecto.id;
+      return cachedSiteId;
+    }
   }
-  const data = await resp.json();
-  cachedSiteId = data.id;
+
+  const raizResp = await fetch(`${GRAPH_BASE}/sites/${SITE_HOSTNAME}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!raizResp.ok) {
+    throw errorConEstado(`No se pudo resolver el sitio de SharePoint "${SITE_HOSTNAME}" (${raizResp.status}).`, 502, await raizResp.text());
+  }
+  const raiz = await raizResp.json();
+  if (await listaExisteEnSitio(token, raiz.id, LISTA_PERMISOS)) {
+    cachedSiteId = raiz.id;
+    return cachedSiteId;
+  }
+
+  // Ni el sitio dedicado ni el sitio raíz tienen la lista: se enumeran TODOS
+  // los sitios visibles para esta aplicación (search=*, el método
+  // documentado por Graph para listarlos) hasta encontrar el correcto.
+  let url = `${GRAPH_BASE}/sites?search=*&$select=id,displayName,webUrl&$top=50`;
+  while (url) {
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) break;
+    const data = await resp.json();
+    for (const sitio of data.value || []) {
+      if (sitio.id === raiz.id) continue;
+      if (await listaExisteEnSitio(token, sitio.id, LISTA_PERMISOS)) {
+        cachedSiteId = sitio.id;
+        return cachedSiteId;
+      }
+    }
+    url = data['@odata.nextLink'] || null;
+  }
+
+  // Respaldo final: sitios de equipo conectados a un grupo de Microsoft 365,
+  // que `search=*` a veces no indexa a tiempo.
+  let urlGrupos = `${GRAPH_BASE}/groups?$select=id,displayName&$top=100`;
+  while (urlGrupos) {
+    const resp = await fetch(urlGrupos, { headers: { Authorization: `Bearer ${token}` } });
+    if (!resp.ok) break;
+    const data = await resp.json();
+    for (const grupo of data.value || []) {
+      const sitioResp = await fetch(`${GRAPH_BASE}/groups/${grupo.id}/sites/root?$select=id,displayName,webUrl`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!sitioResp.ok) continue;
+      const sitio = await sitioResp.json();
+      if (sitio.id === raiz.id) continue;
+      if (await listaExisteEnSitio(token, sitio.id, LISTA_PERMISOS)) {
+        cachedSiteId = sitio.id;
+        return cachedSiteId;
+      }
+    }
+    urlGrupos = data['@odata.nextLink'] || null;
+  }
+
+  // Ningún sitio visible tiene la lista: se usa el sitio raíz de todas formas
+  // para que resolveListId() de más abajo siga dando un error de diagnóstico
+  // útil (con las listas que sí encontró) en vez de fallar aquí a oscuras.
+  cachedSiteId = raiz.id;
   return cachedSiteId;
 }
 
 let cachedListId = null;
-
-function normalizar(texto) {
-  return String(texto || '').trim().toLowerCase();
-}
 
 /**
  * OJO: una busqueda directa por nombre (GET /sites/{id}/lists/{nombre}) exige
