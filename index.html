@@ -2041,6 +2041,28 @@
     }
     const url = new URL(window.location.href);
     url.searchParams.set(PARAM_RELOGIN, '1');
+
+    // La promesa de logoutPopup() NO es confiable para distinguir "la
+    // persona cerro la ventana de Microsoft antes de terminar" de "si
+    // termino, y la ventana puente (redirect.html) se cerro sola" -- para
+    // MSAL, en este flujo concreto, las dos cosas terminan viendose igual
+    // (un popup que se cerro), asi que a veces rechaza la promesa aunque
+    // el cierre de sesion SI se haya completado del lado de Microsoft.
+    // Por eso no se confia en si logoutPopup() resuelve o falla: se confia
+    // en la marca que la propia pagina puente deja en localStorage apenas
+    // Microsoft la redirige de vuelta (ver redirect.html) -- eso solo pasa
+    // si el flujo de verdad llego hasta alla.
+    let bridgeAlcanzado = false;
+    function marcarBridgeAlcanzado(e) {
+      if (e.key === 'PortalENAP_bridgeAlcanzado') bridgeAlcanzado = true;
+    }
+    window.addEventListener('storage', marcarBridgeAlcanzado);
+
+    function cerrarSesionLocal() {
+      window.PortalENAP.sesion = null;
+      window.location.href = url.toString();
+    }
+
     try {
       const instance = await getMsal();
       // OJO -- postLogoutRedirectUri es a donde navega el POPUP de logout
@@ -2052,29 +2074,25 @@
       // archivo), que era el motivo real por el que esa ventana se quedaba
       // abierta despues de cerrar sesion.
       await instance.logoutPopup({ postLogoutRedirectUri: BRIDGE_REDIRECT_URI, mainWindowRedirectUri: REDIRECT_URI });
-      window.PortalENAP.sesion = null;
-      window.location.href = url.toString();
+      cerrarSesionLocal();
     } catch (error) {
-      // MSAL distingue un fallo real (popup bloqueado, red caida, etc.) de
-      // que la propia persona haya cerrado la ventana de Microsoft con la
-      // "X" antes de terminar de elegir/confirmar la cuenta -- ese segundo
-      // caso llega aqui como error "user_cancelled" (o un mensaje que menciona
-      // "cancel"/"closed"), y NO debe cerrar la sesion local: si ella cerro
-      // esa ventana fue porque se arrepintio, asi que debe poder seguir
-      // exactamente donde estaba dentro del Portal, sin recargar ni perder
-      // la sesion. Solo un error de verdad (cualquier otro codigo) fuerza
-      // el cierre de sesion local de todos modos, para no dejar el boton
-      // sin efecto si Microsoft de verdad fallo.
-      const codigo = String(error && (error.errorCode || error.name) || '').toLowerCase();
-      const mensaje = String(error && error.message || '').toLowerCase();
-      const fueCancelado = codigo.includes('cancel') || mensaje.includes('cancel') || mensaje.includes('closed') || mensaje.includes('user_cancelled');
-      if (fueCancelado) {
-        console.warn('[PortalENAP] Cierre de sesion cancelado por el usuario (cerro la ventana de Microsoft) -- se queda dentro del Portal.', error);
-        return;
+      if (bridgeAlcanzado) {
+        // Microsoft SI redirigio de vuelta a la pagina puente -- el cierre
+        // de sesion se completo de verdad, aunque logoutPopup() haya
+        // rebotado con un error (el "ruido" ya conocido de MSAL en este
+        // flujo). Se cierra la sesion local igual.
+        console.warn('[PortalENAP] logoutPopup() fallo pero la pagina puente confirma que Microsoft si cerro la sesion -- se cierra sesion local.', error);
+        cerrarSesionLocal();
+      } else {
+        // La ventana se cerro (o el popup fallo) ANTES de llegar a la
+        // pagina puente -- o sea, la persona cerro la ventana de Microsoft
+        // a mano sin terminar, o el popup ni siquiera pudo abrirse. En
+        // ambos casos NO se toca la sesion local: debe poder seguir
+        // exactamente donde estaba dentro del Portal.
+        console.warn('[PortalENAP] Cierre de sesion no se completo (ventana cerrada antes de tiempo, o fallo real) -- se queda dentro del Portal.', error);
       }
-      console.error('[PortalENAP] Error cerrando sesion:', error);
-      window.PortalENAP.sesion = null;
-      window.location.href = url.toString();
+    } finally {
+      window.removeEventListener('storage', marcarBridgeAlcanzado);
     }
   }
 
@@ -2527,6 +2545,21 @@
     document.querySelectorAll('.navcat.open').forEach((el) => {
       el.classList.remove('open');
       el.querySelector('.nav-btn').setAttribute('aria-expanded', 'false');
+    });
+    // OJO -- esto faltaba: sin cerrar tambien el submenu anidado de
+    // "Descarga de Balances" (".subitems.show"), quedaba abierto para
+    // siempre despues de descargar un balance (el click de descarga llama
+    // a closeAllNav(), pero antes esta funcion solo tocaba ".navcat"). Con
+    // el submenu "abierto" a la fuerza, la regla de CSS que oculta el
+    // iframe del modulo activo mientras ese submenu esta visible
+    // (".nav.topnav:has(.subitems.show) ~ main .registro-iframe") se
+    // quedaba aplicada permanentemente, y CUALQUIER modulo que se abriera
+    // despues se veia en blanco -- parecia que "no dejaba entrar a ningun
+    // modulo". Se corrige cerrando tambien esto aqui.
+    document.querySelectorAll('.subitems.show').forEach((el) => {
+      el.classList.remove('show');
+      const btnSub = el.previousElementSibling;
+      if (btnSub) btnSub.setAttribute('aria-expanded', 'false');
     });
   }
   document.addEventListener('click', closeAllNav);

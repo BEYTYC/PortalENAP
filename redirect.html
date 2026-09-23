@@ -44,6 +44,20 @@
 <p>Procesando el inicio de sesión…</p>
 <script src="msal-redirect-bridge.min.js"></script>
 <script>
+  // Marca en localStorage: llegar a ESTA pagina (sin importar login o
+  // logout) solo pasa si Microsoft de verdad completo el flujo y redirigio
+  // de vuelta -- si la persona cierra la ventana emergente a mano antes de
+  // terminar, este script nunca llega a correr. Por eso index.html (la
+  // pestana principal) usa esta marca para distinguir un logout CANCELADO
+  // (la persona cerro la ventana antes de tiempo) de uno que si se
+  // completo, algo que la propia promesa de MSAL no siempre distingue bien
+  // en este flujo de logoutPopup (ver comentario en manejarLogout()).
+  // localStorage dispara un evento "storage" en la pestana principal
+  // porque esta ventana emergente es un contexto de navegacion distinto
+  // (aunque sea el mismo origen) -- no depende de window.opener, asi que
+  // tampoco lo rompen las politicas COOP.
+  try { localStorage.setItem('PortalENAP_bridgeAlcanzado', String(Date.now())); } catch (e) { /* nada mas que hacer aqui */ }
+
   window.msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
     console.error('[PortalENAP] Error en el puente de redireccion de MSAL:', error);
   }).then(function () {
