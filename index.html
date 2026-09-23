@@ -1177,34 +1177,48 @@
     return Array.from(new Set(roles));
   }
 
-  // CAMBIO IMPORTANTE: antes esto leia ENAP_Permisos_Usuarios directamente
-  // desde el navegador con el permiso delegado de la propia persona, lo cual
-  // exigia -- ademas de tener un rol activo en la lista -- ser tambien
-  // miembro del sitio de SharePoint "TitulacionENAP". Eso iba en contra del
-  // diseño real: la lista de permisos debe ser la UNICA puerta de entrada,
-  // no un requisito extra encima de la membresia del sitio. Ahora esto llama
-  // a /api/roles (ver ese archivo), que corre en el servidor con
-  // credenciales de aplicacion -- asi cualquier cuenta institucional con un
-  // rol activo en la lista puede entrar al Portal, sin que nadie tenga que
-  // agregarla ademas como miembro de ningun sitio de SharePoint.
+  // CAMBIO IMPORTANTE (v2): el diseño real es que CUALQUIER cuenta
+  // institucional (@enap.edu.co) pueda entrar al Portal con acceso basico,
+  // sin depender de estar listada en ninguna parte -- asi el ingreso nunca
+  // se cae por un problema de SharePoint (sitio movido, permiso Sites.
+  // Selected sin conceder, etc.), que es justo lo que nos ha estado pasando.
+  // La lista "ENAP_Permisos_Usuarios" ya NO decide quien entra: solo se
+  // sigue consultando (via /api/roles, con credenciales de aplicacion en el
+  // servidor) para dar roles ESPECIALES -- ADMIN, SAC -- a quien los tenga
+  // asignados ahi con Estado=Activo. Si esa consulta falla por cualquier
+  // motivo (el sitio no se encuentra, SharePoint no responde, etc.), no se
+  // bloquea el ingreso: simplemente esa persona entra con el rol basico
+  // "USUARIO" y sin los paneles especiales, en vez de quedarse afuera.
+  const DOMINIO_INSTITUCIONAL = 'enap.edu.co';
+
   async function obtenerRolesUsuario(cuenta) {
     const perfil = await obtenerPerfil(cuenta);
     const correo = perfil.mail || perfil.userPrincipalName;
     if (!correo) throw new Error('El usuario autenticado no tiene un correo asociado en su perfil de Microsoft.');
-    const accessToken = await adquirirToken(loginRequest.scopes, cuenta);
-    const resp = await fetch('/api/roles', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ correo, accessToken }),
-    });
-    if (!resp.ok) {
-      const detalle = await resp.json().catch(() => ({}));
-      throw errorGraph(resp.status, detalle.error || 'No se pudo consultar el rol del usuario', detalle.detail);
+    if (!correo.trim().toLowerCase().endsWith('@' + DOMINIO_INSTITUCIONAL)) {
+      throw new Error(`El Portal es exclusivo para cuentas institucionales de ENAP (@${DOMINIO_INSTITUCIONAL}). La cuenta "${correo}" no pertenece a ese dominio.`);
     }
-    const { roles } = await resp.json();
-    if (!roles || roles.length === 0) {
-      throw new Error(`El usuario "${correo}" no tiene roles activos asignados en "${LISTA_PERMISOS}". Contacte al administrador del Portal para que le asigne un rol.`);
+
+    let rolesEspeciales = [];
+    try {
+      const accessToken = await adquirirToken(loginRequest.scopes, cuenta);
+      const resp = await fetch('/api/roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo, accessToken }),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        rolesEspeciales = data.roles || [];
+      } else {
+        const detalle = await resp.json().catch(() => ({}));
+        console.warn('[PortalENAP] No se pudieron consultar roles especiales en SharePoint -- se concede acceso basico igual.', resp.status, detalle);
+      }
+    } catch (error) {
+      console.warn('[PortalENAP] Error consultando roles especiales en SharePoint -- se concede acceso basico igual.', error);
     }
+
+    const roles = rolesEspeciales.length ? rolesEspeciales : ['USUARIO'];
     return { perfil, roles };
   }
 
