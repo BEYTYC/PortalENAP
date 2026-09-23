@@ -329,6 +329,17 @@
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
   }
+  /* Los iframes de los modulos (Registro, Solicitud de Grado, Centro de
+     Datos) a veces se pintan por ENCIMA de los menus desplegables de la
+     barra de navegacion sin importar el z-index -- es un comportamiento
+     conocido de los navegadores con elementos incrustados. Mientras
+     cualquier menu este abierto (con el mouse o con clic/teclado), se
+     oculta el iframe del modulo activo un instante -- no se recarga, solo
+     deja de pintarse, asi que no hay parpadeo real. */
+  nav.topnav:has(.navcat:hover) ~ main .registro-iframe,
+  nav.topnav:has(.navcat.open) ~ main .registro-iframe{
+    visibility:hidden;
+  }
 
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
@@ -360,6 +371,78 @@
     max-width:min(90vw,440px); text-align:center;
   }
   .toast.show{opacity:1; transform:translate(-50%,0);}
+
+  /* ---------- Modal: aviso de seguridad antes de descargar (macros) ---------- */
+  /* [hidden] (display:none, sin animar) es solo el estado inicial en el
+     HTML, para que no parpadee nada antes de que cargue el JS. Una vez que
+     se abre por primera vez, el JS le quita el atributo "hidden" para
+     siempre y controla todo con la clase "show" (opacidad + visibility),
+     que sí anima -- por eso las dos formas de ocultarlo no se pisan entre
+     si: [hidden] nunca vuelve a aparecer una vez abierto el modal. */
+  .modal-overlay{
+    position:fixed; inset:0; z-index:80; display:flex; align-items:center; justify-content:center;
+    padding:20px; background:rgba(4,20,46,.55);
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .18s ease, visibility 0s linear .18s;
+  }
+  .modal-overlay[hidden]{ display:none; }
+  .modal-overlay.show{
+    opacity:1; visibility:visible; pointer-events:auto;
+    transition:opacity .18s ease, visibility 0s linear;
+  }
+
+  .modal-dialog{
+    position:relative; width:100%; max-width:420px; max-height:calc(100dvh - 40px); overflow-y:auto;
+    background:var(--surface); border-radius:16px; box-shadow:0 30px 60px -20px rgba(4,20,46,.55);
+    padding:28px 26px 22px; text-align:left;
+    transform:translateY(14px) scale(.98); transition:transform .2s cubic-bezier(.16,1,.3,1);
+  }
+  .modal-overlay.show .modal-dialog{ transform:translateY(0) scale(1); }
+
+  .modal-close{
+    position:absolute; top:14px; right:14px; width:30px; height:30px; border-radius:9px; border:none;
+    background:transparent; color:var(--text-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:background .15s ease, color .15s ease;
+  }
+  .modal-close:hover{ background:var(--navy-50); color:var(--text); }
+
+  .modal-icon{
+    width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(160deg, var(--gold-400), var(--gold-600)); color:var(--navy-950);
+    margin-bottom:14px; box-shadow:0 8px 18px -8px rgba(168,134,29,.55);
+  }
+  .modal-dialog h2{ font-size:17px; font-weight:600; color:var(--navy-900); margin:0; }
+  .modal-sub{ margin-top:8px; font-size:13px; line-height:1.55; color:var(--text-muted); }
+
+  .modal-pasos{ margin:16px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:8px; }
+  .modal-pasos li{ font-size:12.5px; line-height:1.5; color:var(--text); }
+  .modal-pasos b{ color:var(--navy-900); }
+
+  .modal-archivo{
+    margin-top:16px; font-size:11.5px; color:var(--text-muted); background:var(--navy-50);
+    border:1px solid var(--border); border-radius:9px; padding:8px 11px; word-break:break-word;
+  }
+  .modal-archivo:empty{ display:none; }
+
+  .modal-acciones{ margin-top:20px; display:flex; flex-wrap:wrap-reverse; gap:10px; justify-content:flex-end; }
+  .modal-btn-secundario, .modal-btn-primario{
+    display:inline-flex; align-items:center; gap:8px; font-size:12.5px; font-weight:600; border-radius:10px;
+    padding:10px 16px; cursor:pointer; border:none; transition:transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .modal-btn-secundario{ background:transparent; color:var(--text-muted); border:1.5px solid var(--border); }
+  .modal-btn-secundario:hover{ background:var(--navy-50); color:var(--text); }
+  .modal-btn-primario{
+    background:var(--gold-500); color:var(--navy-950); box-shadow:0 10px 22px -10px rgba(201,162,39,.6);
+  }
+  .modal-btn-primario:hover{ transform:translateY(-1px); box-shadow:0 12px 24px -10px rgba(201,162,39,.7); }
+  .modal-btn-primario svg{ flex-shrink:0; }
+
+  @media (max-width:480px){
+    .modal-dialog{ padding:24px 18px 18px; }
+    .modal-acciones{ justify-content:stretch; }
+    .modal-acciones button{ flex:1; justify-content:center; }
+  }
 
   /* La cabecera y la franja de menú no se achican solas: por debajo de estos
      anchos, sin ir quitando piezas, el contenido termina más ancho que la
@@ -1094,6 +1177,38 @@
 </footer>
 
 <div class="toast" id="toast">Este módulo aún no está disponible.</div>
+
+<!-- Aviso de seguridad previo a la descarga de balances con macros (.xlsm/
+     .xltm): Windows marca estos archivos como "bloqueados" al bajarlos de
+     internet (Mark of the Web) y sus macros no corren hasta que la persona
+     los "desbloquea" a mano en Propiedades -- este modal explica ese paso
+     ANTES de descargar, para que no piensen que el archivo esta dañado. -->
+<div class="modal-overlay" id="modalSeguridad" hidden>
+  <div class="modal-dialog" role="alertdialog" aria-modal="true" aria-labelledby="modalSeguridadTitulo" aria-describedby="modalSeguridadDesc">
+    <button type="button" class="modal-close" id="modalSeguridadCerrar" aria-label="Cerrar">
+      <svg viewBox="0 0 24 24" fill="none" width="18" height="18"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <div class="modal-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" width="26" height="26"><path d="M12 3l7.5 3.4v5.2c0 4.7-3.2 9-7.5 10.4-4.3-1.4-7.5-5.7-7.5-10.4V6.4L12 3Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M12 8v5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><circle cx="12" cy="16" r="1" fill="currentColor"/></svg>
+    </div>
+    <h2 id="modalSeguridadTitulo">Aviso de Seguridad</h2>
+    <p id="modalSeguridadDesc" class="modal-sub">Para que las macros del documento funcionen correctamente, al descargar el archivo deberá seguir estos pasos de desbloqueo:</p>
+    <ol class="modal-pasos">
+      <li>Dar clic derecho sobre el archivo descargado.</li>
+      <li>Seleccionar <b>«Propiedades»</b>.</li>
+      <li>En la pestaña <b>«General»</b>, active la casilla <b>«Desbloquear»</b> (abajo a la derecha).</li>
+      <li>Haga clic en <b>«Aplicar»</b> y luego en <b>«Aceptar»</b>.</li>
+    </ol>
+    <p class="modal-archivo" id="modalSeguridadArchivo"></p>
+    <div class="modal-acciones">
+      <button type="button" class="modal-btn-secundario" id="modalSeguridadCancelar">Cancelar</button>
+      <button type="button" class="modal-btn-primario" id="modalSeguridadContinuar">
+        <svg viewBox="0 0 24 24" fill="none" width="15" height="15"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Continuar Descarga
+      </button>
+    </div>
+  </div>
+</div>
 
 <script src="msal-browser.min.js"></script>
 <script>
@@ -2270,7 +2385,20 @@
             a.href = sub.archivo;
             a.setAttribute('download', '');
             a.innerHTML = `<svg class="dl-icon" width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 19h14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>${sub.nombre}</span>`;
-            a.addEventListener('click', () => closeAllNav());
+            // Los archivos con macros (.xlsm/.xltm) llegan "bloqueados" por
+            // Windows (Mark of the Web) y sus macros no corren hasta
+            // desbloquearlos a mano -- se avisa ANTES de descargar en vez de
+            // dejar que la persona piense que el archivo esta dañado. Los
+            // .xlsx normales (sin macros) se descargan directo, sin aviso.
+            if (/\.(xlsm|xltm)(\?|$)/i.test(sub.archivo)) {
+              a.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeAllNav();
+                abrirModalSeguridad(sub.archivo, sub.nombre, btnSub);
+              });
+            } else {
+              a.addEventListener('click', () => closeAllNav());
+            }
             lista.appendChild(a);
           }
           btnSub.addEventListener('click', (e) => {
@@ -2367,6 +2495,67 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
   }
+
+  // ---------------------------------------------------------------
+  // Modal: aviso de seguridad antes de descargar archivos con macros
+  // (.xlsm/.xltm). Ver el <div id="modalSeguridad"> en el HTML y su CSS
+  // (".modal-*") para el porque de este aviso.
+  // ---------------------------------------------------------------
+  let descargaPendiente = null; // { url, nombre }
+  let disparadorModal = null; // elemento que abrio el modal, para devolverle el foco al cerrar
+
+  function abrirModalSeguridad(url, nombre, disparador) {
+    descargaPendiente = { url, nombre };
+    disparadorModal = disparador || document.activeElement;
+    const overlay = document.getElementById('modalSeguridad');
+    document.getElementById('modalSeguridadArchivo').textContent = nombre || '';
+    overlay.hidden = false;
+    // Dos frames de por medio: si se quita "hidden" y se agrega "show" en el
+    // mismo tick, el navegador a veces se salta la transicion de entrada
+    // (arranca ya "mostrado" en vez de animar desde opacidad 0).
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      overlay.classList.add('show');
+      document.getElementById('modalSeguridadContinuar').focus();
+    }));
+    document.addEventListener('keydown', manejarTeclaModalSeguridad);
+  }
+
+  function cerrarModalSeguridad() {
+    const overlay = document.getElementById('modalSeguridad');
+    overlay.classList.remove('show');
+    document.removeEventListener('keydown', manejarTeclaModalSeguridad);
+    setTimeout(() => { overlay.hidden = true; }, 200); // deja terminar la transicion de salida antes de display:none
+    descargaPendiente = null;
+    if (disparadorModal && typeof disparadorModal.focus === 'function') disparadorModal.focus();
+    disparadorModal = null;
+  }
+
+  function manejarTeclaModalSeguridad(e) {
+    if (e.key === 'Escape') cerrarModalSeguridad();
+  }
+
+  function confirmarDescargaSeguridad() {
+    if (!descargaPendiente) return;
+    const { url, nombre } = descargaPendiente;
+    // Enlace temporal: es el mismo patron de descarga que ya usaban estos
+    // archivos antes de interceptar el clic, solo que ahora se dispara
+    // programaticamente despues de la confirmacion en vez de al primer clic.
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', '');
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    cerrarModalSeguridad();
+  }
+
+  document.getElementById('modalSeguridadCerrar').addEventListener('click', cerrarModalSeguridad);
+  document.getElementById('modalSeguridadCancelar').addEventListener('click', cerrarModalSeguridad);
+  document.getElementById('modalSeguridadContinuar').addEventListener('click', confirmarDescargaSeguridad);
+  // Clic fuera del cuadro (sobre el fondo oscuro) tambien cierra, igual que Esc.
+  document.getElementById('modalSeguridad').addEventListener('click', (e) => {
+    if (e.target.id === 'modalSeguridad') cerrarModalSeguridad();
+  });
 
   renderNav();
 </script>
