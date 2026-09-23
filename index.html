@@ -222,7 +222,7 @@
      se aclara solo para esta vista: menos opacidad y sin oscurecer con
      brightness(.5). */
   #viewTitulacion .watermark img{
-    opacity:.025; filter:grayscale(1) brightness(1.9);
+    opacity:.014; filter:grayscale(1) brightness(2.4);
   }
 
   .wrap{max-width:960px; margin:0 auto; width:100%; position:relative; z-index:1;}
@@ -362,6 +362,21 @@
      corrigio para que solo pase con el flyout real. */
   nav.topnav:has(.subitems.show) ~ main .registro-iframe{
     visibility:hidden;
+  }
+
+  /* Centro de Datos ENAP (Power BI "Publicar en la Web"): Microsoft agrega
+     SIEMPRE una franja fija abajo del tablero con el enlace "Microsoft
+     Power BI", el paginador ("1 de 2") y los iconos de compartir/pantalla
+     completa -- es parte obligatoria de ese tipo de embebido gratuito y no
+     hay parametro de URL que la quite. Se recorta visualmente: el
+     contenedor ".cde-frame-wrap" corta con overflow:hidden, y el iframe de
+     adentro crece un poco mas de la cuenta hacia abajo (height:calc(100% +
+     Npx)) para que esa franja quede empujada fuera del area visible. */
+  .cde-frame-wrap{
+    flex:1; width:100%; height:100%; overflow:hidden; position:relative;
+  }
+  .cde-frame-wrap .cde-frame{
+    position:absolute; top:0; left:0; width:100%; height:calc(100% + 36px);
   }
 
   .dz-back{
@@ -1117,14 +1132,20 @@
     <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
          view?r=..."), embebido igual que los demas modulos -- sin borde ni
          fondo propio del Portal (misma clase "registro-iframe"). El fondo
-         que se ve adentro ya lo define el propio tablero de Power BI. -->
-    <iframe
-      id="cdeFrame"
-      class="registro-iframe"
-      title="Centro de Datos ENAP"
-      src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9"
-      allowfullscreen
-    ></iframe>
+         que se ve adentro ya lo define el propio tablero de Power BI.
+         ".cde-frame-wrap" recorta la franja inferior fija que Power BI
+         agrega siempre a este tipo de tablero (ver comentario junto a
+         ".cde-frame-wrap" en el CSS). "navContentPaneEnabled=false" en la
+         URL apaga ademas el paginador interno de paginas del tablero. -->
+    <div class="cde-frame-wrap">
+      <iframe
+        id="cdeFrame"
+        class="registro-iframe cde-frame"
+        title="Centro de Datos ENAP"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9&navContentPaneEnabled=false"
+        allowfullscreen
+      ></iframe>
+    </div>
   </div>
 
   <!-- Modulo nativo (no iframe) exclusivo del rol SAC/ADMIN -- se abre
@@ -2034,9 +2055,23 @@
       window.PortalENAP.sesion = null;
       window.location.href = url.toString();
     } catch (error) {
-      // Si el popup de cierre de sesion falla (bloqueado, cancelado, etc.)
-      // igual limpiamos la sesion local y recargamos, para no dejar al
-      // usuario atascado con el boton sin efecto.
+      // MSAL distingue un fallo real (popup bloqueado, red caida, etc.) de
+      // que la propia persona haya cerrado la ventana de Microsoft con la
+      // "X" antes de terminar de elegir/confirmar la cuenta -- ese segundo
+      // caso llega aqui como error "user_cancelled" (o un mensaje que menciona
+      // "cancel"/"closed"), y NO debe cerrar la sesion local: si ella cerro
+      // esa ventana fue porque se arrepintio, asi que debe poder seguir
+      // exactamente donde estaba dentro del Portal, sin recargar ni perder
+      // la sesion. Solo un error de verdad (cualquier otro codigo) fuerza
+      // el cierre de sesion local de todos modos, para no dejar el boton
+      // sin efecto si Microsoft de verdad fallo.
+      const codigo = String(error && (error.errorCode || error.name) || '').toLowerCase();
+      const mensaje = String(error && error.message || '').toLowerCase();
+      const fueCancelado = codigo.includes('cancel') || mensaje.includes('cancel') || mensaje.includes('closed') || mensaje.includes('user_cancelled');
+      if (fueCancelado) {
+        console.warn('[PortalENAP] Cierre de sesion cancelado por el usuario (cerro la ventana de Microsoft) -- se queda dentro del Portal.', error);
+        return;
+      }
       console.error('[PortalENAP] Error cerrando sesion:', error);
       window.PortalENAP.sesion = null;
       window.location.href = url.toString();
@@ -2418,6 +2453,12 @@
             // desbloquearlos a mano -- se avisa ANTES de descargar en vez de
             // dejar que la persona piense que el archivo esta dañado. Los
             // .xlsx normales (sin macros) se descargan directo, sin aviso.
+            // En ambos casos se hace preventDefault() y se dispara la
+            // descarga con "descargarArchivo()" (enlace temporal por JS) en
+            // vez de dejar que el navegador siga el <a> visible -- asi,
+            // sin importar el modulo que este abierto en ese momento
+            // (Centro de Datos, Solicitud de Grado, Registro...), descargar
+            // un balance nunca navega ni saca a la persona de ahi.
             if (/\.(xlsm|xltm)(\?|$)/i.test(sub.archivo)) {
               a.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -2425,7 +2466,11 @@
                 abrirModalSeguridad(sub.archivo, sub.nombre, btnSub);
               });
             } else {
-              a.addEventListener('click', () => closeAllNav());
+              a.addEventListener('click', (e) => {
+                e.preventDefault();
+                closeAllNav();
+                descargarArchivo(sub.archivo);
+              });
             }
             lista.appendChild(a);
           }
@@ -2562,18 +2607,24 @@
     if (e.key === 'Escape') cerrarModalSeguridad();
   }
 
-  function confirmarDescargaSeguridad() {
-    if (!descargaPendiente) return;
-    const { url, nombre } = descargaPendiente;
-    // Enlace temporal: es el mismo patron de descarga que ya usaban estos
-    // archivos antes de interceptar el clic, solo que ahora se dispara
-    // programaticamente despues de la confirmacion en vez de al primer clic.
+  // Enlace temporal creado y disparado por JS (nunca el <a> visible del
+  // menu): asi la descarga nunca depende de la navegacion real del
+  // navegador, y el modulo que estuviera abierto (Centro de Datos,
+  // Solicitud de Grado, Registro, etc.) se queda exactamente como estaba,
+  // sin importar el archivo ni el sitio del Portal desde donde se pida.
+  function descargarArchivo(url) {
     const a = document.createElement('a');
     a.href = url;
     a.setAttribute('download', '');
     document.body.appendChild(a);
     a.click();
     a.remove();
+  }
+
+  function confirmarDescargaSeguridad() {
+    if (!descargaPendiente) return;
+    const { url } = descargaPendiente;
+    descargarArchivo(url);
     cerrarModalSeguridad();
   }
 
