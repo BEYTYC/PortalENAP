@@ -320,11 +320,11 @@
   .cde-note{ margin-top:9px; font-size:10.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewAprobacionSac{
+  #viewRegistro, #viewTitulacion, #viewAprobacionSac, #viewCDE{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewAprobacionSac[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -998,7 +998,21 @@
       id="titulacionFrame"
       class="registro-iframe"
       title="Solicitud de Grado"
-      src="https://script.google.com/macros/s/AKfycbye1tNXdTn5OvpGlwXEPD7Cku5QvIjfokk459zh7bEh729iicMKYpi_paD-Fpw3fkrZ1A/exec"
+      src="https://script.google.com/macros/s/AKfycbye1tNXdTn5OvpGlwXEPD7Cku5QvIjfokk459zh7bEh729iicMKYpi_paD-Fpw3fkrZ1A/exec?vista=embebido"
+    ></iframe>
+  </div>
+
+  <div id="viewCDE" hidden>
+    <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
+         view?r=..."), embebido igual que los demas modulos -- sin borde ni
+         fondo propio del Portal (misma clase "registro-iframe"). El fondo
+         que se ve adentro ya lo define el propio tablero de Power BI. -->
+    <iframe
+      id="cdeFrame"
+      class="registro-iframe"
+      title="Centro de Datos ENAP"
+      src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9"
+      allowfullscreen
     ></iframe>
   </div>
 
@@ -2196,7 +2210,7 @@
     {
       key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
       items: [
-        { nombre: 'Centro de Datos ENAP', status: 'soon' },
+        { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Generación de Antigüedades', status: 'soon' },
         { nombre: 'Aprobación de Certificados', status: 'soon' },
         { nombre: 'Aprobación de Concesiones Especiales', status: 'soon' },
@@ -2282,6 +2296,7 @@
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') abrirSubsistema('viewTitulacion', 'Solicitud de Grado');
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
+          else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
           else if (item.status === 'link') window.location.href = item.href;
           else showToast(`«${item.nombre}» aún no está construido — próxima fase.`);
@@ -2316,7 +2331,7 @@
   document.addEventListener('click', closeAllNav);
 
   document.getElementById('cdeBtn').addEventListener('click', () => {
-    showToast('Abriendo el Centro de Datos ENAP…');
+    abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
   });
 
   let vistaActiva = 'viewHome';
