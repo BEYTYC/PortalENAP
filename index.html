@@ -216,6 +216,14 @@
     width:min(60vw,660px); height:auto;
     opacity:.045; filter:grayscale(1) brightness(.5);
   }
+  /* La marca de agua de "Solicitud de Grado" se ve mas oscura que en el
+     resto del Portal porque ahi queda sobre el fondo blanco propio de la
+     pagina de Apps Script (en vez del fondo azul clarito de home/SAC) --
+     se aclara solo para esta vista: menos opacidad y sin oscurecer con
+     brightness(.5). */
+  #viewTitulacion .watermark img{
+    opacity:.025; filter:grayscale(1) brightness(1.9);
+  }
 
   .wrap{max-width:960px; margin:0 auto; width:100%; position:relative; z-index:1;}
 
@@ -343,12 +351,16 @@
   /* Los iframes de los modulos (Registro, Solicitud de Grado, Centro de
      Datos) a veces se pintan por ENCIMA de los menus desplegables de la
      barra de navegacion sin importar el z-index -- es un comportamiento
-     conocido de los navegadores con elementos incrustados. Mientras
-     cualquier menu este abierto (ahora solo se abren con clic, ver
-     ".navcat.open" mas arriba), se oculta el iframe del modulo activo un
-     instante -- no se recarga, solo deja de pintarse, asi que no hay
-     parpadeo real. */
-  nav.topnav:has(.navcat.open) ~ main .registro-iframe{
+     conocido de los navegadores con elementos incrustados. Esto solo se
+     comprobo de verdad con el FLYOUT de "Descarga de Balances Academicos"
+     (el submenu anidado, ".subitems"), asi que el iframe solo se oculta un
+     instante mientras ESE flyout esta abierto -- no se recarga, solo deja
+     de pintarse, asi que no hay parpadeo real. Antes esto se disparaba con
+     CUALQUIER menu abierto (Facultades, Secretaria Academica, etc.), lo
+     que hacia que el modulo pareciera cerrarse/ponerse en blanco con solo
+     abrir un menu comun que ni siquiera se superpone al iframe -- se
+     corrigio para que solo pase con el flyout real. */
+  nav.topnav:has(.subitems.show) ~ main .registro-iframe{
     visibility:hidden;
   }
 
