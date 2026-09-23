@@ -135,7 +135,11 @@
     box-shadow:var(--shadow-lg); padding:8px; display:none; flex-direction:column; gap:0;
   }
   .navcat.open .dropdown{ display:flex; }
-  @media (min-width: 700px){ .navcat:hover .dropdown{ display:flex; } }
+  /* Antes el dropdown tambien se abria con ":hover" (a partir de 700px de
+     ancho) -- se quito a pedido: los menus principales de la barra deben
+     abrirse SOLO con clic, nunca con solo pasar el mouse por encima. La
+     apertura por clic ya existe (".navcat.open .dropdown", controlada por
+     el listener de "click" en renderNav) y no cambia. */
 
   .dropdown button{
     display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:none; background:transparent;
@@ -167,11 +171,10 @@
      lateral -- se abre a la DERECHA del propio boton, como un panel
      hermano del "dropdown" principal, en vez de desplegarse hacia abajo
      dentro de la misma lista. ".subm-wrap" es el contenedor con posicion
-     relativa que ancla ese panel; se abre solo con :hover (mouse) y
-     tambien con la clase "show" que pone el click (para teclado/tactil,
-     donde no existe hover). Sin espacio entre boton y panel (left:100%,
-     sin margen) para que el mouse pueda cruzar de uno a otro en diagonal
-     sin que el hover se corte a medio camino. */
+     relativa que ancla ese panel. Antes se abria tambien con ":hover"
+     ademas de con clic -- se quito a pedido: debe abrirse SOLO con clic
+     (la clase "show" que pone el listener de click en renderNav), igual
+     que los menus principales de la barra. */
   .subm-wrap{ position:relative; }
   .subitems{
     display:none; flex-direction:column; gap:0;
@@ -179,7 +182,7 @@
     background:var(--surface); border:1px solid var(--border); border-radius:12px;
     box-shadow:var(--shadow-lg); padding:8px; z-index:46;
   }
-  .subm-wrap:hover .subitems, .subitems.show{ display:flex; }
+  .subitems.show{ display:flex; }
   .subitems a{
     display:flex; align-items:center; gap:8px; width:100%; text-align:left; text-decoration:none;
     border-radius:8px; padding:6px 12px; font-size:12.5px; color:var(--text); cursor:pointer; white-space:nowrap;
@@ -188,10 +191,10 @@
   .subitems a .dl-icon{ flex:none; opacity:.6; }
   /* En pantallas angostas no cabe un flyout a la derecha (el panel principal
      ya ocupa casi todo el ancho): ahi se cae de vuelta al comportamiento
-     de antes, desplegado hacia abajo dentro del mismo panel. */
+     de antes, desplegado hacia abajo dentro del mismo panel (tambien solo
+     con clic). */
   @media (max-width:640px){
     .subitems{ position:static; display:none; box-shadow:none; border:none; padding:2px 0 4px 14px; width:auto; min-width:0; max-width:none; }
-    .subm-wrap:hover .subitems{ display:none; }
     .subitems.show{ display:flex; }
   }
 
@@ -328,15 +331,23 @@
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
+    /* position+z-index explicitos: sin esto, un iframe sin position queda
+       en la capa "en flujo, no posicionado" del stacking order, que se
+       pinta ANTES que un elemento posicionado con z-index:0 como
+       ".watermark" -- o sea, la marca de agua terminaba tapando el iframe
+       en vez de quedar detras de el. Con z-index:1 aqui (mismo valor que
+       usa ".wrap" en la vista de inicio para lo mismo) el iframe siempre
+       pinta encima de la marca de agua, sin importar el orden en el DOM. */
+    position:relative; z-index:1;
   }
   /* Los iframes de los modulos (Registro, Solicitud de Grado, Centro de
      Datos) a veces se pintan por ENCIMA de los menus desplegables de la
      barra de navegacion sin importar el z-index -- es un comportamiento
      conocido de los navegadores con elementos incrustados. Mientras
-     cualquier menu este abierto (con el mouse o con clic/teclado), se
-     oculta el iframe del modulo activo un instante -- no se recarga, solo
-     deja de pintarse, asi que no hay parpadeo real. */
-  nav.topnav:has(.navcat:hover) ~ main .registro-iframe,
+     cualquier menu este abierto (ahora solo se abren con clic, ver
+     ".navcat.open" mas arriba), se oculta el iframe del modulo activo un
+     instante -- no se recarga, solo deja de pintarse, asi que no hay
+     parpadeo real. */
   nav.topnav:has(.navcat.open) ~ main .registro-iframe{
     visibility:hidden;
   }
