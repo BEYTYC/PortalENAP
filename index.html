@@ -234,7 +234,7 @@
   }
   .watermark img{
     width:min(60vw,660px); height:auto;
-    opacity:.024; filter:grayscale(1) brightness(.5);
+    opacity:.034; filter:grayscale(1) brightness(.5);
   }
   /* La marca de agua de "Solicitud de Grado" se ve mas oscura que en el
      resto del Portal porque ahi queda sobre el fondo blanco propio de la
@@ -356,6 +356,9 @@
     display:flex; flex-direction:column;
   }
   /* Concesiones Especiales: pantalla de carga */
+  #titulacionCarga{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:transparent; color:#0a2540; font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; text-align:center; }
+  #titulacionCarga.on{ display:flex; }
+  #titulacionCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
   #concesionesCarga{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:transparent; color:#0a2540; font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; text-align:center; }
   #concesionesCarga.on{ display:flex; }
   #concesionesCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
@@ -580,7 +583,7 @@
     pointer-events:none; z-index:0; overflow:hidden;
   }
   .login-gate__panel-watermark img{
-    width:min(78%,620px); height:auto; opacity:.028; filter:grayscale(1) brightness(.5);
+    width:min(78%,620px); height:auto; opacity:.038; filter:grayscale(1) brightness(.5);
   }
   .login-gate__card{ position:relative; z-index:1; width:100%; max-width:360px; text-align:center; }
   .login-gate__card h2{ font-size:20px; font-weight:600; color:var(--text); margin:0; }
@@ -1147,6 +1150,7 @@
          mientras el propio Apps Script pide el token de Microsoft y
          arma su panel, y solo ocultarlo cuando el script avisa que ya
          esta listo. -->
+    <div id="titulacionCarga" role="status" aria-live="polite"><i></i><span>Cargando sesión…</span></div>
     <iframe
       id="titulacionFrame"
       class="registro-iframe"
@@ -2703,6 +2707,8 @@
   function cargarTitulacion() {
     const f = document.getElementById('titulacionFrame');
     if (f.dataset.cargado) return;
+    const cg = document.getElementById('titulacionCarga');
+    if (cg) { cg.classList.add('on'); clearTimeout(window.__titCargaT); window.__titCargaT = setTimeout(() => cg.classList.remove('on'), 20000); }
     f.src = TITULACION_URL;
     f.dataset.cargado = '1';
   }
@@ -2722,7 +2728,10 @@
       const cg = document.getElementById('concesionesCarga'); if (cg) cg.classList.remove('on');
       return;
     }
-    if (d.type === 'titulacion:listo') return;
+    if (d.type === 'titulacion:listo') {
+      const cg = document.getElementById('titulacionCarga'); if (cg) cg.classList.remove('on');
+      return;
+    }
     if (d.type === 'titulacion:pantalla-completa') return; // Titulacion no usa pantalla completa aun; no debe caer en la entrega de token
     if (d.type === 'concesiones:pantalla-completa') {
       window.__concFs = { src: event.source, origin: event.origin };
