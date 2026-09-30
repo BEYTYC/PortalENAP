@@ -1507,6 +1507,11 @@
   }
 
   window.PortalENAP = window.PortalENAP || {};
+  // Concesiones Especiales: entrega el token de Microsoft de la sesion actual.
+  window.PortalENAP.tokenMicrosoft = async function () {
+    const cuenta = (await getMsal()).getAllAccounts()[0];
+    return adquirirToken(['User.Read'], cuenta);
+  };
   window.PortalENAP.sesion = null;
 
   // ---------------------------------------------------------------
@@ -2662,8 +2667,7 @@
     try { host = new URL(event.origin).hostname; } catch (e) { return; }
     if (!/\.googleusercontent\.com$/.test(host)) return;
     try {
-      const cuenta = (await getMsal()).getAllAccounts()[0];
-      const token = await adquirirToken(['User.Read'], cuenta);
+      const token = await window.PortalENAP.tokenMicrosoft();
       event.source.postMessage({ type: 'concesiones:token', token }, event.origin);
     } catch (e) { console.warn('Concesiones: no se pudo entregar el token', e); }
   });
