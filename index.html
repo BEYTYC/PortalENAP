@@ -109,7 +109,7 @@
     object-fit:contain; display:block; position:relative; z-index:1; flex:none;
     /* Sombra blanca sutil y pequeña detrás del escudo, para separarlo del
        azul navy del membrete/pie sin ponerle un halo exagerado. */
-    filter: drop-shadow(0 0 3px rgba(255,255,255,.5)) drop-shadow(0 1px 2px rgba(4,20,46,.25));
+    filter:none;
   }
   .header-logo{ width:52px; height:52px; }
   .footer-logo{ width:36px; height:36px; }
@@ -571,7 +571,7 @@
   .login-gate__deco{ position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; opacity:.9; }
   .login-gate__deco svg{ position:absolute; inset:0; width:100%; height:100%; }
   .login-gate__mark{ position:relative; z-index:1; display:flex; align-items:center; gap:16px; }
-  .login-gate__mark img{ height:68px; width:auto; filter:drop-shadow(0 0 6px rgba(255,255,255,.35)); }
+  .login-gate__mark img{ height:68px; width:auto; filter:none; }
   .login-gate__mark-text{ display:flex; flex-direction:column; gap:3px; }
   .login-gate__mark-text .nombre{ font-size:13px; font-weight:600; letter-spacing:.04em; color:#fff; line-height:1.3; }
   .login-gate__mark-text .oficina{ font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-400); }
