@@ -600,7 +600,7 @@
   .login-gate__foot{ margin-top:24px; font-size:12px; color:var(--text-muted); line-height:1.6; text-align:center; }
   .login-gate__credito{
     position:absolute; right:20px; bottom:16px; z-index:1;
-    font-size:10.5px; color:var(--text-muted); opacity:.85;
+    font-size:14px; font-weight:500; color:var(--text-muted); opacity:1;
   }
   @media (max-width:860px){
     .login-gate__credito{ position:static; margin-top:28px; text-align:center; }
@@ -695,7 +695,7 @@
       <div class="login-gate__eyebrow">Portal de Servicios Digitales · Oficina de Estadística</div>
       <div class="login-gate__rule"></div>
       <h1>Portal Estadístico ENAP</h1>
-      <p>Plataforma institucional de gestión académica, desarrollada en el marco del Portal de Servicios Digitales de la Oficina de Estadística. Acceso restringido a personal autorizado.</p>
+      <p>Plataforma institucional de gestión académica, desarrollada en el marco del proyecto de transformación tecnológica de la Oficina de Estadística. Acceso restringido a personal autorizado.</p>
     </div>
     <div class="login-gate__footer">
       <span class="login-gate__dot"></span>
@@ -2126,6 +2126,29 @@
   // manejarLogin).
   const PARAM_RELOGIN = 'reloginTrasCierre';
 
+  // Cierre de sesion: la pantalla de login se muestra DE INMEDIATO al
+  // pulsar "Confirmar", sin esperar a que la ventana de Microsoft termine
+  // (ni importa si la persona la completa, la cierra a mano o falla). En
+  // segundo plano se sigue abriendo esa ventana para cerrar tambien la
+  // sesion del lado de Microsoft, y cuando termina -- como sea -- se limpia
+  // la cache local de MSAL y se recarga la pagina para que no quede nada
+  // de la sesion anterior en pantalla (a menos que la persona ya haya
+  // vuelto a iniciar sesion mientras tanto).
+  let loginEnCurso = false;
+  function mostrarGateInmediato() {
+    window.PortalENAP.sesion = null;
+    const gate = document.getElementById('loginGate');
+    if (gate) gate.removeAttribute('hidden');
+    ocultarError();
+  }
+  function limpiarCacheMsalLocal() {
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => /^msal\./i.test(k) || k.indexOf(CLIENT_ID) !== -1)
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch (e) { /* sin sessionStorage: nada que limpiar */ }
+  }
+
   async function manejarLogout() {
     if (sesionEsSimulada) {
       // Sesion de modo de pruebas: no hubo login real de MSAL, asi que no
@@ -2134,60 +2157,22 @@
       window.location.reload();
       return;
     }
-    const url = new URL(window.location.href);
-    url.searchParams.set(PARAM_RELOGIN, '1');
-
-    // La promesa de logoutPopup() NO es confiable para distinguir "la
-    // persona cerro la ventana de Microsoft antes de terminar" de "si
-    // termino, y la ventana puente (redirect.html) se cerro sola" -- para
-    // MSAL, en este flujo concreto, las dos cosas terminan viendose igual
-    // (un popup que se cerro), asi que a veces rechaza la promesa aunque
-    // el cierre de sesion SI se haya completado del lado de Microsoft.
-    // Por eso no se confia en si logoutPopup() resuelve o falla: se confia
-    // en la marca que la propia pagina puente deja en localStorage apenas
-    // Microsoft la redirige de vuelta (ver redirect.html) -- eso solo pasa
-    // si el flujo de verdad llego hasta alla.
-    let bridgeAlcanzado = false;
-    function marcarBridgeAlcanzado(e) {
-      if (e.key === 'PortalENAP_bridgeAlcanzado') bridgeAlcanzado = true;
-    }
-    window.addEventListener('storage', marcarBridgeAlcanzado);
-
-    function cerrarSesionLocal() {
-      window.PortalENAP.sesion = null;
-      window.location.href = url.toString();
-    }
+    mostrarGateInmediato();
 
     try {
       const instance = await getMsal();
       // OJO -- postLogoutRedirectUri es a donde navega el POPUP de logout
-      // antes de que MSAL lo cierre solo. Si aqui se pone REDIRECT_URI (el
-      // Portal completo), el popup carga todo el Portal adentro y ya no se
-      // cierra solo -- el mismo bug que el login, pero en logout. Por eso
-      // usa BRIDGE_REDIRECT_URI (redirect.html), igual que loginPopup -- y
-      // redirect.html ahora se cierra solo aunque sea un logout (ver ese
-      // archivo), que era el motivo real por el que esa ventana se quedaba
-      // abierta despues de cerrar sesion.
+      // antes de que MSAL lo cierre solo. Debe ser BRIDGE_REDIRECT_URI
+      // (redirect.html) y no el Portal completo, o el popup cargaria todo
+      // el Portal adentro y ya no se cerraria solo.
       await conInteraccionMsalExclusiva(() => instance.logoutPopup({ postLogoutRedirectUri: BRIDGE_REDIRECT_URI, mainWindowRedirectUri: REDIRECT_URI }));
-      cerrarSesionLocal();
     } catch (error) {
-      if (bridgeAlcanzado) {
-        // Microsoft SI redirigio de vuelta a la pagina puente -- el cierre
-        // de sesion se completo de verdad, aunque logoutPopup() haya
-        // rebotado con un error (el "ruido" ya conocido de MSAL en este
-        // flujo). Se cierra la sesion local igual.
-        console.warn('[PortalENAP] logoutPopup() fallo pero la pagina puente confirma que Microsoft si cerro la sesion -- se cierra sesion local.', error);
-        cerrarSesionLocal();
-      } else {
-        // La ventana se cerro (o el popup fallo) ANTES de llegar a la
-        // pagina puente -- o sea, la persona cerro la ventana de Microsoft
-        // a mano sin terminar, o el popup ni siquiera pudo abrirse. En
-        // ambos casos NO se toca la sesion local: debe poder seguir
-        // exactamente donde estaba dentro del Portal.
-        console.warn('[PortalENAP] Cierre de sesion no se completo (ventana cerrada antes de tiempo, o fallo real) -- se queda dentro del Portal.', error);
-      }
+      console.warn('[PortalENAP] logoutPopup() termino con error (ventana cerrada a mano o fallo); el login ya se mostro igual.', error);
     } finally {
-      window.removeEventListener('storage', marcarBridgeAlcanzado);
+      if (!window.PortalENAP.sesion && !loginEnCurso) {
+        limpiarCacheMsalLocal();
+        window.location.reload();
+      }
     }
   }
 
@@ -2348,6 +2333,7 @@
   // pestana sin recargar a pantalla completa.
   async function manejarLogin() {
     ocultarError();
+    loginEnCurso = true;
     mostrarCargando(true);
     try {
       const instance = await getMsal();
@@ -2374,6 +2360,7 @@
       // de quedarse con una pantalla colgada o un error crudo de Graph.
       mostrarError(mensajeErrorGraph(error));
     } finally {
+      loginEnCurso = false;
       mostrarCargando(false);
     }
   }
