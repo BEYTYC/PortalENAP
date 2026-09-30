@@ -2688,7 +2688,18 @@
     const f = document.getElementById('concesionesFrame');
     if (f.dataset.cargado) return;
     const cg = document.getElementById('concesionesCarga');
-    if (cg) { cg.classList.add('on'); clearTimeout(window.__concCargaT); window.__concCargaT = setTimeout(() => cg.classList.remove('on'), 15000); f.addEventListener('load', () => setTimeout(() => cg.classList.remove('on'), 1500), { once: true }); }
+    // El overlay solo se oculta cuando el propio script de Apps Script
+    // avisa "concesiones:listo" (mas abajo) -- esa es la unica señal real
+    // de que el contenido ya esta listo. Antes tambien se ocultaba 1.5s
+    // despues del evento "load" del iframe, pero ese "load" llega con la
+    // pagina envoltorio de Apps Script, no con el contenido ya autenticado
+    // (el script todavia tiene que pedir el token de Microsoft y renderizar
+    // con el) -- eso hacia que el overlay del Portal desapareciera antes de
+    // tiempo y dejara ver, por debajo, la propia pantalla de carga de Apps
+    // Script: el famoso "doble cargando sesión". El timeout de 20s que
+    // queda es solo una red de seguridad por si el aviso "listo" nunca
+    // llega (p.ej. si algun dia cambia el script y deja de enviarlo).
+    if (cg) { cg.classList.add('on'); clearTimeout(window.__concCargaT); window.__concCargaT = setTimeout(() => cg.classList.remove('on'), 20000); }
     const u = window.CONCESIONES_URL || '';
     if (!/^https:\/\/script\.google\.com\//.test(u)) {
       showToast('Falta la dirección de Concesiones Especiales en concesiones-config.js');
