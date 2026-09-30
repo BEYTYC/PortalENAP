@@ -65,8 +65,22 @@
 
   var pendientes = [];
   var programado = false;
+  // Evita que aparezca (y luego desaparezca) una barra de desplazamiento
+  // mientras los elementos suben: si la pagina NO tenia scroll antes de
+  // animar, se bloquea el scroll vertical durante la animacion.
+  var tBloqueo = null;
+  function bloquearScroll() {
+    var d = document.documentElement;
+    if (d.scrollHeight <= d.clientHeight + 1) {
+      d.style.overflowY = 'hidden';
+      clearTimeout(tBloqueo);
+      tBloqueo = setTimeout(function () { d.style.overflowY = ''; }, 1500);
+    }
+  }
+
   function vaciar() {
     programado = false;
+    bloquearScroll();
     var lote = pendientes; pendientes = [];
     lote.forEach(function (n) { if (n.isConnected) procesar(n); });
   }

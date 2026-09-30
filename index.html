@@ -8,7 +8,7 @@
     --navy-600:#1B4C92; --navy-500:#3A5F96; --navy-400:#5F80B0; --navy-300:#95AECF;
     --navy-200:#C4D2E7; --navy-100:#E3EAF4; --navy-50:#F2F5FA;
     --gold-700:#846813; --gold-600:#A8861D; --gold-500:#D3A62A; --gold-400:#E8C662; --gold-300:#EBD79A;
-    --bg:#FAFBFE; --surface:#FFFFFF; --border:#DDE5F0; --text:#0B2A5B; --text-muted:#4C6386;
+    --bg:#FDFEFF; --surface:#FFFFFF; --border:#DDE5F0; --text:#0B2A5B; --text-muted:#4C6386;
     --shadow-lg: 0 2px 4px rgba(7,28,60,.08), 0 20px 40px -18px rgba(7,28,60,.32);
     /* Alto real de la barra roja de "modo de pruebas" cuando esta visible
        (la actualiza ajustarEspacioModoPruebas() en JS); 0px el resto del
@@ -234,7 +234,7 @@
   }
   .watermark img{
     width:min(60vw,660px); height:auto;
-    opacity:.030; filter:grayscale(1) brightness(.5);
+    opacity:.042; filter:grayscale(1) brightness(.5);
   }
   /* La marca de agua de "Solicitud de Grado" se ve mas oscura que en el
      resto del Portal porque ahi queda sobre el fondo blanco propio de la
@@ -363,6 +363,10 @@
   /* Registro Cursos de Extension: el modulo entra subiendo y apareciendo */
   @keyframes moduloSube{ from{ opacity:0; transform:translateY(28px); } to{ opacity:1; transform:none; } }
   #viewRegistro:not([hidden]){ animation:moduloSube .65s cubic-bezier(.22,.8,.3,1) both; }
+  /* Mientras Registro entra subiendo, se recorta el desborde del contenedor
+     para que no aparezca (y desaparezca) una barra de desplazamiento. */
+  main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
+  #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
   #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden]{ display:none; }
   .registro-iframe{
@@ -584,7 +588,7 @@
     pointer-events:none; z-index:0; overflow:hidden;
   }
   .login-gate__panel-watermark img{
-    width:min(78%,620px); height:auto; opacity:.034; filter:grayscale(1) brightness(.5);
+    width:min(78%,620px); height:auto; opacity:.046; filter:grayscale(1) brightness(.5);
   }
   .login-gate__card{ position:relative; z-index:1; width:100%; max-width:360px; text-align:center; }
   .login-gate__card h2{ font-size:20px; font-weight:600; color:var(--text); margin:0; }
