@@ -2709,7 +2709,7 @@
     if (f.dataset.cargado) return;
     const cg = document.getElementById('titulacionCarga');
     if (cg) { cg.classList.add('on'); clearTimeout(window.__titCargaT); window.__titCargaT = setTimeout(() => cg.classList.remove('on'), 20000); }
-    f.src = TITULACION_URL + '?vista=embebido';
+    f.src = TITULACION_URL;
     f.dataset.cargado = '1';
   }
 
