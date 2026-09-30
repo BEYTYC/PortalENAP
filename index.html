@@ -1367,6 +1367,49 @@
     return msalInstance;
   }
 
+  // MSAL solo permite UNA ventana/redireccion interactiva (loginPopup,
+  // acquireTokenPopup, logoutPopup) a la vez en toda la pestana -- si se
+  // dispara una segunda mientras la primera sigue abierta (por ejemplo: el
+  // usuario le da a "Iniciar sesion" y, casi al mismo tiempo, el iframe de
+  // Concesiones Especiales pide su token por postMessage), MSAL rechaza la
+  // segunda con "interaction_in_progress". Antes eso no se controlaba, asi
+  // que dos interacciones casi simultaneas producian ese error tal cual lo
+  // reporto el error en pantalla.
+  //
+  // Arreglo en dos partes:
+  //   1) Todas las llamadas interactivas pasan por esta misma cola
+  //      (colaInteraccionMsal): si ya hay una en curso, la siguiente espera
+  //      a que termine en vez de dispararse encima.
+  //   2) Si aun asi llega "interaction_in_progress" (por ejemplo, quedo
+  //      colgada de una pestana/carga anterior que nunca la limpio), se
+  //      borra esa marca de sessionStorage y se reintenta una sola vez.
+  let colaInteraccionMsal = Promise.resolve();
+  function limpiarBanderaInteraccionColgada() {
+    try {
+      Object.keys(sessionStorage)
+        .filter((k) => /\.interaction\.status$/i.test(k) || k === 'msal.interaction.status')
+        .forEach((k) => sessionStorage.removeItem(k));
+    } catch (e) { /* nada mas que hacer si sessionStorage no esta disponible */ }
+  }
+  function conInteraccionMsalExclusiva(fn) {
+    const ejecucion = colaInteraccionMsal.then(async () => {
+      try {
+        return await fn();
+      } catch (error) {
+        if (error && error.errorCode === 'interaction_in_progress') {
+          limpiarBanderaInteraccionColgada();
+          return await fn();
+        }
+        throw error;
+      }
+    });
+    // Se guarda SIEMPRE una version que nunca rechaza como "siguiente
+    // eslabon" de la cola, para que un fallo en esta interaccion no deje
+    // trabada la cola para la que sigue.
+    colaInteraccionMsal = ejecucion.catch(() => {});
+    return ejecucion;
+  }
+
   async function adquirirToken(scopes, cuenta) {
     const instance = await getMsal();
     try {
@@ -1374,7 +1417,7 @@
       return r.accessToken;
     } catch (e) {
       if (e instanceof msal.InteractionRequiredAuthError) {
-        const r = await instance.acquireTokenPopup({ scopes, account: cuenta });
+        const r = await conInteraccionMsalExclusiva(() => instance.acquireTokenPopup({ scopes, account: cuenta }));
         return r.accessToken;
       }
       throw new Error('No se pudo obtener el token de acceso: ' + e.message);
@@ -2125,7 +2168,7 @@
       // redirect.html ahora se cierra solo aunque sea un logout (ver ese
       // archivo), que era el motivo real por el que esa ventana se quedaba
       // abierta despues de cerrar sesion.
-      await instance.logoutPopup({ postLogoutRedirectUri: BRIDGE_REDIRECT_URI, mainWindowRedirectUri: REDIRECT_URI });
+      await conInteraccionMsalExclusiva(() => instance.logoutPopup({ postLogoutRedirectUri: BRIDGE_REDIRECT_URI, mainWindowRedirectUri: REDIRECT_URI }));
       cerrarSesionLocal();
     } catch (error) {
       if (bridgeAlcanzado) {
@@ -2315,7 +2358,7 @@
       // su cuenta personal o con otra institucional) en esa misma maquina,
       // el popup entraba directo con esa cuenta sin dar oportunidad de
       // cambiar.
-      const resultado = await instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
+      const resultado = await conInteraccionMsalExclusiva(() => instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' }));
       if (resultado && resultado.account) {
         const sesion = await obtenerRolesUsuario(resultado.account);
         window.PortalENAP.sesion = sesion;
@@ -2461,7 +2504,7 @@
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Generación de Antigüedades', status: 'soon' },
         { nombre: 'Aprobación de Certificados', status: 'soon' },
-        { nombre: 'Aprobación de Concesiones Especiales', status: 'ok' },
+        { nombre: 'Concesiones Especiales', status: 'ok' },
         { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
@@ -2566,7 +2609,7 @@
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') abrirSubsistema('viewTitulacion', 'Solicitud de Grado');
-          else if (item.status === 'ok' && item.nombre === 'Aprobación de Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
+          else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
