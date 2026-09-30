@@ -351,11 +351,11 @@
   .cde-note{ margin-top:9px; font-size:10.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewAprobacionSac, #viewCDE{
+  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAprobacionSac, #viewCDE{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -1152,6 +1152,17 @@
     ></iframe>
   </div>
 
+  <div id="viewConcesiones" hidden>
+    <!-- Concesiones Especiales (Google Apps Script, vista de Estadistica y
+         lectores). La direccion del script se configura en
+         concesiones-config.js; el iframe se carga la primera vez que se abre. -->
+    <iframe
+      id="concesionesFrame"
+      class="registro-iframe"
+      title="Concesiones Especiales"
+    ></iframe>
+  </div>
+
   <div id="viewCDE" hidden>
     <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
          view?r=..."), embebido igual que los demas modulos -- sin borde ni
@@ -1287,6 +1298,7 @@
   </div>
 </div>
 
+<script src="concesiones-config.js"></script>
 <script src="msal-browser.min.js"></script>
 <script>
 (function () {
@@ -1498,6 +1510,11 @@
   }
 
   window.PortalENAP = window.PortalENAP || {};
+  // Concesiones Especiales: entrega el token de Microsoft de la sesion actual.
+  window.PortalENAP.tokenMicrosoft = async function () {
+    const cuenta = (await getMsal()).getAllAccounts()[0];
+    return adquirirToken(['User.Read'], cuenta);
+  };
   window.PortalENAP.sesion = null;
 
   // ---------------------------------------------------------------
@@ -2405,20 +2422,20 @@
         {
           nombre: 'Descarga de Balances Académicos', status: 'submenu',
           sub: [
-            { nombre: 'Balance Administración', archivo: 'balances/Balance_Administracion.xlsm' },
-            { nombre: 'Balance Administración Marítima', archivo: 'balances/Balance_Administracion_Maritima.xlsm' },
-            { nombre: 'Balance Ciencias Náuticas — Puente', archivo: 'balances/Balance_Ciencias_Nauticas_Puente.xlsm' },
-            { nombre: 'Balance Ciencias Náuticas — Máquinas', archivo: 'balances/Balance_Ciencias_Nauticas_Maquinas.xlsm' },
-            { nombre: 'Balance Ciencias Navales — Oficiales Navales', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Navales.xlsm' },
-            { nombre: 'Balance Ciencias Navales — Oficiales de Infantería de Marina', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Infanteria_Marina.xlsm' },
-            { nombre: 'Balance Especialización en Gestión Logística', archivo: 'balances/Balance_Especializacion_Gestion_Logistica.xlsm' },
-            { nombre: 'Balance Especialización en Política y Estrategia Marítima', archivo: 'balances/Balance_Especializacion_Politica_Estrategia_Maritima.xlsm' },
-            { nombre: 'Balance Ingeniería Electrónica', archivo: 'balances/Balance_Ingenieria_Electronica.xlsm' },
-            { nombre: 'Balance Ingeniería Naval', archivo: 'balances/Balance_Ingenieria_Naval.xlsm' },
-            { nombre: 'Balance Maestría en Ingeniería Naval', archivo: 'balances/Balance_Maestria_Ingenieria_Naval.xltm' },
-            { nombre: 'Balance Maestría en Gestión Logística', archivo: 'balances/Balance_Maestria_Gestion_Logistica.xlsm' },
-            { nombre: 'Balance Maestría en Oceanografía', archivo: 'balances/Balance_Maestria_Oceanografia.xlsm' },
-            { nombre: 'Balance Oceanografía Física', archivo: 'balances/Balance_Oceanografia_Fisica.xlsm' },
+            { nombre: 'Ciencias Navales', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Navales.xlsm' },
+            { nombre: 'Ciencias Navales - Infantería de Marina', archivo: 'balances/Balance_Ciencias_Navales_Oficiales_Infanteria_Marina.xlsm' },
+            { nombre: 'Ciencias Náuticas — Puente', archivo: 'balances/Balance_Ciencias_Nauticas_Puente.xlsm' },
+            { nombre: 'Ciencias Náuticas — Máquinas', archivo: 'balances/Balance_Ciencias_Nauticas_Maquinas.xlsm' },
+            { nombre: 'Administración', archivo: 'balances/Balance_Administracion.xlsm' },
+            { nombre: 'Administración Marítima', archivo: 'balances/Balance_Administracion_Maritima.xlsm' },
+            { nombre: 'Ingeniería Electrónica', archivo: 'balances/Balance_Ingenieria_Electronica.xlsm' },
+            { nombre: 'Ingeniería Naval', archivo: 'balances/Balance_Ingenieria_Naval.xlsm' },
+            { nombre: 'Oceanografía Física', archivo: 'balances/Balance_Oceanografia_Fisica.xlsm' },
+            { nombre: 'Especialización en Gestión Logística', archivo: 'balances/Balance_Especializacion_Gestion_Logistica.xlsm' },
+            { nombre: 'Especialización en Política y Estrategia Marítima', archivo: 'balances/Balance_Especializacion_Politica_Estrategia_Maritima.xlsm' },
+            { nombre: 'Maestría en Ingeniería Naval', archivo: 'balances/Balance_Maestria_Ingenieria_Naval.xltm' },
+            { nombre: 'Maestría en Gestión Logística', archivo: 'balances/Balance_Maestria_Gestion_Logistica.xlsm' },
+            { nombre: 'Maestría en Oceanografía', archivo: 'balances/Balance_Maestria_Oceanografia.xlsm' },
             { nombre: 'Balance Manual', archivo: 'balances/Balance_Manual.xlsx' },
           ],
         },
@@ -2444,7 +2461,7 @@
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Generación de Antigüedades', status: 'soon' },
         { nombre: 'Aprobación de Certificados', status: 'soon' },
-        { nombre: 'Aprobación de Concesiones Especiales', status: 'soon' },
+        { nombre: 'Aprobación de Concesiones Especiales', status: 'ok' },
         { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
@@ -2549,6 +2566,7 @@
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') abrirSubsistema('viewTitulacion', 'Solicitud de Grado');
+          else if (item.status === 'ok' && item.nombre === 'Aprobación de Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
@@ -2626,6 +2644,52 @@
   // este mensaje es el respaldo.
   window.addEventListener('message', (event) => {
     if (event.data === 'volverAlInicio') volverAlPortal();
+  });
+
+  // Concesiones Especiales: la primera vez que se abre se carga el iframe
+  // de Apps Script (direccion en concesiones-config.js).
+  function cargarConcesiones() {
+    const f = document.getElementById('concesionesFrame');
+    if (f.dataset.cargado) return;
+    const u = window.CONCESIONES_URL || '';
+    if (!/^https:\/\/script\.google\.com\//.test(u)) {
+      showToast('Falta la dirección de Concesiones Especiales en concesiones-config.js');
+      return;
+    }
+    f.src = u + (u.indexOf('?') < 0 ? '?vista=admin' : '&vista=admin');
+    f.dataset.cargado = '1';
+  }
+
+  // Concesiones Especiales pide aqui el token de Microsoft de quien inicio
+  // sesion (para que el script sepa quien es). Solo responde a paginas de
+  // Apps Script (googleusercontent.com), nunca a otros origenes.
+  window.addEventListener('message', async (event) => {
+    const d = event.data;
+    if (!d || (d.type !== 'concesiones:token-request' && d.type !== 'concesiones:pantalla-completa')) return;
+    let host = '';
+    try { host = new URL(event.origin).hostname; } catch (e) { return; }
+    if (!/\.googleusercontent\.com$/.test(host)) return;
+    if (d.type === 'concesiones:pantalla-completa') {
+      window.__concFs = { src: event.source, origin: event.origin };
+      const fr = document.getElementById('concesionesFrame');
+      try {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (fr && fr.requestFullscreen) fr.requestFullscreen();
+        else return;
+        event.source.postMessage({ type: 'concesiones:fs', on: !document.fullscreenElement }, event.origin);
+      } catch (e) { console.warn('Concesiones: pantalla completa', e); }
+      return;
+    }
+    try {
+      const token = await window.PortalENAP.tokenMicrosoft();
+      event.source.postMessage({ type: 'concesiones:token', token }, event.origin);
+    } catch (e) { console.warn('Concesiones: no se pudo entregar el token', e); }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    const c = window.__concFs; if (!c) return;
+    const on = document.fullscreenElement && document.fullscreenElement.id === 'concesionesFrame';
+    try { c.src.postMessage({ type: 'concesiones:fs', on: !!on }, c.origin); } catch (e) {}
   });
 
   let toastTimer = null;
