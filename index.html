@@ -2662,14 +2662,31 @@
   // Apps Script (googleusercontent.com), nunca a otros origenes.
   window.addEventListener('message', async (event) => {
     const d = event.data;
-    if (!d || d.type !== 'concesiones:token-request') return;
+    if (!d || (d.type !== 'concesiones:token-request' && d.type !== 'concesiones:pantalla-completa')) return;
     let host = '';
     try { host = new URL(event.origin).hostname; } catch (e) { return; }
     if (!/\.googleusercontent\.com$/.test(host)) return;
+    if (d.type === 'concesiones:pantalla-completa') {
+      window.__concFs = { src: event.source, origin: event.origin };
+      const fr = document.getElementById('concesionesFrame');
+      try {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else if (fr && fr.requestFullscreen) fr.requestFullscreen();
+        else return;
+        event.source.postMessage({ type: 'concesiones:fs', on: !document.fullscreenElement }, event.origin);
+      } catch (e) { console.warn('Concesiones: pantalla completa', e); }
+      return;
+    }
     try {
       const token = await window.PortalENAP.tokenMicrosoft();
       event.source.postMessage({ type: 'concesiones:token', token }, event.origin);
     } catch (e) { console.warn('Concesiones: no se pudo entregar el token', e); }
+  });
+
+  document.addEventListener('fullscreenchange', () => {
+    const c = window.__concFs; if (!c) return;
+    const on = document.fullscreenElement && document.fullscreenElement.id === 'concesionesFrame';
+    try { c.src.postMessage({ type: 'concesiones:fs', on: !!on }, c.origin); } catch (e) {}
   });
 
   let toastTimer = null;
