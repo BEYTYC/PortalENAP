@@ -241,12 +241,6 @@
      pagina de Apps Script (en vez del fondo azul clarito de home/SAC) --
      se aclara solo para esta vista: menos opacidad y sin oscurecer con
      brightness(.5). */
-  /* Solicitud de Grado (link /exec directo) ya dibuja su PROPIA marca de
-     agua: la del Portal se oculta aqui para que no se vea doble fondo. */
-  #viewTitulacion .watermark{ display:none; }
-  #viewTitulacion .watermark img{
-    width:min(75vw,820px); opacity:.032; filter:grayscale(1);
-  }
 
   .wrap{max-width:960px; margin:0 auto; width:100%; position:relative; z-index:1;}
 
@@ -1151,7 +1145,7 @@
          estilo que usa el resto del Portal) -- solo se vera si la
          pagina de Apps Script tiene su propio fondo transparente (sin
          eso, su fondo blanco opaco la tapa por completo). -->
-  <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
+  
     <!-- "Solicitud de Grado": el iframe se deja vacio hasta que se abre
          por primera vez (cargarTitulacion(), mas abajo) -- igual que
          Concesiones Especiales -- para poder mostrar "Cargando sesion..."
