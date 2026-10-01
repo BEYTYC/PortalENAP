@@ -242,6 +242,12 @@
      se aclara solo para esta vista: menos opacidad y sin oscurecer con
      brightness(.5). */
 
+  /* Solicitud de Grado: una sola marca de agua (la propia de este modulo).
+     La general del Portal se oculta mientras este modulo esta abierto para
+     que no se vean dos escudos superpuestos. */
+  #viewTitulacion .watermark img{ width:min(75vw,820px); opacity:.032; filter:grayscale(1); }
+  main:has(> #viewTitulacion:not([hidden])) > .watermark{ display:none; }
+
   .wrap{max-width:960px; margin:0 auto; width:100%; position:relative; z-index:1;}
 
   .draft-badge{
@@ -1145,7 +1151,7 @@
          estilo que usa el resto del Portal) -- solo se vera si la
          pagina de Apps Script tiene su propio fondo transparente (sin
          eso, su fondo blanco opaco la tapa por completo). -->
-  
+  <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
     <!-- "Solicitud de Grado": el iframe se deja vacio hasta que se abre
          por primera vez (cargarTitulacion(), mas abajo) -- igual que
          Concesiones Especiales -- para poder mostrar "Cargando sesion..."
