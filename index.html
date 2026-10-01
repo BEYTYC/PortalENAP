@@ -241,6 +241,9 @@
      pagina de Apps Script (en vez del fondo azul clarito de home/SAC) --
      se aclara solo para esta vista: menos opacidad y sin oscurecer con
      brightness(.5). */
+  /* Solicitud de Grado (link /exec directo) ya dibuja su PROPIA marca de
+     agua: la del Portal se oculta aqui para que no se vea doble fondo. */
+  #viewTitulacion .watermark{ display:none; }
   #viewTitulacion .watermark img{
     width:min(75vw,820px); opacity:.032; filter:grayscale(1);
   }
