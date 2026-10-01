@@ -2727,7 +2727,7 @@
   function cargarTitulacion() {
     const f = document.getElementById('titulacionFrame');
     if (f.dataset.cargado) return;
-    f.src = TITULACION_URL + '?vista=embebido';  // vista embebida: sin encabezado y con fondo transparente (se ve la marca de agua)
+    f.src = TITULACION_URL;
     f.dataset.cargado = '1';
   }
   // Se precarga desde que abre el Portal (iframe oculto), como al principio:
