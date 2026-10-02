@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Centro de Datos ENAP (en construcción)</title>
+<title>Centro de Datos ENAP</title>
 <script src="./dc-runtime.js"></script>
 </head>
 <body>
@@ -76,7 +76,6 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="{{ welBox }}">
 <div style="position:absolute;left:60px;top:150px;width:600px;transform:scale(.78);transform-origin:0 0">
 <div class="fup glass" style="display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;animation-delay:.1s"><span class="blink" style="width:8px;height:8px;border-radius:50%;background:#B8841F;box-shadow:0 0 0 4px rgba(227,184,90,.25)"></span><span style="font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0C2050">Proyecto de Transformación Digital</span><span style="width:1px;height:12px;background:#C9D2E2"></span><span style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B7A94">Oficina de Estadística</span></div>
-<div class="fup" style="margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:#FBF3DE;border:1px solid #D9B25A;animation-delay:.15s"><span class="blink" style="width:7px;height:7px;border-radius:50%;background:#B8841F"></span><span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7A5510">En construcción · versión preliminar</span></div>
 <h1 class="fup" style="margin:22px 0 0;font-size:70px;line-height:1.0;font-weight:600;letter-spacing:-.035em;color:#0C2050;animation-delay:.2s">Centro de Datos<br><span class="grad">Institucional</span></h1>
 <p class="fup" style="margin:20px 0 0;max-width:520px;font-size:16.5px;line-height:1.55;color:#51617D;animation-delay:.3s">Lo más relevante de la institución, reunido y vivo: ingreso, graduación, retiros, concesiones y programas, con filtros que responden al instante.</p>
 <div class="fup" style="margin-top:28px;animation-delay:.4s"><button class="cta" onClick="{{ enterGeneral }}" style="position:relative;overflow:hidden;display:inline-flex;align-items:center;gap:16px;padding:10px 12px 10px 30px;border-radius:999px;border:1px solid rgba(227,184,90,.7);background:linear-gradient(135deg,#0C2050 0%,#1D4FD8 100%);color:#fff;font-size:16px;font-weight:600;letter-spacing:.01em;cursor:pointer;box-shadow:0 18px 44px rgba(29,79,216,.35),0 2px 0 rgba(255,255,255,.18) inset;"><span class="sheen"></span><span style="position:relative">Entrar al Centro de Datos</span><span class="arr" style="position:relative;width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#F3D68B,#B8841F);display:flex;align-items:center;justify-content:center;color:#1A1405;font-size:20px;font-weight:700">→</span></button></div>
@@ -106,7 +105,6 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <button class="hov" onClick="{{ goHome }}" style="margin:-4px 0 6px -6px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:0;border-radius:999px;background:none;font-size:11.5px;font-weight:600;color:#51617D;cursor:pointer">‹ Inicio</button>
 <div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:#B8841F">Escuela Naval de Cadetes</div>
 <div style="margin-top:4px;font-size:19px;line-height:1.2;font-weight:600;letter-spacing:-.01em;color:#0C2050">Centro de Datos</div>
-<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:#FBF3DE;border:1px solid #D9B25A;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#7A5510"><span class="blink" style="width:6px;height:6px;border-radius:50%;background:#B8841F"></span>En construcción</div>
 <div style="margin-top:6px;font-size:11px;line-height:1.4;color:#6B7A94">Cada filtro muestra cuántos estudiantes tiene.</div>
 </div>
 <sc-if value="{{ railSexo }}" hint-placeholder-val="{{ true }}">
@@ -179,9 +177,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 </sc-if>
 <div style="margin-top:auto;display:flex;flex-direction:column;gap:9px">
-<sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}"><div style="margin:0 0 8px;text-align:center;font-size:10.5px;line-height:1.4;color:#3D4D69">Desarrollado por <b style="color:#0C2050">PD02 Beyty P. Camargo M</b><br>Jefe de Estadística</div></sc-if>
 <button class="x" onClick="{{ clearAll }}" style="{{ clearStyle }}">Borrar todos los filtros</button>
-<div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#6B7A94"><span style="width:7px;height:7px;border-radius:50%;background:#B8841F"></span>{{ dataNote }}</div>
+<sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}"><div style="margin:-4px 0 0;text-align:center;font-size:10.5px;line-height:1.4;color:#3D4D69">Desarrollado por <b style="color:#0C2050">PD02 Beyty P. Camargo M</b><br>Jefe de Estadística</div></sc-if>
 </div>
 </aside>
 
