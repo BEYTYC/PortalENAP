@@ -9,7 +9,7 @@
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, TOP = 119.3, PITCH = 10.44;
+  var LEFT = 36.6, RIGHT = 574.9, TOP = 109.4, PITCH = 10.44;
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
   function fmt(n) { return (Math.round(Number(n) * 1000) / 1000).toFixed(3).replace('.', ','); }
@@ -32,7 +32,7 @@
     doc.setProperties({ title: 'Balance Académico - ' + (e.estudiante.nombres + ' ' + e.estudiante.apellidos).trim(), creator: 'Portal ENAP' });
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
-    var pitch = Math.min(PITCH, 700.2 / Math.max(N, 1));
+    var pitch = Math.min(PITCH, 710.1 / Math.max(N, 1));
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1, pitch / PITCH * 1.04);
 
@@ -61,20 +61,20 @@
     }
 
     /* franjas azules (encabezado de tabla, columna de áreas, totales) */
-    fondo(AZUL, LEFT, 105.9, 574.7, 119.1);
+    fondo(AZUL, LEFT, 96.0, 574.7, 109.2);
     var finPensum = T, iOpt = -1;
     lineas.forEach(function (l, i) { if (iOpt < 0 && l.kind === 'opt') iOpt = i; });
     if (iOpt >= 0) finPensum = TOP + iOpt * pitch;
-    fondo(AZUL, LEFT, 119.0, X.area1, finPensum + 0.3);
+    fondo(AZUL, LEFT, TOP - 0.3, X.area1, finPensum + 0.3);
     if (iOpt >= 0) fondo(AZUL2, LEFT, finPensum - 0.4, X.area1, T - 0.3);
 
     /* encabezado */
     negro(37.0, 36.1, 574.9, 36.8); negro(37.0, 72.1, 574.9, 72.9);
-    negro(37.0, 105.5, 574.9, 106.2); negro(37.0, 118.6, 574.9, 119.3);
+    negro(37.0, 95.6, 574.9, 96.3); negro(37.0, 108.7, 574.9, 109.4);
     negro(36.2, 36.1, 37.0, 72.9); negro(80.5, 36.8, 81.2, 72.9); negro(453.9, 36.8, 454.7, 72.9); negro(574.2, 36.8, 574.9, 72.9);
-    negro(36.2, 72.1, 37.0, 106.2); negro(453.9, 72.1, 454.7, 106.2); negro(574.2, 72.1, 574.9, 106.2);
+    negro(36.2, 72.1, 37.0, 96.3); negro(453.9, 72.1, 454.7, 96.3); negro(574.2, 72.1, 574.9, 96.3);
     gris(81.2, 54.1, 453.9, 54.9); gris(454.7, 54.1, 574.2, 54.9); gris(534.1, 54.9, 534.8, 72.1);
-    gris(37.0, 88.8, 453.9, 89.5); gris(454.7, 88.8, 574.2, 89.5);
+    gris(37.0, 83.9, 453.9, 84.6); gris(454.7, 83.9, 574.2, 84.6);
 
     if (o.logo) { try { doc.addImage(o.logo, 'PNG', 48.0, 38.1, 20.1, 31.1); } catch (err) {} }
 
@@ -103,8 +103,8 @@
     })();
 
     var nombreCompleto = (e.estudiante.nombres + ' ' + e.estudiante.apellidos).replace(/\s+/g, ' ').trim().toUpperCase();
-    // las dos filas del bloque de datos van centradas verticalmente en su celda (72,9–88,8 y 89,5–105,5)
-    var Y1 = (72.9 + 88.8) / 2 + 2.3, Y2 = (89.5 + 105.5) / 2 + 2.3;
+    // las dos filas del bloque de datos van centradas verticalmente en su celda (72,9–83,9 y 84,6–95,6)
+    var Y1 = (72.9 + 83.9) / 2 + 2.3, Y2 = (84.6 + 95.6) / 2 + 2.3;
     texto('NOMBRES Y APELLIDOS:', 47.4, Y1, 6.5, true);
     texto(nombreCompleto, 135.9, Y1, 6.5, false, 'left', 310);
     texto('PROGRAMA ACADÉMICO:', 47.4, Y2, 6.5, true);
@@ -115,7 +115,7 @@
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
     /* títulos de columnas */
-    var by = 114.1;
+    var by = 104.2;
     texto('COD.', 65.5, by, 6.1, true, 'center'); texto('PÉNSUM VIGENTE', 82.2, by, 6.1, true);
     texto('COD.', 266.7, by, 6.1, true, 'center'); texto('PÉNSUM CURSADO', 283.5, by, 6.1, true);
     texto('CRÉDITOS', 474.8, by, 6.1, true, 'center'); texto('NOTA', 514.9, by, 6.1, true, 'center'); texto('HAB.', 555.0, by, 6.1, true, 'center');
@@ -171,11 +171,11 @@
     }
 
     /* líneas verticales y de contorno de la tabla */
-    negro(36.2, 105.5, 37.0, T + 0.0);
-    negro(574.2, 106.2, 574.9, T);
-    negro(49.7, 119.3, 50.4, T);
-    negro(80.5, 106.2, 81.2, finPensum + 0.4);
-    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 106.2, x + 0.7, T); });
+    negro(36.2, 95.6, 37.0, T + 0.0);
+    negro(574.2, 96.3, 574.9, T);
+    negro(49.7, TOP, 50.4, T);
+    negro(80.5, 96.3, 81.2, finPensum + 0.4);
+    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 96.3, x + 0.7, T); });
     negro(37.0, T - 0.8, 574.9, T);
 
     /* totales y observaciones: cajas contiguas, una sola línea entre cada una */
