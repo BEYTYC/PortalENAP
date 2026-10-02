@@ -410,6 +410,19 @@
     position:absolute; top:0; left:0; width:100%; height:calc(100% + 36px);
   }
 
+  /* ---------- Centro de Datos Institucional (en construcción) ---------- */
+  .cdi-home{
+    margin-top:18px; position:relative; border-radius:18px; overflow:visible;
+    width:min(1000px, calc(100vw - 64px)); margin-left:calc(50% - min(500px, (100vw - 64px) / 2));
+    box-shadow:0 0 0 1px rgba(4,20,46,.06), 0 18px 40px -14px rgba(4,20,46,.35);
+  }
+  .cdi-home .preview-tag{ z-index:3; }
+  .cdi-home__stage{ position:relative; width:100%; height:520px; border-radius:18px; overflow:hidden; background:#ECF0F6; }
+  .cdi-home__frame{ position:absolute; top:0; left:0; width:1440px; height:900px; border:0; transform-origin:top left; }
+  .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
+  .cdi-tab__frame{ position:absolute; top:0; left:0; width:1440px; height:900px; border:0; transform-origin:top left; }
+  .cdi-tab.cdi-tab--fs .cdi-tab__frame{ width:100%; height:100%; }
+
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
     font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border);
@@ -1064,74 +1077,14 @@
         <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
       </div>
 
-      <section class="cde-card">
-        <span class="preview-tag">Vista previa</span>
-        <div class="cde-deco" aria-hidden="true">
-          <svg viewBox="0 0 800 260" preserveAspectRatio="xMidYMid slice" fill="none">
-            <g font-family="'Aptos Display', 'Segoe UI', sans-serif" font-weight="600" font-variant-numeric="tabular-nums">
-              <text x="560" y="46" font-size="30" fill="#E3C767" opacity=".10">98,4%</text>
-              <text x="690" y="30" font-size="16" fill="#FFFFFF" opacity=".10">1.284</text>
-              <text x="470" y="112" font-size="42" fill="#FFFFFF" opacity=".05">312</text>
-              <text x="640" y="150" font-size="20" fill="#E3C767" opacity=".12">+96</text>
-              <text x="735" y="112" font-size="14" fill="#FFFFFF" opacity=".14">%</text>
-              <text x="500" y="205" font-size="15" fill="#FFFFFF" opacity=".10">2.026</text>
-              <text x="600" y="235" font-size="12" fill="#95AECF" opacity=".16">Σ</text>
-              <text x="45" y="235" font-size="46" fill="#FFFFFF" opacity=".035">01</text>
-            </g>
-            <g stroke="#95AECF" stroke-width="1">
-              <line x1="520" y1="60" x2="600" y2="20" opacity=".14"/>
-              <line x1="600" y1="20" x2="700" y2="55" opacity=".14"/>
-              <line x1="600" y1="20" x2="615" y2="120" opacity=".1"/>
-              <line x1="615" y1="120" x2="705" y2="160" opacity=".1"/>
-              <line x1="615" y1="120" x2="540" y2="175" opacity=".08"/>
-              <line x1="705" y1="160" x2="760" y2="205" opacity=".08"/>
-            </g>
-            <g fill="#E3C767">
-              <circle cx="520" cy="60" r="2.5" opacity=".3"/>
-              <circle cx="600" cy="20" r="3" opacity=".35"/>
-              <circle cx="700" cy="55" r="2.5" opacity=".3"/>
-              <circle cx="615" cy="120" r="2.5" opacity=".28"/>
-              <circle cx="705" cy="160" r="2.5" opacity=".26"/>
-              <circle cx="540" cy="175" r="2" opacity=".22"/>
-              <circle cx="760" cy="205" r="2" opacity=".2"/>
-            </g>
-            <g stroke="#FFFFFF" opacity=".06">
-              <line x1="0" y1="45" x2="800" y2="45"/>
-              <line x1="0" y1="130" x2="800" y2="130"/>
-              <line x1="0" y1="215" x2="800" y2="215"/>
-            </g>
-          </svg>
-        </div>
-        <div class="cde-inner">
-          <div class="cde-copy">
-            <span class="eyebrow2">Estadística · Panel institucional</span>
-            <h2>Centro de Datos ENAP</h2>
-            <p>Tablero con los indicadores oficiales de la Escuela Naval de Cadetes: cadetes activos, cursos registrados, graduados por período y avance de solicitudes, actualizados desde la Base de Datos institucional.</p>
-            <button class="cde-cta" id="cdeBtn" type="button">
-              Ingresar al Centro de Datos ENAP
-              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-          </div>
-          <div class="cde-preview">
-            <div class="kpis">
-              <div class="kpi"><div class="n">1.284</div><div class="l">Cadetes activos</div></div>
-              <div class="kpi"><div class="n">96</div><div class="l">Cursos este año</div></div>
-              <div class="kpi"><div class="n">312</div><div class="l">Graduados 2026</div></div>
-              <div class="kpi"><div class="n">98,4%</div><div class="l">Solicitudes al día</div></div>
-            </div>
-            <div class="cde-chart">
-              <svg viewBox="0 0 300 90" preserveAspectRatio="none">
-                <polyline points="0,70 40,58 80,62 120,40 160,46 200,24 240,30 300,10" fill="none" stroke="#E3C767" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <polygon points="0,70 40,58 80,62 120,40 160,46 200,24 240,30 300,10 300,90 0,90" fill="url(#g1)" opacity="0.35"/>
-                <defs>
-                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#E3C767"/>
-                    <stop offset="1" stop-color="#E3C767" stop-opacity="0"/>
-                  </linearGradient>
-                </defs>
-              </svg>
-            </div>
-          </div>
+      <!-- Centro de Datos Institucional (en construcción): la pantalla de bienvenida del
+           tablero (centro-datos/index.html?modo=inicio) se muestra aquí, escalada al ancho
+           de la tarjeta. Al elegir un módulo, el tablero avisa con postMessage
+           ("centrodatos:abrir") y el Portal abre la vista de Centro de Datos. -->
+      <section class="cdi-home" id="cdiHome">
+        <span class="preview-tag">En construcción</span>
+        <div class="cdi-home__stage" id="cdiHomeStage">
+          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" src="centro-datos/index.html?modo=inicio" loading="lazy"></iframe>
         </div>
       </section>
     </div>
@@ -1178,22 +1131,13 @@
   </div>
 
   <div id="viewCDE" hidden>
-    <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
-         view?r=..."), embebido igual que los demas modulos -- sin borde ni
-         fondo propio del Portal (misma clase "registro-iframe"). El fondo
-         que se ve adentro ya lo define el propio tablero de Power BI.
-         ".cde-frame-wrap" recorta la franja inferior fija que Power BI
-         agrega siempre a este tipo de tablero (ver comentario junto a
-         ".cde-frame-wrap" en el CSS). "navContentPaneEnabled=false" en la
-         URL apaga ademas el paginador interno de paginas del tablero. -->
-    <div class="cde-frame-wrap">
-      <iframe
-        id="cdeFrame"
-        class="registro-iframe cde-frame"
-        title="Centro de Datos ENAP"
-        src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9&navContentPaneEnabled=false"
-        allowfullscreen
-      ></iframe>
+    <!-- Centro de Datos Institucional (en construcción): tablero propio incrustado
+         (centro-datos/index.html?modo=tablero). Mide 1440x900 y se escala para caber
+         en el área disponible (ver ajustarCDI). El tablero anterior de Power BI
+         "Publicar en la Web" se retiró de aquí; su dirección quedó en el repositorio
+         (historial de git) por si hay que volver a ponerlo. -->
+    <div class="cdi-tab" id="cdiTab">
+      <iframe id="cdeFrame" class="cdi-tab__frame" title="Centro de Datos Institucional (en construcción)" allow="fullscreen" allowfullscreen></iframe>
     </div>
   </div>
 
@@ -2677,9 +2621,34 @@
   }
   document.addEventListener('click', closeAllNav);
 
-  document.getElementById('cdeBtn').addEventListener('click', () => {
-    abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
-  });
+  // ---- Centro de Datos Institucional (en construcción) ----
+  // El tablero mide 1440x900; se escala para caber (inicio: a lo ancho de la
+  // tarjeta; vista completa: al área disponible, centrado).
+  function ajustarCDI() {
+    const hs = document.getElementById('cdiHomeStage'), hf = document.getElementById('cdiHomeFrame');
+    if (hs && hf && hs.parentElement.offsetWidth) {
+      // Solo se muestra la franja 60..840 (alto 780) de los 900 px del tablero.
+      const k = hs.clientWidth / 1440;
+      hs.style.height = Math.round(780 * k) + 'px';
+      hf.style.transform = 'scale(' + k + ') translateY(-60px)';
+    }
+    const tb = document.getElementById('cdiTab'), tf = document.getElementById('cdeFrame');
+    if (tb && tf && tb.clientWidth && !tb.classList.contains('cdi-tab--fs')) {
+      const k = Math.min(tb.clientWidth / 1440, tb.clientHeight / 900);
+      tf.style.transform = 'scale(' + k + ')';
+      tf.style.left = Math.max(0, (tb.clientWidth - 1440 * k) / 2) + 'px';
+      tf.style.top = Math.max(0, (tb.clientHeight - 900 * k) / 2) + 'px';
+    }
+  }
+  window.addEventListener('resize', ajustarCDI);
+  window.addEventListener('load', ajustarCDI);
+  function cargarCDI(tab) {
+    const f = document.getElementById('cdeFrame');
+    const t = ['general','graduados','retiros','concesiones','reconoc','formacion','programas'].indexOf(tab) >= 0 ? tab : 'general';
+    const url = 'centro-datos/index.html?modo=tablero&tab=' + t;
+    if (f.dataset.url !== url) { f.dataset.url = url; f.src = url; }
+    ajustarCDI();
+  }
 
   let vistaActiva = 'viewHome';
 
@@ -2689,6 +2658,9 @@
     document.getElementById('navSubsistema').classList.add('show');
     document.getElementById('main').classList.add('main-full');
     vistaActiva = viewId;
+    if (viewId === 'viewCDE') cargarCDI(window.__cdiTab || 'general');
+    window.__cdiTab = null;
+    ajustarCDI();
   }
 
   function volverAlPortal() {
@@ -2696,6 +2668,7 @@
     document.getElementById('navSubsistema').classList.remove('show');
     document.getElementById('main').classList.remove('main-full');
     vistaActiva = 'viewHome';
+    setTimeout(ajustarCDI, 50);
   }
 
   // Los módulos incrustados (Registro y los que sigan) llaman a
@@ -2704,6 +2677,11 @@
   // este mensaje es el respaldo.
   window.addEventListener('message', (event) => {
     if (event.data === 'volverAlInicio') volverAlPortal();
+    // Centro de Datos Institucional (mismo origen): abrir un módulo o volver al inicio.
+    if (event.origin === window.location.origin && event.data && typeof event.data === 'object') {
+      if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
+      else if (event.data.type === 'centrodatos:inicio') volverAlPortal();
+    }
   });
 
   // Concesiones Especiales: la primera vez que se abre se carga el iframe
