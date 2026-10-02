@@ -103,14 +103,16 @@
     })();
 
     var nombreCompleto = (e.estudiante.nombres + ' ' + e.estudiante.apellidos).replace(/\s+/g, ' ').trim().toUpperCase();
-    texto('NOMBRES Y APELLIDOS:', 47.4, 85.9, 6.5, true);
-    texto(nombreCompleto, 135.9, 85.9, 6.5, false, 'left', 310);
-    texto('PROGRAMA ACADÉMICO:', 47.4, 96.3, 6.5, true);
-    texto(String(prog.nombre || '').toUpperCase(), 135.9, 96.3, 6.5, false, 'left', 310);
-    texto('Fecha elaboración:', 458.0, 85.8, 6.1, true);
-    texto(e.elaboracion, 536.0, 85.8, 6.1, false);
-    texto('Periodo de terminación:', 458.0, 96.6, 6.1, true);
-    texto(res.periodoTerm, 536.0, 96.6, 6.1, false);
+    // las dos filas del bloque de datos van centradas verticalmente en su celda (72,9–88,8 y 89,5–105,5)
+    var Y1 = (72.9 + 88.8) / 2 + 2.3, Y2 = (89.5 + 105.5) / 2 + 2.3;
+    texto('NOMBRES Y APELLIDOS:', 47.4, Y1, 6.5, true);
+    texto(nombreCompleto, 135.9, Y1, 6.5, false, 'left', 310);
+    texto('PROGRAMA ACADÉMICO:', 47.4, Y2, 6.5, true);
+    texto(String(prog.nombre || '').toUpperCase(), 135.9, Y2, 6.5, false, 'left', 310);
+    texto('Fecha elaboración:', 458.0, Y1, 6.1, true);
+    texto(e.elaboracion, 536.0, Y1, 6.1, false);
+    texto('Periodo de terminación:', 458.0, Y2, 6.1, true);
+    texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
     /* títulos de columnas */
     var by = 114.1;
