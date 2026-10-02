@@ -1480,7 +1480,7 @@ class Component extends DCLogic {
     const cursoSem = !!f.esp && SHORTESP.indexOf(f.esp) >= 0;
     const cursoB = cursoSem ? [['1.er sem.', 0, 6], ['2.º sem.', 7, 999]] : [['1.er año', 0, 12], ['2.º año', 13, 24], ['3.er año', 25, 36], ['4.º año', 37, 999]];
     const cursoTitle = cursoSem ? 'Semestre en que se retiran' : 'Año en que se retiran';
-    const cursoSub = cursoSem ? f.esp + ': programa de 2 semestres' : 'Año de formación (4 años)';
+    const cursoSub = cursoSem ? f.esp + ': 2 semestres · estimado por permanencia' : 'Estimado por meses de permanencia (preliminar)';
     const cursoC = cursoB.map((b) => cnt(rtAll, (r) => r.meses != null && r.meses >= b[1] && r.meses <= b[2]));
     const cursoMax = Math.max(1, ...cursoC);
     const cursoTot = cursoC.reduce((a, b) => a + b, 0);
