@@ -9,7 +9,7 @@
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, TOP = 109.4, PITCH = 10.44;
+  var LEFT = 36.6, RIGHT = 574.9, TOP = 113.4, PITCH = 10.44;
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
   function fmt(n) { return (Math.round(Number(n) * 1000) / 1000).toFixed(3).replace('.', ','); }
@@ -32,7 +32,7 @@
     doc.setProperties({ title: 'Balance Académico - ' + (e.estudiante.nombres + ' ' + e.estudiante.apellidos).trim(), creator: 'Portal ENAP' });
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
-    var pitch = Math.min(PITCH, 710.1 / Math.max(N, 1));
+    var pitch = Math.min(PITCH, 706.1 / Math.max(N, 1));
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1, pitch / PITCH * 1.04);
 
@@ -61,7 +61,7 @@
     }
 
     /* franjas azules (encabezado de tabla, columna de áreas, totales) */
-    fondo(AZUL, LEFT, 96.0, 574.7, 109.2);
+    fondo(AZUL, LEFT, 100.0, 574.7, 113.2);       // entre el bloque de datos y la tabla queda un espacio en blanco de 4 pt
     var finPensum = T, iOpt = -1;
     lineas.forEach(function (l, i) { if (iOpt < 0 && l.kind === 'opt') iOpt = i; });
     if (iOpt >= 0) finPensum = TOP + iOpt * pitch;
@@ -70,7 +70,8 @@
 
     /* encabezado */
     negro(37.0, 36.1, 574.9, 36.8); negro(37.0, 72.1, 574.9, 72.9);
-    negro(37.0, 95.6, 574.9, 96.3); negro(37.0, 108.7, 574.9, 109.4);
+    negro(37.0, 95.6, 574.9, 96.3);                  // cierra el bloque de datos
+    negro(37.0, 99.6, 574.9, 100.3); negro(37.0, 112.7, 574.9, 113.4);   // encabezado de la tabla
     negro(36.2, 36.1, 37.0, 72.9); negro(80.5, 36.8, 81.2, 72.9); negro(453.9, 36.8, 454.7, 72.9); negro(574.2, 36.8, 574.9, 72.9);
     negro(36.2, 72.1, 37.0, 96.3); negro(453.9, 72.1, 454.7, 96.3); negro(574.2, 72.1, 574.9, 96.3);
     gris(81.2, 54.1, 453.9, 54.9); gris(454.7, 54.1, 574.2, 54.9); gris(534.1, 54.9, 534.8, 72.1);
@@ -115,7 +116,7 @@
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
     /* títulos de columnas */
-    var by = 104.2;
+    var by = 108.2;
     texto('COD.', 65.5, by, 6.1, true, 'center'); texto('PÉNSUM VIGENTE', 82.2, by, 6.1, true);
     texto('COD.', 266.7, by, 6.1, true, 'center'); texto('PÉNSUM CURSADO', 283.5, by, 6.1, true);
     texto('CRÉDITOS', 474.8, by, 6.1, true, 'center'); texto('NOTA', 514.9, by, 6.1, true, 'center'); texto('HAB.', 555.0, by, 6.1, true, 'center');
@@ -171,11 +172,11 @@
     }
 
     /* líneas verticales y de contorno de la tabla */
-    negro(36.2, 95.6, 37.0, T + 0.0);
-    negro(574.2, 96.3, 574.9, T);
+    negro(36.2, 99.6, 37.0, T + 0.0);
+    negro(574.2, 100.3, 574.9, T);
     negro(49.7, TOP, 50.4, T);
-    negro(80.5, 96.3, 81.2, finPensum + 0.4);
-    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 96.3, x + 0.7, T); });
+    negro(80.5, 100.3, 81.2, finPensum + 0.4);
+    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3, x + 0.7, T); });
     negro(37.0, T - 0.8, 574.9, T);
 
     /* totales y observaciones: cajas contiguas, una sola línea entre cada una */
