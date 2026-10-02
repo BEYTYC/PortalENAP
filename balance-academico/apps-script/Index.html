@@ -1809,7 +1809,11 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (r.avisosNombre) alertas += '<div class="alert bad">' + r.avisosNombre + (r.avisosNombre === 1 ? ' nombre sigue' : ' nombres siguen') + ' con puntos suspensivos: no estaban en las equivalencias. Escriba el nombre completo en “Pénsum cursado”; el cambio queda guardado.</div>';
     if (r.faltantes.length) alertas += '<div class="alert warn">Falta completar ' + r.faltantes.length + ' ' + (r.faltantes.length === 1 ? 'asignatura' : 'asignaturas') + ' del pénsum.</div>';
     if (!r.completo) alertas += '<div class="alert mute">No se puede firmar ni bajar el PDF hasta que el balance esté completo.</div>';
-    else alertas += '<div class="alert ok">Balance completo: ya se puede firmar y descargar.</div>';
+    else {
+      var fsR = S.fs, rolR = S.rol, tocaFirmar = !(S.est.firmas[rolR] && fsR[rolR]) && (rolR === 'jefe' ? fsR.fase === 'borrador' : fsR.jefe && !fsR.decano);
+      alertas += '<div class="alert ok" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Balance completo: ya se puede firmar y descargar.</span>' +
+        '<button class="btn pri sm" data-vista="firma">' + (tocaFirmar ? 'Firmar balance' : 'Ir a Firma y PDF') + '</button></div>';
+    }
 
     return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
       '<div class="seg"><button data-filtro="todas" aria-pressed="' + (S.filtro === 'todas') + '">Todas</button><button data-filtro="pendientes" aria-pressed="' + (S.filtro === 'pendientes') + '">Pendientes (' + pendientes + ')</button></div></div>' +
