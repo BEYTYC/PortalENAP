@@ -273,7 +273,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="font-size:15px;font-weight:600;color:#0C2050">Género</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">De la selección</div>
 <div style="margin-top:12px;display:grid;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:10px;flex:1;min-height:0">
 <sc-for list="{{ genCards }}" as="g" hint-placeholder-count="2">
-<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" style="flex:none;height:72%;max-height:72px;width:auto"><span style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="font-size:12.5px;font-weight:600;color:#51617D">{{ g.label }}</span><span style="font-size:23px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050">{{ g.num }}</span><span style="margin-top:1px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ g.col }}">{{ g.share }}</span><span style="font-size:11px;color:#6B7A94">estudiantes</span></span></button>
+<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" style="flex:none;height:72%;max-height:72px;width:auto"><span style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="font-size:11.5px;font-weight:600;color:#51617D">{{ g.label }}</span><span style="font-size:18px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050">{{ g.num }}</span><span style="margin-top:1px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ g.col }}">{{ g.share }}</span><span style="font-size:10.5px;color:#6B7A94">estudiantes</span></span></button>
 </sc-for>
 </div>
 <div style="margin-top:12px;height:12px;border-radius:6px;overflow:hidden;display:flex;background:rgba(12,32,80,.07);flex:none"><div class="x" style="{{ genBarH }}"></div><div class="x" style="{{ genBarM }}"></div></div>
@@ -282,7 +282,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="rise d6" style="{{ panel }};grid-column:span 4">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Extranjeros por país</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ paisSub }}</div>
 <div style="margin-top:10px;display:flex;gap:8px;align-items:flex-start">
-<svg width="104" height="195" viewBox="68 0 70 130" style="flex:none" role="img" aria-label="Mapa de procedencia">
+<svg width="128" height="195" viewBox="52 0 86 130" style="flex:none" role="img" aria-label="Mapa de procedencia">
 <polygon fill="#E3EAF4" stroke="#C4D0E4" stroke-width="1" stroke-linejoin="round" points="{{ mapPoly }}"/>
 <sc-for list="{{ mapDots }}" as="d" hint-placeholder-count="6"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for>
 </svg>
