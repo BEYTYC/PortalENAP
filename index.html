@@ -411,17 +411,14 @@
   }
 
   /* ---------- Centro de Datos Institucional (en construcción) ---------- */
-  .cdi-home{
-    margin-top:18px; position:relative; border-radius:18px; overflow:visible;
-    width:min(1000px, calc(100vw - 64px)); margin-left:calc(50% - min(500px, (100vw - 64px) / 2));
-    box-shadow:0 0 0 1px rgba(4,20,46,.06), 0 18px 40px -14px rgba(4,20,46,.35);
-  }
+  #viewHome{ width:100%; height:100%; display:flex; }
+  #viewHome[hidden]{ display:none; }
+  #viewHome:not([hidden]) > .wrap{ flex:1; width:100%; max-width:none; padding:0; margin:0; display:flex; }
+  .cdi-home{ position:relative; width:100%; height:100%; flex:1; overflow:hidden; background:#ECF0F6; }
   .cdi-home .preview-tag{ z-index:3; }
-  .cdi-home__stage{ position:relative; width:100%; height:520px; border-radius:18px; overflow:hidden; background:#ECF0F6; }
-  .cdi-home__frame{ position:absolute; top:0; left:0; width:1440px; height:900px; border:0; transform-origin:top left; }
+  .cdi-home__frame, .cdi-tab__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
   .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
-  .cdi-tab__frame{ position:absolute; top:0; left:0; width:1440px; height:900px; border:0; transform-origin:top left; }
-  .cdi-tab.cdi-tab--fs .cdi-tab__frame{ width:100%; height:100%; }
+  body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
 
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
@@ -1067,25 +1064,16 @@
   </div>
 </nav>
 
-<main id="main">
+<main id="main" class="main-full">
   <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
   <div id="viewHome" class="entrada-pendiente">
     <div class="wrap">
-      <div class="center">
-        <div class="eyebrow">Oficina de Estadística</div>
-        <h2 class="hero-title">Portal de Servicios Digitales</h2>
-        <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
-      </div>
-
       <!-- Centro de Datos Institucional (en construcción): la pantalla de bienvenida del
            tablero (centro-datos/index.html?modo=inicio) se muestra aquí, escalada al ancho
            de la tarjeta. Al elegir un módulo, el tablero avisa con postMessage
            ("centrodatos:abrir") y el Portal abre la vista de Centro de Datos. -->
       <section class="cdi-home" id="cdiHome">
-        <span class="preview-tag">En construcción</span>
-        <div class="cdi-home__stage" id="cdiHomeStage">
-          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" src="centro-datos/index.html?modo=inicio" loading="lazy"></iframe>
-        </div>
+        <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" src="centro-datos/index.html?modo=inicio" allow="fullscreen"></iframe>
       </section>
     </div>
   </div>
@@ -2624,22 +2612,7 @@
   // ---- Centro de Datos Institucional (en construcción) ----
   // El tablero mide 1440x900; se escala para caber (inicio: a lo ancho de la
   // tarjeta; vista completa: al área disponible, centrado).
-  function ajustarCDI() {
-    const hs = document.getElementById('cdiHomeStage'), hf = document.getElementById('cdiHomeFrame');
-    if (hs && hf && hs.parentElement.offsetWidth) {
-      // Solo se muestra la franja 60..840 (alto 780) de los 900 px del tablero.
-      const k = hs.clientWidth / 1440;
-      hs.style.height = Math.round(780 * k) + 'px';
-      hf.style.transform = 'scale(' + k + ') translateY(-60px)';
-    }
-    const tb = document.getElementById('cdiTab'), tf = document.getElementById('cdeFrame');
-    if (tb && tf && tb.clientWidth && !tb.classList.contains('cdi-tab--fs')) {
-      const k = Math.min(tb.clientWidth / 1440, tb.clientHeight / 900);
-      tf.style.transform = 'scale(' + k + ')';
-      tf.style.left = Math.max(0, (tb.clientWidth - 1440 * k) / 2) + 'px';
-      tf.style.top = Math.max(0, (tb.clientHeight - 900 * k) / 2) + 'px';
-    }
-  }
+  function ajustarCDI() {}
   window.addEventListener('resize', ajustarCDI);
   window.addEventListener('load', ajustarCDI);
   function cargarCDI(tab) {
@@ -2666,7 +2639,8 @@
   function volverAlPortal() {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
-    document.getElementById('main').classList.remove('main-full');
+    document.getElementById('main').classList.add('main-full');
+    document.body.classList.remove('cdi-fs');
     vistaActiva = 'viewHome';
     setTimeout(ajustarCDI, 50);
   }
@@ -2679,7 +2653,8 @@
     if (event.data === 'volverAlInicio') volverAlPortal();
     // Centro de Datos Institucional (mismo origen): abrir un módulo o volver al inicio.
     if (event.origin === window.location.origin && event.data && typeof event.data === 'object') {
-      if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
+      if (event.data.type === 'centrodatos:pantalla-completa') document.body.classList.toggle('cdi-fs', !!event.data.fs);
+      else if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
       else if (event.data.type === 'centrodatos:inicio') volverAlPortal();
     }
   });

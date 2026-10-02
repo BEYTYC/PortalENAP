@@ -63,20 +63,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </style>
 </helmet>
 <div style="{{ rootStyle }}">
-<sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
-<header style="flex:none;position:relative;overflow:hidden;box-sizing:border-box;padding:18px 26px;border-bottom:5px solid #D3A62A;background:radial-gradient(120% 220% at 50% 45%,#123A73 0%,#0B2A5B 32%,#071142 62%,#04142E 100%);color:#fff;display:flex;align-items:center;gap:14px">
-<svg viewBox="0 0 900 110" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><path d="M0 80 C 200 20, 380 120, 620 50 S 860 30, 900 60" fill="none" stroke="#8FB0DE" stroke-width="1" opacity=".22"/><path d="M0 95 C 220 50, 420 110, 640 70 S 860 60, 900 85" fill="none" stroke="#E3C767" stroke-width="1" opacity=".25"/><circle cx="780" cy="30" r="46" fill="none" stroke="#5F80B0" stroke-width="1" opacity=".3"/><circle cx="780" cy="30" r="26" fill="none" stroke="#E3C767" stroke-width="1" opacity=".25"/></svg>
-<div style="position:relative;display:flex;flex-direction:column;gap:2px">
-<div style="font-size:15px;font-weight:600;letter-spacing:.01em">Escuela Naval de Cadetes "Almirante Padilla"</div>
-<div style="font-size:10.5px;font-weight:600;letter-spacing:.04em;color:#E8C662">OFICINA DE ESTADÍSTICA</div>
-<div style="font-size:10.5px;color:#C4D2E7">Cartagena de Indias, D. T. y C.</div>
-</div>
-<div style="position:relative;margin-left:auto;text-align:right">
-<div style="font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:#95AECF">Sistema</div>
-<div style="font-size:13.5px;font-weight:600">Portal de Servicios Digitales</div>
-</div>
-</header>
-</sc-if>
+
 <div style="{{ areaStyle }}">
 <div style="{{ stageStyle }}">
 <!-- ============ PANTALLA DE BIENVENIDA ============ -->
@@ -85,7 +72,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="aur a1"></div><div class="aur a2"></div><div class="aur a3"></div>
 <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(12,32,80,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(12,32,80,.055) 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:radial-gradient(ellipse 70% 70% at 62% 50%,#000 20%,transparent 78%);mask-image:radial-gradient(ellipse 70% 70% at 62% 50%,#000 20%,transparent 78%)"></div>
 
-<div style="position:absolute;left:80px;top:70px;width:1280px;height:760px">
+<div style="{{ welBox }}">
 <div style="position:absolute;left:52px;top:118px;width:600px">
 <div class="fup glass" style="display:inline-flex;align-items:center;gap:10px;padding:8px 16px;border-radius:999px;animation-delay:.1s"><span class="blink" style="width:8px;height:8px;border-radius:50%;background:#B8841F;box-shadow:0 0 0 4px rgba(227,184,90,.25)"></span><span style="font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#0C2050">Proyecto de Transformación Digital</span><span style="width:1px;height:12px;background:#C9D2E2"></span><span style="font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B7A94">Oficina de Estadística</span></div>
 <div class="fup" style="margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:#FBF3DE;border:1px solid #D9B25A;animation-delay:.15s"><span class="blink" style="width:7px;height:7px;border-radius:50%;background:#B8841F"></span><span style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#7A5510">En construcción · versión preliminar</span></div>
@@ -766,11 +753,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 </div>
 <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}">
-<footer style="flex:none;position:relative;overflow:hidden;box-sizing:border-box;padding:10px 26px;border-top:5px solid #D3A62A;background:radial-gradient(120% 320% at 50% 50%,#123A73 0%,#0B2A5B 32%,#071142 62%,#04142E 100%);box-shadow:0 -6px 12px -8px rgba(7,28,60,.45);color:#C4D2E7;font-size:11px;display:flex;align-items:center;gap:14px">
-<svg viewBox="0 0 900 60" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"><path d="M0 40 C 220 10, 420 60, 640 28 S 860 20, 900 36" fill="none" stroke="#8FB0DE" stroke-width="1" opacity=".22"/><circle cx="120" cy="30" r="30" fill="none" stroke="#E3C767" stroke-width="1" opacity=".2"/></svg>
-<div style="position:relative;line-height:1.5"><b style="color:#fff;font-size:11.5px">Oficina de Estadística</b><br>Portal de Servicios Digitales</div>
-<div style="position:relative;margin-left:auto;text-align:right;line-height:1.5"><div style="color:#fff">Desarrollado por <b>PD02 Beyty Camargo Martínez</b> - Jefe de Estadística ENAP</div><div style="font-size:9.5px;color:#95AECF">© 2026 - Todos los derechos reservados.</div></div>
-</footer>
+<div style="position:absolute;right:14px;bottom:6px;z-index:60;pointer-events:none;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.82);box-shadow:0 2px 8px rgba(20,35,63,.12);font-size:10.5px;color:#3D4D69;white-space:nowrap">Desarrollado por <b style="color:#0C2050">PD02 Beyty P. Camargo M</b> - Jefe de Estadística</div>
 </sc-if>
 </div>
 </x-dc>
@@ -817,10 +800,10 @@ class Component extends DCLogic {
     if (!this._data) this._data = this.build();
     if (!this._fsInit && typeof window !== 'undefined') {
       this._fsInit = true;
-      try { const q = new URLSearchParams(window.location.search); this._modo = q.get('modo') || ''; if (this._modo === 'tablero') { const tb = q.get('tab'); Object.assign(this.state, { screen: 'app', tab: ['general', 'graduados', 'retiros', 'concesiones', 'reconoc', 'formacion', 'programas'].indexOf(tb) >= 0 ? tb : 'general' }); } } catch (e) { this._modo = ''; }
-      const sync = () => { const on = !!document.fullscreenElement; if (this._fsReal && !on && this.state.fs) { this._fsReal = false; this.setState({ fs: false }); } };
+      try { const q = new URLSearchParams(window.location.search); this._modo = q.get('modo') || ''; if (this._modo === 'tablero') { const tb = q.get('tab'); Object.assign(this.state, { screen: 'app', tab: ['general', 'graduados', 'retiros', 'concesiones', 'reconoc', 'formacion', 'programas'].indexOf(tb) >= 0 ? tb : 'general' }); } if (this._modo) Object.assign(this.state, { vw: window.innerWidth, vh: window.innerHeight }); } catch (e) { this._modo = ''; }
+      const sync = () => { const on = !!document.fullscreenElement; if (this._fsReal && !on && this.state.fs) { this._fsReal = false; try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {} this.setState({ fs: false }); } };
       document.addEventListener('fullscreenchange', sync);
-      window.addEventListener('resize', () => { if (this.state.fs) this.setState({ vw: window.innerWidth, vh: window.innerHeight }); });
+      window.addEventListener('resize', () => { if (this.state.fs || this._modo) this.setState({ vw: window.innerWidth, vh: window.innerHeight }); });
       window.addEventListener('message', (e) => { const d = e.data || {}; if (d.type === 'centrodatos:fs') { this._fsReal = !!d.on; this.setState({ fs: !!d.on, vw: window.innerWidth, vh: window.innerHeight }); } });
     }
     const fsOn = this.state.fs;
@@ -828,15 +811,20 @@ class Component extends DCLogic {
       const next = !this.state.fs;
       this.setState({ fs: next, vw: window.innerWidth, vh: window.innerHeight });
       try {
-        if (next) { const el = document.documentElement; if (el.requestFullscreen) { this._fsReal = true; el.requestFullscreen().catch(() => { this._fsReal = false; }); } try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa' }, '*'); } catch (e) {} }
-        else if (document.fullscreenElement) { this._fsReal = false; document.exitFullscreen(); }
+        if (next) { const el = document.documentElement; if (el.requestFullscreen) { this._fsReal = true; el.requestFullscreen().catch(() => { this._fsReal = false; }); } try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: true }, '*'); } catch (e) {} }
+        else { try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {} if (document.fullscreenElement) { this._fsReal = false; document.exitFullscreen(); } }
       } catch (e) {}
     };
-    const aw = this.state.vw, ah = this.state.vh - 88 - 58;
-    const fsk = Math.max(0.3, Math.min(aw / 1440, ah / 900));
-    const rootStyle = fsOn ? "position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;font-family:'Libre Franklin',system-ui,sans-serif;background:#ECF0F6" : 'position:relative;width:1440px;height:900px';
+    const fitMode = (this._modo === 'inicio' || this._modo === 'tablero') && !fsOn;
+    const aw = this.state.vw, ah = (fitMode || fsOn) ? this.state.vh : this.state.vh - 88 - 58;
+    const isIni = this._modo === 'inicio' && !fsOn;
+    const fsk = isIni ? Math.max(0.3, Math.min(aw / 1340, ah / 820)) : Math.max(0.3, Math.min(aw / 1440, ah / 900));
+    const dyn = isIni || fitMode || fsOn;
+    const stW = dyn ? aw / fsk : 1440, stH = dyn ? ah / fsk : 900;
+    const rootStyle = fsOn ? "position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;font-family:'Libre Franklin',system-ui,sans-serif;background:#ECF0F6" : fitMode ? "position:fixed;inset:0;overflow:hidden;font-family:'Libre Franklin',system-ui,sans-serif;background:linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)" : 'position:relative;width:1440px;height:900px';
     const areaStyle = fsOn ? 'flex:1;position:relative;overflow:hidden;min-height:0' : 'position:absolute;inset:0';
-    const stageStyle = "position:absolute;width:1440px;height:900px;font-family:'Libre Franklin',system-ui,sans-serif;color:#14233F;background:linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%);overflow:hidden;transform-origin:0 0;" + (fsOn ? 'left:' + Math.max(0, (aw - 1440 * fsk) / 2) + 'px;top:' + Math.max(0, (ah - 900 * fsk) / 2) + 'px;transform:scale(' + fsk + ')' : 'left:0;top:0');
+    const stageStyle = "position:absolute;width:" + stW + "px;height:" + stH + "px;font-family:'Libre Franklin',system-ui,sans-serif;color:#14233F;background:linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%);overflow:hidden;transform-origin:0 0;" + (fsOn || fitMode ? 'left:' + Math.max(0, (aw - stW * fsk) / 2) + 'px;top:' + Math.max(0, (ah - stH * fsk) / 2) + 'px;transform:scale(' + fsk + ')' : 'left:0;top:0');
+    const welBox = 'position:absolute;left:' + (isIni ? Math.round((stW - 1280) / 2) : 80) + 'px;top:' + (isIni ? Math.round((stH - 760) / 2) : 70) + 'px;width:1280px;height:760px';
     const data = this._data;
     const f = this.state.f;
     const tab = this.state.tab;
@@ -1694,7 +1682,7 @@ class Component extends DCLogic {
     }
 
     const vals = {
-      showFs: this._modo !== 'inicio', railPd: tab === 'general', railSexo: true, estLbl: 'Estado', rngLbl: 'Año de ingreso',
+      welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railSexo: true, estLbl: 'Estado', rngLbl: 'Año de ingreso',
       gBox: 'margin-top:14px;display:flex;align-items:flex-end;gap:5px;height:' + (H + 40) + 'px', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fs: fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, enterGeneral: enter('general'),
       welcomeStyle: 'position:absolute;inset:0;transition:opacity .6s cubic-bezier(.22,.8,.24,1),transform .6s cubic-bezier(.22,.8,.24,1),filter .6s ease;' + (this.state.leaving ? 'opacity:0;transform:scale(1.04);filter:blur(10px)' : 'opacity:1;transform:none;filter:none'),
