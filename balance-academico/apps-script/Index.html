@@ -89,7 +89,14 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .firma{height:100%;display:grid;grid-template-columns:400px minmax(0,1fr);gap:16px}
 .firma .panel{display:flex;flex-direction:column;gap:12px;overflow:auto;min-height:0;padding-right:2px}
 .prevbox{height:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#E9EDF4;padding:12px;display:flex;justify-content:center;align-items:flex-start}
-.prevbox canvas{box-shadow:0 2px 12px rgba(18,41,74,.25);background:#fff}
+.prevbox canvas{box-shadow:0 2px 12px rgba(18,41,74,.25);background:#fff;display:block}
+.pgwrap{position:relative;flex:none}
+.sigdrag{position:absolute;cursor:move;outline:1.5px dashed var(--gold);outline-offset:0;touch-action:none;background:rgba(184,137,43,.07);user-select:none}
+.sigdrag:focus-visible{outline:2px solid var(--navy)}
+.sigdrag img{width:100%;height:100%;display:block;pointer-events:none}
+.sigdrag .hd{position:absolute;width:11px;height:11px;background:#fff;border:2px solid var(--gold);border-radius:2px}
+.sigdrag .nw{left:-6px;top:-6px;cursor:nwse-resize}.sigdrag .se{right:-6px;bottom:-6px;cursor:nwse-resize}
+.sigdrag .ne{right:-6px;top:-6px;cursor:nesw-resize}.sigdrag .sw{left:-6px;bottom:-6px;cursor:nesw-resize}
 .sigprev{border:1px dashed var(--line);border-radius:8px;height:70px;display:flex;align-items:center;justify-content:center;color:var(--mute);background:#fff;overflow:hidden}
 .sigprev img{max-height:66px;max-width:100%}
 .steps{display:flex;flex-direction:column;gap:8px}
@@ -1368,11 +1375,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
     /* firmas */
     var f = o.firmas || {};
-    function bloqueFirma(f1, cx, x0, x1, imgX0, imgX1) {
+    function bloqueFirma(rol, f1, cx, x0, x1) {
       if (f1 && f1.img) {
-        var bw = imgX1 - imgX0, bh = 40.6, w = bw, hh = bh;
-        if (f1.w && f1.h) { var k = Math.min(bw / f1.w, bh / f1.h); w = f1.w * k; hh = f1.h * k; }
-        try { doc.addImage(f1.img, f1.tipo || 'PNG', cx - w / 2, T + 53.7 + (bh - hh), w, hh, undefined, 'FAST'); } catch (err) {}
+        if (!f1.oculta) {                       // “oculta”: la vista previa la dibuja el usuario encima, con el mouse
+          var g = geometriaFirma(rol, f1.w, f1.h, f1.pos);
+          try { doc.addImage(f1.img, f1.tipo || 'PNG', g.cx - g.w / 2, T + g.top, g.w, g.h, undefined, 'FAST'); } catch (err) {}
+        }
       }
       else {
         doc.setFont('helvetica', 'italic'); doc.setFontSize(7.6); doc.setTextColor(150, 150, 150);
@@ -1382,12 +1390,24 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       texto(((f1 && f1.nombre) || '').toUpperCase(), cx, T + 103.5, 7.6, true, 'center', x1 - x0 + 20);
       texto((f1 && f1.cargo) || '', cx, T + 112.7, 7.6, false, 'center', x1 - x0 + 40);
     }
-    bloqueFirma(f.jefe, 181.6, 80.9, 282.3, 112.5, 249.6);
-    bloqueFirma(f.decano, 442.1, 349.6, 534.6, 421.0, 462.0);
+    bloqueFirma('jefe', f.jefe, 181.6, 80.9, 282.3);
+    bloqueFirma('decano', f.decano, 442.1, 349.6, 534.6);
+    doc.balanceT = T;                           // la pantalla lo necesita para ubicar la firma sobre la vista previa
     return doc;
   }
 
-  return { generar: generar };
+  /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
+     Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 40.6, FIRMA_ARRIBA = 53.7;
+  function geometriaFirma(rol, w0, h0, pos) {
+    var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
+    if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
+    var g = { cx: b.cx, top: FIRMA_ARRIBA + (FIRMA_ALTO - h), w: w, h: h, ratio: ratio };
+    if (pos && pos.w > 0) { g.cx = pos.cx; g.top = pos.top; g.w = pos.w; g.h = pos.w * ratio; }
+    return g;
+  }
+
+  return { generar: generar, geometriaFirma: geometriaFirma };
 });
 
 </script>
@@ -1633,7 +1653,9 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     fr.readAsDataURL(file);
   }
 
-  function construirPDF() {
+  /* La firma propia se puede mover y cambiar de tamaño mientras no se haya firmado. */
+  function firmaEditable(rol) { return rol === S.rol && !!S.imgs[rol] && !(S.est.firmas[rol] && S.fs && S.fs[rol]); }
+  function construirPDF(vista) {
     var firmas = {};
     ['jefe', 'decano'].forEach(function (rol) {
       var f = S.est.firmas[rol], d = datosFirmante(rol), usar = f || d;
@@ -1643,6 +1665,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
         nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || (rol === 'jefe' ? S.prog.firmantes.jefe : S.prog.firmantes.decano)
       };
       if (!f && rol !== S.rol) firmas[rol].img = null;
+      firmas[rol].pos = (S.est.firmasPos || {})[rol] || null;
+      if (vista && firmaEditable(rol)) firmas[rol].oculta = true;
     });
     var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
     if (!JsPDF) throw new Error('No se cargó la librería de PDF (jsPDF). Recargue la página; si sigue igual, revise que el navegador no bloquee scripts.');
@@ -1659,12 +1683,6 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var nom = (S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos).replace(/\s+/g, ' ').trim().toUpperCase();
     bajar(doc.output('blob'), 'Balance_Academico_' + nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '_') + '.pdf');
     M.registrar(S.est, quien(), 'descargó el PDF', S.fs.fase === 'firmado' ? 'firmado' : S.fs.fase === 'cerrado_jefe' ? 'con firma del jefe' : 'sin firmas'); guardar();
-  }
-  function exportarArchivo() {
-    var copia = JSON.parse(JSON.stringify(S.est));
-    copia.firmasImg = S.imgs; copia.firmasDim = S.dims; // el decano necesita ver la firma del jefe en el PDF
-    var nom = (S.est.estudiante.apellidos + ' ' + S.est.estudiante.nombres).replace(/\s+/g, '_');
-    bajar(new Blob([JSON.stringify(copia)], { type: 'application/json' }), 'Balance_' + nom + '.balance.json');
   }
   function importarArchivo(file) {
     if (!file) return;
@@ -1817,7 +1835,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div class="grid2"><label class="f">Grado<input id="fi-grado" value="' + h(d.grado) + '" placeholder="Ej. MYCIM" ' + (firmado ? 'disabled' : '') + '></label><label class="f">Nombre<input id="fi-nombre" value="' + h(d.nombre) + '" ' + (firmado ? 'disabled' : '') + '></label></div>' +
       '<label class="f" style="margin-top:10px">Cargo<input id="fi-cargo" value="' + h(d.cargo) + '" ' + (firmado ? 'disabled' : '') + '></label>' +
       '<div style="margin-top:12px" class="lbl">Imagen de la firma (se carga cada vez; no se guarda)</div>' +
-      '<div class="sigprev" style="margin-top:6px">' + (img ? '<img alt="Firma" src="' + img + '">' : 'Sin firma cargada') + '</div>' +
+      (img && !firmado ? '<div style="margin-top:8px;font-size:12.5px;color:var(--mute)">En la vista previa arrastre la firma para ubicarla y use las esquinas para cambiar su tamaño. <button class="btn sm" data-act="firma-reset" style="margin-left:4px">Restablecer posición</button></div>' : '') + '<div class="sigprev" style="margin-top:6px">' + (img ? '<img alt="Firma" src="' + img + '">' : 'Sin firma cargada') + '</div>' +
       '<label class="btn sm" style="margin-top:8px;display:inline-block;cursor:pointer">' + (img ? 'Cambiar imagen' : 'Cargar imagen (PNG o JPG)') + '<input type="file" id="firma-img" accept="image/png,image/jpeg" hidden></label></div>' +
       msg +
       (rol === 'decano' && fs.jefe && !S.imgs.jefe ? '<div class="card" style="padding:12px 16px"><div class="alert warn" style="margin-bottom:8px">La imagen de la firma del Jefe no se guarda. Cárguela para que salga en el PDF, o abra el archivo del balance que le envió.</div><label class="btn sm" style="cursor:pointer;display:inline-block">Cargar firma del Jefe<input type="file" id="firma-img-jefe" accept="image/png,image/jpeg" hidden></label></div>' : '') +
@@ -1828,7 +1846,6 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div style="display:flex;flex-direction:column;gap:8px">' +
       '<button class="btn pri" data-act="firmar"' + (puedeFirmar ? '' : ' disabled') + '>' + (firmado ? 'Ya firmó' : rol === 'jefe' ? 'Firmar y cerrar mi parte' : 'Firmar como Decano') + '</button>' +
       '<button class="btn" data-act="pdf"' + (emitir ? '' : ' disabled') + '>Descargar PDF' + (fs.fase === 'firmado' ? '' : ' (pendiente de firma)') + '</button>' +
-      '<button class="btn" data-act="exportar">Descargar copia del balance (archivo)</button>' +
       (rol === 'jefe' && fs.fase !== 'borrador' ? '<button class="btn" data-act="reabrir">Reabrir balance</button>' : '') + '</div>' +
       (!emitir ? '<div class="alert warn">No se puede firmar ni descargar el PDF hasta que el balance esté completo y el estudiante verificado.</div>' : '') +
       (rol === 'decano' && !fs.jefe ? '<div class="alert mute">El Jefe de Programa aún no ha firmado. Ábrale el archivo del balance cuando lo envíe.</div>' : '') +
@@ -1866,6 +1883,55 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return pdfjsListo;
   }
   var tokenPrevia = 0;
+  /* ───── firma movible sobre la vista previa ───── */
+  function montarFirmaMovible(pw, k, T, PW, PH) {
+    var rol = S.rol, dim = S.dims[rol] || {};
+    var g = PDF.geometriaFirma(rol, dim.w, dim.h, (S.est.firmasPos || {})[rol]);
+    var cx = g.cx, top = g.top, w = g.w;                                  // top es relativo al cuadro de firmas (T)
+    var el = document.createElement('div'); el.className = 'sigdrag'; el.tabIndex = 0;
+    el.title = 'Arrastre para mover · esquinas para cambiar el tamaño · flechas para ajustar';
+    el.innerHTML = '<img alt="Firma" draggable="false" src="' + S.imgs[rol] + '">' + ['nw', 'ne', 'sw', 'se'].map(function (c) { return '<i class="hd ' + c + '" data-h="' + c + '"></i>'; }).join('');
+    pw.appendChild(el);
+    function alto() { return w * g.ratio; }
+    function limitar() {
+      w = Math.max(18, Math.min(w, PW)); var h = alto();
+      cx = Math.max(w / 2, Math.min(cx, PW - w / 2));
+      top = Math.max(-T, Math.min(top, PH - T - h));
+    }
+    function pintar() {
+      limitar(); el.style.left = ((cx - w / 2) * k) + 'px'; el.style.top = ((T + top) * k) + 'px'; el.style.width = (w * k) + 'px'; el.style.height = (alto() * k) + 'px';
+    }
+    function guardarPos() {
+      S.est.firmasPos = S.est.firmasPos || {}; S.est.firmasPos[rol] = { cx: +cx.toFixed(2), top: +top.toFixed(2), w: +w.toFixed(2) };
+      guardar();
+    }
+    var drag = null;
+    el.addEventListener('pointerdown', function (ev) {
+      if (ev.button !== undefined && ev.button !== 0) return;
+      ev.preventDefault(); el.focus(); el.setPointerCapture(ev.pointerId);
+      var h = ev.target.getAttribute && ev.target.getAttribute('data-h'), r = pw.getBoundingClientRect(), hh = alto();
+      drag = { h: h, x: ev.clientX, y: ev.clientY, cx: cx, top: top, w: w, r: r,
+               ax: (h === 'nw' || h === 'sw') ? cx + w / 2 : cx - w / 2,            // esquina contraria: queda fija al cambiar el tamaño
+               ay: (h === 'nw' || h === 'ne') ? top + hh : top };
+    });
+    el.addEventListener('pointermove', function (ev) {
+      if (!drag) return;
+      if (!drag.h) { cx = drag.cx + (ev.clientX - drag.x) / k; top = drag.top + (ev.clientY - drag.y) / k; pintar(); return; }
+      var px = (ev.clientX - drag.r.left) / k, nw = drag.h === 'nw' || drag.h === 'sw' ? drag.ax - px : px - drag.ax;
+      w = Math.max(18, nw); var hh = alto();
+      cx = (drag.h === 'nw' || drag.h === 'sw') ? drag.ax - w / 2 : drag.ax + w / 2;
+      top = (drag.h === 'nw' || drag.h === 'ne') ? drag.ay - hh : drag.ay;
+      pintar();
+    });
+    function soltar() { if (!drag) return; drag = null; limitar(); pintar(); guardarPos(); }
+    el.addEventListener('pointerup', soltar); el.addEventListener('pointercancel', soltar);
+    el.addEventListener('keydown', function (ev) {
+      var d = ev.shiftKey ? 5 : 1, m = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] }[ev.key];
+      if (!m) return; ev.preventDefault(); cx += m[0]; top += m[1]; pintar(); guardarPos();
+    });
+    pintar();
+  }
+
   function pintarPrevia() {
     var cont = $('#prev'); if (!cont) return;
     if (!S.res.completo) {
@@ -1875,7 +1941,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var mio = ++tokenPrevia;
     cont.innerHTML = '<div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Armando vista previa…</div>';
     try {
-      var buf = construirPDF().output('arraybuffer');
+      var docPrev = construirPDF(true), buf = docPrev.output('arraybuffer');
       prepararPdfjs().then(function () { return pdfjsLib.getDocument({ data: buf }).promise; }).then(function (pdf) { return pdf.getPage(1); }).then(function (page) {
         if (mio !== tokenPrevia || !$('#prev')) return;
         var ancho = Math.max(300, Math.min(900, $('#prev').clientWidth - 24)), vp0 = page.getViewport({ scale: 1 });
@@ -1884,7 +1950,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
         cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Vista previa del Balance Académico');
         return page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(function () {
           var c = $('#prev'); if (!c || mio !== tokenPrevia) return;
-          c.innerHTML = '<div class="prevbox"></div>'; c.firstChild.appendChild(cv);
+          c.innerHTML = '<div class="prevbox"><div class="pgwrap"></div></div>'; var pw = c.firstChild.firstChild; pw.style.width = ancho + 'px'; pw.appendChild(cv);
+          if (firmaEditable(S.rol)) montarFirmaMovible(pw, ancho / vp0.width, docPrev.balanceT, vp0.width, vp0.height);
         });
       }).catch(function (err) { var c = $('#prev'); if (c) c.innerHTML = '<div class="alert warn">No se pudo mostrar la vista previa (' + h(err.message) + '). Puede descargar el PDF igualmente.</div>'; });
     } catch (err) { cont.innerHTML = '<div class="alert bad">No se pudo armar el PDF: ' + h(err.message) + '</div>'; }
@@ -1956,7 +2023,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     }
     else if (act === 'firmar') firmar();
     else if (act === 'pdf') descargarPDF();
-    else if (act === 'exportar') exportarArchivo();
+    else if (act === 'firma-reset') { if (S.est.firmasPos) delete S.est.firmasPos[S.rol]; guardar(); render(); }
     else if (act === 'reabrir') reabrir();
   });
 

@@ -194,11 +194,12 @@
 
     /* firmas */
     var f = o.firmas || {};
-    function bloqueFirma(f1, cx, x0, x1, imgX0, imgX1) {
+    function bloqueFirma(rol, f1, cx, x0, x1) {
       if (f1 && f1.img) {
-        var bw = imgX1 - imgX0, bh = 40.6, w = bw, hh = bh;
-        if (f1.w && f1.h) { var k = Math.min(bw / f1.w, bh / f1.h); w = f1.w * k; hh = f1.h * k; }
-        try { doc.addImage(f1.img, f1.tipo || 'PNG', cx - w / 2, T + 53.7 + (bh - hh), w, hh, undefined, 'FAST'); } catch (err) {}
+        if (!f1.oculta) {                       // “oculta”: la vista previa la dibuja el usuario encima, con el mouse
+          var g = geometriaFirma(rol, f1.w, f1.h, f1.pos);
+          try { doc.addImage(f1.img, f1.tipo || 'PNG', g.cx - g.w / 2, T + g.top, g.w, g.h, undefined, 'FAST'); } catch (err) {}
+        }
       }
       else {
         doc.setFont('helvetica', 'italic'); doc.setFontSize(7.6); doc.setTextColor(150, 150, 150);
@@ -208,10 +209,22 @@
       texto(((f1 && f1.nombre) || '').toUpperCase(), cx, T + 103.5, 7.6, true, 'center', x1 - x0 + 20);
       texto((f1 && f1.cargo) || '', cx, T + 112.7, 7.6, false, 'center', x1 - x0 + 40);
     }
-    bloqueFirma(f.jefe, 181.6, 80.9, 282.3, 112.5, 249.6);
-    bloqueFirma(f.decano, 442.1, 349.6, 534.6, 421.0, 462.0);
+    bloqueFirma('jefe', f.jefe, 181.6, 80.9, 282.3);
+    bloqueFirma('decano', f.decano, 442.1, 349.6, 534.6);
+    doc.balanceT = T;                           // la pantalla lo necesita para ubicar la firma sobre la vista previa
     return doc;
   }
 
-  return { generar: generar };
+  /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
+     Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 40.6, FIRMA_ARRIBA = 53.7;
+  function geometriaFirma(rol, w0, h0, pos) {
+    var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
+    if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
+    var g = { cx: b.cx, top: FIRMA_ARRIBA + (FIRMA_ALTO - h), w: w, h: h, ratio: ratio };
+    if (pos && pos.w > 0) { g.cx = pos.cx; g.top = pos.top; g.w = pos.w; g.h = pos.w * ratio; }
+    return g;
+  }
+
+  return { generar: generar, geometriaFirma: geometriaFirma };
 });
