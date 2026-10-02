@@ -1708,7 +1708,14 @@ class Component extends DCLogic {
       const sk = MET.map((m, i) => { const cur = sSum(m[2], 'year', PERs), prv = sSum(m[2], 'year', PRVs), d = dlt(cur, prv, false, false); return { label: m[1], dot: dot(m[3]), value: fmt(tot[i]), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) + (sp.metric !== m[0] ? ';opacity:.85' : ''), bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tot[i] / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: true, ex1l: 'Ingreso ' + PERs, ex1v: fmt(cur), ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) }; });
       const rt = (a, b) => (b > 0 ? a / b : 0);
       const rCur = rt(sSum(1, 'year', PERs), sSum(0, 'year', PERs)), rPrv = rt(sSum(1, 'year', PRVs), sSum(0, 'year', PRVs)), rd2 = dlt(rCur, rPrv, true, false);
-      sk.push({ label: 'Tasa de admisión', dot: dot('#7C5CD6'), value: tot[0] > 0 ? pct(tot[1], tot[0]) : '—', vs: rd2.t, vsStyle: vsS(rd2.c), style: kStyle(false, false), bar: 'height:4px;border-radius:2px;background:#7C5CD6;width:' + Math.min(100, rt(tot[1], tot[0]) * 100).toFixed(0) + '%', ex1: true, ex1l: 'Ingreso ' + PERs, ex1v: sSum(0, 'year', PERs) > 0 ? pct(sSum(1, 'year', PERs), sSum(0, 'year', PERs)) : '—', ex2: false, ex2l: '', ex2v: '', go: () => {} });
+      // graduados y retirados (cohorte de ingreso), desde la base de estudiantes
+      const PGI = { navales: 0, infanteria: 1, mercantes: 2, maquinas: 3 };
+      const eRows = this._data.filter((r) => r.estado !== 'activo').map((r) => [0, PGI[r.prog], r.year, r.periodo === 'I' ? 1 : 2, -2, 0, r.estado]);
+      const eSum = (est, ex, yr) => { let t = 0; eRows.forEach((r) => { if (r[6] === est && (yr === undefined || (r[2] === yr && (!semSet || semSet.indexOf(r[3]) >= 0))) && sPass(r, ex) && sp.nivel !== 'S') t += 1; }); return t; };
+      [['graduado', 'Graduados', '#2E9E6B'], ['retirado', 'Retirados', '#E0653A']].forEach((m) => {
+        const tt = eSum(m[0], null), cur = eSum(m[0], 'year', PERs), prv = eSum(m[0], 'year', PRVs), d = dlt(cur, prv, false, m[0] === 'retirado');
+        sk.push({ label: m[1], dot: dot(m[2]), value: fmt(tt), vs: d.t, vsStyle: vsS(d.c), style: kStyle(false, false), bar: 'height:4px;border-radius:2px;background:' + m[2] + ';width:' + (tot[0] > 0 ? Math.min(100, tt / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: true, ex1l: 'Ingreso ' + PERs, ex1v: fmt(cur), ex2: false, ex2l: '', ex2v: '', go: () => {} });
+      });
       // evolución por año
       const yrs = []; for (let y = 2007; y <= 2026; y++) yrs.push(y);
       const yTot = yrs.map((y) => { let a = 0, b = 0; SN.R.forEach((r) => { if (r[0] === mt[2] && r[2] === y && sPass(r, 'year')) { if (lv(r[1]) === 'P') a += r[5]; else b += r[5]; } }); return [a, b]; });
@@ -1758,7 +1765,7 @@ class Component extends DCLogic {
       const anyS = sChips.length > 0;
       const pdOn = !!sp.periods;
       spo = {
-        kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;height:112px',
+        kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;height:112px',
         spYears: spYears, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
         spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
