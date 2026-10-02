@@ -424,7 +424,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 
 <div class="rise d5" style="{{ panel }};display:flex;flex-direction:column">
-<div style="font-size:15px;font-weight:600;color:#0C2050">Curso en que se retiran</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Año de formación en que salen</div>
+<div style="font-size:15px;font-weight:600;color:#0C2050">{{ cursoTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ cursoSub }}</div>
 <div style="margin-top:12px;display:flex;align-items:flex-end;gap:8px;flex:1;min-height:60px">
 <sc-for list="{{ cursoCols }}" as="c" hint-placeholder-count="5">
 <div title="{{ c.aria }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch">
@@ -1476,11 +1476,15 @@ class Component extends DCLogic {
     const retCols = hmCols(yearData, retF, retH, ECOL.retirado);
     retCols.forEach((c, i) => { if (i % 2) c.label = ''; });
     const heatHead = causNames;
-    const cursoB = [['1.º', 1, 12], ['2.º', 13, 24], ['3.º', 25, 36], ['4.º', 37, 48], ['5.º +', 49, 999]];
-    const cursoC = cursoB.map((b) => cnt(rtAll, (r) => r.meses != null && r.meses >= Math.max(b[1], 0) && r.meses <= b[2]) + (b[1] === 1 ? cnt(rtAll, (r) => r.meses === 0) : 0));
+    const SHORTESP = ['Cadete Naval Profesional', 'Cadete IM Profesional', 'Cadete Naval Logístico', 'Curso Extraordinario IM'];
+    const cursoSem = !!f.esp && SHORTESP.indexOf(f.esp) >= 0;
+    const cursoB = cursoSem ? [['1.er sem.', 0, 6], ['2.º sem.', 7, 999]] : [['1.er año', 0, 12], ['2.º año', 13, 24], ['3.er año', 25, 36], ['4.º año', 37, 999]];
+    const cursoTitle = cursoSem ? 'Semestre en que se retiran' : 'Año en que se retiran';
+    const cursoSub = cursoSem ? f.esp + ': programa de 2 semestres' : 'Año de formación (4 años)';
+    const cursoC = cursoB.map((b) => cnt(rtAll, (r) => r.meses != null && r.meses >= b[1] && r.meses <= b[2]));
     const cursoMax = Math.max(1, ...cursoC);
     const cursoTot = cursoC.reduce((a, b) => a + b, 0);
-    const cursoCols = cursoB.map((b, i) => ({ label: b[0] + ' curso', num: fmt(cursoC[i]), pc: pct(cursoC[i], cursoTot), aria: b[0] + ' curso: ' + cursoC[i], bar: 'width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#B79BF0,#7C5CD6);height:calc((100% - 52px) * ' + (cursoC[i] / cursoMax).toFixed(3) + ')' }));
+    const cursoCols = cursoB.map((b, i) => ({ label: b[0], num: fmt(cursoC[i]), pc: pct(cursoC[i], cursoTot), aria: b[0] + ': ' + cursoC[i], bar: 'width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,#B79BF0,#7C5CD6);height:calc((100% - 52px) * ' + (cursoC[i] / cursoMax).toFixed(3) + ')' }));
     const donR = 38, donC = 2 * Math.PI * donR;
     const donTot = Math.max(1, causSum);
     let donAcc = 0;
@@ -1741,7 +1745,7 @@ class Component extends DCLogic {
       yearCols: yearColsOut, boxStyle: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', estadoLeg: estadoLeg, progRows: progRows,
       dn: dn, sexoRows: sexoRows, matEstado: matEstado, pairGvr: pairGvr, pairVol: pairVol, pairCon: pairCon, pairRec: pairRec, pairForm: pairForm, pairProg: pairProg, es: es, estRows: estRows,
       gradCols: gradCols, hmBox: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
-      wmDisp: wmDisp, cursoCols: cursoCols, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
+      wmDisp: wmDisp, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
       conTipo: conTipo, conProg: conProg, conEstado: conEstado, conCols: conCols, conBox: colBox(150),
       recTipo: recTipo, recProg: recProg, recEstado: recEstado, recCols: recCols, recBox: colBox(150),
       extProg: extProg, ascProg: ascProg, extCols: extCols, ascCols: ascCols, extBox: colBox(150), ascBox: colBox(150), formSexo: formSexo,
