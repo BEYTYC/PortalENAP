@@ -1323,11 +1323,11 @@ class Component extends DCLogic {
     const escAll = full.filter(escF), actAll = full.filter(estF);
     const pMode = rtAll.length > 0 ? 'ret' : (escAll.length > 0 ? 'esc' : 'act');
     const pSet = pMode === 'ret' ? rtAll : pMode === 'esc' ? escAll : actAll;
-    const buckets = pMode === 'ret' ? [['0–6', 0, 6], ['7–12', 7, 12], ['13–24', 13, 24], ['25–36', 25, 36], ['37+', 37, 999]] : pMode === 'esc' ? [['0–12', 0, 12], ['13–36', 13, 36], ['37–48', 37, 48], ['49–60', 49, 60], ['61+', 61, 999]] : [['0–12', 0, 12], ['13–24', 13, 24], ['25–36', 25, 36], ['37–48', 37, 48], ['49+', 49, 999]];
+    const buckets = pMode === 'ret' ? [['6 meses', 0, 6], ['1 año', 7, 12], ['2 años', 13, 24], ['3 años', 25, 36], ['+3 años', 37, 999]] : pMode === 'esc' ? [['0–12', 0, 12], ['13–36', 13, 36], ['37–48', 37, 48], ['49–60', 49, 60], ['61+', 61, 999]] : [['0–12', 0, 12], ['13–24', 13, 24], ['25–36', 25, 36], ['37–48', 37, 48], ['49+', 49, 999]];
     const pCol = pMode === 'ret' ? ['#F59A6B', '#F0763A'] : pMode === 'esc' ? ['#5CCDBF', '#0FA89A'] : ['#7FA8EE', '#2F6FE0'];
     const bC = buckets.map((b) => cnt(pSet, (r) => r.meses != null && r.meses >= b[1] && r.meses <= b[2]));
     const bMax = Math.max(1, ...bC);
-    const permCols = buckets.map((b, i) => ({ label: b[0], num: fmt(bC[i]), aria: b[0] + ' meses: ' + bC[i], bar: 'width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,' + pCol[0] + ',' + pCol[1] + ');height:calc((100% - 40px) * ' + (bC[i] / bMax).toFixed(3) + ')' }));
+    const permCols = buckets.map((b, i) => ({ label: b[0], num: fmt(bC[i]), aria: b[0] + ': ' + bC[i], bar: 'width:100%;border-radius:6px 6px 2px 2px;background:linear-gradient(180deg,' + pCol[0] + ',' + pCol[1] + ');height:calc((100% - 40px) * ' + (bC[i] / bMax).toFixed(3) + ')' }));
     const sortedM = pSet.filter((r) => r.meses != null).map((r) => r.meses).sort((a, b) => a - b);
     const medM = sortedM.length ? (sortedM.length % 2 ? sortedM[(sortedM.length - 1) / 2] : (sortedM[sortedM.length / 2 - 1] + sortedM[sortedM.length / 2]) / 2) : 0;
     const pctM = (fn) => (sortedM.length ? pct(sortedM.filter(fn).length, sortedM.length) : '—');
