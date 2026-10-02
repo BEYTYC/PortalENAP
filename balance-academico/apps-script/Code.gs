@@ -179,9 +179,28 @@ function plantilla(token, archivo) {
     r = graph_('get', rutaItem_(carpetaPlantillas_() + '/' + archivo) + ':/content', null, t, { crudo: true });
     return Utilities.base64Encode(r.getContent());
   } catch (e2) {
+    var t2 = null, vistos = '';
+    try {
+      t2 = tokenApp_();
+      var hijos = graph_('get', rutaItem_(carpetaPlantillas_()) + ':/children?$select=name,id', null, t2, { noExiste: true });
+      if (hijos && hijos.value) {
+        var buscado = String(archivo).toLowerCase();
+        for (var i = 0; i < hijos.value.length; i++) {      // mismo nombre sin importar mayúsculas
+          if (String(hijos.value[i].name).toLowerCase() === buscado) {
+            return Utilities.base64Encode(graph_('get', rutaDrive_() + '/items/' + hijos.value[i].id + '/content', null, t2, { crudo: true }).getContent());
+          }
+        }
+        vistos = 'La carpeta existe y contiene ' + hijos.value.length + ' archivo(s): ' +
+          hijos.value.slice(0, 20).map(function (x) { return x.name; }).join(', ') + '.';
+      } else {
+        var raiz = graph_('get', rutaDrive_() + '/root/children?$select=name&$top=50', null, t2, { noExiste: true });
+        vistos = 'La carpeta “' + carpetaPlantillas_() + '” NO existe en el OneDrive de ' + (prop_('ONEDRIVE_USUARIO') || prop_('GRAPH_DRIVE_ID')) +
+          '. En la raíz de ese OneDrive hay: ' + (raiz && raiz.value ? raiz.value.map(function (x) { return x.name; }).join(', ') : '(no se pudo listar)') + '.';
+      }
+    } catch (e3) { vistos = 'No se pudo explorar OneDrive: ' + e3.message; }
     throw new Error('No se pudo leer ' + archivo + '. ' +
       (motivoPortal ? motivoPortal + '. ' : 'PORTAL_URL no está configurada. ') +
-      'Tampoco está en OneDrive (' + carpetaPlantillas_() + '): ' + e2.message);
+      'En OneDrive (' + carpetaPlantillas_() + ') tampoco: ' + e2.message + ' ' + vistos);
   }
 }
 
