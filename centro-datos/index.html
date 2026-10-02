@@ -231,7 +231,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <sc-for list="{{ gYearCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
-<div class="x" style="{{ y.stack }}"><div class="x" style="{{ y.sr }}"></div><div class="x" style="{{ y.sa }}"></div><div class="x" style="{{ y.sg }}"></div></div>
+<div class="x" style="{{ y.stack }}"><div class="x" style="{{ y.sr }}">{{ y.pr }}</div><div class="x" style="{{ y.sa }}">{{ y.pa }}</div><div class="x" style="{{ y.sg }}">{{ y.pg }}</div></div>
 <div style="margin-top:5px;height:14px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.label }}</div>
 </button>
 </sc-for>
@@ -1197,11 +1197,12 @@ class Component extends DCLogic {
     const gYear = years.filter((y) => y >= 2000).map((y) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); return { y: y, c: c }; });
     const gMax = Math.max(1, ...gYear.map((o) => o.c.t));
     const gYearCols = gYear.map((o) => {
-      const seg = (n, col) => 'height:' + (n / gMax * H).toFixed(1) + 'px;background:' + col;
+      const seg = (n, col) => 'height:' + (n / gMax * H).toFixed(1) + 'px;background:' + col + ';display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;font-variant-numeric:tabular-nums';
+      const pl = (n, t) => (t > 0 && n / gMax * H >= 14 ? Math.round(n / t * 100) + '%' : '');
       return {
         label: String(o.y).slice(2), total: fmt(o.c.t), aria: 'Ingreso ' + o.y + ': ' + o.c.t + ' estudiantes', go: tog('year', o.y),
         stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:' + (o.c.t / gMax * H).toFixed(1) + 'px;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (dimYear(o.y) ? 0.3 : 1) + ';outline:' + (f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
-        sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc)
+        sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc), pr: pl(o.c.ret, o.c.t), pa: pl(o.c.est, o.c.t), pg: pl(o.c.esc, o.c.t)
       };
     });
     const gLeg = [['Escalafonados', C3.esc], ['Estudiando', C3.est], ['Retirados', C3.ret]].map((a) => ({ label: a[0], dot: dot(a[1]) }));
