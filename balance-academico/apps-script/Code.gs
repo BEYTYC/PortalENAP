@@ -163,15 +163,26 @@ function plantilla(token, archivo) {
   exigir_(token, ['jefe', 'decano']);
   if (!ARCHIVO_PLANTILLA.test(String(archivo))) throw new Error('Nombre de plantilla no válido.');
   var base = prop_('PORTAL_URL').replace(/\/+$/, '');
-  var r;
+  var r, motivoPortal = '';
   if (base) {
-    r = UrlFetchApp.fetch(base + '/balances/' + encodeURIComponent(archivo), { muteHttpExceptions: true });
-    if (r.getResponseCode() !== 200) throw new Error('No se pudo leer ' + archivo + ' del Portal (' + r.getResponseCode() + ').');
-    return Utilities.base64Encode(r.getContent());
+    var url = base + '/balances/' + encodeURIComponent(archivo);
+    try {
+      r = UrlFetchApp.fetch(url, { muteHttpExceptions: true, followRedirects: true });
+      if (r.getResponseCode() === 200) return Utilities.base64Encode(r.getContent());
+      motivoPortal = 'El Portal respondió ' + r.getResponseCode() + ' en ' + url;
+    } catch (e) {
+      motivoPortal = 'No se pudo conectar con ' + url + ' (' + e.message + ')';
+    }
   }
-  var t = tokenApp_();
-  r = graph_('get', rutaItem_(carpetaPlantillas_() + '/' + archivo) + ':/content', null, t, { crudo: true });
-  return Utilities.base64Encode(r.getContent());
+  try {
+    var t = tokenApp_();
+    r = graph_('get', rutaItem_(carpetaPlantillas_() + '/' + archivo) + ':/content', null, t, { crudo: true });
+    return Utilities.base64Encode(r.getContent());
+  } catch (e2) {
+    throw new Error('No se pudo leer ' + archivo + '. ' +
+      (motivoPortal ? motivoPortal + '. ' : 'PORTAL_URL no está configurada. ') +
+      'Tampoco está en OneDrive (' + carpetaPlantillas_() + '): ' + e2.message);
+  }
 }
 
 /* ───────── balances en OneDrive ───────── */
