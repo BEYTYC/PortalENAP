@@ -1038,10 +1038,13 @@ class Component extends DCLogic {
     const escF = (r) => r.estado === 'graduado' || r.estado === 'egresado';
     const estF = (r) => r.estado === 'activo';
     const extF = (r) => r.pais !== 'Colombia';
+    const CIENC = ['Oficiales Navales', 'Infantería de Marina', 'Mercantes', 'Cuerpo Administrativo'];
     let kpis = [];
     if (tab === 'general') {
       const Sc = (fn) => { const c = sc(cardRows, fn); c.fn = fn; return c; };
       const allC = Sc(() => true), nRC = Sc(retF), nEsc = Sc(escF), nEst = Sc(estF), nExt = Sc(extF);
+      const cienRows = cardRows.filter((r) => CIENC.indexOf(r.esp) >= 0);
+      const tasaDes = rate(cienRows.filter(retF).length, cienRows.length);
       const exs = (k, a, b) => { k.ex1 = !!a; k.ex1l = a ? a[0] : ''; k.ex1v = a ? a[1] : ''; k.ex2 = !!b; k.ex2l = b ? b[0] : ''; k.ex2v = b ? b[1] : ''; return k; };
       const pcn = {}; cardRows.filter(extF).forEach((r) => { pcn[r.pais] = (pcn[r.pais] || 0) + 1; });
       const pcs = Object.keys(pcn).sort((x, y) => pcn[y] - pcn[x]);
@@ -1052,7 +1055,7 @@ class Component extends DCLogic {
       kpis = [
         exs(kp('Ingresos', '#0C2050', allC, null, allC.t > 0 ? 1 : 0, ''), ['Ingreso ' + PER, fmt(kCur.length)], null),
         exs(kp('Escalafonados', ECOL.graduado, nEsc, null, fr(nEsc.t, allC.t), ''), ['Tasa de escalafonamiento', rate(nEsc.t, nEsc.t + nRC.t)], null),
-        exs(kp('Retirados', ECOL.retirado, nRC, null, fr(nRC.t, allC.t), ''), ['Tasa de retiro', rate(nRC.t, allC.t)], ['Permanencia media', permM]),
+        exs(kp('Retirados', ECOL.retirado, nRC, null, fr(nRC.t, allC.t), ''), ['Tasa de deserción', tasaDes], ['Permanencia media', permM]),
         exs(kp('Estudiando', ECOL.activo, nEst, null, fr(nEst.t, allC.t), ''), ['% de los ingresos', rate(nEst.t, allC.t)], null),
         exs(kp('Extranjeros', '#7C5CD6', nExt, null, fr(nExt.t, allC.t), ''), ['% de los ingresos', rate(nExt.t, allC.t)], [ 'Principal país', topPais ])
       ];
@@ -1490,6 +1493,7 @@ class Component extends DCLogic {
     const retDon = causNames.map((nm, i) => { const n = cnt(causData, (r) => r.causal === nm); const len = donC * n / donTot; const o = { da: len.toFixed(2) + ' ' + (donC - len).toFixed(2), off: (-donAcc).toFixed(2), col: causCol[i], label: nm, num: fmt(n), pc: pct(n, causSum), go: tog('causal', nm) }; donAcc += len; return o; });
     const retDonTotal = fmt(causSum);
     const mBase = data.filter((r) => PN(r, null));
+    const cBase = mBase.filter((r) => CIENC.indexOf(r.esp) >= 0), cR = cBase.filter(retF);
     const mR = mBase.filter(retF), mE = cnt(mBase, escF), mA = cnt(mBase, estF);
     const semOf = (r) => Math.min(8, Math.max(1, Math.ceil((r.meses == null ? 1 : r.meses) / 6)));
     const semN = [1, 2, 3, 4, 5, 6, 7, 8].map((s) => cnt(mR, (r) => semOf(r) === s));
@@ -1500,9 +1504,9 @@ class Component extends DCLogic {
     const semSub = 'Semestre estimado por meses de permanencia (preliminar)';
     const nTemp = cnt(mR, (r) => r.meses != null && r.meses <= 12), nTard = cnt(mR, (r) => r.meses != null && r.meses > 24);
     const dMetrics = [
-      { label: 'Tasa de deserción', value: pct(mR.length, mBase.length), sub: 'de los ingresados', col: ECOL.retirado, tip: 'Retirados sobre ingresados' },
-      { label: 'Número de desertores', value: fmt(mR.length), sub: 'de ' + fmt(mBase.length) + ' ingresados', col: '#0C2050', tip: 'Cantidad absoluta de retirados' },
-      { label: 'Tasa de permanencia', value: pct(mBase.length - mR.length, mBase.length), sub: 'no se han retirado', col: '#1F9E5A', tip: 'Estudiantes que continúan o culminaron' },
+      { label: 'Tasa de deserción', value: pct(cR.length, cBase.length), sub: 'retirados vs matriculados', col: ECOL.retirado, tip: 'Retirados sobre matriculados, solo programas de ciencias (sin posgrados ni complementaciones)' },
+      { label: 'Número de desertores', value: fmt(cR.length), sub: 'de ' + fmt(cBase.length) + ' matriculados', col: '#0C2050', tip: 'Retirados de programas de ciencias' },
+      { label: 'Tasa de permanencia', value: pct(cBase.length - cR.length, cBase.length), sub: 'no se han retirado', col: '#1F9E5A', tip: 'Matriculados de ciencias que continúan o culminaron' },
       { label: 'Tasa de graduación', value: pct(mE, mE + mR.length), sub: 'de quienes cerraron ciclo', col: '#0FA89A', tip: 'Escalafonados sobre escalafonados más retirados' },
       { label: 'Semestre de mayor deserción', value: mR.length ? semTop + '.º' + (semTop === 8 ? ' +' : '') : '—', sub: fmt(semMaxN) + ' retirados (estimado)', col: '#7C5CD6', tip: 'Semestre con más retiros, según meses de permanencia' },
       { label: 'Deserción temprana', value: pct(nTemp, mR.length), sub: 'salen en los 2 primeros semestres', col: '#E0489A', tip: 'Retirados con 12 meses o menos' },
