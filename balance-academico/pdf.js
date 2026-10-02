@@ -1,5 +1,5 @@
 /* Balance Académico · PDF con la geometría del formato oficial (EDUCA-FT-009-JINEN).
-   Página 612 × 972 pt, Arial (Helvetica en jsPDF), notas con coma y 3 decimales.
+   Página 612 pt de ancho; alto Carta (792) u Oficio (936) según lo que ocupe el balance. Arial (Helvetica en jsPDF), notas con coma y 3 decimales.
    Uso: BalancePDF.generar(jsPDF, {prog, estado, res, logo, marca, firmas}) → doc jsPDF */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -10,6 +10,7 @@
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
   var LEFT = 36.6, RIGHT = 574.9, TOP = 113.4, PITCH = 10.44;
+  var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
   function fmt(n) { return (Math.round(Number(n) * 1000) / 1000).toFixed(3).replace('.', ','); }
@@ -28,11 +29,14 @@
 
   function generar(JsPDF, o) {
     var prog = o.prog, e = o.estado, res = o.res;
-    var doc = new JsPDF({ unit: 'pt', format: [612, 972], orientation: 'portrait', compress: true });
+    var lineasPre = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; }).length;
+    // Carta si cabe; si no, Oficio. Solo si ni así cabe, se aprietan los renglones.
+    var H = TOP + lineasPre * PITCH + BAJO <= CARTA ? CARTA : OFICIO;
+    var doc = new JsPDF({ unit: 'pt', format: [612, H], orientation: 'portrait', compress: true });
     doc.setProperties({ title: 'Balance Académico - ' + (e.estudiante.nombres + ' ' + e.estudiante.apellidos).trim(), creator: 'Portal ENAP' });
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
-    var pitch = Math.min(PITCH, 706.1 / Math.max(N, 1));
+    var pitch = Math.min(PITCH, (H - BAJO - TOP) / Math.max(N, 1));
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1, pitch / PITCH * 1.04);
 
@@ -55,7 +59,7 @@
       try {
         doc.saveGraphicsState();
         doc.setGState(new doc.GState({ opacity: o.opacidadMarca || 1 }));
-        doc.addImage(o.marca, 'PNG', 96.3, 202.4, 402.3, 503.2);
+        doc.addImage(o.marca, 'PNG', 96.3, 202.4 + (H - 972) / 2, 402.3, 503.2);
         doc.restoreGraphicsState();
       } catch (err) { /* sin marca de agua */ }
     }
@@ -192,6 +196,16 @@
     negro(37.0, T + 47.9, 574.9, T + 48.6);
     negro(36.2, T + 19.7, 37.0, T + 48.6); negro(574.2, T + 19.7, 574.9, T + 48.6);
     texto('OBSERVACIONES:', 47.3, T + 27.1, 6.1, true);
+    (function () {                             // texto libre del jefe: hasta 3 renglones alineados después de la etiqueta
+      var obs = String(e.observaciones || '').replace(/\s+/g, ' ').trim();
+      if (!obs) return;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.1);
+      var x0 = 47.3 + doc.getTextWidth('OBSERVACIONES:') + 4, ancho = 570.5 - x0;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.1);
+      var ls = doc.splitTextToSize(obs, ancho);
+      if (ls.length > 3) { ls = ls.slice(0, 3); var u = ls[2]; while (u.length > 1 && doc.getTextWidth(u + '…') > ancho) u = u.slice(0, -1); ls[2] = u.replace(/\s+$/, '') + '…'; }
+      ls.forEach(function (l, i) { texto(l, x0, T + 27.1 + i * 7.4, 6.1, false); });
+    })();
 
     /* firmas */
     var f = o.firmas || {};

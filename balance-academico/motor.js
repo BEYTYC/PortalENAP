@@ -164,6 +164,7 @@
       ediciones: {},       // idFila -> {cod, nombre}  (solo código y nombre cursado, nunca notas)
       vinculos: {},        // idFila -> key de registro SMA (equivalencia aplicada por el jefe)
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
+      observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
       elaboracion: fmtFecha(new Date()),
       firmas: { jefe: null, decano: null },
@@ -181,8 +182,18 @@
   function huella(e) {
     return hash(JSON.stringify({
       p: e.programaId, s: e.estudiante, t: e.textos.map(function (x) { return hash(x); }),
-      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion
+      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion,
+      b: e.observaciones || undefined      // vacío no cambia la huella: los balances anteriores siguen válidos
     }));
+  }
+
+  var MAX_OBSERVACIONES = 400;
+  function editarObservaciones(e, texto, quien) {
+    var t = String(texto == null ? '' : texto).replace(/\s+/g, ' ').trim().slice(0, MAX_OBSERVACIONES);
+    if (t === (e.observaciones || '')) return false;
+    e.observaciones = t;
+    registrar(e, quien, t ? 'editó las observaciones' : 'borró las observaciones', t ? t.slice(0, 80) + (t.length > 80 ? '…' : '') : '');
+    return true;
   }
 
   function estadoFirmas(e) {
@@ -430,7 +441,7 @@
     verificarEstudiante: verificarEstudiante, nuevoEstado: nuevoEstado, registrar: registrar,
     agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
     quitarEquivalencia: quitarEquivalencia, agregarOptativa: agregarOptativa, quitarOptativa: quitarOptativa,
-    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, calcular: calcular,
+    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, editarObservaciones: editarObservaciones, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
     minimoAprobacion: minimoAprobacion, hash: hash
   };
 });

@@ -690,6 +690,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       ediciones: {},       // idFila -> {cod, nombre}  (solo código y nombre cursado, nunca notas)
       vinculos: {},        // idFila -> key de registro SMA (equivalencia aplicada por el jefe)
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
+      observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
       elaboracion: fmtFecha(new Date()),
       firmas: { jefe: null, decano: null },
@@ -707,8 +708,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   function huella(e) {
     return hash(JSON.stringify({
       p: e.programaId, s: e.estudiante, t: e.textos.map(function (x) { return hash(x); }),
-      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion
+      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion,
+      b: e.observaciones || undefined      // vacío no cambia la huella: los balances anteriores siguen válidos
     }));
+  }
+
+  var MAX_OBSERVACIONES = 400;
+  function editarObservaciones(e, texto, quien) {
+    var t = String(texto == null ? '' : texto).replace(/\s+/g, ' ').trim().slice(0, MAX_OBSERVACIONES);
+    if (t === (e.observaciones || '')) return false;
+    e.observaciones = t;
+    registrar(e, quien, t ? 'editó las observaciones' : 'borró las observaciones', t ? t.slice(0, 80) + (t.length > 80 ? '…' : '') : '');
+    return true;
   }
 
   function estadoFirmas(e) {
@@ -956,7 +967,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     verificarEstudiante: verificarEstudiante, nuevoEstado: nuevoEstado, registrar: registrar,
     agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
     quitarEquivalencia: quitarEquivalencia, agregarOptativa: agregarOptativa, quitarOptativa: quitarOptativa,
-    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, calcular: calcular,
+    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, editarObservaciones: editarObservaciones, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
     minimoAprobacion: minimoAprobacion, hash: hash
   };
 });
@@ -1180,7 +1191,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 </script>
 <script>
 /* Balance Académico · PDF con la geometría del formato oficial (EDUCA-FT-009-JINEN).
-   Página 612 × 972 pt, Arial (Helvetica en jsPDF), notas con coma y 3 decimales.
+   Página 612 pt de ancho; alto Carta (792) u Oficio (936) según lo que ocupe el balance. Arial (Helvetica en jsPDF), notas con coma y 3 decimales.
    Uso: BalancePDF.generar(jsPDF, {prog, estado, res, logo, marca, firmas}) → doc jsPDF */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -1191,6 +1202,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
   var LEFT = 36.6, RIGHT = 574.9, TOP = 113.4, PITCH = 10.44;
+  var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
   function fmt(n) { return (Math.round(Number(n) * 1000) / 1000).toFixed(3).replace('.', ','); }
@@ -1209,11 +1221,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   function generar(JsPDF, o) {
     var prog = o.prog, e = o.estado, res = o.res;
-    var doc = new JsPDF({ unit: 'pt', format: [612, 972], orientation: 'portrait', compress: true });
+    var lineasPre = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; }).length;
+    // Carta si cabe; si no, Oficio. Solo si ni así cabe, se aprietan los renglones.
+    var H = TOP + lineasPre * PITCH + BAJO <= CARTA ? CARTA : OFICIO;
+    var doc = new JsPDF({ unit: 'pt', format: [612, H], orientation: 'portrait', compress: true });
     doc.setProperties({ title: 'Balance Académico - ' + (e.estudiante.nombres + ' ' + e.estudiante.apellidos).trim(), creator: 'Portal ENAP' });
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
-    var pitch = Math.min(PITCH, 706.1 / Math.max(N, 1));
+    var pitch = Math.min(PITCH, (H - BAJO - TOP) / Math.max(N, 1));
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1, pitch / PITCH * 1.04);
 
@@ -1236,7 +1251,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       try {
         doc.saveGraphicsState();
         doc.setGState(new doc.GState({ opacity: o.opacidadMarca || 1 }));
-        doc.addImage(o.marca, 'PNG', 96.3, 202.4, 402.3, 503.2);
+        doc.addImage(o.marca, 'PNG', 96.3, 202.4 + (H - 972) / 2, 402.3, 503.2);
         doc.restoreGraphicsState();
       } catch (err) { /* sin marca de agua */ }
     }
@@ -1373,6 +1388,16 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     negro(37.0, T + 47.9, 574.9, T + 48.6);
     negro(36.2, T + 19.7, 37.0, T + 48.6); negro(574.2, T + 19.7, 574.9, T + 48.6);
     texto('OBSERVACIONES:', 47.3, T + 27.1, 6.1, true);
+    (function () {                             // texto libre del jefe: hasta 3 renglones alineados después de la etiqueta
+      var obs = String(e.observaciones || '').replace(/\s+/g, ' ').trim();
+      if (!obs) return;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(6.1);
+      var x0 = 47.3 + doc.getTextWidth('OBSERVACIONES:') + 4, ancho = 570.5 - x0;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(6.1);
+      var ls = doc.splitTextToSize(obs, ancho);
+      if (ls.length > 3) { ls = ls.slice(0, 3); var u = ls[2]; while (u.length > 1 && doc.getTextWidth(u + '…') > ancho) u = u.slice(0, -1); ls[2] = u.replace(/\s+$/, '') + '…'; }
+      ls.forEach(function (l, i) { texto(l, x0, T + 27.1 + i * 7.4, 6.1, false); });
+    })();
 
     /* firmas */
     var f = o.firmas || {};
@@ -1824,6 +1849,9 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div class="kpi"><b>' + r.totalCreditos + '</b><span>Créditos aprobados</span></div><div class="kpi"><b>' + M.fmtNota(r.promedio) + '</b><span>Promedio ponderado</span></div><div class="kpi"><b>' + h(r.periodoTerm || '—') + '</b><span>Periodo de terminación</span></div></div><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
       alertas +
       '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl">Pegar más notas del SMA</span><textarea id="mas-notas" rows="3" spellcheck="false" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:ui-monospace,Consolas,monospace;font-size:11px;resize:none" ' + (lock ? 'disabled' : '') + '></textarea><button class="btn sm" data-act="mas-notas"' + (lock ? ' disabled' : '') + ' style="align-self:flex-start">Agregar notas</button></div>' +
+      '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px"><span class="lbl">Observaciones del balance</span>' +
+        '<textarea id="obs" rows="3" maxlength="' + M.MAX_OBSERVACIONES + '" placeholder="Opcional. Sale en el recuadro OBSERVACIONES del PDF." style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;resize:vertical" ' + (lock ? 'disabled' : '') + '>' + h(S.est.observaciones || '') + '</textarea>' +
+        '<div style="font-size:11.5px;color:var(--mute)"><span id="obs-n">' + (S.est.observaciones || '').length + '</span> / ' + M.MAX_OBSERVACIONES + ' caracteres (caben unos 3 renglones)</div></div>' +
       '<div class="card" style="flex:1;min-height:120px;display:flex;flex-direction:column"><div style="padding:10px 14px;border-bottom:1px solid var(--line)"><span class="lbl">Registro de cambios (' + S.est.bitacora.length + ')</span></div><div class="log" style="max-height:none;flex:1">' + bit + '</div></div>' +
       '</div></div>';
   }
@@ -2046,6 +2074,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (t.id && t.id.indexOf('fi-') === 0) {
       var c = t.id.slice(3), f = S.firmaForm[S.rol] || (S.firmaForm[S.rol] = {}); f[c] = t.value; return;
     }
+    if (t.id === 'obs') { aplicarCambio(function () { M.editarObservaciones(S.est, t.value, quien()); }); return; }
     if (t.hasAttribute && t.hasAttribute('data-edit')) {
       var campo = t.getAttribute('data-edit'), id = t.getAttribute('data-id'), esOpt = t.getAttribute('data-opt') === '1';
       var l = S.res.lineas.filter(function (x) { return (esOpt ? x.regKey : x.id) === id; })[0];
@@ -2060,6 +2089,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var t = ev.target;
     if (t.id === 'modal-q') { S.modal.q = t.value; var pos = t.selectionStart; render(); var q = $('#modal-q'); q.focus(); q.setSelectionRange(pos, pos); }
     if (t.id === 'f-notas') S.form.notas = t.value;
+    if (t.id === 'obs') { var n = $('#obs-n'); if (n) n.textContent = t.value.length; }
     if (t.id && t.id.indexOf('f-') === 0 && t.id !== 'f-notas' && t.tagName === 'INPUT') S.form[t.id.slice(2)] = t.value;
   });
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal) { S.modal = null; render(); } });
