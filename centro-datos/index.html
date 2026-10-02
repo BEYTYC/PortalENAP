@@ -256,31 +256,22 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="{{ rowA }}">
 
 <div class="rise d5" style="{{ panel }};grid-column:span 3">
-<div style="font-size:15px;font-weight:600;color:#0C2050">{{ cauTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ cauSub }}</div>
-<div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
-<sc-for list="{{ causG }}" as="c" hint-placeholder-count="5">
+<div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por especialidad</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Estudiantes ingresados. Toca para filtrar.</div>
+<div style="margin-top:12px;display:flex;flex-direction:column;gap:6px">
+<sc-for list="{{ ingEsp }}" as="c" hint-placeholder-count="9">
 <button class="hov x" onClick="{{ c.go }}" style="{{ c.rowStyle }}">
 <div style="display:flex;justify-content:space-between;font-size:11.5px"><span>{{ c.label }}</span><span style="font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ c.num }} <span style="font-weight:400;color:#6B7A94">· {{ c.share }}</span></span></div>
-<div style="margin-top:4px;height:8px;border-radius:4px;background:rgba(12,32,80,.07);overflow:hidden"><div class="x" style="{{ c.sh }}"></div></div>
+<div style="margin-top:3px;height:7px;border-radius:4px;background:rgba(12,32,80,.07);overflow:hidden"><div class="x" style="{{ c.sh }}"></div></div>
 </button>
 </sc-for>
 </div>
 </div>
 
 <div class="rise d6" style="{{ panel }};grid-column:span 3;display:flex;flex-direction:column">
-<div style="font-size:15px;font-weight:600;color:#0C2050">{{ permTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ permSub }}</div>
-<div style="margin-top:12px;display:flex;align-items:flex-end;gap:7px;flex:1;min-height:60px">
-<sc-for list="{{ permCols }}" as="c" hint-placeholder-count="5">
-<div title="{{ c.aria }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch">
-<div style="margin-bottom:3px;font-size:10.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ c.num }}</div>
-<div class="x" style="{{ c.bar }}"></div>
-<div style="margin-top:4px;font-size:10px;color:#6B7A94;text-align:center">{{ c.label }}</div>
-</div>
-</sc-for>
-</div>
-<div style="margin-top:10px;flex:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px">
-<sc-for list="{{ permStats }}" as="c" hint-placeholder-count="4">
-<div style="padding:6px 8px;border-radius:10px;background:#F6F8FB"><div style="font-size:10px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.label }}</div><div style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ c.value }}</div></div>
+<div style="font-size:15px;font-weight:600;color:#0C2050">Indicadores de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ ingSub }}</div>
+<div style="margin-top:12px;flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:8px">
+<sc-for list="{{ ingStats }}" as="c" hint-placeholder-count="8">
+<div style="padding:8px 10px;border-radius:12px;background:#F6F8FB;display:flex;flex-direction:column;justify-content:center;min-width:0"><div style="font-size:10.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.label }}</div><div style="font-size:19px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums;color:#0C2050;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.value }}</div><div style="font-size:10.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.sub }}</div></div>
 </sc-for>
 </div>
 </div>
@@ -1373,6 +1364,31 @@ class Component extends DCLogic {
     const permTitle = pMode === 'ret' ? 'Tiempo de permanencia' : pMode === 'esc' ? 'Tiempo hasta el escalafón' : 'Tiempo cursado';
     const permSub = fmt(pSet.length) + (pMode === 'ret' ? ' retirados · meses hasta el retiro' : pMode === 'esc' ? ' escalafonados · meses de formación' : ' estudiando · meses desde el ingreso');
 
+    const ingBase = D('esp');
+    const ingMax = Math.max(1, ...ESPALL.map((e) => cnt(ingBase, (r) => r.esp === e)));
+    const ingEsp = ESPALL.map((e) => ({ e, n: cnt(ingBase, (r) => r.esp === e) })).filter((o) => o.n > 0 || f.esp === o.e).sort((a, b) => b.n - a.n).map((o) => ({ label: o.e, num: fmt(o.n), share: pct(o.n, ingBase.length), go: tog('esp', o.e), rowStyle: 'width:100%;padding:1px 4px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.esp && f.esp !== o.e ? 0.35 : 1), sh: 'height:100%;border-radius:4px;background:linear-gradient(90deg,#2F6FE0AA,#2F6FE0);width:' + (o.n / ingMax * 100).toFixed(1) + '%' }));
+    const ingYr = {}; full.forEach((r) => { ingYr[r.year] = (ingYr[r.year] || 0) + 1; });
+    const ingYrs = Object.keys(ingYr).map(Number).sort((a, b) => a - b);
+    const ingBest = ingYrs.reduce((b, y) => (b === null || ingYr[y] > ingYr[b] ? y : b), null);
+    const ingLast = ingYrs.length ? Math.max(...ingYrs) : null;
+    const sumY = (a, b) => { let t = 0; ingYrs.forEach((y) => { if (y >= a && y <= b) t += ingYr[y]; }); return t; };
+    const ing5 = ingLast ? sumY(ingLast - 4, ingLast) : 0, ing5p = ingLast ? sumY(ingLast - 9, ingLast - 5) : 0;
+    const ingS1 = cnt(full, (r) => r.periodo === 'I');
+    const ingCont = {}; full.forEach((r) => { ingCont[r.cont] = (ingCont[r.cont] || 0) + 1; });
+    const ingTopC = Object.keys(ingCont).sort((a, b) => ingCont[b] - ingCont[a])[0];
+    const ingFem = cnt(full, (r) => r.sexo === 'M'), ingExt = cnt(full, extF);
+    const ingStats = [
+      ['Promedio anual', ingYrs.length ? fmt(full.length / ingYrs.length) : '—', ingYrs.length ? 'en ' + ingYrs.length + ' años' : ''],
+      ['Año récord', ingBest !== null ? String(ingBest) : '—', ingBest !== null ? fmt(ingYr[ingBest]) + ' estudiantes' : ''],
+      ['Últimos 5 años', fmt(ing5), ing5p > 0 ? (ing5 >= ing5p ? '▲ ' : '▼ ') + Math.abs((ing5 - ing5p) / ing5p * 100).toFixed(1).replace('.', ',') + '% vs prev. 5' : ''],
+      ['1.er semestre', pct(ingS1, full.length), '2.º sem: ' + fmt(full.length - ingS1)],
+      ['Mujeres', pct(ingFem, full.length), fmt(ingFem) + ' estudiantes'],
+      ['Extranjeros', pct(ingExt, full.length), fmt(ingExt) + ' estudiantes'],
+      ['Mayor contingente', ingTopC || '—', ingTopC ? fmt(ingCont[ingTopC]) + ' estudiantes' : ''],
+      ['Total seleccionado', fmt(full.length), 'de ' + fmt(data.length) + ' en total']
+    ].map((a) => ({ label: a[0], value: a[1], sub: a[2] }));
+    const ingSub = 'Calculado sobre la selección actual';
+
     const svgUri = (x) => 'data:image/svg+xml;utf8,' + encodeURIComponent(x);
     const FL = (inner) => svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 20">' + inner + '</svg>');
     const dots = (pts, r, fill) => pts.map((q) => '<circle cx="' + q[0] + '" cy="' + q[1] + '" r="' + r + '" fill="' + fill + '"/>').join('');
@@ -1819,7 +1835,7 @@ class Component extends DCLogic {
       yearCols: yearColsOut, boxStyle: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', estadoLeg: estadoLeg, progRows: progRows,
       dn: dn, sexoRows: sexoRows, matEstado: matEstado, pairGvr: pairGvr, pairVol: pairVol, pairCon: pairCon, pairRec: pairRec, pairForm: pairForm, pairProg: pairProg, es: es, estRows: estRows,
       gradCols: gradCols, hmBox: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
-      wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
+      wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, ingEsp: ingEsp, ingStats: ingStats, ingSub: ingSub, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
       conTipo: conTipo, conProg: conProg, conEstado: conEstado, conCols: conCols, conBox: colBox(150),
       recTipo: recTipo, recProg: recProg, recEstado: recEstado, recCols: recCols, recBox: colBox(150),
       extProg: extProg, ascProg: ascProg, extCols: extCols, ascCols: ascCols, extBox: colBox(150), ascBox: colBox(150), formSexo: formSexo,
