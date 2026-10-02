@@ -228,7 +228,6 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6B7A94;font-weight:500"><span style="{{ k.dot }}"></span>{{ k.label }}</div>
 <div class="x" style="margin-top:2px;font-size:25px;line-height:1.05;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#0C2050">{{ k.value }}</div>
 <div style="margin-top:6px;height:4px;border-radius:2px;background:rgba(12,32,80,.07)"><div class="x" style="{{ k.bar }}"></div></div>
-<div style="{{ k.vsStyle }}">{{ k.vs }}</div>
 <sc-if value="{{ k.ex1 }}" hint-placeholder-val="{{ false }}"><div style="margin-top:6px;padding-top:5px;border-top:1px solid #EEF1F6;display:flex;justify-content:space-between;gap:6px;font-size:10.5px;color:#6B7A94;white-space:nowrap"><span style="overflow:hidden;text-overflow:ellipsis">{{ k.ex1l }}</span><b style="color:#0C2050;font-variant-numeric:tabular-nums">{{ k.ex1v }}</b></div></sc-if>
 <sc-if value="{{ k.ex2 }}" hint-placeholder-val="{{ false }}"><div style="margin-top:3px;display:flex;justify-content:space-between;gap:6px;font-size:10.5px;color:#6B7A94;white-space:nowrap"><span style="overflow:hidden;text-overflow:ellipsis">{{ k.ex2l }}</span><b style="color:#0C2050;font-variant-numeric:tabular-nums">{{ k.ex2v }}</b></div></sc-if>
 </button>
@@ -1407,7 +1406,7 @@ class Component extends DCLogic {
       ['Menores 18', pct(edMen, edKnown.length), fmt(edMen) + ' est.'],
       ['Prom. anual', ingYrs.length ? fmt(full.length / ingYrs.length) : '—', 'ingresos/año'],
       ['Año récord', ingBest !== null ? String(ingBest) : '—', ingBest !== null ? fmt(ingYr[ingBest]) + ' est.' : ''],
-      ['5 años', fmt(ing5), ing5p > 0 ? (ing5 >= ing5p ? '▲ ' : '▼ ') + Math.abs((ing5 - ing5p) / ing5p * 100).toFixed(1).replace('.', ',') + '%' : '']
+      ['5 años', fmt(ing5), 'ingresos']
     ].map((a) => ({ label: a[0], value: a[1], sub: a[2] }));
 
     const svgUri = (x) => 'data:image/svg+xml;utf8,' + encodeURIComponent(x);
@@ -1780,7 +1779,7 @@ class Component extends DCLogic {
       // embudo
       const fcur = MET.map((m) => sSum(m[2], 'year', PERs)), fprv = MET.map((m) => sSum(m[2], 'year', PRVs)), fMax = Math.max(1, ...fcur);
       const fSub = ['Personas que se inscribieron', 'Inscritos aceptados', 'Estudiantes nuevos en primer curso', 'Estudiantes-periodo matriculados en el año'];
-      const spFun = MET.map((m, i) => { const d = dlt(fcur[i], fprv[i], false, false); return { label: m[1], num: fmt(fcur[i]), delta: d.t, dStyle: 'font-size:10.5px;font-weight:600;white-space:nowrap;color:' + d.c, bar: 'height:100%;border-radius:5px;background:linear-gradient(90deg,' + m[3] + 'AA,' + m[3] + ');width:' + (fcur[i] / fMax * 100).toFixed(1) + '%', sub: fSub[i] + (i === 1 ? ' · admisión ' + (fcur[0] > 0 ? pct(fcur[1], fcur[0]) : '—') : ''), go: () => upS({ metric: m[0] }), rowStyle: 'width:100%;display:block;padding:4px 6px;border:0;background:' + (sp.metric === m[0] ? '#FFFBF0' : 'none') + ';cursor:pointer;border-radius:10px;text-align:left;flex:none' }; });
+      const spFun = MET.map((m, i) => { const d = dlt(fcur[i], fprv[i], false, false); return { label: m[1], num: fmt(fcur[i]), delta: '', dStyle: 'font-size:10.5px;font-weight:600;white-space:nowrap;color:' + d.c, bar: 'height:100%;border-radius:5px;background:linear-gradient(90deg,' + m[3] + 'AA,' + m[3] + ');width:' + (fcur[i] / fMax * 100).toFixed(1) + '%', sub: fSub[i] + (i === 1 ? ' · admisión ' + (fcur[0] > 0 ? pct(fcur[1], fcur[0]) : '—') : ''), go: () => upS({ metric: m[0] }), rowStyle: 'width:100%;display:block;padding:4px 6px;border:0;background:' + (sp.metric === m[0] ? '#FFFBF0' : 'none') + ';cursor:pointer;border-radius:10px;text-align:left;flex:none' }; });
       // programas
       const pc2 = SN.PR.map((q, i) => { let t = 0; SN.R.forEach((r) => { if (r[0] === mt[2] && r[1] === i && sPass(r, 'prog')) t += r[5]; }); return t; });
       const pOrd = SN.PR.map((q, i) => i).sort((a, b) => pc2[b] - pc2[a]), pMx = Math.max(1, ...pc2);
