@@ -269,20 +269,20 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 </div>
 
-<div class="rise d6" style="{{ panel }};grid-column:span 2">
+<div class="rise d6" style="{{ panel }};grid-column:span 2;display:flex;flex-direction:column">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Género</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">De la selección</div>
-<div style="margin-top:12px;display:grid;grid-template-columns:1fr;gap:10px">
+<div style="margin-top:12px;display:grid;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:10px;flex:1;min-height:0">
 <sc-for list="{{ genCards }}" as="g" hint-placeholder-count="2">
-<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" width="30" height="43" style="flex:none"><span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:11.5px;color:#51617D">{{ g.label }}</span><span style="font-size:20px;font-weight:600;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050">{{ g.num }}</span><span style="font-size:11.5px;color:#6B7A94">{{ g.share }}</span></span></button>
+<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" style="flex:none;height:72%;max-height:72px;width:auto"><span style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="font-size:12.5px;font-weight:600;color:#51617D">{{ g.label }}</span><span style="font-size:23px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050">{{ g.num }}</span><span style="margin-top:1px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ g.col }}">{{ g.share }}</span><span style="font-size:11px;color:#6B7A94">estudiantes</span></span></button>
 </sc-for>
 </div>
-<div style="margin-top:12px;height:8px;border-radius:4px;overflow:hidden;display:flex;background:rgba(12,32,80,.07)"><div class="x" style="{{ genBarH }}"></div><div class="x" style="{{ genBarM }}"></div></div>
+<div style="margin-top:12px;height:12px;border-radius:6px;overflow:hidden;display:flex;background:rgba(12,32,80,.07);flex:none"><div class="x" style="{{ genBarH }}"></div><div class="x" style="{{ genBarM }}"></div></div>
 </div>
 
 <div class="rise d6" style="{{ panel }};grid-column:span 4">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Extranjeros por país</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ paisSub }}</div>
 <div style="margin-top:10px;display:flex;gap:8px;align-items:flex-start">
-<svg width="205" height="195" viewBox="0 0 138 130" style="flex:none" role="img" aria-label="Mapa de procedencia">
+<svg width="104" height="195" viewBox="68 0 70 130" style="flex:none" role="img" aria-label="Mapa de procedencia">
 <polygon fill="#E3EAF4" stroke="#C4D0E4" stroke-width="1" stroke-linejoin="round" points="{{ mapPoly }}"/>
 <sc-for list="{{ mapDots }}" as="d" hint-placeholder-count="6"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for>
 </svg>
@@ -1354,8 +1354,8 @@ class Component extends DCLogic {
     const ICON_H = svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><circle cx="14" cy="6.5" r="5.5" fill="#2F6FE0"/><path d="M5 18a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9h-3.5v11h-4.5V28h-2v10h-4.5V27H5z" fill="#2F6FE0"/></svg>');
     const ICON_M = svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><circle cx="14" cy="6.5" r="5.5" fill="#E0489A"/><path d="M10 15h8a3 3 0 0 1 3 2.4L25 31h-5.2v7.5h-4V31h-3.6v7.5h-4V31H3l4-13.6A3 3 0 0 1 10 15z" fill="#E0489A"/></svg>');
     const genCards = [['H', 'Hombres', nH, '#2F6FE0', '#EAF1FD', ICON_H], ['M', 'Mujeres', nM, '#E0489A', '#FCEAF3', ICON_M]].map((a) => ({
-      label: a[1], num: fmt(a[2]), share: pct(a[2], nH + nM), icon: a[5], go: tog('sexo', a[0]),
-      style: 'display:flex;align-items:center;gap:8px;padding:8px 8px;min-width:0;border-radius:14px;text-align:left;cursor:pointer;background:' + a[4] + ';border:1.5px solid ' + (f.sexo === a[0] ? '#B8841F' : 'transparent') + ';opacity:' + (f.sexo && f.sexo !== a[0] ? 0.4 : 1),
+      label: a[1], num: fmt(a[2]), share: pct(a[2], nH + nM), col: a[3], icon: a[5], go: tog('sexo', a[0]),
+      style: 'display:flex;align-items:center;gap:10px;padding:10px 12px;min-width:0;min-height:0;border-radius:16px;text-align:left;cursor:pointer;background:' + a[4] + ';border:1.5px solid ' + (f.sexo === a[0] ? '#B8841F' : 'transparent') + ';opacity:' + (f.sexo && f.sexo !== a[0] ? 0.4 : 1),
       bar: 'height:4px;border-radius:2px;background:' + a[3] + ';width:' + ((nH + nM) > 0 ? (a[2] / (nH + nM) * 100).toFixed(1) : 0) + '%'
     }));
     const paisData = D('pais').filter(extF);
