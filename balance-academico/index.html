@@ -377,7 +377,9 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       };
       if (!f && rol !== S.rol) firmas[rol].img = null;
     });
-    return PDF.generar(window.jspdf.jsPDF, { prog: S.prog, estado: S.est, res: S.res, logo: imagenesAssets.logo, marca: imagenesAssets.marca, firmas: firmas });
+    var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
+    if (!JsPDF) throw new Error('No se cargó la librería de PDF (jsPDF). Recargue la página; si sigue igual, revise que el navegador no bloquee scripts.');
+    return PDF.generar(JsPDF, { prog: S.prog, estado: S.est, res: S.res, logo: imagenesAssets.logo, marca: imagenesAssets.marca, firmas: firmas });
   }
   function bajar(blob, nombre) {
     var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre;

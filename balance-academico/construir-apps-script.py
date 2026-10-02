@@ -8,7 +8,6 @@ AQUI = pathlib.Path(__file__).resolve().parent
 html = (AQUI / 'index.html').read_text(encoding='utf8')
 
 LIBS = '''<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>'''
 
 def js(nombre):
@@ -29,6 +28,10 @@ def bloque(nombre, nuevo):
     assert pat.search(html), nombre
     html = pat.sub(lambda m: nuevo, html, count=1)
 
+# jsPDF va incrustado (no depende de que el CDN cargue dentro de Apps Script)
+jspdf = (AQUI / 'vendor' / 'jspdf.umd.min.js').read_text(encoding='utf8')
+assert '</script' not in jspdf and '<?' not in jspdf
+LIBS += '\n<script>\n' + jspdf + '\n;window.jspdf = window.jspdf || self.jspdf;\n</script>'
 bloque('libs', LIBS)
 bloque('modulos', MODULOS)
 bloque('entorno', ENTORNO)
