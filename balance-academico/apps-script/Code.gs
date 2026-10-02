@@ -158,6 +158,14 @@ function infoSesion(token) { return sesionDe_(token); }
 
 /* ───────── plantillas Excel ───────── */
 
+/** Identifica el programa por las palabras del nombre (sin tildes, mayúsculas, guiones, “BALANCE”, “PARA”, “DE”, “EN” ni extensión). */
+function claveArchivo_(nombre) {
+  var base = String(nombre).replace(/\.[A-Za-z0-9]+$/, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+  var vacias = { BALANCE: 1, PARA: 1, DE: 1, DEL: 1, EN: 1, LA: 1, Y: 1 };
+  return base.split(' ').filter(function (w) { return w && !vacias[w]; }).sort().join(' ');
+}
+
 /** Excel del programa en base64 (la pantalla lo lee con SheetJS). Los Excel siguen siendo la fuente de verdad. */
 function plantilla(token, archivo) {
   exigir_(token, ['jefe', 'decano']);
@@ -184,9 +192,9 @@ function plantilla(token, archivo) {
       t2 = tokenApp_();
       var hijos = graph_('get', rutaItem_(carpetaPlantillas_()) + ':/children?$select=name,id', null, t2, { noExiste: true });
       if (hijos && hijos.value) {
-        var buscado = String(archivo).toLowerCase();
-        for (var i = 0; i < hijos.value.length; i++) {      // mismo nombre sin importar mayúsculas
-          if (String(hijos.value[i].name).toLowerCase() === buscado) {
+        var buscado = claveArchivo_(archivo);
+        for (var i = 0; i < hijos.value.length; i++) {      // mismo programa aunque el nombre del archivo se escriba distinto
+          if (claveArchivo_(hijos.value[i].name) === buscado) {
             return Utilities.base64Encode(graph_('get', rutaDrive_() + '/items/' + hijos.value[i].id + '/content', null, t2, { crudo: true }).getContent());
           }
         }
