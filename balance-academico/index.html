@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Balance Académico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--navy:#12294A;--navy2:#1F3D6B;--gold:#B8892B;--bg:#F3F5F9;--line:#D4DBE7;--line2:#E5E9F1;--ink:#16233A;--mute:#4A5A78;
+  --ok-bg:#DFF2E7;--ok:#115C37;--warn-bg:#FFEFCF;--warn:#6E4300;--bad-bg:#FADFDC;--bad:#8E1A12;--mute-bg:#E5E9F1;--mute2:#33425C}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:'Aptos Display','Aptos','Segoe UI Variable Text','Segoe UI','Libre Franklin',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.4}
+button,input,select,textarea{font:inherit;color:inherit}
+#app{height:100%;display:flex;flex-direction:column}
+.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:0 24px;height:52px;border-bottom:3px solid var(--gold);flex-shrink:0}
+.top b{font-size:16px}.top .sep{opacity:.5}
+.top .quien{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px}
+.top select{background:var(--navy2);color:#fff;border:0;border-radius:999px;padding:5px 12px;cursor:pointer}
+.top .prueba{font-size:11px;opacity:.7}
+.tabs{display:flex;gap:4px;padding:10px 24px 0;border-bottom:1px solid var(--line);background:#fff;flex-shrink:0;align-items:flex-end}
+.tab{border:0;background:none;padding:9px 16px;font-weight:600;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;display:flex;gap:8px;align-items:center}
+.tab[aria-selected=true]{color:var(--navy);border-bottom-color:var(--gold)}
+.tab:disabled{opacity:.45;cursor:not-allowed}
+.tab .n{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
+.tabs .est{margin-left:auto;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
+main{flex:1;min-height:0;padding:16px 24px;overflow:hidden}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.ok{background:var(--ok-bg);color:var(--ok)}.warn{background:var(--warn-bg);color:var(--warn)}.bad{background:var(--bad-bg);color:var(--bad)}.mute{background:var(--mute-bg);color:var(--mute2)}
+.btn{font-weight:600;border-radius:8px;padding:7px 14px;border:1px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer}
+.btn:hover:not(:disabled){background:#EEF2F9}
+.btn.pri{background:var(--navy);color:#fff}.btn.pri:hover:not(:disabled){background:var(--navy2)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:#1B1400}
+.btn.sm{padding:3px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+label.f{min-width:0;display:flex;flex-direction:column;gap:3px;font-size:12px;font-weight:700;color:var(--mute);text-transform:uppercase;letter-spacing:.03em}
+label.f input,label.f select,label.f textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;padding:7px 10px;background:#fff;font-weight:400;text-transform:none;letter-spacing:0;font-size:14px;color:var(--ink)}
+label.f input:focus,label.f select:focus,label.f textarea:focus,.cell:focus{outline:2px solid var(--gold);outline-offset:-1px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.alert{border-radius:8px;padding:9px 12px;font-size:13px}
+.alert.bad{background:var(--bad-bg);color:var(--bad)}.alert.warn{background:var(--warn-bg);color:var(--warn)}.alert.ok{background:var(--ok-bg);color:var(--ok)}.alert.mute{background:var(--mute-bg);color:var(--mute2)}
+
+/* inicio */
+.inicio{height:100%;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:16px}
+.inicio .col{display:flex;flex-direction:column;gap:12px;min-height:0}
+.inicio textarea{flex:1;min-height:120px;resize:none;font-family:ui-monospace,Consolas,monospace;font-size:12px}
+.guardados{overflow:auto;display:flex;flex-direction:column}
+.gd{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line2)}
+.gd:last-child{border-bottom:0}
+.gd .t{flex:1;min-width:0}.gd .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd .t span{color:var(--mute);font-size:12px}
+
+/* revisión */
+.rev{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}
+.tablewrap{display:flex;flex-direction:column;min-height:0}
+.tbar{display:flex;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.tbar .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-left:auto}
+.tbar .seg button{border:0;background:#fff;padding:5px 12px;cursor:pointer;font-weight:600;color:var(--mute)}
+.tbar .seg button[aria-pressed=true]{background:var(--navy);color:#fff}
+.scroll{overflow:auto;flex:1;min-height:0}
+table{border-collapse:collapse;width:100%}
+th{position:sticky;top:0;background:#F7F9FC;text-align:left;font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute);padding:7px 8px;border-bottom:1px solid var(--line);z-index:1;white-space:nowrap}
+td{padding:3px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tr.area td{background:#FBF6EA;color:#6B4E10;font-weight:700;font-size:12px;letter-spacing:.03em;text-transform:uppercase;border-left:3px solid var(--gold);padding:5px 8px}
+tr.area td .chip{margin-left:8px;text-transform:none;letter-spacing:0}
+tr.falta td{background:#FFFBF1}
+tr.perdida td{background:#FEF3F1}
+.cell{width:100%;border:1px solid transparent;border-radius:6px;padding:3px 6px;background:transparent}
+.cell:hover:not(:disabled){border-color:var(--line);background:#fff}
+.cell:disabled{color:var(--ink)}
+.cell.edit{background:#FFF8E8}
+.cell.falta-nombre{border-color:var(--bad);background:#FEF3F1}
+table{font-size:13px}
+td:nth-child(2){min-width:190px}td:nth-child(4){min-width:250px}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mono{font-variant-numeric:tabular-nums}
+.side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
+.kpi b{display:block;font-size:22px;color:var(--navy);line-height:1.15}.kpi span{font-size:12px;color:var(--mute)}
+.bar{height:8px;border-radius:99px;background:var(--line2);overflow:hidden;margin:0 14px 14px}.bar i{display:block;height:100%;background:var(--gold)}
+.log{max-height:230px;overflow:auto;font-size:12px}
+.log div{padding:6px 14px;border-bottom:1px solid var(--line2)}
+.log time{color:var(--mute);display:block;font-size:11px}
+
+/* firma */
+.firma{height:100%;display:grid;grid-template-columns:400px minmax(0,1fr);gap:16px}
+.firma .panel{display:flex;flex-direction:column;gap:12px;overflow:auto;min-height:0;padding-right:2px}
+.prevbox{height:100%;overflow:auto;border:1px solid var(--line);border-radius:10px;background:#E9EDF4;padding:12px;display:flex;justify-content:center;align-items:flex-start}
+.prevbox canvas{box-shadow:0 2px 12px rgba(18,41,74,.25);background:#fff}
+.sigprev{border:1px dashed var(--line);border-radius:8px;height:70px;display:flex;align-items:center;justify-content:center;color:var(--mute);background:#fff;overflow:hidden}
+.sigprev img{max-height:66px;max-width:100%}
+.steps{display:flex;flex-direction:column;gap:8px}
+.steps .s{display:flex;gap:10px;align-items:center}
+.dot{width:22px;height:22px;border-radius:50%;background:var(--line);color:var(--mute2);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.dot.ok{background:var(--ok);color:#fff}
+
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(18,41,74,.45);display:flex;align-items:center;justify-content:center;z-index:50}
+.modal .box{background:#fff;border-radius:12px;width:min(760px,94vw);max-height:84vh;display:flex;flex-direction:column;border-top:4px solid var(--gold)}
+.modal .hd{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.modal .bd{overflow:auto}
+.modal input.q{margin:10px 18px;border:1px solid var(--line);border-radius:8px;padding:7px 10px;width:calc(100% - 36px)}
+.pick{display:flex;gap:10px;align-items:center;padding:7px 18px;border-top:1px solid var(--line2)}
+.pick .t{flex:1;min-width:0}.pick .t span{display:block;color:var(--mute);font-size:12px}
+.vacío{padding:30px;text-align:center;color:var(--mute)}
+@media (max-width:1100px){.rev{grid-template-columns:1fr}.inicio,.firma{grid-template-columns:1fr}main{overflow:auto}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- build:libs -->
+<script src="vendor/xlsx.full.min.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="vendor/pdf.min.js"></script>
+<!-- /build:libs -->
+<!-- build:modulos -->
+<script src="motor.js"></script>
+<script src="programas.js"></script>
+<script src="lector-excel.js"></script>
+<script src="pdf.js"></script>
+<!-- /build:modulos -->
+<!-- build:entorno -->
+<script>window.__GAS = false;</script>
+<!-- /build:entorno -->
+<script>
+(function () {
+  'use strict';
+  var M = BalanceMotor, PR = BalanceProgramas, LE = LectorExcel, PDF = BalancePDF;
+  var ROLES = { jefe: 'Jefe de Programa', decano: 'Decano de Facultad' };
+  var imagenesAssets = { logo: null, marca: null };
+
+  var S = {
+    vista: 'inicio', rol: 'jefe', prog: null, est: null, res: null, ver: null,
+    imgs: { jefe: null, decano: null }, dims: { jefe: null, decano: null },
+    form: { programaId: '', tipoDoc: 'CC', documento: '', nombres: '', apellidos: '', nivel: 'pregrado', notas: '' },
+    formErr: null, cargando: false, filtro: 'todas', modal: null, firmaForm: { jefe: {}, decano: {} },
+    sesion: { nombre: '', email: '', roles: ['jefe', 'decano'], prueba: true }, msg: null,
+    guardados: [], guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
+  };
+
+  /* ───── entorno: Apps Script (producción) o navegador suelto (pruebas) ───── */
+  var GAS = !!(window.__GAS && window.google && google.script && google.script.run);
+  function srv(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    return new Promise(function (ok, no) {
+      google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { no(new Error((e && e.message) || String(e))); })[fn].apply(null, args);
+    });
+  }
+  /* Identidad: el Portal entrega el token de Microsoft (mismo mecanismo que Titulación y Concesiones).
+     Sin Portal (modo independiente) no llega token y el servidor decide si permite el modo prueba. */
+  var tokenMs = { valor: '', t: 0 };
+  function obtenerToken() {
+    if (!GAS) return Promise.resolve('');
+    if (tokenMs.valor && Date.now() - tokenMs.t < 40 * 60 * 1000) return Promise.resolve(tokenMs.valor);
+    if (tokenMs.sinPortal && Date.now() - tokenMs.sinPortal < 10 * 60 * 1000) return Promise.resolve('');
+    return new Promise(function (ok) {
+      var hecho = false;
+      function on(ev) {
+        if (ev.data && ev.data.type === 'balance:token' && ev.data.token) {
+          hecho = true; window.removeEventListener('message', on);
+          tokenMs = { valor: ev.data.token, t: Date.now() }; ok(ev.data.token);
+        }
+      }
+      window.addEventListener('message', on);
+      try { window.top.postMessage({ type: 'balance:token-request' }, '*'); } catch (e) {}
+      setTimeout(function () { if (!hecho) { window.removeEventListener('message', on); tokenMs.sinPortal = Date.now(); ok(''); } }, 2500);
+    });
+  }
+  function srvAuth(fn) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    function intento(reintento) {
+      return obtenerToken().then(function (t) { return srv.apply(null, [fn, t].concat(args)); }).catch(function (err) {
+        if (!reintento && /venci/i.test(err.message)) { tokenMs = { valor: '', t: 0 }; return intento(true); }
+        throw err;
+      });
+    }
+    return intento(false);
+  }
+  function b64aBuffer(b64) { var bin = atob(b64), n = bin.length, u = new Uint8Array(n); for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+  function resumen(e) {
+    var fs = M.estadoFirmas(e);
+    return { key: claveEstado(e), programaId: e.programaId, estudiante: e.estudiante, fase: fs.fase, actualizado: new Date().toISOString() };
+  }
+  var Backend = {
+    sesion: function () {
+      return GAS ? srvAuth('infoSesion') : Promise.resolve({ email: '', roles: ['jefe', 'decano'], prueba: true });
+    },
+    excel: function (meta) { return GAS ? srvAuth('plantilla', meta.archivo).then(b64aBuffer) : null; },
+    listar: function () {
+      if (GAS) return srvAuth('listarBalances');
+      var out = [];
+      try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('balance:') === 0) { try { var e = JSON.parse(localStorage.getItem(k)); if (e && e.programaId) { var r = resumen(e); r.actualizado = e.bitacora && e.bitacora.length ? e.bitacora[e.bitacora.length - 1].t : ''; out.push(r); } } catch (x) {} } } } catch (e) {}
+      return Promise.resolve(out);
+    },
+    cargar: function (key) {
+      if (GAS) return srvAuth('cargarBalance', key).then(function (t) { return JSON.parse(t); });
+      try { return Promise.resolve(JSON.parse(localStorage.getItem(key))); } catch (e) { return Promise.reject(e); }
+    },
+    guardar: function (e) {
+      var copia = JSON.parse(JSON.stringify(e));
+      if (GAS) return srvAuth('guardarBalance', claveEstado(e), JSON.stringify(copia), JSON.stringify(resumen(e)));
+      try { localStorage.setItem(claveEstado(e), JSON.stringify(copia)); } catch (x) {}
+      return Promise.resolve();
+    },
+    borrar: function (key) {
+      if (GAS) return srvAuth('eliminarBalance', key);
+      try { localStorage.removeItem(key); } catch (e) {}
+      return Promise.resolve();
+    }
+  };
+
+  /* ───── utilidades ───── */
+  function h(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function $(sel, el) { return (el || document).querySelector(sel); }
+  function quien() { return S.sesion.nombre ? S.sesion.nombre + ' (' + ROLES[S.rol] + ')' : ROLES[S.rol]; }
+  function fecha(iso) { try { return new Date(iso).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }); } catch (e) { return iso; } }
+  function claveEstado(e) { return 'balance:' + e.programaId + ':' + String(e.estudiante.documento).replace(/\D+/g, ''); }
+
+  function leerSesion() {
+    return Backend.sesion().then(function (x) {
+      S.sesion.email = x.email || ''; S.sesion.nombre = x.nombre || x.email || '';
+      S.sesion.roles = x.roles || []; S.sesion.prueba = !!x.prueba;
+      if (S.sesion.roles.length && S.sesion.roles.indexOf(S.rol) < 0) S.rol = S.sesion.roles[0];
+    });
+  }
+
+  /* ───── guardado ───── */
+  var colaGuardado = Promise.resolve();
+  function guardar() {
+    if (!S.est) return colaGuardado;
+    var est = S.est;
+    S.guardando = 'guardando'; pintarEstadoGuardado();
+    colaGuardado = colaGuardado.then(function () { return Backend.guardar(est); }).then(function () {
+      S.guardando = 'guardado'; pintarEstadoGuardado();
+    }).catch(function (err) {
+      S.guardando = 'error'; S.errorGuardado = err.message; pintarEstadoGuardado();
+    });
+    return colaGuardado;
+  }
+  function pintarEstadoGuardado() {
+    var el = $('#estado-guardado'); if (!el) return;
+    var m = { guardando: ['mute', 'Guardando…'], guardado: ['ok', 'Guardado'], error: ['bad', 'No se pudo guardar'] }[S.guardando];
+    el.innerHTML = m ? '<span class="chip ' + m[0] + '" title="' + h(S.errorGuardado || '') + '">' + m[1] + '</span>' : '';
+  }
+  function refrescarGuardados() {
+    return Backend.listar().then(function (l) {
+      S.guardados = (l || []).sort(function (a, b) { return String(b.actualizado || '').localeCompare(String(a.actualizado || '')); });
+    }).catch(function () { S.guardados = []; });
+  }
+
+  /* ───── carga de imágenes fijas del PDF ───── */
+  function aDataURL(url) {
+    return fetch(url).then(function (r) { return r.blob(); }).then(function (b) {
+      return new Promise(function (ok) { var fr = new FileReader(); fr.onload = function () { ok(fr.result); }; fr.readAsDataURL(b); });
+    }).catch(function () { return null; });
+  }
+  function cargarAssets() {
+    if (window.__ASSETS) { imagenesAssets.logo = window.__ASSETS.logo; imagenesAssets.marca = window.__ASSETS.marca; return Promise.resolve(); }
+    return Promise.all([aDataURL('assets/logo-armada.png'), aDataURL('assets/marca-agua.png')]).then(function (r) {
+      imagenesAssets.logo = r[0]; imagenesAssets.marca = r[1];
+    });
+  }
+
+  /* ───── diálogos propios (sin alert/confirm del navegador) ───── */
+  function pregunta(titulo, texto, ok, cancelar) {
+    return new Promise(function (res) { S.dialogo = { titulo: titulo, texto: texto, ok: ok || 'Aceptar', cancelar: cancelar === undefined ? 'Cancelar' : cancelar, res: res }; render(); });
+  }
+  function aviso(titulo, texto) { return pregunta(titulo, texto, 'Entendido', null); }
+  function vDialogo() {
+    var d = S.dialogo;
+    return '<div class="modal" data-act="dialogo-no"><div class="box" role="alertdialog" aria-modal="true" style="width:min(460px,94vw)"><div class="hd"><b>' + h(d.titulo) + '</b></div>' +
+      '<div style="padding:16px 18px;white-space:pre-line">' + h(d.texto) + '</div><div style="padding:0 18px 16px;display:flex;gap:8px;justify-content:flex-end">' +
+      (d.cancelar ? '<button class="btn" data-act="dialogo-no">' + h(d.cancelar) + '</button>' : '') + '<button class="btn pri" data-act="dialogo-si" id="dialogo-ok">' + h(d.ok) + '</button></div></div></div>';
+  }
+
+  /* ───── flujo ───── */
+  function recalcular() {
+    S.res = M.calcular(S.prog, S.est);
+    S.ver = M.verificarEstudiante(S.res.sma, S.est.estudiante);
+    S.fs = M.estadoFirmas(S.est);
+  }
+  function fase() { return S.fs ? S.fs.fase : 'borrador'; }
+  function bloqueado() { return S.rol !== 'jefe' || fase() !== 'borrador'; }
+  function puedeEmitir() { return S.res && S.res.completo && S.ver && S.ver.ok; }
+
+  function abrir(estado, irA) {
+    var meta = PR.porId(estado.programaId);
+    if (!meta) { aviso('Programa no disponible', 'El programa de este balance ya no tiene plantilla.'); return Promise.resolve(); }
+    S.cargando = true; render();
+    return LE.cargarPrograma(meta, null, GAS ? Backend.excel : null).then(function (prog) {
+      S.prog = prog; S.est = estado; S.cargando = false;
+      S.firmaForm = { jefe: {}, decano: {} };
+      if (estado.firmas.jefe) S.firmaForm.jefe = { grado: estado.firmas.jefe.grado, nombre: estado.firmas.jefe.nombre, cargo: estado.firmas.jefe.cargo };
+      if (estado.firmas.decano) S.firmaForm.decano = { grado: estado.firmas.decano.grado, nombre: estado.firmas.decano.nombre, cargo: estado.firmas.decano.cargo };
+      recalcular(); S.vista = irA || 'revision'; S.msg = null; render();
+    }).catch(function (err) { S.cargando = false; S.formErr = [String(err.message || err)]; S.vista = 'inicio'; render(); });
+  }
+
+  function crear() {
+    var f = S.form, meta = PR.porId(f.programaId);
+    var errs = [];
+    if (!meta) errs.push('Elija el programa de grado.');
+    if (!f.documento.trim()) errs.push('Escriba el número de documento.');
+    if (!f.nombres.trim() || !f.apellidos.trim()) errs.push('Escriba los nombres y apellidos como están en la solicitud.');
+    if (!f.notas.trim()) errs.push('Pegue las notas del SMA.');
+    if (errs.length) { S.formErr = errs; S.formAv = null; render(); return; }
+    var est = M.nuevoEstado(meta.id, { nombres: f.nombres.trim(), apellidos: f.apellidos.trim(), tipoDoc: f.tipoDoc, documento: f.documento.trim(), nivel: f.nivel }, quien());
+    var r = M.agregarNotas(est, f.notas, quien());
+    var ver = M.verificarEstudiante(M.unirSMA(est.textos), est.estudiante);
+    if (!r.agregados && ver.ok) { errs.push('No se encontraron asignaturas en lo pegado. Copie el historial completo desde el SMA.'); }
+    if (!ver.ok) errs = errs.concat(ver.errores);
+    if (errs.length) { S.formErr = errs; S.formAv = null; render(); return; }
+    S.formErr = null; S.formAv = ver.avisos;
+    var previo = S.guardados.some(function (g) { return g.key === claveEstado(est); });
+    var seguir = previo ? pregunta('Ya existe un balance', 'Ya hay un balance guardado para este estudiante y programa. ¿Reemplazarlo con uno nuevo?\nSe pierde el registro de cambios del anterior.', 'Reemplazar') : Promise.resolve(true);
+    seguir.then(function (si) {
+      if (!si) return;
+      S.imgs = { jefe: null, decano: null }; S.dims = { jefe: null, decano: null };
+      return abrir(est, 'revision').then(guardar).then(refrescarGuardados);
+    });
+  }
+
+  function aplicarCambio(fn) {
+    if (bloqueado()) return;
+    fn(); guardar(); recalcular(); render();
+  }
+
+  /* ───── firma ───── */
+  function datosFirmante(rol) {
+    var f = S.firmaForm[rol] || {};
+    var base = rol === 'jefe' ? S.prog.firmantes.jefe : S.prog.firmantes.decano;
+    return { grado: f.grado || '', nombre: f.nombre != null ? f.nombre : (S.sesion.nombre && rol === S.rol ? S.sesion.nombre : ''), cargo: f.cargo != null && f.cargo !== '' ? f.cargo : base };
+  }
+  function firmar() {
+    var rol = S.rol, d = datosFirmante(rol);
+    if (!puedeEmitir()) return;
+    if (!S.imgs[rol]) { S.msg = { t: 'bad', x: 'Cargue la imagen de su firma antes de firmar.' }; render(); return; }
+    if (!d.nombre.trim()) { S.msg = { t: 'bad', x: 'Escriba su nombre para que salga en el balance.' }; render(); return; }
+    if (rol === 'decano' && !S.fs.jefe) { S.msg = { t: 'bad', x: 'El Jefe de Programa debe firmar primero.' }; render(); return; }
+    S.est.firmas[rol] = { grado: d.grado.trim(), nombre: d.nombre.trim(), cargo: d.cargo.trim(), fecha: new Date().toISOString(), huella: S.fs.huella };
+    M.registrar(S.est, quien(), rol === 'jefe' ? 'firmó y cerró la parte del Jefe de Programa' : 'firmó como Decano de Facultad');
+    S.msg = { t: 'ok', x: rol === 'jefe' ? 'Listo: su parte quedó cerrada y guardada' + (GAS ? ' en OneDrive. El Decano la abre desde la lista de balances.' : '. Para pasarla al Decano descargue el archivo del balance.') : 'Balance firmado por ambos.' };
+    guardar(); recalcular(); render();
+  }
+  function reabrir() {
+    if (S.rol !== 'jefe') return;
+    pregunta('Reabrir el balance', 'Reabrir borra las firmas actuales; el jefe tendrá que firmar de nuevo y luego el decano. ¿Continuar?', 'Reabrir').then(function (si) {
+      if (!si) return;
+      S.est.firmas = { jefe: null, decano: null };
+      M.registrar(S.est, quien(), 'reabrió el balance', 'las firmas se anularon');
+      S.msg = null; guardar(); recalcular(); render();
+    });
+  }
+  function cargarFirma(file, rolDestino) {
+    if (!file) return;
+    var rol = rolDestino || S.rol, fr = new FileReader();
+    fr.onload = function () {
+      if (!/^data:image\/(png|jpeg|jpg)/i.test(fr.result)) { S.msg = { t: 'bad', x: 'La firma debe ser una imagen PNG o JPG.' }; render(); return; }
+      S.imgs[rol] = fr.result; S.msg = null;
+      var im = new Image(); im.onload = function () { S.dims[rol] = { w: im.naturalWidth, h: im.naturalHeight }; render(); }; im.onerror = function () { render(); }; im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  function construirPDF() {
+    var firmas = {};
+    ['jefe', 'decano'].forEach(function (rol) {
+      var f = S.est.firmas[rol], d = datosFirmante(rol), usar = f || d;
+      var img = S.imgs[rol];
+      firmas[rol] = {
+        img: (f || rol === S.rol) ? img : null, w: S.dims[rol] && S.dims[rol].w, h: S.dims[rol] && S.dims[rol].h, tipo: img && /image\/jpe?g/i.test(img) ? 'JPEG' : 'PNG',
+        nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || (rol === 'jefe' ? S.prog.firmantes.jefe : S.prog.firmantes.decano)
+      };
+      if (!f && rol !== S.rol) firmas[rol].img = null;
+    });
+    return PDF.generar(window.jspdf.jsPDF, { prog: S.prog, estado: S.est, res: S.res, logo: imagenesAssets.logo, marca: imagenesAssets.marca, firmas: firmas });
+  }
+  function bajar(blob, nombre) {
+    var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombre;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+  }
+  function descargarPDF() {
+    if (!puedeEmitir()) return;
+    var doc = construirPDF();
+    var nom = (S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos).replace(/\s+/g, ' ').trim().toUpperCase();
+    bajar(doc.output('blob'), 'Balance_Academico_' + nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '_') + '.pdf');
+    M.registrar(S.est, quien(), 'descargó el PDF', S.fs.fase === 'firmado' ? 'firmado' : S.fs.fase === 'cerrado_jefe' ? 'con firma del jefe' : 'sin firmas'); guardar();
+  }
+  function exportarArchivo() {
+    var copia = JSON.parse(JSON.stringify(S.est));
+    copia.firmasImg = S.imgs; copia.firmasDim = S.dims; // el decano necesita ver la firma del jefe en el PDF
+    var nom = (S.est.estudiante.apellidos + ' ' + S.est.estudiante.nombres).replace(/\s+/g, '_');
+    bajar(new Blob([JSON.stringify(copia)], { type: 'application/json' }), 'Balance_' + nom + '.balance.json');
+  }
+  function importarArchivo(file) {
+    if (!file) return;
+    var fr = new FileReader();
+    fr.onload = function () {
+      try {
+        var e = JSON.parse(fr.result);
+        if (!e || !e.programaId || !e.textos || !e.estudiante) throw new Error('El archivo no es un balance.');
+        var imgs = e.firmasImg || { jefe: null, decano: null }; var dm = e.firmasDim || {}; delete e.firmasImg; delete e.firmasDim; S.dims = { jefe: dm.jefe || null, decano: dm.decano || null };
+        S.imgs = { jefe: imgs.jefe || null, decano: imgs.decano || null };
+        M.registrar(e, quien(), 'abrió el archivo del balance');
+        abrir(e, 'revision').then(guardar).then(refrescarGuardados);
+      } catch (err) { S.formErr = ['No se pudo abrir el archivo: ' + err.message]; render(); }
+    };
+    fr.readAsText(file);
+  }
+
+  /* ───── vistas ───── */
+  var FASES = {
+    borrador: ['mute', 'En elaboración'], cerrado_jefe: ['warn', 'Cerrado por el Jefe · pasa al Decano'], firmado: ['ok', 'Firmado por el Decano']
+  };
+  function chipFase(f) { var x = FASES[f]; return '<span class="chip ' + x[0] + '">' + x[1] + '</span>'; }
+
+  function vTop() {
+    var roles = S.sesion.roles, selector = '';
+    if (roles.length > 1) selector = '<select id="rol" aria-label="Rol">' + roles.map(function (k) { return '<option value="' + k + '"' + (S.rol === k ? ' selected' : '') + '>' + ROLES[k] + '</option>'; }).join('') + '</select>';
+    else if (roles.length === 1) selector = '<span class="chip" style="background:var(--navy2);color:#fff">' + ROLES[roles[0]] + '</span>';
+    return '<div class="top"><b>Balance Académico</b><span class="sep">/</span><span>Escuela Naval de Cadetes “Almirante Padilla”</span>' +
+      '<div class="quien">' + (S.sesion.prueba ? '<span class="prueba">Modo prueba (sin sesión del Portal): elija el rol</span>' : '') +
+      (S.sesion.email ? '<span style="opacity:.8">' + h(S.sesion.email) + '</span>' : '') + selector + '</div></div>';
+  }
+  function vTabs() {
+    var hay = !!S.est;
+    var t = [['inicio', 'Datos y notas', 1], ['revision', 'Revisión', 2], ['firma', 'Firma y PDF', 3]];
+    return '<div class="tabs" role="tablist">' + t.map(function (x) {
+      return '<button class="tab" role="tab" data-vista="' + x[0] + '" aria-selected="' + (S.vista === x[0]) + '"' + (x[0] !== 'inicio' && !hay ? ' disabled' : '') + '><span class="n">' + x[2] + '</span>' + x[1] + '</button>';
+    }).join('') + (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') + '</div>';
+  }
+
+  function vInicio() {
+    var f = S.form, sel = PR.lista;
+    var guard = S.guardados;
+    var progOpts = '<option value="">Elija el programa…</option>' + sel.map(function (p) { return '<option value="' + p.id + '"' + (f.programaId === p.id ? ' selected' : '') + '>' + h(p.nombre) + '</option>'; }).join('');
+    var tipos = [['CC', 'Cédula de ciudadanía'], ['CE', 'Cédula de extranjería'], ['PA', 'Pasaporte']];
+    return '<div class="inicio"><div class="col">' +
+      '<div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">' +
+      '<div><div class="lbl">1 · Estudiante (como está en la solicitud de grado)</div></div>' +
+      '<div class="grid2"><label class="f">Programa de grado<select id="f-programaId">' + progOpts + '</select></label>' +
+      '<label class="f">Nivel<select id="f-nivel"><option value="pregrado"' + (f.nivel === 'pregrado' ? ' selected' : '') + '>Pregrado · aprueba con 6,000</option><option value="posgrado"' + (f.nivel === 'posgrado' ? ' selected' : '') + '>Posgrado · aprueba con 7,000</option></select></label></div>' +
+      '<div class="grid2"><label class="f">Tipo de documento<select id="f-tipoDoc">' + tipos.map(function (t) { return '<option value="' + t[0] + '"' + (f.tipoDoc === t[0] ? ' selected' : '') + '>' + t[1] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="f">Número<input id="f-documento" value="' + h(f.documento) + '" inputmode="numeric" autocomplete="off"></label></div>' +
+      '<div class="grid2"><label class="f">Nombres<input id="f-nombres" value="' + h(f.nombres) + '" autocomplete="off"></label>' +
+      '<label class="f">Apellidos<input id="f-apellidos" value="' + h(f.apellidos) + '" autocomplete="off"></label></div>' +
+      '<label class="f" style="flex:1;min-height:0"><span>2 · Notas del SMA <span style="text-transform:none;font-weight:400">(pegue el historial tal como sale; puede pegar varios grupos)</span></span><textarea id="f-notas" spellcheck="false" placeholder="Código&#9;…&#9;N° Ident. …">' + h(f.notas) + '</textarea></label>' +
+      (S.formErr ? '<div class="alert bad">' + S.formErr.map(h).join('<br>') + '</div>' : '') +
+      (S.formAv && S.formAv.length ? '<div class="alert warn">' + S.formAv.map(h).join('<br>') + '</div>' : '') +
+      '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando ? ' disabled' : '') + '>' + (S.cargando ? 'Leyendo pénsum…' : 'Crear balance') + '</button>' +
+      '<span style="color:var(--mute);font-size:12px">Se compara la cédula con el SMA; con pasaporte o extranjería, solo los nombres. El código del estudiante no se valida.</span></div>' +
+      '</div></div>' +
+      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px"><span class="lbl">Balances guardados</span>' +
+      '<label class="btn sm" style="margin-left:auto;cursor:pointer">Abrir archivo del balance<input type="file" id="abrir-archivo" accept=".json,application/json" hidden></label></div>' +
+      (guard.length ? guard.map(function (g, i) {
+        var m = PR.porId(g.programaId), fs = g.fase || 'borrador';
+        return '<div class="gd"><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + chipFase(fs) +
+          '<button class="btn sm" data-act="abrir-g" data-i="' + i + '">Abrir</button>' + (S.rol === 'jefe' ? '<button class="btn sm" data-act="borrar-g" data-i="' + i + '" aria-label="Eliminar">✕</button>' : '') + '</div>';
+      }).join('') : '<div class="vacío">Aún no hay balances guardados aquí.</div>') +
+      '<div style="padding:12px 14px;margin-top:auto;border-top:1px solid var(--line);color:var(--mute);font-size:12px">Los balances se guardan automáticamente ' + (GAS ? 'en OneDrive' : 'en este navegador (modo prueba)') + '. El Decano los abre desde esta lista.<br>La Especialización en Política y Estrategia Marítima y el Doctorado en Ciencias del Mar no generan balance aquí.</div></div></div></div>';
+  }
+
+  function chipEstado(l) {
+    if (l.estado === 'ok') return '<span class="chip ok">Aprobada</span>';
+    if (l.estado === 'perdida') return '<span class="chip bad">No aprobada</span>';
+    return '<span class="chip warn">Sin nota</span>';
+  }
+  function chipOrigen(l) {
+    var m = { 'codigo': '', 'codigo-editado': 'código editado', 'equiv1': 'equivalente 1', 'equiv2': 'equivalente 2', 'manual': 'equivalencia aplicada', 'optativa': 'optativa' };
+    var x = m[l.origen]; return x ? '<span class="chip mute" style="margin-left:6px">' + x + '</span>' : '';
+  }
+
+  function vRevision() {
+    var r = S.res, lock = bloqueado(), filas = '', areaPrev = null;
+    var items = r.lineas;
+    var ver = S.ver;
+    var pendientes = r.faltantes.length + r.avisosNombre;
+    items.forEach(function (l) {
+      if (S.filtro === 'pendientes' && l.estado === 'ok' && !l.nombreTruncado) return;
+      if (l.area !== areaPrev) { areaPrev = l.area; filas += '<tr class="area"><td colspan="10">' + h(l.area) + '</td></tr>'; }
+      if (l.kind === 'optvacia') {
+        var b = r.bloques.filter(function (x) { return x.id === l.bloque; })[0];
+        filas += '<tr class="falta"><td colspan="7"><b>' + h(b.label) + '</b> · ' + b.sel + ' de ' + b.req + ' créditos</td><td colspan="3" style="text-align:right">' +
+          '<button class="btn sm" data-act="optativa" data-b="' + h(b.id) + '"' + (lock ? ' disabled' : '') + '>Agregar optativa</button></td></tr>';
+        return;
+      }
+      var esOpt = l.kind === 'opt';
+      var rowId = esOpt ? l.regKey : l.id;
+      var cod = '<input class="cell mono' + (l.editado ? ' edit' : '') + '" data-edit="cod" data-id="' + h(rowId) + '" data-opt="' + (esOpt ? 1 : 0) + '" value="' + h(l.cod) + '"' + (lock ? ' disabled' : '') + ' aria-label="Código cursado" style="width:78px">';
+      var nom = '<input class="cell' + (l.editado ? ' edit' : '') + (l.nombreTruncado ? ' falta-nombre' : '') + '" data-edit="nombre" data-id="' + h(rowId) + '" data-opt="' + (esOpt ? 1 : 0) + '" value="' + h(l.nombre) + '"' + (lock ? ' disabled' : '') + ' aria-label="Nombre cursado" placeholder="' + (l.estado === 'ok' ? '' : '—') + '">';
+      var acc = '';
+      if (!lock) {
+        if (esOpt) acc = '<button class="btn sm" data-act="quitar-opt" data-id="' + h(l.regKey) + '" title="Quitar optativa">Quitar</button>';
+        else if (l.origen === 'manual') acc = '<button class="btn sm" data-act="quitar-eq" data-id="' + h(l.id) + '">Quitar equiv.</button>';
+        else if (l.estado !== 'ok') acc = '<button class="btn sm gold" data-act="equiv" data-id="' + h(l.id) + '">Equivalencia</button>';
+      }
+      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + h(l.codVig) + '</td><td>' + h(esOpt ? (l.etiqueta || '') : l.nombreVig) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
+        '<td class="num">' + (l.cred > 0 ? l.cred : '') + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
+        '<td>' + chipEstado(l) + chipOrigen(l) + '</td><td style="text-align:right;white-space:nowrap">' + acc + '</td></tr>';
+      if (esOpt && l.etiqueta !== undefined) { /* etiqueta ya mostrada */ }
+    });
+    // pie de cada bloque con optativas: botón para agregar más
+    var piesOpt = r.bloques.map(function (b) {
+      var hay = items.some(function (l) { return l.kind === 'opt' && l.bloque === b.id; });
+      if (!hay) return '';
+      return '<div style="padding:8px 14px;border-top:1px solid var(--line2);display:flex;gap:10px;align-items:center"><b>' + h(b.label) + '</b><span class="chip ' + (b.ok ? 'ok' : 'warn') + '">' + b.sel + ' de ' + b.req + ' créditos</span>' +
+        '<button class="btn sm" data-act="optativa" data-b="' + h(b.id) + '"' + (lock ? ' disabled' : '') + '>Agregar optativa</button></div>';
+    }).join('');
+    var pct = r.totalFilas ? Math.round(r.cruzadas / r.totalFilas * 100) : 0;
+    var bit = S.est.bitacora.slice().reverse().map(function (b) { return '<div><time>' + h(fecha(b.t)) + ' · ' + h(b.quien) + '</time>' + h(b.accion) + (b.detalle ? ' — <span style="color:var(--mute)">' + h(b.detalle) + '</span>' : '') + '</div>'; }).join('');
+
+    var alertas = '';
+    if (ver && !ver.ok) alertas += '<div class="alert bad">' + ver.errores.map(h).join('<br>') + '</div>';
+    if (ver && ver.avisos.length) alertas += '<div class="alert warn">' + ver.avisos.map(h).join('<br>') + '</div>';
+    if (S.rol === 'decano') alertas += '<div class="alert mute">Como Decano solo firma: el contenido lo prepara el Jefe de Programa.</div>';
+    else if (fase() !== 'borrador') alertas += '<div class="alert mute">Edición cerrada porque el Jefe ya firmó. Use “Reabrir” en el paso 3 para cambiar algo (borra las firmas).</div>';
+    if (r.avisosNombre) alertas += '<div class="alert bad">' + r.avisosNombre + (r.avisosNombre === 1 ? ' nombre sigue' : ' nombres siguen') + ' con puntos suspensivos: no estaban en las equivalencias. Escriba el nombre completo en “Pénsum cursado”; el cambio queda guardado.</div>';
+    if (r.faltantes.length) alertas += '<div class="alert warn">Falta completar ' + r.faltantes.length + ' ' + (r.faltantes.length === 1 ? 'asignatura' : 'asignaturas') + ' del pénsum.</div>';
+    if (!r.completo) alertas += '<div class="alert mute">No se puede firmar ni bajar el PDF hasta que el balance esté completo.</div>';
+    else alertas += '<div class="alert ok">Balance completo: ya se puede firmar y descargar.</div>';
+
+    return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
+      '<div class="seg"><button data-filtro="todas" aria-pressed="' + (S.filtro === 'todas') + '">Todas</button><button data-filtro="pendientes" aria-pressed="' + (S.filtro === 'pendientes') + '">Pendientes (' + pendientes + ')</button></div></div>' +
+      '<div class="scroll"><table><thead><tr><th>Cód. vigente</th><th>Pénsum vigente</th><th>Cód. cursado</th><th>Pénsum cursado</th><th style="text-align:right">Créd.</th><th style="text-align:right">Nota</th><th style="text-align:right">Hab.</th><th>Estado</th><th></th></tr></thead><tbody>' + filas + '</tbody></table>' +
+      (S.filtro === 'pendientes' && !filas.replace(/<tr class="area">.*?<\/tr>/g, '') ? '<div class="vacío">No hay pendientes.</div>' : '') + piesOpt + '</div></div>' +
+      '<div class="side"><div class="card"><div class="kpis"><div class="kpi"><b>' + r.cruzadas + '<span style="font-size:14px;color:var(--mute);font-weight:400"> / ' + r.totalFilas + '</span></b><span>Asignaturas del pénsum con nota</span></div>' +
+      '<div class="kpi"><b>' + r.totalCreditos + '</b><span>Créditos aprobados</span></div><div class="kpi"><b>' + M.fmtNota(r.promedio) + '</b><span>Promedio ponderado</span></div><div class="kpi"><b>' + h(r.periodoTerm || '—') + '</b><span>Periodo de terminación</span></div></div><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
+      alertas +
+      '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl">Pegar más notas del SMA</span><textarea id="mas-notas" rows="3" spellcheck="false" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:ui-monospace,Consolas,monospace;font-size:11px;resize:none" ' + (lock ? 'disabled' : '') + '></textarea><button class="btn sm" data-act="mas-notas"' + (lock ? ' disabled' : '') + ' style="align-self:flex-start">Agregar notas</button></div>' +
+      '<div class="card" style="flex:1;min-height:120px;display:flex;flex-direction:column"><div style="padding:10px 14px;border-bottom:1px solid var(--line)"><span class="lbl">Registro de cambios (' + S.est.bitacora.length + ')</span></div><div class="log" style="max-height:none;flex:1">' + bit + '</div></div>' +
+      '</div></div>';
+  }
+
+  function pasoFirma(ok, txt) { return '<div class="s"><span class="dot' + (ok ? ' ok' : '') + '">' + (ok ? '✓' : '·') + '</span><span>' + txt + '</span></div>'; }
+
+  function vFirma() {
+    var rol = S.rol, d = datosFirmante(rol), fs = S.fs, emitir = puedeEmitir();
+    var firmado = !!(S.est.firmas[rol] && fs[rol]);
+    var puedeFirmar = emitir && !firmado && (rol === 'jefe' ? fs.fase === 'borrador' : fs.jefe && !fs.decano);
+    var img = S.imgs[rol];
+    var msg = S.msg ? '<div class="alert ' + S.msg.t + '">' + h(S.msg.x) + '</div>' : '';
+    var panel = '<div class="panel"><div class="card" style="padding:14px 16px"><div class="lbl" style="margin-bottom:8px">Firmando como ' + ROLES[rol] + '</div>' +
+      '<div class="grid2"><label class="f">Grado<input id="fi-grado" value="' + h(d.grado) + '" placeholder="Ej. MYCIM" ' + (firmado ? 'disabled' : '') + '></label><label class="f">Nombre<input id="fi-nombre" value="' + h(d.nombre) + '" ' + (firmado ? 'disabled' : '') + '></label></div>' +
+      '<label class="f" style="margin-top:10px">Cargo<input id="fi-cargo" value="' + h(d.cargo) + '" ' + (firmado ? 'disabled' : '') + '></label>' +
+      '<div style="margin-top:12px" class="lbl">Imagen de la firma (se carga cada vez; no se guarda)</div>' +
+      '<div class="sigprev" style="margin-top:6px">' + (img ? '<img alt="Firma" src="' + img + '">' : 'Sin firma cargada') + '</div>' +
+      '<label class="btn sm" style="margin-top:8px;display:inline-block;cursor:pointer">' + (img ? 'Cambiar imagen' : 'Cargar imagen (PNG o JPG)') + '<input type="file" id="firma-img" accept="image/png,image/jpeg" hidden></label></div>' +
+      msg +
+      (rol === 'decano' && fs.jefe && !S.imgs.jefe ? '<div class="card" style="padding:12px 16px"><div class="alert warn" style="margin-bottom:8px">La imagen de la firma del Jefe no se guarda. Cárguela para que salga en el PDF, o abra el archivo del balance que le envió.</div><label class="btn sm" style="cursor:pointer;display:inline-block">Cargar firma del Jefe<input type="file" id="firma-img-jefe" accept="image/png,image/jpeg" hidden></label></div>' : '') +
+      '<div class="card" style="padding:14px 16px"><div class="steps">' +
+      pasoFirma(S.res.completo && S.ver.ok, 'Balance completo' + (S.res.completo ? '' : ' (faltan ' + S.res.faltantes.length + ')')) +
+      pasoFirma(fs.jefe, 'Firma del Jefe de Programa' + (fs.jefe ? ' · ' + h(S.est.firmas.jefe.nombre) : '')) +
+      pasoFirma(fs.decano, 'Firma del Decano de Facultad' + (fs.decano ? ' · ' + h(S.est.firmas.decano.nombre) : '')) + '</div></div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      '<button class="btn pri" data-act="firmar"' + (puedeFirmar ? '' : ' disabled') + '>' + (firmado ? 'Ya firmó' : rol === 'jefe' ? 'Firmar y cerrar mi parte' : 'Firmar como Decano') + '</button>' +
+      '<button class="btn" data-act="pdf"' + (emitir ? '' : ' disabled') + '>Descargar PDF' + (fs.fase === 'firmado' ? '' : ' (pendiente de firma)') + '</button>' +
+      '<button class="btn" data-act="exportar">Descargar copia del balance (archivo)</button>' +
+      (rol === 'jefe' && fs.fase !== 'borrador' ? '<button class="btn" data-act="reabrir">Reabrir balance</button>' : '') + '</div>' +
+      (!emitir ? '<div class="alert warn">No se puede firmar ni descargar el PDF hasta que el balance esté completo y el estudiante verificado.</div>' : '') +
+      (rol === 'decano' && !fs.jefe ? '<div class="alert mute">El Jefe de Programa aún no ha firmado. Ábrale el archivo del balance cuando lo envíe.</div>' : '') +
+      '</div>';
+    return '<div class="firma">' + panel + '<div id="prev" style="min-height:0"></div></div>';
+  }
+
+  function render() {
+    var app = $('#app');
+    var cuerpo;
+    if (S.vista === 'inicio' || !S.est) cuerpo = vInicio();
+    else if (S.vista === 'revision') cuerpo = vRevision();
+    else cuerpo = vFirma();
+    if (S.arranque) { app.innerHTML = vTop() + '<main><div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Cargando…</div></main>'; return; }
+    if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
+    if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
+    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '');
+    if (S.vista === 'firma' && S.est) pintarPrevia();
+    if (S.modal) { var q = $('#modal-q'); if (q) q.focus(); }
+    if (S.dialogo) { var ok = $('#dialogo-ok'); if (ok) ok.focus(); }
+    pintarEstadoGuardado();
+  }
+
+  /* vista previa con pdf.js (funciona también dentro del recuadro protegido de Apps Script) */
+  var pdfjsListo = null;
+  function prepararPdfjs() {
+    if (pdfjsListo) return pdfjsListo;
+    pdfjsListo = new Promise(function (ok, no) {
+      if (!window.pdfjsLib) return no(new Error('pdf.js no cargó'));
+      var v = pdfjsLib.version, url = GAS ? 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/' + v + '/pdf.worker.min.js' : 'vendor/pdf.worker.min.js';
+      fetch(url).then(function (r) { return r.text(); }).then(function (t) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([t], { type: 'text/javascript' })); ok();
+      }).catch(no);
+    });
+    return pdfjsListo;
+  }
+  var tokenPrevia = 0;
+  function pintarPrevia() {
+    var cont = $('#prev'); if (!cont) return;
+    if (!S.res.completo) {
+      var motivo = S.res.avisosNombre ? 'Hay nombres con puntos suspensivos por completar.' : 'Faltan asignaturas por completar.';
+      cont.innerHTML = '<div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">La vista previa del PDF aparece cuando el balance está completo.<br>' + motivo + '</div>'; return;
+    }
+    var mio = ++tokenPrevia;
+    cont.innerHTML = '<div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Armando vista previa…</div>';
+    try {
+      var buf = construirPDF().output('arraybuffer');
+      prepararPdfjs().then(function () { return pdfjsLib.getDocument({ data: buf }).promise; }).then(function (pdf) { return pdf.getPage(1); }).then(function (page) {
+        if (mio !== tokenPrevia || !$('#prev')) return;
+        var ancho = Math.max(300, Math.min(900, $('#prev').clientWidth - 24)), vp0 = page.getViewport({ scale: 1 });
+        var esc = ancho / vp0.width * (window.devicePixelRatio || 1), vp = page.getViewport({ scale: esc });
+        var cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height; cv.style.width = ancho + 'px'; cv.style.height = (ancho * vp0.height / vp0.width) + 'px';
+        cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', 'Vista previa del Balance Académico');
+        return page.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise.then(function () {
+          var c = $('#prev'); if (!c || mio !== tokenPrevia) return;
+          c.innerHTML = '<div class="prevbox"></div>'; c.firstChild.appendChild(cv);
+        });
+      }).catch(function (err) { var c = $('#prev'); if (c) c.innerHTML = '<div class="alert warn">No se pudo mostrar la vista previa (' + h(err.message) + '). Puede descargar el PDF igualmente.</div>'; });
+    } catch (err) { cont.innerHTML = '<div class="alert bad">No se pudo armar el PDF: ' + h(err.message) + '</div>'; }
+  }
+
+  /* ───── modal de selección de asignatura del SMA ───── */
+  function vModal() {
+    var m = S.modal, r = S.res, q = M.normTexto(m.q || '');
+    var lista = r.sinUsar.filter(function (x) { return !q || M.normTexto(x.cod + ' ' + x.nombre).indexOf(q) >= 0; });
+    if (m.tipo === 'optativa') lista.sort(function (a, b) { return (S.prog.catalogo[M.normCode(b.cod)] ? 1 : 0) - (S.prog.catalogo[M.normCode(a.cod)] ? 1 : 0); });
+    var tit = m.tipo === 'optativa' ? 'Agregar optativa a ' + m.bloque.label : 'Aplicar equivalencia a ' + m.fila.nombreVig;
+    var sub = m.tipo === 'optativa' ? 'Asignaturas del SMA que no se usaron en el pénsum. Las del catálogo del programa van primero.' : 'Elija la asignatura cursada que equivale a ' + (m.fila.codVig ? m.fila.codVig + ' · ' : '') + m.fila.nombreVig + '. Queda registrado en el balance.';
+    return '<div class="modal" data-act="cerrar-modal"><div class="box" role="dialog" aria-modal="true"><div class="hd"><div><b>' + h(tit) + '</b><div style="color:var(--mute);font-size:12px">' + h(sub) + '</div></div><button class="btn sm" data-act="cerrar-modal" style="margin-left:auto">Cerrar</button></div>' +
+      '<input class="q" id="modal-q" placeholder="Buscar por código o nombre" value="' + h(m.q || '') + '"><div class="bd">' +
+      (lista.length ? lista.map(function (x) {
+        var cat = S.prog.catalogo[M.normCode(x.cod)];
+        var nombre = cat && cat.nombre ? cat.nombre : x.nombre;
+        var aprobada = x.def >= r.minimo || x.hab >= r.minimo;
+        return '<div class="pick"><div class="t"><b class="mono">' + h(x.cod) + '</b> ' + h(nombre) + (cat ? ' <span class="chip ok" style="display:inline-flex">en catálogo</span>' : '') + '<span>' + h(x.periodo) + ' · ' + x.crd + ' créd. · nota ' + M.fmtNota(x.def) + (x.hab > 0 ? ' · hab. ' + M.fmtNota(x.hab) : '') + '</span></div>' +
+          '<span class="chip ' + (aprobada ? 'ok' : 'bad') + '">' + (aprobada ? 'Aprobada' : 'No aprobada') + '</span><button class="btn sm pri" data-act="elegir" data-k="' + h(x.key) + '">Elegir</button></div>';
+      }).join('') : '<div class="vacío">No hay asignaturas del SMA disponibles' + (q ? ' con esa búsqueda' : '') + '.</div>') + '</div></div></div>';
+  }
+
+  /* ───── eventos ───── */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-vista],[data-act],[data-filtro]');
+    if (!t) return;
+    if (t.hasAttribute('data-vista')) { if (!t.disabled) { S.vista = t.getAttribute('data-vista'); S.msg = null; render(); } return; }
+    if (t.hasAttribute('data-filtro')) { S.filtro = t.getAttribute('data-filtro'); render(); return; }
+    var act = t.getAttribute('data-act');
+    if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
+    if (act === 'crear') crear();
+    else if (act === 'abrir-g') {
+      var g = S.guardados[+t.getAttribute('data-i')]; if (!g) return;
+      S.cargando = true; render();
+      Backend.cargar(g.key).then(function (e) {
+        S.imgs = { jefe: null, decano: null }; S.dims = { jefe: null, decano: null };
+        return abrir(e, 'revision');
+      }).catch(function (err) { S.cargando = false; S.formErr = ['No se pudo abrir el balance: ' + err.message]; render(); });
+    }
+    else if (act === 'borrar-g') {
+      var g2 = S.guardados[+t.getAttribute('data-i')]; if (!g2) return;
+      pregunta('Eliminar balance', 'Se eliminará el balance de ' + M.titulo(g2.estudiante.nombres + ' ' + g2.estudiante.apellidos) + '. No se puede deshacer.', 'Eliminar').then(function (si) {
+        if (si) Backend.borrar(g2.key).then(refrescarGuardados).then(render).catch(function (err) { aviso('No se pudo eliminar', err.message); });
+      });
+    }
+    else if (act === 'dialogo-si' || act === 'dialogo-no') {
+      if (act === 'dialogo-no' && ev.target !== t) return;
+      var d = S.dialogo; S.dialogo = null; render(); if (d) d.res(act === 'dialogo-si');
+    }
+    else if (act === 'equiv') { var fila = S.res.lineas.filter(function (l) { return l.id === t.getAttribute('data-id'); })[0]; S.modal = { tipo: 'equiv', fila: fila, q: '' }; render(); }
+    else if (act === 'optativa') { var bl = S.res.bloques.filter(function (b) { return b.id === t.getAttribute('data-b'); })[0]; S.modal = { tipo: 'optativa', bloque: bl, q: '' }; render(); }
+    else if (act === 'elegir') {
+      var reg = S.res.registros.filter(function (x) { return x.key === t.getAttribute('data-k'); })[0], m = S.modal;
+      S.modal = null;
+      if (reg) aplicarCambio(function () { if (m.tipo === 'optativa') M.agregarOptativa(S.est, m.bloque, reg, quien()); else M.aplicarEquivalencia(S.est, m.fila, reg, quien()); });
+    }
+    else if (act === 'quitar-eq') { var f2 = S.res.lineas.filter(function (l) { return l.id === t.getAttribute('data-id'); })[0]; aplicarCambio(function () { M.quitarEquivalencia(S.est, f2, quien()); }); }
+    else if (act === 'quitar-opt') { var k = t.getAttribute('data-id'), lo = S.res.lineas.filter(function (l) { return l.regKey === k; })[0]; aplicarCambio(function () { M.quitarOptativa(S.est, k, quien(), lo ? lo.cod + ' ' + lo.nombre : ''); }); }
+    else if (act === 'mas-notas') {
+      var ta = $('#mas-notas'); if (!ta || !ta.value.trim()) return;
+      aplicarCambio(function () {
+        var prev = M.unirSMA(S.est.textos);
+        var r = M.agregarNotas(S.est, ta.value, quien());
+        var ver = M.verificarEstudiante(M.unirSMA(S.est.textos), S.est.estudiante);
+        if (!ver.ok) { S.est.textos.pop(); S.est.bitacora.pop(); S.msg = null; aviso('No se agregaron las notas', ver.errores.join('\n')); return; }
+        if (!r.agregados) aviso('Sin cambios', 'Esas notas ya estaban en el balance o no se reconocieron.');
+      });
+    }
+    else if (act === 'firmar') firmar();
+    else if (act === 'pdf') descargarPDF();
+    else if (act === 'exportar') exportarArchivo();
+    else if (act === 'reabrir') reabrir();
+  });
+
+  document.addEventListener('change', function (ev) {
+    var t = ev.target;
+    if (t.id === 'rol') { S.rol = t.value; S.msg = null; render(); return; }
+    if (t.id && t.id.indexOf('f-') === 0) {
+      var k = t.id.slice(2); S.form[k] = t.value;
+      if (k === 'programaId') { var p = PR.porId(t.value); if (p) S.form.nivel = p.nivel; render(); }
+      return;
+    }
+    if (t.id === 'abrir-archivo') { importarArchivo(t.files[0]); return; }
+    if (t.id === 'firma-img') { cargarFirma(t.files[0]); return; }
+    if (t.id === 'firma-img-jefe') { cargarFirma(t.files[0], 'jefe'); return; }
+    if (t.id && t.id.indexOf('fi-') === 0) {
+      var c = t.id.slice(3), f = S.firmaForm[S.rol] || (S.firmaForm[S.rol] = {}); f[c] = t.value; return;
+    }
+    if (t.hasAttribute && t.hasAttribute('data-edit')) {
+      var campo = t.getAttribute('data-edit'), id = t.getAttribute('data-id'), esOpt = t.getAttribute('data-opt') === '1';
+      var l = S.res.lineas.filter(function (x) { return (esOpt ? x.regKey : x.id) === id; })[0];
+      if (!l) return;
+      aplicarCambio(function () {
+        if (esOpt) M.editarOptativa(S.est, id, campo, t.value, quien(), campo === 'cod' ? l.cod : l.nombre);
+        else M.editarCursado(S.est, l, campo, t.value, quien());
+      });
+    }
+  });
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t.id === 'modal-q') { S.modal.q = t.value; var pos = t.selectionStart; render(); var q = $('#modal-q'); q.focus(); q.setSelectionRange(pos, pos); }
+    if (t.id === 'f-notas') S.form.notas = t.value;
+    if (t.id && t.id.indexOf('f-') === 0 && t.id !== 'f-notas' && t.tagName === 'INPUT') S.form[t.id.slice(2)] = t.value;
+  });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal) { S.modal = null; render(); } });
+
+  /* ───── arranque ───── */
+  function precargar() {
+    var q = new URLSearchParams(window.__PARAMS ? new URLSearchParams(window.__PARAMS).toString() : location.search), f = S.form;
+    var p = PR.porId(q.get('programa')) || PR.porNombre(q.get('programa'));
+    if (p) { f.programaId = p.id; f.nivel = p.nivel; }
+    if (q.get('tipoDoc')) f.tipoDoc = q.get('tipoDoc').toUpperCase().slice(0, 2);
+    if (q.get('documento')) f.documento = q.get('documento');
+    if (q.get('nombres')) f.nombres = q.get('nombres');
+    if (q.get('apellidos')) f.apellidos = q.get('apellidos');
+    if (/pos/i.test(q.get('nivel') || '')) f.nivel = 'posgrado'; else if (/pre/i.test(q.get('nivel') || '')) f.nivel = 'pregrado';
+    var manual = q.get('programa') && !p && PR.esManual(q.get('programa'));
+    if (manual) S.formErr = ['Este programa no genera balance aquí: se sigue cargando el archivo a mano en la solicitud.'];
+  }
+  render();
+  Promise.all([leerSesion(), refrescarGuardados(), cargarAssets()]).then(function () {
+    S.arranque = false; precargar(); render();
+  }).catch(function (err) { S.arranque = false; S.errorArranque = err.message; render(); });
+  window.BalanceApp = { estado: S }; // útil para pruebas
+})();
+</script>
+</body>
+</html>
