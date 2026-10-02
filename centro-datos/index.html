@@ -1468,9 +1468,9 @@ class Component extends DCLogic {
     const heatHead = causNames;
     const SHORTESP = ['Cadete Naval Profesional', 'Cadete IM Profesional', 'Cadete Naval Logístico', 'Curso Extraordinario IM'];
     const cursoSem = !!f.esp && SHORTESP.indexOf(f.esp) >= 0;
-    const cursoB = cursoSem ? [['1.er sem.', 0, 6], ['2.º sem.', 7, 999]] : [['1.er año', 0, 12], ['2.º año', 13, 24], ['3.er año', 25, 36], ['4.º año', 37, 999]];
+    const cursoB = cursoSem ? [['1.er sem.', 0, 6], ['2.º sem.', 7, 999]] : [['Aspirantes', 0, 6], ['1.er año', 7, 12], ['2.º año', 13, 24], ['3.er año', 25, 36], ['4.º año', 37, 999]];
     const cursoTitle = cursoSem ? 'Semestre en que se retiran' : 'Año en que se retiran';
-    const cursoSub = cursoSem ? f.esp + ': 2 semestres · estimado por permanencia' : 'Estimado por meses de permanencia (preliminar)';
+    const cursoSub = cursoSem ? f.esp + ': 2 semestres · estimado por permanencia' : 'Aspirantes: salen antes de 1 año. Estimado por permanencia (preliminar)';
     const cursoC = cursoB.map((b) => cnt(rtAll, (r) => r.meses != null && r.meses >= b[1] && r.meses <= b[2]));
     const cursoMax = Math.max(1, ...cursoC);
     const cursoTot = cursoC.reduce((a, b) => a + b, 0);
