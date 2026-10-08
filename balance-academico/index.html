@@ -839,7 +839,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     var bit = S.est.bitacora.slice().reverse().map(function (b) { return '<div><time>' + h(fecha(b.t)) + ' · ' + h(b.quien) + '</time>' + h(b.accion) + (b.detalle ? ' — <span style="color:var(--mute)">' + h(b.detalle) + '</span>' : '') + '</div>'; }).join('');
 
     // sin avisos: solo el botón para guardar el balance
-    var alertas = '<button class="btn pri" data-act="guardar-volver" style="font-size:17px;padding:16px 20px;width:100%">Guardar balance</button>';
+    var alertas = '<button class="btn pri" data-act="guardar-volver" style="font-size:17px;padding:16px 20px;width:100%"' + (puedeEmitir() ? '' : ' disabled') + '>Guardar balance</button>';
 
     return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
       '<div class="seg"><button data-filtro="todas" aria-pressed="' + (S.filtro === 'todas') + '">Todas</button><button data-filtro="pendientes" aria-pressed="' + (S.filtro === 'pendientes') + '">Pendientes (' + pendientes + ')</button></div></div>' +
@@ -1000,7 +1000,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     var act = t.getAttribute('data-act');
     if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
     if (act === 'crear') crear();
-    else if (act === 'guardar-volver') guardarVolver();
+    else if (act === 'guardar-volver') { if (puedeEmitir()) guardarVolver(); }
     else if (act === 'atras') atras();
     else if (act === 'reiniciar') reiniciar();
     else if (act === 'firmar-todos') firmarTodos();
