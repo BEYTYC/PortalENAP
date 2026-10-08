@@ -1679,14 +1679,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var fin1 = parrafo(p1, 334.8);
     var yN = fin1 + 11.1;
     txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN, 10.4, 'bold');
-    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 22.5);
+    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yN + 12.5, 10.4, 'bold');
+    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 35);
 
     img(d.firma, 'PNG', CX - 55, 458, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
     txt('Jefe de Estadística Escuela Naval de Cadetes “Almirante Padilla”', CX, 548.5, 9.6, 'normal', { align: 'center' });
 
-    ['Los certificados que presenten enmendaduras no tendrán validez', 'Certificado firmado digitalmente', 'Autenticación de Firma', 'NOTARIA SEXTA.', 'Bosque, Carrera 51 No. 21-63.']
-      .forEach(function (t, i) { txt(t, X0, 587.9 + i * 6.75, 5.85, 'normal'); });
     txt('“Protegemos el azul de la Bandera”', X0, 716.8, 6.05, 'normal', null, 'helvetica');
     txt('Línea anticorrupción Armada Nacional 01 8000 11 69 69 – 24 Horas', X0, 723.7, 6.05, 'normal', null, 'helvetica');
     txt('Barrio Manzanillo, Avenida El Bosque – Conmutador 5-6724610 Ext 143 - Cartagena, Colombia', X0, 730.6, 6.05, 'normal', null, 'helvetica');
