@@ -1686,7 +1686,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     txt('C E R T I F I C A:', CX, 307.2, 10.8, 'bold', { align: 'center' });
 
     /* párrafo justificado con tramos en negrilla */
-    var FS = 9.9, LINEA = 11.28;
+    var FS = 9.9, LINEA = 12.6;
     function parrafo(tramos, y0) {
       var pal = [];
       tramos.forEach(function (tr) { tr.t.split(/\s+/).filter(Boolean).forEach(function (w) { pal.push({ w: w, b: !!tr.b }); }); });
@@ -1713,11 +1713,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         ') en el programa de ' + d.programa + ', que culminó académicamente en el periodo ' + d.periodo + ', de acuerdo con el Balance Académico emitido el ' + fechaCorta(d.fechaBalance) +
         ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra ' + (d.vencido ? 'actualizado' : 'vigente') + ' de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
     ];
-    var fin1 = parrafo(p1, 334.8);
+    var fin1 = parrafo(p1, 324.8);
     var yN = fin1 + 11.1;
-    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN + 11.3, 10.4, 'bold');
-    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yN + 23.8, 10.4, 'bold');
-    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 46.3);
+    var fin2 = parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) + '.' }], yN);
+    var yA = fin2 + 11.3;
+    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yA, 10.4, 'bold');
+    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yA + 23.8, 10.4, 'bold');
 
     img(d.firma, 'PNG', CX - 55, 466, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
