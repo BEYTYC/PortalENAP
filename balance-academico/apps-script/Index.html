@@ -2078,7 +2078,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   /* ───── firma digital (solo el Jefe de Programa) ───── */
   /* El firmante es siempre el mismo; el Decano se puede editar (se recuerda en este navegador). */
   var FIRMANTE = { grado: 'DO', nombre: 'OLGA LISSET MACÍAS MORALES', cargo: 'Jefe de Programa' };
-  var DECANO_BASE = 'CN MARÍA PAOLA PIZANO';
+  var DECANO_BASE = 'CN MARÍA PAOLA PIZANO CORSO';
   function cargarFormFirma() { try { var x = localStorage.getItem('balance.decano'); if (x && x.trim()) S.decano = x.trim(); } catch (e) {} }
   function guardarFormFirma() {}
   function datosFirmante() { return { grado: FIRMANTE.grado, nombre: FIRMANTE.nombre, cargo: FIRMANTE.cargo }; }
