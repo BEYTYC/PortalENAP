@@ -1,7 +1,7 @@
 <meta charset="UTF-8">
 <!-- VERSION-SIN-LOGO: 2026-10-08 - sin login de Microsoft, sin escudos -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style id="sinLoginCss">/* LOGIN DESACTIVADO (temporal): para volver al login, borre esta linea y ponga LOGIN_MICROSOFT_DESACTIVADO = false */ #loginGate{display:none !important;}</style>
+<style id="sinLoginCss">/* LOGIN DESACTIVADO (temporal): para volver al login, borre esta linea y ponga LOGIN_MICROSOFT_DESACTIVADO = false */ #loginGate, #sesionUsuario{display:none !important;}</style>
 <title>Portal de Servicios Digitales</title>
 <style>
   :root{
@@ -64,7 +64,7 @@
   }
   header.masthead .titles{display:flex; flex-direction:column; gap:1px; min-width:0; position:relative; z-index:1;}
   header.masthead .titles h1{font-size:15px; font-weight:600;}
-  header.masthead .titles .oficina{font-size:10.5px; font-weight:600; letter-spacing:.04em; color:var(--gold-400);}
+  header.masthead .titles .oficina{font-size:15px; font-weight:600; letter-spacing:.06em; color:var(--gold-400);}
   header.masthead .titles .ciudad{font-size:10.5px; color:var(--navy-200);}
   header.masthead .right{margin-left:auto; display:flex; align-items:center; gap:16px; position:relative; z-index:1;}
   header.masthead .sistema{text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
@@ -411,12 +411,6 @@
     position:absolute; top:0; left:0; width:100%; height:calc(100% + 36px);
   }
 
-
-  /* Centro de Datos Institucional: tablero propio incrustado (centro-datos/index.html) */
-  .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
-  .cdi-tab__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
-  body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
-
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
     font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border);
@@ -549,7 +543,7 @@
        móvil es "main" por dentro (para el contenido largo del Inicio); los
        módulos incrustados siguen llenando esa misma caja igual que en
        escritorio. */
-    header.masthead .titles .oficina{ display:none; }
+    header.masthead .titles .oficina{ font-size:13px; }
     nav.topnav{ flex-wrap:wrap; height:auto; }
     .nav-subsistema{ border-left:none; padding-left:4px; flex-basis:100%; justify-content:space-between; }
     .cde-inner{ flex-direction:column; align-items:stretch; }
@@ -584,7 +578,7 @@
   .login-gate__mark img{ height:68px; width:auto; filter:none; }
   .login-gate__mark-text{ display:flex; flex-direction:column; gap:3px; }
   .login-gate__mark-text .nombre{ font-size:13px; font-weight:600; letter-spacing:.04em; color:#fff; line-height:1.3; }
-  .login-gate__mark-text .oficina{ font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-400); }
+  .login-gate__mark-text .oficina{ font-size:14px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-400); }
   .login-gate__eyebrow{ position:relative; z-index:1; font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-400); margin-bottom:16px; }
   .login-gate__rule{ position:relative; z-index:1; width:52px; height:3px; background:var(--gold-400); border-radius:2px; margin-bottom:20px; }
   .login-gate__heading{ position:relative; z-index:1; max-width:440px; }
@@ -753,6 +747,11 @@
   /* Sin escudos ni marcas de agua de la ENAP (a pedido): se ocultan todas las
      imagenes del escudo, las creadas por script incluidas. */
   img[src*="escudo"], .logo-glow, .watermark, .login-gate__panel-watermark{ display:none !important; }
+
+  /* Fondo entre el encabezado y el pie: azul grisaceo muy claro. */
+  :root{ --bg:#E8EEF5; }
+  main{ background:var(--bg); }
+  .sac-view{ background:transparent; }
 </style>
 
 <!--
@@ -798,7 +797,6 @@
     </div>
     <div class="login-gate__mark" id="loginGateMark">
       <div class="login-gate__mark-text">
-        <span class="nombre">ESCUELA NAVAL DE CADETES &ldquo;ALMIRANTE PADILLA&rdquo;</span>
         <span class="oficina">Oficina de Estadística</span>
       </div>
     </div>
@@ -1105,7 +1103,6 @@
   </div>
   <span class="logo-glow header-glow"><img class="logo-plain header-logo" src="assets/escudo.png" alt="Escudo ENAP"></span>
   <div class="titles">
-    <h1>Escuela Naval de Cadetes "Almirante Padilla"</h1>
     <span class="oficina">OFICINA DE ESTADÍSTICA</span>
     <span class="ciudad">Cartagena de Indias, D. T. y C.</span>
   </div>
@@ -1156,7 +1153,7 @@
       <div class="center">
         <div class="eyebrow">Oficina de Estadística</div>
         <h2 class="hero-title">Portal de Servicios Digitales</h2>
-        <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
+        <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores institucionales en un solo lugar.</p>
       </div>
 
       <section class="cde-card">
@@ -1201,7 +1198,7 @@
           <div class="cde-copy">
             <span class="eyebrow2">Estadística · Panel institucional</span>
             <h2>Centro de Datos ENAP</h2>
-            <p>Tablero con los indicadores oficiales de la Escuela Naval de Cadetes: cadetes activos, cursos registrados, graduados por período y avance de solicitudes, actualizados desde la Base de Datos institucional.</p>
+            <p>Tablero con los indicadores oficiales de la institución: cadetes activos, cursos registrados, graduados por período y avance de solicitudes, actualizados desde la Base de Datos institucional.</p>
             <button class="cde-cta" id="cdeBtn" type="button">
               Ingresar al Centro de Datos ENAP
               <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1273,11 +1270,22 @@
   </div>
 
   <div id="viewCDE" hidden>
-    <!-- Centro de Datos Institucional: tablero propio incrustado
-         (centro-datos/index.html?modo=tablero). Se carga al abrir la vista
-         (ver cargarCDI). Reemplaza al tablero de Power BI. -->
-    <div class="cdi-tab" id="cdiTab">
-      <iframe id="cdeFrame" class="cdi-tab__frame" title="Centro de Datos Institucional" allow="fullscreen" allowfullscreen></iframe>
+    <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
+         view?r=..."), embebido igual que los demas modulos -- sin borde ni
+         fondo propio del Portal (misma clase "registro-iframe"). El fondo
+         que se ve adentro ya lo define el propio tablero de Power BI.
+         ".cde-frame-wrap" recorta la franja inferior fija que Power BI
+         agrega siempre a este tipo de tablero (ver comentario junto a
+         ".cde-frame-wrap" en el CSS). "navContentPaneEnabled=false" en la
+         URL apaga ademas el paginador interno de paginas del tablero. -->
+    <div class="cde-frame-wrap">
+      <iframe
+        id="cdeFrame"
+        class="registro-iframe cde-frame"
+        title="Centro de Datos ENAP"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9&navContentPaneEnabled=false"
+        allowfullscreen
+      ></iframe>
     </div>
   </div>
 
@@ -1641,7 +1649,6 @@
     };
     window.PortalENAP.sesion = sesion;
     ocultarGate();
-    mostrarSesionUsuario(sesion);
     mostrarVistasSegunSesion(sesion);
     const salir = document.getElementById('logoutBtn');
     if (salir) salir.hidden = true;
@@ -2804,22 +2811,11 @@
   }
   document.addEventListener('click', closeAllNav);
 
-  // Toda la tarjeta del Inicio lleva al Centro de Datos (no solo el botón).
-  const cdeCard = document.querySelector('.cde-card');
-  if (cdeCard) cdeCard.style.cursor = 'pointer';
-  (cdeCard || document.getElementById('cdeBtn')).addEventListener('click', () => {
+  document.getElementById('cdeBtn').addEventListener('click', () => {
     abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
   });
 
   let vistaActiva = 'viewHome';
-
-  // ---- Centro de Datos Institucional ----
-  function cargarCDI(tab) {
-    const f = document.getElementById('cdeFrame');
-    const t = ['general','graduados','retiros','concesiones','reconoc','formacion','programas'].indexOf(tab) >= 0 ? tab : 'general';
-    const url = 'centro-datos/index.html?modo=tablero&tab=' + t;
-    if (f.dataset.url !== url) { f.dataset.url = url; f.src = url; }
-  }
 
   function abrirSubsistema(viewId, nombre) {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== viewId); });
@@ -2827,15 +2823,12 @@
     document.getElementById('navSubsistema').classList.add('show');
     document.getElementById('main').classList.add('main-full');
     vistaActiva = viewId;
-    if (viewId === 'viewCDE') cargarCDI(window.__cdiTab || 'general');
-    window.__cdiTab = null;
   }
 
   function volverAlPortal() {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
     document.getElementById('main').classList.remove('main-full');
-    document.body.classList.remove('cdi-fs');
     vistaActiva = 'viewHome';
   }
 
@@ -2845,12 +2838,6 @@
   // este mensaje es el respaldo.
   window.addEventListener('message', (event) => {
     if (event.data === 'volverAlInicio') volverAlPortal();
-    // Centro de Datos Institucional (mismo origen): pantalla completa, abrir una pestaña o volver al inicio.
-    if (event.origin === window.location.origin && event.data && typeof event.data === 'object') {
-      if (event.data.type === 'centrodatos:pantalla-completa') document.body.classList.toggle('cdi-fs', !!event.data.fs);
-      else if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
-      else if (event.data.type === 'centrodatos:inicio') volverAlPortal();
-    }
   });
 
   // Concesiones Especiales: la primera vez que se abre se carga el iframe
