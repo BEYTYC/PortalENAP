@@ -1875,7 +1875,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function avanzar(a, hecho, actual, linea) { a.hecho = hecho; a.actual = actual; if (linea) a.lineas.push(linea); render(); return new Promise(function (ok) { setTimeout(ok, 40); }); }
 
   /* ───── flujo ───── */
-  /* Vigencia: el balance vale si el estudiante terminó hace menos de 3 años (el periodo 1 termina el 30 de junio; el 2, el 31 de diciembre). */
+  /* Balance vencido: el estudiante terminó hace más de 3 años (el periodo 1 termina el 30 de junio; el 2, el 31 de diciembre). */
   function vigencia(periodo) {
     var m = /(\d{4})\D+([12])/.exec(periodo || '');
     if (!m) return { ok: true };
@@ -1885,6 +1885,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function bloqueos(est, res) {
     var b = [], r = est.requisitos || {};
     // un balance final vencido ya no impide firmar: la persona lo validó al crearlo y el certificado lo dice así
+    // pago y requisitos solo se piden cuando el balance está vencido
+    if (vigencia(res && res.periodoTerm).ok) return b;
     if (!r.pago) b.push('Falta confirmar que el estudiante pagó el balance previo.');
     if (!r.cumple) b.push('Falta confirmar que el estudiante cumplió los requisitos del pénsum para su graduación.');
     return b;
@@ -2375,10 +2377,10 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div class="kpi"><b>' + r.totalCreditos + '</b><span>Créditos aprobados</span></div><div class="kpi"><b>' + M.fmtNota(r.promedio) + '</b><span>Promedio ponderado</span></div><div class="kpi"><b>' + h(r.periodoTerm || '—') + '</b><span>Periodo de terminación</span></div></div><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
       alertas +
       '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl">Pegar más notas del SMA</span><textarea id="mas-notas" rows="3" spellcheck="false" style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-family:ui-monospace,Consolas,monospace;font-size:11px;resize:none" ' + (lock ? 'disabled' : '') + '></textarea><button class="btn sm" data-act="mas-notas"' + (lock ? ' disabled' : '') + ' style="align-self:flex-start">Agregar notas</button></div>' +
-      '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl">Requisitos para generar el balance</span>' +
+      (vigencia(r.periodoTerm).ok ? '' : '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:8px"><span class="lbl">Requisitos del balance vencido</span>' +
         '<label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer"><input type="checkbox" class="chk" data-req="pago"' + (S.est.requisitos && S.est.requisitos.pago ? ' checked' : '') + (lock ? ' disabled' : '') + '><span>El estudiante pagó el balance previo</span></label>' +
         '<label style="display:flex;gap:8px;align-items:flex-start;font-size:13px;cursor:pointer"><input type="checkbox" class="chk" data-req="cumple"' + (S.est.requisitos && S.est.requisitos.cumple ? ' checked' : '') + (lock ? ' disabled' : '') + '><span>Cumplió los requisitos del pénsum para su graduación</span></label>' +
-        '<div style="font-size:11.5px;color:var(--mute)">Vigencia: el balance vale si el estudiante terminó hace menos de 3 años (periodo de terminación: ' + h(r.periodoTerm || '—') + ').</div></div>' +
+        '<div style="font-size:11.5px;color:var(--mute)">Balance vencido: el estudiante terminó hace más de 3 años (periodo de terminación: ' + h(r.periodoTerm || '—') + ').</div></div>') +
       '<div class="card" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px"><span class="lbl">Observaciones del balance</span>' +
         '<textarea id="obs" rows="3" maxlength="' + M.MAX_OBSERVACIONES + '" placeholder="Opcional. Sale en el recuadro OBSERVACIONES del PDF." style="border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12.5px;resize:vertical" ' + (lock ? 'disabled' : '') + '>' + h(S.est.observaciones || '') + '</textarea>' +
         '<div style="font-size:11.5px;color:var(--mute)"><span id="obs-n">' + (S.est.observaciones || '').length + '</span> / ' + M.MAX_OBSERVACIONES + ' caracteres (caben unos 3 renglones)</div></div>' +
