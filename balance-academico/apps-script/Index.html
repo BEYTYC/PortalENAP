@@ -1751,6 +1751,18 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     }).catch(function (err) { S.creando = false; S.formErr = ['No se pudieron crear los balances: ' + err.message]; render(); });
   }
 
+  /* Guarda el balance abierto y vuelve al visor para cargar otro; queda seleccionado en la lista. */
+  function guardarVolver() {
+    if (!S.est) return;
+    var k = claveEstado(S.est), nom = M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos);
+    Promise.resolve(guardar()).then(refrescarGuardados).then(function () {
+      S.sel[k] = true; S.est = null; S.prog = null; S.res = null; S.fs = null; S.ver = null; S.msg = null; S.formErr = null; S.formAv = null;
+      S.grupo.msg = { t: 'ok', x: 'Balance de ' + nom + ' guardado. Pegue otro historial del SMA o firme todos cuando termine.' };
+      S.vista = 'inicio'; render();
+    }).catch(function (err) { S.msg = { t: 'bad', x: 'No se pudo guardar: ' + err.message }; render(); });
+  }
+  function seleccionarTodos() { S.sel = {}; S.guardados.forEach(function (g) { S.sel[g.key] = true; }); }
+  function firmarTodos() { if (!S.guardados.length) return; seleccionarTodos(); firmarGrupo(); }
   function aplicarCambio(fn) {
     if (bloqueado()) return;
     fn(); recalcular(); guardar(); render();
@@ -1916,14 +1928,12 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
   function panelFirmaGrupo(n) {
     var d = datosFirmante(), img = S.imgs.jefe, ocupado = S.grupo.trabajando;
-    var msg = S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '">' + h(S.grupo.msg.x) + '</div>' : '';
     return '<div class="grupo"><div class="lbl">Firma digital del Jefe de Programa</div>' +
       '<div class="grid2"><label class="f">Grado<input id="fi-grado" value="' + h(d.grado) + '" placeholder="Ej. MYCIM"></label><label class="f">Nombre<input id="fi-nombre" value="' + h(d.nombre) + '"></label></div>' +
       '<label class="f">Cargo<input id="fi-cargo" value="' + h(d.cargo) + '"></label>' +
       '<div style="display:flex;gap:10px;align-items:center"><div class="sigmini" style="flex:1">' + (img ? '<img alt="Firma" src="' + img + '">' : 'Sin imagen de firma') + '</div>' +
       '<label class="btn sm" style="cursor:pointer">' + (img ? 'Cambiar' : 'Cargar firma') + '<input type="file" id="firma-img" accept="image/png,image/jpeg" hidden></label></div>' +
       '<div style="font-size:11.5px;color:var(--mute)">La imagen de la firma no se guarda: se carga una vez por sesión y sirve para todos los balances.</div>' +
-      msg +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="firmar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>' + (ocupado || 'Firmar seleccionados (' + n + ')') + '</button>' +
       '<button class="btn" data-act="descargar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>Descargar PDF seleccionados (' + n + ')</button></div></div>';
   }
@@ -1940,7 +1950,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando || S.creando ? ' disabled' : '') + '>' + (S.creando ? 'Creando balances…' : S.cargando ? 'Leyendo pénsum…' : 'Crear balances') + '</button>' +
       '<span style="color:var(--mute);font-size:12px">Por ahora: Especialización en Gestión Logística y Maestría en Gestión Logística.</span></div>' +
       '</div></div>' +
-      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="margin-left:auto;color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span></div>' +
+      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span><button class="btn pri sm" style="margin-left:auto" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' +
+      (S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '" style="margin:10px 14px 0">' + h(S.grupo.msg.x) + '</div>' : '') +
       (guard.length ? guard.map(function (g, i) {
         var m = PR.porId(g.programaId);
         return '<div class="gd"><input type="checkbox" class="chk" data-sel="' + h(g.key) + '" aria-label="Seleccionar"' + (S.sel[g.key] ? ' checked' : '') + '><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + chipLista(g) +
@@ -2005,11 +2016,11 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (fase() !== 'borrador') alertas += '<div class="alert mute">Edición cerrada porque el balance ya está firmado. Use “Reabrir” en el paso 3 para cambiar algo (borra la firma).</div>';
     if (r.avisosNombre) alertas += '<div class="alert bad">' + r.avisosNombre + (r.avisosNombre === 1 ? ' nombre sigue' : ' nombres siguen') + ' con puntos suspensivos: no estaban en las equivalencias. Escriba el nombre completo en “Pénsum cursado”; el cambio queda guardado.</div>';
     if (r.faltantes.length) alertas += '<div class="alert warn">Falta completar ' + r.faltantes.length + ' ' + (r.faltantes.length === 1 ? 'asignatura' : 'asignaturas') + ' del pénsum.</div>';
-    if (!r.completo) alertas += '<div class="alert mute">No se puede firmar ni bajar el PDF hasta que el balance esté completo.</div>';
+    if (!r.completo) alertas += '<div class="alert mute" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>No se puede firmar ni bajar el PDF hasta que el balance esté completo.</span><button class="btn sm" data-act="guardar-volver">Guardar y cargar otro</button></div>';
     else {
       var tocaFirmar = fase() === 'borrador';
       alertas += '<div class="alert ok" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Balance completo: ya se puede firmar y descargar.</span>' +
-        '<button class="btn pri sm" data-vista="firma">' + (tocaFirmar ? 'Firmar balance' : 'Ir a Firma y PDF') + '</button></div>';
+        '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri sm" data-act="guardar-volver">Guardar balance</button><button class="btn sm" data-vista="firma">' + (tocaFirmar ? 'Firmar solo este' : 'Ir a Firma y PDF') + '</button></span></div>';
     }
 
     return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
@@ -2187,6 +2198,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var act = t.getAttribute('data-act');
     if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
     if (act === 'crear') crear();
+    else if (act === 'guardar-volver') guardarVolver();
+    else if (act === 'firmar-todos') firmarTodos();
     else if (act === 'abrir-g') {
       var g = S.guardados[+t.getAttribute('data-i')]; if (!g) return;
       S.cargando = true; render();
