@@ -411,6 +411,12 @@
     position:absolute; top:0; left:0; width:100%; height:calc(100% + 36px);
   }
 
+
+  /* Centro de Datos Institucional: tablero propio incrustado (centro-datos/index.html) */
+  .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
+  .cdi-tab__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+  body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
+
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
     font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border);
@@ -1270,22 +1276,11 @@
   </div>
 
   <div id="viewCDE" hidden>
-    <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
-         view?r=..."), embebido igual que los demas modulos -- sin borde ni
-         fondo propio del Portal (misma clase "registro-iframe"). El fondo
-         que se ve adentro ya lo define el propio tablero de Power BI.
-         ".cde-frame-wrap" recorta la franja inferior fija que Power BI
-         agrega siempre a este tipo de tablero (ver comentario junto a
-         ".cde-frame-wrap" en el CSS). "navContentPaneEnabled=false" en la
-         URL apaga ademas el paginador interno de paginas del tablero. -->
-    <div class="cde-frame-wrap">
-      <iframe
-        id="cdeFrame"
-        class="registro-iframe cde-frame"
-        title="Centro de Datos ENAP"
-        src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9&navContentPaneEnabled=false"
-        allowfullscreen
-      ></iframe>
+    <!-- Centro de Datos Institucional: tablero propio incrustado
+         (centro-datos/index.html?modo=tablero). Se carga al abrir la vista
+         (ver cargarCDI). Reemplaza al tablero de Power BI. -->
+    <div class="cdi-tab" id="cdiTab">
+      <iframe id="cdeFrame" class="cdi-tab__frame" title="Centro de Datos Institucional" allow="fullscreen" allowfullscreen></iframe>
     </div>
   </div>
 
@@ -2811,11 +2806,22 @@
   }
   document.addEventListener('click', closeAllNav);
 
-  document.getElementById('cdeBtn').addEventListener('click', () => {
+  // Toda la tarjeta del Inicio lleva al Centro de Datos (no solo el botón).
+  const cdeCard = document.querySelector('.cde-card');
+  if (cdeCard) cdeCard.style.cursor = 'pointer';
+  (cdeCard || document.getElementById('cdeBtn')).addEventListener('click', () => {
     abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
   });
 
   let vistaActiva = 'viewHome';
+
+  // ---- Centro de Datos Institucional ----
+  function cargarCDI(tab) {
+    const f = document.getElementById('cdeFrame');
+    const t = ['general','graduados','retiros','concesiones','reconoc','formacion','programas'].indexOf(tab) >= 0 ? tab : 'general';
+    const url = 'centro-datos/index.html?modo=tablero&tab=' + t;
+    if (f.dataset.url !== url) { f.dataset.url = url; f.src = url; }
+  }
 
   function abrirSubsistema(viewId, nombre) {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== viewId); });
@@ -2823,12 +2829,15 @@
     document.getElementById('navSubsistema').classList.add('show');
     document.getElementById('main').classList.add('main-full');
     vistaActiva = viewId;
+    if (viewId === 'viewCDE') cargarCDI(window.__cdiTab || 'general');
+    window.__cdiTab = null;
   }
 
   function volverAlPortal() {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
     document.getElementById('main').classList.remove('main-full');
+    document.body.classList.remove('cdi-fs');
     vistaActiva = 'viewHome';
   }
 
@@ -2838,6 +2847,12 @@
   // este mensaje es el respaldo.
   window.addEventListener('message', (event) => {
     if (event.data === 'volverAlInicio') volverAlPortal();
+    // Centro de Datos Institucional (mismo origen): pantalla completa, abrir una pestaña o volver al inicio.
+    if (event.origin === window.location.origin && event.data && typeof event.data === 'object') {
+      if (event.data.type === 'centrodatos:pantalla-completa') document.body.classList.toggle('cdi-fs', !!event.data.fs);
+      else if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
+      else if (event.data.type === 'centrodatos:inicio') volverAlPortal();
+    }
   });
 
   // Concesiones Especiales: la primera vez que se abre se carga el iframe
@@ -2901,8 +2916,14 @@
       return;
     }
     try {
-      const token = await window.PortalENAP.tokenMicrosoft();
       const prefijo = d.type.split(':')[0]; // 'concesiones' o 'titulacion'
+      // Acceso temporal (sin login): no hay token de Microsoft. Concesiones
+      // recibe token vacio + temporal:true para abrir sin sesion.
+      if (prefijo === 'concesiones' && sesionEsSimulada) {
+        event.source.postMessage({ type: 'concesiones:token', token: '', temporal: true, usuario: { displayName: 'Acceso temporal', roles: ['USUARIO'] } }, event.origin);
+        return;
+      }
+      const token = await window.PortalENAP.tokenMicrosoft();
       event.source.postMessage({ type: prefijo + ':token', token }, event.origin);
     } catch (e) { console.warn('Portal: no se pudo entregar el token', e); }
   });
