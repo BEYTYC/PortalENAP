@@ -242,6 +242,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por año y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Desde 2000. Toca una barra para filtrar por año de ingreso</div></div>
 <div style="display:flex;gap:10px;font-size:11px;color:#3D4D69"><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
 <div style="{{ gBox }}">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gYearCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
@@ -362,6 +363,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Graduados por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Promoción a la que pertenece cada graduado. Toca una barra para filtrar.</div></div>
 </div>
 <div style="{{ hmBox }}">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gradTrS }}"><polyline points="{{ gradTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gradCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:3px;font-size:10.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
@@ -486,9 +488,11 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 
 <div class="rise d6" style="{{ panel }};display:flex;flex-direction:column;overflow:hidden">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Retirados por año de retiro</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Año estimado del retiro. Toca una barra para filtrar.</div>
-<div style="margin-top:10px;display:flex;align-items:flex-end;gap:2px;flex:1;min-height:60px">
+<div style="position:relative;margin-top:10px;display:flex;align-items:flex-end;gap:2px;flex:1;min-height:60px">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ yrTrS }}"><polyline points="{{ yrTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ yrCols }}" as="y" hint-placeholder-count="26">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:4px">
+<div style="font-size:8.5px;font-weight:600;color:#0C2050;font-variant-numeric:tabular-nums;height:22px;line-height:1;margin-bottom:1px;white-space:nowrap;display:flex;align-items:flex-end;justify-content:center"><span style="writing-mode:vertical-rl;transform:rotate(180deg)">{{ y.num }}</span></div>
 <div class="x" style="{{ y.bar }}"></div>
 <div style="margin-top:3px;font-size:8.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;height:11px">{{ y.label }}</div>
 </button>
@@ -559,6 +563,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="rise d5" style="{{ panel }}">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Concesiones por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Número por promoción</div>
 <div style="{{ conBox }}">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ conTrS }}"><polyline points="{{ conTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ conCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:2px;font-size:9.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
@@ -623,6 +628,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="rise d5" style="{{ panel }}">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Reconocimientos por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Número por promoción</div>
 <div style="{{ recBox }}">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ recTrS }}"><polyline points="{{ recTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ recCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:2px;font-size:9.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
@@ -719,7 +725,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="rise d3" style="{{ panel }};grid-column:span 8">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ spYTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Desde 2007. Toca una barra para filtrar por año</div></div>
 <div style="display:flex;gap:10px;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:#2F6FE0"></span>Pregrado</span><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:#E3A92E"></span>Posgrado</span></div></div>
-<div style="margin-top:14px;display:flex;align-items:flex-end;gap:6px;height:{{ spBoxH }}px">
+<div style="position:relative;margin-top:14px;display:flex;align-items:flex-end;gap:6px;height:{{ spBoxH }}px">
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ spTrS }}"><polyline points="{{ spTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ spYears }}" as="y" hint-placeholder-count="20">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px;opacity:{{ y.op }}">
 <div style="margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
@@ -1165,12 +1172,21 @@ class Component extends DCLogic {
         sm: 'height:100%;width:0%'
       }));
     };
+    // Línea de tendencia (regresión lineal) sobre fracciones 0..1 de la altura máxima
+    const trendOf = (fr, sty) => {
+      const n = fr.length; if (n < 2) return { p: '', s: 'display:none' };
+      let sx = 0, sy = 0, sxy = 0, sxx = 0; fr.forEach((v, i) => { sx += i; sy += v; sxy += i * v; sxx += i * i; });
+      const den = n * sxx - sx * sx, b = den ? (n * sxy - sx * sy) / den : 0, a = (sy - b * sx) / n;
+      const pts = fr.map((v, i) => { const t = Math.max(-0.04, Math.min(1.04, a + b * i)); return ((i + 0.5) / n * 1000).toFixed(1) + ',' + ((1 - t) * 1000).toFixed(1); }).join(' ');
+      return { p: pts, s: sty };
+    };
+    const barTr = (vals, mx, Hh, below) => trendOf(vals.map((v) => v / mx), 'position:absolute;left:0;width:100%;bottom:' + below + 'px;height:' + Hh + 'px;pointer-events:none;overflow:visible');
     const hmCols = (arr, fn, Hh, color) => {
       const col = color || BLUE;
       const c = {}; years.forEach((y) => { c[y] = { h: 0, m: 0 }; });
       arr.forEach((r) => { if (c[r.year] && fn(r)) c[r.year][r.sexo === 'H' ? 'h' : 'm']++; });
       const mx = Math.max(1, ...years.map((y) => c[y].h + c[y].m));
-      return years.map((y) => {
+      const _cols = years.map((y) => {
         const t = c[y].h + c[y].m;
         return {
           label: String(y).slice(2), num: fmt(t), aria: 'Ingreso ' + y + ': ' + t + ' estudiantes', go: tog('year', y),
@@ -1178,6 +1194,8 @@ class Component extends DCLogic {
           sh: 'height:' + (t / mx * Hh).toFixed(1) + 'px;background:linear-gradient(180deg,' + col + ',' + col + 'AA)', sm: 'height:0px'
         };
       });
+      _cols.tr = barTr(years.map((y) => c[y].h + c[y].m), mx, Hh, 19);
+      return _cols;
     };
     const valCols = (items, color, Hh) => {
       const mx = Math.max(0.0001, ...items.map((i) => i.v));
@@ -1186,7 +1204,7 @@ class Component extends DCLogic {
         bar: 'height:' + (i.v / mx * Hh).toFixed(1) + 'px;border-radius:5px 5px 2px 2px;background:linear-gradient(180deg,' + color + ',' + color + 'AA);opacity:' + (i.dim ? 0.3 : 1)
       }));
     };
-    const colBox = (Hh) => 'margin-top:12px;display:flex;align-items:flex-end;gap:5px;height:' + (Hh + 36) + 'px';
+    const colBox = (Hh) => 'position:relative;margin-top:12px;display:flex;align-items:flex-end;gap:5px;height:' + (Hh + 36) + 'px';
     const progItems = (arr, fn) => Object.keys(PLAB).map((k) => ({ label: PLAB[k], c: sc(arr.filter((r) => r.prog === k), fn), go: tog('prog', k), dim: f.prog && f.prog !== k }));
     const estItems = (arr, fn, keys) => keys.map((k) => ({ label: k === 'egresado' ? 'Egresado sin grado' : ELAB[k], color: ECOL[k], c: sc(arr.filter((r) => r.estado === k), fn), go: tog('estado', k), dim: f.estado && f.estado !== k }));
 
@@ -1269,6 +1287,7 @@ class Component extends DCLogic {
         sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc), pr: pl(o.c.ret, o.c.t), pa: pl(o.c.est, o.c.t), pg: pl(o.c.esc, o.c.t)
       };
     });
+    const gTr = barTr(gYear.map((o) => o.c.t), gMax, H, 19);
     const gLeg = [['Escalafonados', C3.esc], ['Estudiando', C3.est], ['Retirados', C3.ret]].map((a) => ({ label: a[0], dot: dot(a[1]) }));
     const mesesAvg = (rs) => { const q = rs.filter((r) => r.meses != null); return q.length > 0 ? q.reduce((a, r) => a + r.meses, 0) / q.length : 0; };
     const metr = (rs) => {
@@ -1555,7 +1574,8 @@ class Component extends DCLogic {
     const yrN = {}; yrBase.forEach((r) => { if (r.yret) yrN[r.yret] = (yrN[r.yret] || 0) + 1; });
     const yrList = years.filter((y) => y >= 2000);
     const yrMax = Math.max(1, ...yrList.map((y) => yrN[y] || 0));
-    const yrCols = yrList.map((y, i) => ({ label: i % 2 === 0 ? String(y).slice(2) : '', aria: y + ': ' + fmt(yrN[y] || 0) + ' retirados', go: tog('yret', y), bar: 'width:100%;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,#F59A6B,#F0763A);opacity:' + (f.yret && f.yret !== y ? 0.3 : 1) + ';height:calc((100% - 14px) * ' + ((yrN[y] || 0) / yrMax).toFixed(3) + ')' }));
+    const yrCols = yrList.map((y, i) => ({ label: i % 2 === 0 ? String(y).slice(2) : '', aria: y + ': ' + fmt(yrN[y] || 0) + ' retirados', num: (yrN[y] || 0) ? fmt(yrN[y]) : '', go: tog('yret', y), bar: 'width:100%;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,#F59A6B,#F0763A);opacity:' + (f.yret && f.yret !== y ? 0.3 : 1) + ';height:calc((100% - 38px) * ' + ((yrN[y] || 0) / yrMax).toFixed(3) + ')' }));
+    const yrT = trendOf(yrList.map((y) => (yrN[y] || 0) / yrMax), 'position:absolute;left:0;width:100%;top:24px;bottom:14px;pointer-events:none;overflow:visible');
     const mBase = data.filter((r) => PN(r, null));
     const cBase = mBase.filter((r) => CIENC.indexOf(r.esp) >= 0), cR = cBase.filter(retF);
     const mR = mBase.filter(retF), mE = cnt(mBase, escF), mA = cnt(mBase, estF);
@@ -1776,6 +1796,7 @@ class Component extends DCLogic {
       const yTot = yrs.map((y) => { let a = 0, b = 0; SN.R.forEach((r) => { if (r[0] === mt[2] && r[2] === y && sPass(r, 'year')) { if (lv(r[1]) === 'P') a += r[5]; else b += r[5]; } }); return [a, b]; });
       const yMax = Math.max(1, ...yTot.map((q) => q[0] + q[1])), BH = 168;
       const spYears = yrs.map((y, i) => { const q = yTot[i], t = q[0] + q[1], h = t / yMax * BH; return { label: String(y).slice(2), total: t ? fmt(t) : '', aria: y + ': ' + fmt(t), go: () => upS({ year: this.state.sp.year === y ? null : y, periods: null }), op: sp.year && sp.year !== y ? 0.35 : 1, stack: 'height:' + h.toFixed(1) + 'px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 2px 2px;overflow:hidden;box-shadow:0 3px 8px rgba(20,35,63,.12)', sg: 'height:' + (t ? q[0] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#5B93F0,#2F6FE0)', sp: 'height:' + (t ? q[1] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#F0C260,#E3A92E);order:-1' }; });
+      const spTr = barTr(yTot.map((q) => q[0] + q[1]), yMax, BH, 19);
       // embudo
       const fcur = MET.map((m) => sSum(m[2], 'year', PERs)), fprv = MET.map((m) => sSum(m[2], 'year', PRVs)), fMax = Math.max(1, ...fcur);
       const fSub = ['Personas que se inscribieron', 'Inscritos aceptados', 'Estudiantes nuevos en primer curso', 'Estudiantes-periodo matriculados en el año'];
@@ -1821,7 +1842,7 @@ class Component extends DCLogic {
       const pdOn = !!sp.periods;
       spo = {
         kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;height:112px',
-        spYears: spYears, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
+        spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
         spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
         railPd: true, pdRows: pdRows2, pdLabel: pdLabel2, pdSub: fmt(tot[mI]) + ' ' + mt[1].toLowerCase(), pdClear: () => upS({ periods: null }), pdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (pdOn ? '#D9B25A' : '#DDE3EE') + ';background:' + (pdOn ? '#FBF3DE' : '#fff') + ';color:' + (pdOn ? '#7A5510' : '#26364F'),
@@ -1835,7 +1856,8 @@ class Component extends DCLogic {
 
     const vals = {
       welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railSexo: true, estLbl: 'Estado', rngLbl: 'Año de ingreso',
-      gBox: 'margin-top:14px;display:flex;align-items:flex-end;gap:5px;height:' + (H + 40) + 'px', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle, areaStyle: areaStyle, stageStyle: stageStyle,
+      gTrP: gTr.p, gTrS: gTr.s, gradTrP: gradCols.tr.p, gradTrS: gradCols.tr.s, conTrP: conCols.tr.p, conTrS: conCols.tr.s, recTrP: recCols.tr.p, recTrS: recCols.tr.s, yrTrP: yrT.p, yrTrS: yrT.s,
+      gBox: 'position:relative;margin-top:14px;display:flex;align-items:flex-end;gap:5px;height:' + (H + 40) + 'px', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, exitDash: exitDash, stageCls: mob ? 'mob' : '', appPad: fsOn ? '22px 26px' : (scr && mobq) ? '12px' : '34px 90px', enterGeneral: enter('general'),
       welcomeStyle: 'position:absolute;inset:0;transition:opacity .6s cubic-bezier(.22,.8,.24,1),transform .6s cubic-bezier(.22,.8,.24,1),filter .6s ease;' + (this.state.leaving ? 'opacity:0;transform:scale(1.04);filter:blur(10px)' : 'opacity:1;transform:none;filter:none'),
       wTotal: fmt(data.length), wGrad: fmt(wCnt(gradF)), wRet: fmt(wCnt(retF)),
@@ -1854,7 +1876,7 @@ class Component extends DCLogic {
       kpis: kpis, kpiGrid: kpiGrid,
       yearCols: yearColsOut, boxStyle: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', estadoLeg: estadoLeg, progRows: progRows,
       dn: dn, sexoRows: sexoRows, matEstado: matEstado, pairGvr: pairGvr, pairVol: pairVol, pairCon: pairCon, pairRec: pairRec, pairForm: pairForm, pairProg: pairProg, es: es, estRows: estRows,
-      gradCols: gradCols, hmBox: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
+      gradCols: gradCols, hmBox: 'position:relative;margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
       wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, ingEsp: ingEsp, ingStats: ingStats, edCols: edCols, ageSub: ageSub, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
       conTipo: conTipo, conProg: conProg, conEstado: conEstado, conCols: conCols, conBox: colBox(150),
       recTipo: recTipo, recProg: recProg, recEstado: recEstado, recCols: recCols, recBox: colBox(150),
