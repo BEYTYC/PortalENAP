@@ -2916,8 +2916,14 @@
       return;
     }
     try {
-      const token = await window.PortalENAP.tokenMicrosoft();
       const prefijo = d.type.split(':')[0]; // 'concesiones' o 'titulacion'
+      // Acceso temporal (sin login): no hay token de Microsoft. Concesiones
+      // recibe token vacio + temporal:true para abrir sin sesion.
+      if (prefijo === 'concesiones' && sesionEsSimulada) {
+        event.source.postMessage({ type: 'concesiones:token', token: '', temporal: true, usuario: { displayName: 'Acceso temporal', roles: ['USUARIO'] } }, event.origin);
+        return;
+      }
+      const token = await window.PortalENAP.tokenMicrosoft();
       event.source.postMessage({ type: prefijo + ':token', token }, event.origin);
     } catch (e) { console.warn('Portal: no se pudo entregar el token', e); }
   });
