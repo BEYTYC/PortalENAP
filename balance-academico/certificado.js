@@ -88,7 +88,7 @@
     txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yN + 12.5, 10.4, 'bold');
     parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 35);
 
-    img(d.firma, 'PNG', CX - 55, 458, 110, 90.2);                         // firma de la Jefe de Estadística
+    img(d.firma, 'PNG', CX - 55, 466, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
     txt('Jefe de Estadística Escuela Naval de Cadetes “Almirante Padilla”', CX, 548.5, 9.6, 'normal', { align: 'center' });
 
