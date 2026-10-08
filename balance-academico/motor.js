@@ -127,6 +127,23 @@
 
   /* est: {nombres, apellidos, tipoDoc: 'CC'|'PA'|'CE'..., documento}.
      Devuelve {ok, errores[], avisos[]}; los errores bloquean la creación. */
+  /* Un pegado puede traer varios estudiantes: cada historial empieza con “Historia Academica”
+     (o, si falta, con “Periodo Actual”). */
+  function separarHistorias(texto) {
+    var lineas = String(texto || '').replace(/\r/g, '').split('\n'), marca = [];
+    lineas.forEach(function (l, i) { if (/^\s*Historia\s+Acad[eé]mica\s*$/i.test(l)) marca.push(i); });
+    if (marca.length < 1) lineas.forEach(function (l, i) { if (/^\s*Periodo\s+Actual\b/i.test(l)) marca.push(i); });
+    if (marca.length < 2) return String(texto || '').trim() ? [String(texto).trim()] : [];
+    var out = [];
+    marca.forEach(function (ini, k) { var t = lineas.slice(ini, k + 1 < marca.length ? marca[k + 1] : lineas.length).join('\n').trim(); if (t) out.push(t); });
+    return out;
+  }
+  /* Los datos del estudiante salen del propio SMA. */
+  function estudianteDeSMA(texto) {
+    var id = parseSMA(texto).identidad;
+    return { documento: id.documento || '', nombres: id.nombres || '', apellidos: id.apellidos || '', programaSMA: id.programa || '', tipoDoc: 'CC' };
+  }
+
   function verificarEstudiante(smaUnido, est) {
     var errores = [], avisos = [];
     var ids = smaUnido.identidades || [];
@@ -166,7 +183,7 @@
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
       observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
-      firmas: { jefe: null, decano: null },
+      firmas: { jefe: null },
       bitacora: []
     };
     registrar(e, quien, 'creó el balance');
@@ -201,7 +218,7 @@
     var j = vig(e.firmas.jefe), d = vig(e.firmas.decano);
     return { jefe: j, decano: d, huella: h,
       jefeObsoleta: !!(e.firmas.jefe && !j), decanoObsoleta: !!(e.firmas.decano && !d),
-      fase: d ? 'firmado' : j ? 'cerrado_jefe' : 'borrador' };
+      fase: j ? 'firmado' : 'borrador' };      // solo firma el Jefe de Programa
   }
 
   function agregarNotas(e, texto, quien) {
@@ -440,7 +457,7 @@
     verificarEstudiante: verificarEstudiante, nuevoEstado: nuevoEstado, registrar: registrar,
     agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
     quitarEquivalencia: quitarEquivalencia, agregarOptativa: agregarOptativa, quitarOptativa: quitarOptativa,
-    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, editarObservaciones: editarObservaciones, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
+    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, separarHistorias: separarHistorias, estudianteDeSMA: estudianteDeSMA, editarObservaciones: editarObservaciones, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
     minimoAprobacion: minimoAprobacion, hash: hash
   };
 });

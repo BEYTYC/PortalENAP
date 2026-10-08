@@ -20,7 +20,7 @@ Las tres primeras son las mismas credenciales de aplicación que ya usa el Porta
 | `ONEDRIVE_USUARIO` | Correo de la cuenta dueña del OneDrive donde se guardan los balances (o `GRAPH_DRIVE_ID` para una biblioteca) |
 | `ONEDRIVE_CARPETA` | Opcional. Por defecto `Balances Académicos ENAP` (se crea sola) |
 | `PORTAL_URL` | Dirección del Portal, sin barra final. De allí se leen `/balances/*.xlsm` y `/api/roles` |
-| `MODO_PRUEBA` | `true` mientras no esté dentro del Portal (permite elegir rol a mano). Poner `false` al integrarlo |
+| `MODO_PRUEBA` | `true` mientras no esté dentro del Portal (permite entrar sin sesión del Portal). Poner `false` al integrarlo |
 
 Si no hay `PORTAL_URL`, las plantillas se leen de OneDrive en `ONEDRIVE_PLANTILLAS` (por defecto `Balances Académicos ENAP/Plantillas`).
 
@@ -32,9 +32,11 @@ Si no hay `PORTAL_URL`, las plantillas se leen de OneDrive en `ONEDRIVE_PLANTILL
 
 ## Integración con el Portal (después)
 La pantalla pide la sesión igual que Titulación: envía `{type:'balance:token-request'}` a `window.top` y espera `{type:'balance:token', token}`.
-En `index.html` del Portal basta con añadir `'balance:token-request'` a `tiposValidos` y responder con el mismo `tokenMicrosoft()`. Con token, el servidor lo valida con Graph `/me`, exige correo `@enap.edu.co` y toma el rol (`JEFE_PROGRAMA`, `DECANO`, `ADMIN`) de `/api/roles`. Sin token y con `MODO_PRUEBA=false` no deja entrar.
+En `index.html` del Portal basta con añadir `'balance:token-request'` a `tiposValidos` y responder con el mismo `tokenMicrosoft()`. Con token, el servidor lo valida con Graph `/me`, exige correo `@enap.edu.co` y exige el rol `JEFE_PROGRAMA` o `ADMIN` de `/api/roles`. Sin token y con `MODO_PRUEBA=false` no deja entrar.
 
-## Quién puede qué
-- Jefe de Programa: crea, edita, firma, reabre y elimina.
-- Decano: abre y firma. No edita.
-- Las imágenes de firma nunca se guardan en OneDrive.
+## Cómo se usa
+- La página es de un solo usuario: el Jefe de Programa de la Facultad de Administración. No hay rol de Decano ni se envía nada por correo.
+- Se pega el historial del SMA (uno o varios estudiantes seguidos). De ahí salen programa, cédula, apellidos, nombres y notas; se crea un balance por estudiante.
+- Se pueden seleccionar varios balances y firmarlos o descargarlos en grupo con una sola imagen de firma.
+- La imagen de la firma nunca se guarda en OneDrive: se carga una vez por sesión.
+- Programas habilitados por ahora: Especialización en Gestión Logística y Maestría en Gestión Logística (`ACTIVOS` en `programas.js`).

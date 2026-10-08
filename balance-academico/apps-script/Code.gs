@@ -16,7 +16,7 @@ var DOMINIO = 'enap.edu.co';
 var CARPETA_DEFECTO = 'Balances Académicos ENAP';
 var CLAVE_BALANCE = /^balance:[a-z0-9\-]+:\d{1,20}$/;
 var ARCHIVO_PLANTILLA = /^Balance_[A-Za-z0-9_]+\.(xlsm|xltm|xlsx)$/;
-var ROLES_PORTAL = { 'JEFE_PROGRAMA': 'jefe', 'DECANO': 'decano' };   // ADMIN puede ambos
+var ROLES_PORTAL = { 'JEFE_PROGRAMA': 'jefe' };   // la página es solo del Jefe de Programa (ADMIN también entra)
 
 /* ───────── entrada ───────── */
 
@@ -116,7 +116,7 @@ function sha_(t) {
 /** Valida el token de Microsoft de la persona y devuelve {email, nombre, roles, prueba}. */
 function sesionDe_(tokenUsuario) {
   if (!tokenUsuario) {
-    if (modoPrueba_()) return { email: '', nombre: 'Modo prueba', roles: ['jefe', 'decano'], prueba: true };
+    if (modoPrueba_()) return { email: '', nombre: 'Modo prueba', roles: ['jefe'], prueba: true };
     throw new Error('Abra el Balance Académico desde el Portal para iniciar sesión.');
   }
   var cache = CacheService.getScriptCache(), k = 'ses_' + sha_(tokenUsuario), hit = cache.get(k);
@@ -128,7 +128,7 @@ function sesionDe_(tokenUsuario) {
   if (!correo || correo.slice(-(DOMINIO.length + 1)) !== '@' + DOMINIO) throw new Error('Solo cuentas institucionales @' + DOMINIO + '.');
   var rolesPortal = rolesPortal_(correo, tokenUsuario);
   var roles = [];
-  if (rolesPortal.indexOf('ADMIN') >= 0) roles = ['jefe', 'decano'];
+  if (rolesPortal.indexOf('ADMIN') >= 0) roles = ['jefe'];
   Object.keys(ROLES_PORTAL).forEach(function (rp) { if (rolesPortal.indexOf(rp) >= 0 && roles.indexOf(ROLES_PORTAL[rp]) < 0) roles.push(ROLES_PORTAL[rp]); });
   var s = { email: correo, nombre: p.displayName || correo, roles: roles, prueba: false };
   cache.put(k, JSON.stringify(s), 300);
@@ -168,7 +168,7 @@ function claveArchivo_(nombre) {
 
 /** Excel del programa en base64 (la pantalla lo lee con SheetJS). Los Excel siguen siendo la fuente de verdad. */
 function plantilla(token, archivo) {
-  exigir_(token, ['jefe', 'decano']);
+  exigir_(token, ['jefe']);
   if (!ARCHIVO_PLANTILLA.test(String(archivo))) throw new Error('Nombre de plantilla no válido.');
   var base = prop_('PORTAL_URL').replace(/\/+$/, '');
   var r, motivoPortal = '';
@@ -230,7 +230,7 @@ function escribirIndice_(idx, t) {
 
 /** Crea o reemplaza el balance. Las imágenes de firma nunca se guardan. */
 function guardarBalance(token, key, json, resumen) {
-  var s = exigir_(token, ['jefe', 'decano']);
+  var s = exigir_(token, ['jefe']);
   validarClave_(key);
   var obj = JSON.parse(json); delete obj.firmasImg; delete obj.firmasDim;
   var contenido = JSON.stringify(obj);
@@ -247,7 +247,7 @@ function guardarBalance(token, key, json, resumen) {
 }
 
 function cargarBalance(token, key) {
-  exigir_(token, ['jefe', 'decano']);
+  exigir_(token, ['jefe']);
   validarClave_(key);
   var r = graph_('get', rutaItem_(rutaBalance_(key)) + ':/content', null, tokenApp_(), { crudo: true, noExiste: true });
   if (!r) throw new Error('No se encontró el balance en OneDrive.');
@@ -255,7 +255,7 @@ function cargarBalance(token, key) {
 }
 
 function listarBalances(token) {
-  exigir_(token, ['jefe', 'decano']);
+  exigir_(token, ['jefe']);
   var idx = leerIndice_(tokenApp_());
   return Object.keys(idx).map(function (k) { return idx[k]; })
     .sort(function (a, b) { return String(b.actualizado).localeCompare(String(a.actualizado)); }).slice(0, 300);

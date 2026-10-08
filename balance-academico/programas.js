@@ -20,7 +20,7 @@
     { id: 'esp-logistica',         archivo: 'Balance_Especializacion_Gestion_Logistica.xlsm',           nombre: 'Especialización en Gestión Logística',                   nivel: 'posgrado', alias: ['Especialización en Logística', 'Especialización en Gestión Logística'] },
     { id: 'ing-electronica',       archivo: 'Balance_Ingenieria_Electronica.xlsm',                      nombre: 'Ingeniería Electrónica',                                 nivel: 'pregrado', alias: ['Ingeniería Electrónica'] },
     { id: 'ing-naval',             archivo: 'Balance_Ingenieria_Naval.xlsm',                            nombre: 'Ingeniería Naval',                                       nivel: 'pregrado', alias: ['Ingeniería Naval'] },
-    { id: 'mae-logistica',         archivo: 'Balance_Maestria_Gestion_Logistica.xlsm',                  nombre: 'Maestría en Gestión Logística',                          nivel: 'posgrado', alias: ['Maestría en Gestión Logística'] },
+    { id: 'mae-logistica',         archivo: 'Balance_Maestria_Gestion_Logistica.xlsm',                  nombre: 'Maestría en Gestión Logística',                          nivel: 'posgrado', alias: ['Maestría en Gestión Logística', 'Maestría en Logística'] },
     { id: 'mae-ing-naval',         archivo: 'Balance_Maestria_Ingenieria_Naval.xltm',                   nombre: 'Maestría en Ingeniería Naval',                           nivel: 'posgrado', alias: ['Maestría en Ingeniería Naval'] },
     { id: 'mae-oceanografia',      archivo: 'Balance_Maestria_Oceanografia.xlsm',                       nombre: 'Maestría en Oceanografía',                               nivel: 'posgrado', alias: ['Maestría en Oceanografía'] },
     { id: 'oceanografia-fisica',   archivo: 'Balance_Oceanografia_Fisica.xlsm',                         nombre: 'Oceanografía Física',                                    nivel: 'pregrado', alias: ['Oceanografía Física'] }
@@ -45,9 +45,26 @@
     }
     return null;
   }
+  /* Programa a partir de como lo escribe el SMA (sin tildes, en mayúsculas, a veces abreviado). */
+  var VACIAS = { DE: 1, DEL: 1, EN: 1, LA: 1, EL: 1, Y: 1, PARA: 1, LOS: 1, LAS: 1 };
+  function tokens(n) { return norm(n).split(' ').filter(function (w) { return w && !VACIAS[w]; }); }
+  function porTextoSMA(n) {
+    var exacto = porNombre(n); if (exacto) return exacto;
+    var t = tokens(n); if (!t.length) return null;
+    var mejor = null, mejorN = 0, empate = false;
+    LISTA.forEach(function (p) {
+      [p.nombre].concat(p.alias).forEach(function (a) {
+        var ta = tokens(a);
+        if (ta.length && ta.every(function (w) { return t.indexOf(w) >= 0; })) {
+          if (ta.length > mejorN) { mejor = p; mejorN = ta.length; empate = false; } else if (ta.length === mejorN && mejor !== p) empate = true;
+        }
+      });
+    });
+    return empate ? null : mejor;
+  }
   function activos() { return LISTA.filter(function (p) { return ACTIVOS.indexOf(p.id) >= 0; }); }
   function estaActivo(p) { return !!p && ACTIVOS.indexOf(p.id) >= 0; }
   function esManual(n) { var x = norm(n); return MANUALES.some(function (m) { return norm(m) === x; }); }
 
-  return { lista: LISTA, activos: activos, estaActivo: estaActivo, manuales: MANUALES, porId: porId, porNombre: porNombre, esManual: esManual };
+  return { lista: LISTA, porTextoSMA: porTextoSMA, activos: activos, estaActivo: estaActivo, manuales: MANUALES, porId: porId, porNombre: porNombre, esManual: esManual };
 });

@@ -217,7 +217,7 @@
           try { doc.addImage(f1.img, f1.tipo || 'PNG', g.cx - g.w / 2, T + g.top, g.w, g.h, undefined, 'FAST'); } catch (err) {}
         }
       }
-      else {
+      else if (!(f1 && f1.soloLinea)) {           // soloLinea: el Decano firma aparte, solo queda su línea y su cargo
         doc.setFont('helvetica', 'italic'); doc.setFontSize(7.6); doc.setTextColor(150, 150, 150);
         doc.text('Pendiente de firma', cx, T + 87.8, { align: 'center' }); doc.setTextColor(0, 0, 0);
       }
