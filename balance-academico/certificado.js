@@ -50,7 +50,7 @@
     txt('ESCUELA NAVAL DE CADETES “ALMIRANTE PADILLA”', CX, 176.1, 11, 'bold', { align: 'center' });
     txt('NIT 800.141.648-9', CX, 188.6, 10.6, 'bold', { align: 'center' });
     txt('Reconocida como Universidad mediante Resolución No. 11893 de octubre 20 de 1977 y acreditada en Alta calidad mediante', CX, 226.1, 8.3, 'italic', { align: 'center' });
-    txt('Resolución No. 007469 de mayo 15 de 2024- Ministerio de Educación Nacional', CX, 237.4, 8.5, 'italic', { align: 'center' });
+    txt('Resolución No. 007469 de mayo 15 de 2024- Ministerio de Educación Nacional', CX, 235.4, 8.5, 'italic', { align: 'center' });
     txt('LA SECCIÓN DE ESTADÍSTICA', CX, 278.7, 11, 'bold', { align: 'center' });
     txt('C E R T I F I C A:', CX, 307.2, 10.8, 'bold', { align: 'center' });
 
@@ -84,9 +84,9 @@
     ];
     var fin1 = parrafo(p1, 334.8);
     var yN = fin1 + 11.1;
-    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN, 10.4, 'bold');
-    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yN + 12.5, 10.4, 'bold');
-    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 35);
+    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN + 11.3, 10.4, 'bold');
+    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yN + 23.8, 10.4, 'bold');
+    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 46.3);
 
     img(d.firma, 'PNG', CX - 55, 466, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
