@@ -1659,14 +1659,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       { t: 'Que' }, { t: d.nombre.toUpperCase() + ',', b: true },
       { t: 'identificado con No. ' + cedula(d.documento) + ', obtuvo promedio ponderado acumulado de ' + d.promedio.toFixed(3) + ' (' + puntosEnLetras(d.promedio) +
         ') en el programa de ' + d.programa + ', que culminó académicamente en el periodo ' + d.periodo + ', de acuerdo con el Balance Académico emitido el ' + fechaCorta(d.fechaBalance) +
-        ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
+        ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra ' + (d.vencido ? 'actualizado' : 'vigente') + ' de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
     ];
     var fin1 = parrafo(p1, 334.8);
     var yN = fin1 + 11.1;
     txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN, 10.4, 'bold');
     parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 22.5);
 
-    img(d.firma, 'PNG', CX - 55, 446, 110, 90.2);                         // firma de la Jefe de Estadística
+    img(d.firma, 'PNG', CX - 55, 458, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
     txt('Jefe de Estadística Escuela Naval de Cadetes “Almirante Padilla”', CX, 548.5, 9.6, 'normal', { align: 'center' });
 
@@ -1890,8 +1890,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return { ok: new Date() <= lim, periodo: y + '-' + m[2], vence: lim };
   }
   function bloqueos(est, res) {
-    var b = [], r = est.requisitos || {}, v = vigencia(res && res.periodoTerm);
-    if (!v.ok) b.push('Balance final vencido: el estudiante terminó en ' + v.periodo + ', hace más de 3 años. Debe cumplir con todas las materias del pénsum inicial' + (/^mae-/.test(est.programaId) ? ', incluyendo un nuevo trabajo de grado' : '') + '; este balance no se puede firmar.');
+    var b = [], r = est.requisitos || {};
+    // un balance final vencido ya no impide firmar: la persona lo validó al crearlo y el certificado lo dice así
     if (!r.pago) b.push('Falta confirmar que el estudiante pagó el balance previo.');
     if (!r.cumple) b.push('Falta confirmar que el estudiante cumplió los requisitos del pénsum para su graduación.');
     return b;
@@ -1917,6 +1917,16 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       est.info = { completo: !!(res.completo && ver.ok && !bl.length), pendientes: res.faltantes.length + (res.avisosNombre || 0) + bl.length };
       return { est: est, prog: prog, res: res, ver: ver, fs: fs, ok: !!(res.completo && ver.ok && !bl.length) };
     });
+  }
+
+  function razonIncompleto(est, x) {   // por qué no está listo: se dice en el aviso, para no tener que adivinar
+    var bl = bloqueos(est, x.res);
+    if (!x.res.completo) {
+      var nom = x.res.faltantes.slice(0, 3).map(function (f) { return f.nombreVig; }).join(', ');
+      return 'faltan ' + x.res.faltantes.length + ' (' + nom + (x.res.faltantes.length > 3 ? '…' : '') + ')';
+    }
+    if (!x.ver.ok) return (x.ver.errores && x.ver.errores[0]) || 'los datos del estudiante no coinciden con el SMA';
+    return bl.length ? bl[0].replace(/\.$/, '') : 'incompleto';
   }
 
   function abrir(estado, irA) {
@@ -2111,7 +2121,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (!S.fs || !S.fs.jefe) { S.msg = { t: 'bad', x: 'Firme el balance antes de descargar el PDF.' }; render(); return; }
     if (!puedeEmitir()) return;
     if (S.fs.jefe && !S.imgs.jefe) { faltaImagenFirmada(); return; }
-    bajar(construirPDF().output('blob'), nombreArchivo(S.est));
+    bajar(construirPDF().output('blob'), nombreArchivo(S.est, null, 'BALANCE '));
     M.registrar(S.est, quien(), 'descargó el PDF', S.fs.jefe ? 'firmado' : 'sin firma'); guardar();
   }
 
@@ -2130,7 +2140,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
           return cargarEstado(key).then(function (est) {
             var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
             return avanzar(a, n, nom).then(function () { return evaluar(est); }).then(function (x) {
-              if (!x.ok) { omitidos.push(nom + ': el balance está incompleto'); a.lineas.push({ ok: false, t: nom + ': incompleto, no se firmó' }); return Backend.guardar(est); }
+              if (!x.ok) { var rz = razonIncompleto(est, x); omitidos.push(nom + ': ' + rz); a.lineas.push({ ok: false, t: nom + ': incompleto (' + rz + '), no se firmó' }); return Backend.guardar(est); }
               if (x.fs.jefe) { omitidos.push(nom + ': ya estaba firmado'); a.lineas.push({ ok: true, t: nom + ': ya estaba firmado' }); return; }
               sellar(est, x.fs); M.registrar(est, quien(), 'firmó el balance', 'firma en grupo'); firmados++;
               a.lineas.push({ ok: true, t: nom + ': firmado' });
@@ -2187,7 +2197,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return CERT.generar(JsPDF, {
       nombre: nombre, documento: est.estudiante.documento, promedio: res.promedio, programa: prog.nombre,
       periodo: String(res.periodoTerm || '').replace(/\s+/g, ''), fechaBalance: new Date(est.firmas.jefe.fecha), facultad: 'Administración', fecha: new Date(),
-      marca: imagenesAssets.marcaC, escudo: imagenesAssets.escudoC, firma: imagenesAssets.firmaC
+      vencido: !vigencia(res.periodoTerm).ok, marca: imagenesAssets.marcaC, escudo: imagenesAssets.escudoC, firma: imagenesAssets.firmaC
     });
   }
   function descargarCertificado() {
@@ -2208,12 +2218,12 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
           return cargarEstado(key).then(function (est) {
             var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
             return avanzar(a, n, nom).then(function () { return evaluar(est); }).then(function (x) {
-              if (!x.ok) { omitidos.push(nom + ': incompleto'); a.lineas.push({ ok: false, t: nom + ': incompleto, se omitió' }); return; }
+              if (!x.ok) { var rz = razonIncompleto(est, x); omitidos.push(nom + ': ' + rz); a.lineas.push({ ok: false, t: nom + ': incompleto (' + rz + '), se omitió' }); return; }
               if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); a.lineas.push({ ok: false, t: nom + ': falta firmarlo, se omitió' }); return; }
               if (!S.imgs.jefe) { omitidos.push(nom + ': falta la imagen de la firma'); a.lineas.push({ ok: false, t: nom + ': falta la imagen de la firma' }); return; }
               var sub = nombreArchivo(est, usados).replace(/\.pdf$/, '');
               var bal = pdfDe(est, x.prog, x.res, x.fs, false), cer = certificadoDe(est, x.prog, x.res);
-              archivos.push({ datos: new Uint8Array(bal.output('arraybuffer')), nombre: sub + '/' + sub + '.pdf' });
+              archivos.push({ datos: new Uint8Array(bal.output('arraybuffer')), nombre: sub + '/BALANCE ' + sub + '.pdf' });
               archivos.push({ datos: new Uint8Array(cer.output('arraybuffer')), nombre: sub + '/CERTIFICADO ' + sub + '.pdf' });
               M.registrar(est, quien(), 'descargó el balance y el certificado', 'en grupo'); hechos++;
               a.lineas.push({ ok: true, t: nom + ': balance y certificado listos' });
@@ -2349,6 +2359,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (ver && !ver.ok) alertas += '<div class="alert bad">' + ver.errores.map(h).join('<br>') + '</div>';
     if (ver && ver.avisos.length) alertas += '<div class="alert warn">' + ver.avisos.map(h).join('<br>') + '</div>';
     if (fase() !== 'borrador') alertas += '<div class="alert mute">Edición cerrada porque el balance ya está firmado. Use “Reabrir” en el paso 3 para cambiar algo (borra la firma).</div>';
+    var vg = vigencia(r.periodoTerm);
+    if (!vg.ok) alertas += '<div class="alert warn">Balance final vencido: el estudiante terminó en ' + h(vg.periodo) + ', hace más de 3 años. Debe cumplir con todas las materias del pénsum inicial' + (/^mae-/.test(S.est.programaId) ? ', incluyendo un nuevo trabajo de grado' : '') + '. El certificado dirá que el balance se encuentra actualizado.</div>';
     if (r.avisosNombre) alertas += '<div class="alert bad">' + r.avisosNombre + (r.avisosNombre === 1 ? ' nombre sigue' : ' nombres siguen') + ' con puntos suspensivos: no estaban en las equivalencias. Escriba el nombre completo en “Pénsum cursado”; el cambio queda guardado.</div>';
     if (r.faltantes.length) alertas += '<div class="alert warn">Falta completar ' + r.faltantes.length + ' ' + (r.faltantes.length === 1 ? 'asignatura' : 'asignaturas') + ' del pénsum.</div>';
     if (!r.completo) alertas += '<div class="alert mute" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>No se puede firmar ni bajar el PDF hasta que el balance esté completo.</span><button class="btn sm" data-act="guardar-volver">Guardar y cargar otro</button></div>';

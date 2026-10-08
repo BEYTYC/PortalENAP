@@ -80,14 +80,14 @@
       { t: 'Que' }, { t: d.nombre.toUpperCase() + ',', b: true },
       { t: 'identificado con No. ' + cedula(d.documento) + ', obtuvo promedio ponderado acumulado de ' + d.promedio.toFixed(3) + ' (' + puntosEnLetras(d.promedio) +
         ') en el programa de ' + d.programa + ', que culminó académicamente en el periodo ' + d.periodo + ', de acuerdo con el Balance Académico emitido el ' + fechaCorta(d.fechaBalance) +
-        ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
+        ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra ' + (d.vencido ? 'actualizado' : 'vigente') + ' de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
     ];
     var fin1 = parrafo(p1, 334.8);
     var yN = fin1 + 11.1;
     txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN, 10.4, 'bold');
     parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 22.5);
 
-    img(d.firma, 'PNG', CX - 55, 446, 110, 90.2);                         // firma de la Jefe de Estadística
+    img(d.firma, 'PNG', CX - 55, 458, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
     txt('Jefe de Estadística Escuela Naval de Cadetes “Almirante Padilla”', CX, 548.5, 9.6, 'normal', { align: 'center' });
 
