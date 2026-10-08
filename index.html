@@ -1,8 +1,7 @@
 <meta charset="UTF-8">
+<!-- VERSION-SIN-LOGO: 2026-10-08 - sin login de Microsoft, sin escudos -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal de Servicios Digitales</title>
-<link rel="preload" as="image" href="assets/escudo.png">
-<link rel="preload" as="image" href="assets/escudo-marca-agua.png">
 <style>
   :root{
     --navy-950:#04142E; --navy-900:#071142; --navy-800:#0B2A5B; --navy-700:#123A73;
@@ -743,6 +742,10 @@
     .sac-card, .sac-stat{ padding:16px; }
     .modo-pruebas-barra{ font-size:11px; padding:8px 10px; }
   }
+
+  /* Sin escudos ni marcas de agua de la ENAP (a pedido): se ocultan todas las
+     imagenes del escudo, las creadas por script incluidas. */
+  img[src*="escudo"], .logo-glow, .watermark, .login-gate__panel-watermark{ display:none !important; }
 </style>
 
 <!--
