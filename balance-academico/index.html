@@ -486,9 +486,15 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   }
 
   /* Guarda el balance abierto y vuelve al visor para cargar otro; queda seleccionado en la lista. */
+  /* Atrás siempre vuelve al cuadro donde se pegan las notas; el balance abierto queda guardado tal como estaba. */
   function atras() {
-    if (S.vista === 'firma') S.vista = 'revision'; else if (S.vista === 'revision') S.vista = 'inicio'; else return;
-    S.msg = null; render();
+    if (!S.est) return;
+    S.guardandoBal = true; render();
+    Promise.resolve(guardar()).then(refrescarGuardados).then(function () {
+      S.guardandoBal = false;
+      S.est = null; S.prog = null; S.res = null; S.fs = null; S.ver = null; S.msg = null; S.formErr = null; S.formAv = null; S.filtro = 'todas';
+      S.vista = 'inicio'; render();
+    }).catch(function (err) { S.guardandoBal = false; S.msg = { t: 'bad', x: 'No se pudo guardar: ' + err.message }; render(); });
   }
   /* Vuelve al principio con el formulario vacío; el balance abierto queda guardado tal como estaba. */
   function reiniciar() {
