@@ -38,9 +38,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tabs .titulo{font-size:17px;font-weight:600;white-space:nowrap}
 .tabs .navbtns{display:flex;gap:10px;margin-left:auto}
 .tabs .chip.mute{background:rgba(255,255,255,.12);color:#fff}
-.tabs .btn.nav{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.35)}
-.tabs .btn.nav:hover:not(:disabled){background:rgba(255,255,255,.18)}
-.tabs .btn.nav:disabled{opacity:.4;cursor:default}
+.tabs .btn.nav{background:#fff;color:#0B2A5B;border:1px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.tabs .btn.nav:hover:not(:disabled){background:#E3EAF4}
+.tabs .btn.nav.dorado{background:#D3A62A;border-color:#D3A62A;color:#071142}
+.tabs .btn.nav.dorado:hover:not(:disabled){background:#E8C662}
+.tabs .btn.nav:disabled{background:#95AECF;border-color:#95AECF;color:#4C6386;box-shadow:none;cursor:default}
 .btn.nav{display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 18px;font-weight:600}
 .tabs .est{margin-left:4px;padding-bottom:0;display:flex;gap:8px;align-items:center;font-weight:600}
 main{flex:1;min-height:0;padding:16px 24px;overflow:hidden}
@@ -707,7 +709,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<span class="titulo">Generador de Balances Académico</span>' +
       (hay ? '<div class="est" style="margin-left:12px"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
       '<div class="navbtns"><button class="btn nav" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>' + icoAtras + 'Atrás</button>' +
-      '<button class="btn nav" data-act="reiniciar">' + icoReiniciar + 'Reiniciar solicitud</button></div>' +
+      '<button class="btn nav dorado" data-act="reiniciar">' + icoReiniciar + 'Reiniciar solicitud</button></div>' +
       '</div>';
   }
 
