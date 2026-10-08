@@ -129,6 +129,18 @@ function exigir_(token, permitidos) {
   return s;
 }
 
+/** Nombre del Decano de Facultad: es el mismo para todos los balances, se guarda en el servidor. */
+function obtenerDecano(token) {
+  exigir_(token, ['jefe']);
+  return prop_('DECANO_NOMBRE', '');
+}
+function guardarDecano(token, nombre) {
+  exigir_(token, ['jefe']);
+  var n = String(nombre || '').replace(/\s+/g, ' ').trim().slice(0, 80);
+  PropertiesService.getScriptProperties().setProperty('DECANO_NOMBRE', n);
+  return n;
+}
+
 /** La pantalla lo llama al abrir. */
 function infoSesion(token) { return sesionDe_(token); }
 

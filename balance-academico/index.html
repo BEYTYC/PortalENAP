@@ -213,6 +213,15 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     sesion: function () {
       return GAS ? srvAuth('infoSesion') : Promise.resolve({ email: '', roles: ['jefe'], prueba: true });
     },
+    decano: function () {
+      if (GAS) return srvAuth('obtenerDecano');
+      try { return Promise.resolve(localStorage.getItem('balance.decano') || ''); } catch (e) { return Promise.resolve(''); }
+    },
+    guardarDecano: function (nombre) {
+      if (GAS) return srvAuth('guardarDecano', nombre);
+      try { localStorage.setItem('balance.decano', nombre); } catch (e) {}
+      return Promise.resolve(nombre);
+    },
     excel: function (meta) { return GAS ? srvAuth('plantilla', meta.archivo).then(b64aBuffer) : null; },
     listar: function () {
       if (GAS) return srvAuth('listarBalances');
@@ -253,7 +262,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     function fin() { enCurso = Math.max(0, enCurso - 1); if (!enCurso) indicador().classList.remove('on'); }
     return Promise.resolve(p).then(function (v) { fin(); return v; }, function (e) { fin(); throw e; });
   }
-  var TEXTO_BACKEND = { guardar: 'Guardando balance', borrar: 'Eliminando balance', listar: 'Cargando balances', cargar: 'Abriendo balance', excel: 'Leyendo el pénsum', sesion: 'Cargando' };
+  var TEXTO_BACKEND = { guardar: 'Guardando balance', guardarDecano: 'Guardando nombre del Decano', decano: 'Cargando', borrar: 'Eliminando balance', listar: 'Cargando balances', cargar: 'Abriendo balance', excel: 'Leyendo el pénsum', sesion: 'Cargando' };
   Object.keys(Backend).forEach(function (k) { var f = Backend[k]; Backend[k] = function () { return ocupar(TEXTO_BACKEND[k], f.apply(Backend, arguments)); }; });
 
   /* ───── utilidades ───── */
@@ -1060,8 +1069,8 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     else if (act === 'dec-guardar') {
       var v = ($('#dec-nombre').value || '').replace(/\s+/g, ' ').trim();
       S.decano = v || DECANO_BASE; S.editDecano = false;
-      try { localStorage.setItem('balance.decano', S.decano); } catch (e) {}
-      render();
+      S.guardandoBal = false; render();
+      Backend.guardarDecano(S.decano).catch(function (err) { S.msg = { t: 'bad', x: 'No se pudo guardar el nombre del Decano: ' + err.message }; render(); });
     }
     else if (act === 'firma-reset') { if (S.est.firmasPos) delete S.est.firmasPos.jefe; S.posPref = null; guardar(); render(); }
     else if (act === 'reabrir') reabrir();
@@ -1098,10 +1107,10 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal) { S.modal = null; render(); } });
 
   /* ───── arranque ───── */
-  function precargar() { cargarFormFirma(); }
+  function precargar() { return Backend.decano().then(function (x) { if (x && String(x).trim()) S.decano = String(x).trim(); }).catch(function () { cargarFormFirma(); }); }
   render();
   Promise.all([leerSesion(), refrescarGuardados(), cargarAssets()]).then(function () {
-    S.arranque = false; precargar(); render();
+    precargar().then(function () { S.arranque = false; render(); });
   }).catch(function (err) { S.arranque = false; S.errorArranque = err.message; render(); });
   window.BalanceApp = { estado: S }; // útil para pruebas
 })();
