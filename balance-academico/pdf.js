@@ -233,7 +233,7 @@
 
   /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
      Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
-  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 46, FIRMA_ARRIBA = 52.8;   // la cola de la “g” baja hasta el nombre
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 46, FIRMA_ARRIBA = 62.8;   // la cola de la “g” baja hasta el nombre
   function geometriaFirma(rol, w0, h0, pos) {
     var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
     if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
