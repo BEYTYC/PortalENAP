@@ -28,8 +28,12 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tabs .est + .cred{margin-left:0}
 .spin{display:inline-block;width:14px;height:14px;border:2px solid #cfd7e6;border-top-color:var(--navy,#12284C);border-radius:50%;animation:giro .7s linear infinite;vertical-align:-2px;flex-shrink:0}
 @keyframes giro{to{transform:rotate(360deg)}}
-#ocupado{position:fixed;right:20px;bottom:20px;z-index:60;display:none;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px rgba(18,40,76,.18);padding:9px 16px;font-size:13px;font-weight:600;color:var(--navy,#12284C)}
+#ocupado{position:fixed;inset:0;z-index:70;display:none;align-items:center;justify-content:center;background:rgba(18,41,74,.45)}
 #ocupado.on{display:flex}
+#ocupado .box{background:#fff;border-radius:12px;width:min(380px,92vw);border-top:4px solid var(--gold)}
+#ocupado .hd{padding:14px 18px;border-bottom:1px solid var(--line);font-weight:700;font-size:15px;color:var(--navy,#12284C)}
+#ocupado .bd{padding:22px 18px;display:flex;align-items:center;gap:14px;font-size:14px}
+#ocupado .spin{width:26px;height:26px;border-width:3px}
 .gd.borrando{opacity:.55;pointer-events:none}
 .tabs{position:relative;overflow:hidden;align-items:center;gap:14px;padding:14px 24px;color:#fff;border-bottom:5px solid #D3A62A;background:radial-gradient(120% 220% at 50% 45%,#123A73 0%,#0B2A5B 32%,#071142 62%,#04142E 100%)}
 .tabs>*{position:relative;z-index:1}
@@ -1779,15 +1783,19 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   var enCurso = 0;
   function indicador() {
     var el = document.getElementById('ocupado');
-    if (!el) { el = document.createElement('div'); el.id = 'ocupado'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.innerHTML = '<span class="spin"></span><span id="ocupado-t">Cargando…</span>'; document.body.appendChild(el); }
+    if (!el) { el = document.createElement('div'); el.id = 'ocupado'; el.setAttribute('role', 'alertdialog'); el.setAttribute('aria-live', 'polite'); el.setAttribute('aria-modal', 'true');
+      el.innerHTML = '<div class="box"><div class="hd" id="ocupado-t">Cargando…</div><div class="bd"><span class="spin"></span><span>Un momento, por favor. No cierre la pantalla.</span></div></div>'; document.body.appendChild(el); }
     return el;
   }
+  /* Cuadro central, sin cierre, mientras algo se carga, se guarda o se genera (los cuadros de avance y de guardado ya tienen el suyo). */
   function ocupar(texto, p) {
-    enCurso++; var el = indicador(); el.classList.add('on'); var t = document.getElementById('ocupado-t'); if (t && texto) t.textContent = texto;
+    enCurso++;
+    var el = indicador(), t = document.getElementById('ocupado-t'); if (t && texto) t.textContent = texto;
+    if (!S.avance && !S.guardandoBal) el.classList.add('on');
     function fin() { enCurso = Math.max(0, enCurso - 1); if (!enCurso) indicador().classList.remove('on'); }
     return Promise.resolve(p).then(function (v) { fin(); return v; }, function (e) { fin(); throw e; });
   }
-  var TEXTO_BACKEND = { guardar: 'Guardando…', borrar: 'Eliminando…', listar: 'Cargando balances…', cargar: 'Abriendo balance…', excel: 'Leyendo el pénsum…', sesion: 'Cargando…' };
+  var TEXTO_BACKEND = { guardar: 'Guardando balance', borrar: 'Eliminando balance', listar: 'Cargando balances', cargar: 'Abriendo balance', excel: 'Leyendo el pénsum', sesion: 'Cargando' };
   Object.keys(Backend).forEach(function (k) { var f = Backend[k]; Backend[k] = function () { return ocupar(TEXTO_BACKEND[k], f.apply(Backend, arguments)); }; });
 
   /* ───── utilidades ───── */
@@ -2302,8 +2310,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<textarea id="f-notas" spellcheck="false" style="flex:1;min-height:200px" placeholder="Historia Academica&#10;Código&#9;…&#9;N° Ident. …&#10;Apellidos&#9;…&#10;Nombre&#9;…&#10;Programa&#9;…">' + h(f.notas) + '</textarea>' +
       (S.formErr ? '<div class="alert bad">' + S.formErr.map(h).join('<br>') + '</div>' : '') +
       (S.formAv && S.formAv.length ? '<div class="alert warn">' + S.formAv.map(h).join('<br>') + '</div>' : '') +
-      '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando || S.creando ? ' disabled' : '') + '>' + (S.creando ? 'Creando balances…' : S.cargando ? 'Leyendo pénsum…' : 'Crear balance') + '</button>' +
-      '<span style="color:var(--mute);font-size:12px">Por ahora: Especialización en Gestión Logística y Maestría en Gestión Logística.</span></div>' +
+      '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando || S.creando ? ' disabled' : '') + '>' + (S.creando ? 'Creando balances…' : S.cargando ? 'Leyendo pénsum…' : 'Crear balance') + '</button></div>' +
       '</div></div>' +
       '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span><button class="btn pri" style="margin-left:auto;padding:11px 24px;font-size:15px;font-weight:700" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' +
       (S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '" style="margin:10px 14px 0">' + h(S.grupo.msg.x) + '</div>' : '') +
@@ -2489,9 +2496,9 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     }
     var mio = ++tokenPrevia;
     cont.innerHTML = '<div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Armando vista previa…</div>';
-    try {
+    function armar() { try {
       var docPrev = construirPDF(true), buf = docPrev.output('arraybuffer');
-      prepararPdfjs().then(function () { return pdfjsLib.getDocument({ data: buf }).promise; }).then(function (pdf) { return pdf.getPage(1); }).then(function (page) {
+      return prepararPdfjs().then(function () { return pdfjsLib.getDocument({ data: buf }).promise; }).then(function (pdf) { return pdf.getPage(1); }).then(function (page) {
         if (mio !== tokenPrevia || !$('#prev')) return;
         var ancho = Math.max(300, Math.min(900, $('#prev').clientWidth - 24)), vp0 = page.getViewport({ scale: 1 });
         var esc = ancho / vp0.width * (window.devicePixelRatio || 1), vp = page.getViewport({ scale: esc });
@@ -2503,7 +2510,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
           if (firmaEditable()) montarFirmaMovible(pw, ancho / vp0.width, docPrev.balanceT, vp0.width, vp0.height);
         });
       }).catch(function (err) { var c = $('#prev'); if (c) c.innerHTML = '<div class="alert warn">No se pudo mostrar la vista previa (' + h(err.message) + '). Puede descargar el PDF igualmente.</div>'; });
-    } catch (err) { cont.innerHTML = '<div class="alert bad">No se pudo armar el PDF: ' + h(err.message) + '</div>'; }
+    } catch (err) { cont.innerHTML = '<div class="alert bad">No se pudo armar el PDF: ' + h(err.message) + '</div>'; return Promise.resolve(); } }
+    ocupar('Generando documento', new Promise(function (ok) { setTimeout(function () { armar().then(ok, ok); }, 60); }));
   }
 
   /* ───── modal de selección de asignatura del SMA ───── */
