@@ -30,7 +30,7 @@
   function generar(JsPDF, o) {
     var prog = o.prog, e = o.estado, res = o.res;
     // los renglones del encabezado (nombre, programa y títulos de columnas) miden lo mismo que los de materias
-    function topDe(hr) { return 113.4 + G + 2 * (hr - 11) + (hr - 12.4); }
+    function topDe(hr) { return 113.4 + G + 2 * (hr - 11) + (hr - 12.4) + (G - 4.1); }   // el hueco sobre la tabla es igual al hueco sobre el bloque de datos
     var lineasPre = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; }).length;
     // Carta si cabe; si no, Oficio. Solo si ni así cabe, se aprietan los renglones.
     var H = topDe(PITCH) + lineasPre * PITCH + BAJO <= CARTA ? CARTA : OFICIO;
@@ -40,7 +40,7 @@
     var N = lineas.length;
     var HR = PITCH_MAX, pitch = PITCH_MAX;
     for (var it0 = 0; it0 < 6; it0++) { pitch = Math.min(PITCH_MAX, (H - BAJO - topDe(HR)) / Math.max(N, 1)); HR = pitch; }
-    var E1 = HR - 11, GB = G + 2 * E1, GT = GB + (HR - 12.4), TOP = topDe(HR);
+    var E1 = HR - 11, GB = G + 2 * E1, GC = GB + (G - 0.8 - 3.3), GT = GC + (HR - 12.4), TOP = topDe(HR);
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1.1, pitch / PITCH * 1.04);
 
@@ -69,7 +69,7 @@
     }
 
     /* franjas azules (encabezado de tabla, columna de áreas, totales) */
-    fondo(AZUL, LEFT, 100.0 + GB, 574.7, 113.2 + GT);       // entre el bloque de datos y la tabla queda un espacio en blanco de 4 pt
+    fondo(AZUL, LEFT, 100.0 + GC, 574.7, 113.2 + GT);       // entre el bloque de datos y la tabla queda un espacio en blanco de 4 pt
     var finPensum = T, iOpt = -1;
     lineas.forEach(function (l, i) { if (iOpt < 0 && l.kind === 'opt') iOpt = i; });
     if (iOpt >= 0) finPensum = TOP + iOpt * pitch;
@@ -79,7 +79,7 @@
     /* encabezado */
     negro(37.0, 36.1, 574.9, 36.8); negro(37.0, 72.1, 574.9, 72.9);
     negro(37.0, 72.1 + G, 574.9, 72.9 + G); negro(37.0, 95.6 + GB, 574.9, 96.3 + GB);                  // cierra el bloque de datos
-    negro(37.0, 99.6 + GB, 574.9, 100.3 + GB); negro(37.0, 112.7 + GT, 574.9, 113.4 + GT);   // encabezado de la tabla
+    negro(37.0, 99.6 + GC, 574.9, 100.3 + GC); negro(37.0, 112.7 + GT, 574.9, 113.4 + GT);   // encabezado de la tabla
     negro(36.2, 36.1, 37.0, 72.9); negro(80.5, 36.8, 81.2, 72.9); negro(453.9, 36.8, 454.7, 72.9); negro(574.2, 36.8, 574.9, 72.9);
     negro(36.2, 72.1 + G, 37.0, 96.3 + GB); negro(453.9, 72.1 + G, 454.7, 96.3 + GB); negro(574.2, 72.1 + G, 574.9, 96.3 + GB);
     gris(81.2, 54.1, 453.9, 54.9); gris(454.7, 54.1, 574.2, 54.9); gris(534.1, 54.9, 534.8, 72.1);
@@ -125,7 +125,7 @@
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
     /* títulos de columnas */
-    var by = 100.3 + GB + HR / 2 + 1.7;
+    var by = 100.3 + GC + HR / 2 + 1.7;
     texto('COD.', 65.5, by, 6.1, true, 'center'); texto('PÉNSUM VIGENTE', 82.2, by, 6.1, true);
     texto('COD.', 266.7, by, 6.1, true, 'center'); texto('PÉNSUM CURSADO', 283.5, by, 6.1, true);
     texto('CRÉDITOS', 474.8, by, 6.1, true, 'center'); texto('NOTA', 514.9, by, 6.1, true, 'center'); texto('HAB.', 555.0, by, 6.1, true, 'center');
@@ -181,11 +181,11 @@
     }
 
     /* líneas verticales y de contorno de la tabla */
-    negro(36.2, 99.6 + GB, 37.0, T + 0.0);
-    negro(574.2, 100.3 + GB, 574.9, T);
+    negro(36.2, 99.6 + GC, 37.0, T + 0.0);
+    negro(574.2, 100.3 + GC, 574.9, T);
     negro(49.7, TOP, 50.4, T);
-    negro(80.5, 100.3 + GB, 81.2, finPensum + 0.4);
-    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3 + GB, x + 0.7, T); });
+    negro(80.5, 100.3 + GC, 81.2, finPensum + 0.4);
+    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3 + GC, x + 0.7, T); });
     negro(37.0, T - 0.8, 574.9, T);
 
     /* totales y observaciones: cajas contiguas, una sola línea entre cada una */
