@@ -1289,7 +1289,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, TOP = 113.4, PITCH = 10.44;
+  var LEFT = 36.6, RIGHT = 574.9, G = 5, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
   var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
@@ -1316,9 +1316,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.setProperties({ title: 'Balance Académico - ' + (e.estudiante.nombres + ' ' + e.estudiante.apellidos).trim(), creator: 'Portal ENAP' });
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
-    var pitch = Math.min(PITCH, (H - BAJO - TOP) / Math.max(N, 1));
+    var pitch = Math.min(PITCH_MAX, (H - BAJO - TOP) / Math.max(N, 1));
     var T = TOP + N * pitch;                   // fin de la tabla
-    var fs = 6.1 * Math.min(1, pitch / PITCH * 1.04);
+    var fs = 6.1 * Math.min(1.1, pitch / PITCH * 1.04);
 
     function negro(x0, y0, x1, y1) { doc.setFillColor(0, 0, 0); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
     function gris(x0, y0, x1, y1) { doc.setFillColor(GRIS[0], GRIS[1], GRIS[2]); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
@@ -1345,7 +1345,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     }
 
     /* franjas azules (encabezado de tabla, columna de áreas, totales) */
-    fondo(AZUL, LEFT, 100.0, 574.7, 113.2);       // entre el bloque de datos y la tabla queda un espacio en blanco de 4 pt
+    fondo(AZUL, LEFT, 100.0 + G, 574.7, 113.2 + G);       // entre el bloque de datos y la tabla queda un espacio en blanco de 4 pt
     var finPensum = T, iOpt = -1;
     lineas.forEach(function (l, i) { if (iOpt < 0 && l.kind === 'opt') iOpt = i; });
     if (iOpt >= 0) finPensum = TOP + iOpt * pitch;
@@ -1354,12 +1354,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
     /* encabezado */
     negro(37.0, 36.1, 574.9, 36.8); negro(37.0, 72.1, 574.9, 72.9);
-    negro(37.0, 95.6, 574.9, 96.3);                  // cierra el bloque de datos
-    negro(37.0, 99.6, 574.9, 100.3); negro(37.0, 112.7, 574.9, 113.4);   // encabezado de la tabla
+    negro(37.0, 72.1 + G, 574.9, 72.9 + G); negro(37.0, 95.6 + G, 574.9, 96.3 + G);                  // cierra el bloque de datos
+    negro(37.0, 99.6 + G, 574.9, 100.3 + G); negro(37.0, 112.7 + G, 574.9, 113.4 + G);   // encabezado de la tabla
     negro(36.2, 36.1, 37.0, 72.9); negro(80.5, 36.8, 81.2, 72.9); negro(453.9, 36.8, 454.7, 72.9); negro(574.2, 36.8, 574.9, 72.9);
-    negro(36.2, 72.1, 37.0, 96.3); negro(453.9, 72.1, 454.7, 96.3); negro(574.2, 72.1, 574.9, 96.3);
+    negro(36.2, 72.1 + G, 37.0, 96.3 + G); negro(453.9, 72.1 + G, 454.7, 96.3 + G); negro(574.2, 72.1 + G, 574.9, 96.3 + G);
     gris(81.2, 54.1, 453.9, 54.9); gris(454.7, 54.1, 574.2, 54.9); gris(534.1, 54.9, 534.8, 72.1);
-    gris(37.0, 83.9, 453.9, 84.6); gris(454.7, 83.9, 574.2, 84.6);
+    gris(37.0, 83.9 + G, 453.9, 84.6 + G); gris(454.7, 83.9 + G, 574.2, 84.6 + G);
 
     if (o.logo) { try { doc.addImage(o.logo, 'PNG', 48.0, 38.1, 20.1, 31.1); } catch (err) {} }
 
@@ -1389,7 +1389,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
     var nombreCompleto = (e.estudiante.nombres + ' ' + e.estudiante.apellidos).replace(/\s+/g, ' ').trim().toUpperCase();
     // las dos filas del bloque de datos van centradas verticalmente en su celda (72,9–83,9 y 84,6–95,6)
-    var Y1 = (72.9 + 83.9) / 2 + 2.3, Y2 = (84.6 + 95.6) / 2 + 2.3;
+    var Y1 = (72.9 + 83.9) / 2 + 2.3 + G, Y2 = (84.6 + 95.6) / 2 + 2.3 + G;
     texto('NOMBRES Y APELLIDOS:', 47.4, Y1, 6.5, true);
     texto(nombreCompleto, 135.9, Y1, 6.5, false, 'left', 310);
     texto('PROGRAMA ACADÉMICO:', 47.4, Y2, 6.5, true);
@@ -1401,7 +1401,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
     /* títulos de columnas */
-    var by = 108.2;
+    var by = 108.2 + G;
     texto('COD.', 65.5, by, 6.1, true, 'center'); texto('PÉNSUM VIGENTE', 82.2, by, 6.1, true);
     texto('COD.', 266.7, by, 6.1, true, 'center'); texto('PÉNSUM CURSADO', 283.5, by, 6.1, true);
     texto('CRÉDITOS', 474.8, by, 6.1, true, 'center'); texto('NOTA', 514.9, by, 6.1, true, 'center'); texto('HAB.', 555.0, by, 6.1, true, 'center');
@@ -1457,11 +1457,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     }
 
     /* líneas verticales y de contorno de la tabla */
-    negro(36.2, 99.6, 37.0, T + 0.0);
-    negro(574.2, 100.3, 574.9, T);
+    negro(36.2, 99.6 + G, 37.0, T + 0.0);
+    negro(574.2, 100.3 + G, 574.9, T);
     negro(49.7, TOP, 50.4, T);
-    negro(80.5, 100.3, 81.2, finPensum + 0.4);
-    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3, x + 0.7, T); });
+    negro(80.5, 100.3 + G, 81.2, finPensum + 0.4);
+    [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3 + G, x + 0.7, T); });
     negro(37.0, T - 0.8, 574.9, T);
 
     /* totales y observaciones: cajas contiguas, una sola línea entre cada una */
@@ -1839,6 +1839,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
   function faltaImagenFirmada() { return aviso('Falta la imagen de su firma', 'La imagen de la firma no se guarda en el balance. Cárguela otra vez para descargar el PDF con su firma.'); }
   function descargarPDF() {
+    if (!S.fs || !S.fs.jefe) { S.msg = { t: 'bad', x: 'Firme el balance antes de descargar el PDF.' }; render(); return; }
     if (!puedeEmitir()) return;
     if (S.fs.jefe && !S.imgs.jefe) { faltaImagenFirmada(); return; }
     bajar(construirPDF().output('blob'), nombreArchivo(S.est));
@@ -1884,6 +1885,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
           var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
           return evaluar(est).then(function (x) {
             if (!x.ok) { omitidos.push(nom + ': incompleto'); return; }
+            if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); return; }
             if (x.fs.jefe && !S.imgs.jefe) { omitidos.push(nom + ': falta cargar la imagen de su firma'); return; }
             archivos.push({ blob: pdfDe(est, x.prog, x.res, x.fs, false).output('blob'), nombre: nombreArchivo(est, usados) });
             M.registrar(est, quien(), 'descargó el PDF', x.fs.jefe ? 'firmado, en grupo' : 'sin firma, en grupo'); hechos++;
@@ -2058,7 +2060,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       pasoFirma(fs.jefe, 'Firmado por el Jefe de Programa' + (fs.jefe ? ' · ' + h(S.est.firmas.jefe.nombre) : '')) + '</div></div>' +
       '<div style="display:flex;flex-direction:column;gap:8px">' +
       '<button class="btn pri" data-act="firmar"' + (puedeFirmar ? '' : ' disabled') + '>' + (firmado ? 'Ya firmado' : 'Firmar balance') + '</button>' +
-      '<button class="btn" data-act="pdf"' + (emitir ? '' : ' disabled') + '>Descargar PDF' + (fs.jefe ? '' : ' (sin firma)') + '</button>' +
+      '<button class="btn" data-act="pdf"' + (emitir && fs.jefe ? '' : ' disabled') + '>Descargar PDF' + (fs.jefe ? '' : ' (firme primero)') + '</button>' +
       (firmado ? '<button class="btn" data-act="reabrir">Reabrir balance</button>' : '') + '</div>' +
       (!emitir ? '<div class="alert warn">No se puede firmar ni descargar el PDF hasta que el balance esté completo.</div>' : '') +
       (firmado && !img ? '<div class="alert warn">Cargue la imagen de su firma para que salga en el PDF.</div>' : '') +

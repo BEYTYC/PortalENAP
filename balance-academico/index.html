@@ -451,6 +451,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   }
   function faltaImagenFirmada() { return aviso('Falta la imagen de su firma', 'La imagen de la firma no se guarda en el balance. Cárguela otra vez para descargar el PDF con su firma.'); }
   function descargarPDF() {
+    if (!S.fs || !S.fs.jefe) { S.msg = { t: 'bad', x: 'Firme el balance antes de descargar el PDF.' }; render(); return; }
     if (!puedeEmitir()) return;
     if (S.fs.jefe && !S.imgs.jefe) { faltaImagenFirmada(); return; }
     bajar(construirPDF().output('blob'), nombreArchivo(S.est));
@@ -496,6 +497,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
           var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
           return evaluar(est).then(function (x) {
             if (!x.ok) { omitidos.push(nom + ': incompleto'); return; }
+            if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); return; }
             if (x.fs.jefe && !S.imgs.jefe) { omitidos.push(nom + ': falta cargar la imagen de su firma'); return; }
             archivos.push({ blob: pdfDe(est, x.prog, x.res, x.fs, false).output('blob'), nombre: nombreArchivo(est, usados) });
             M.registrar(est, quien(), 'descargó el PDF', x.fs.jefe ? 'firmado, en grupo' : 'sin firma, en grupo'); hechos++;
@@ -670,7 +672,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       pasoFirma(fs.jefe, 'Firmado por el Jefe de Programa' + (fs.jefe ? ' · ' + h(S.est.firmas.jefe.nombre) : '')) + '</div></div>' +
       '<div style="display:flex;flex-direction:column;gap:8px">' +
       '<button class="btn pri" data-act="firmar"' + (puedeFirmar ? '' : ' disabled') + '>' + (firmado ? 'Ya firmado' : 'Firmar balance') + '</button>' +
-      '<button class="btn" data-act="pdf"' + (emitir ? '' : ' disabled') + '>Descargar PDF' + (fs.jefe ? '' : ' (sin firma)') + '</button>' +
+      '<button class="btn" data-act="pdf"' + (emitir && fs.jefe ? '' : ' disabled') + '>Descargar PDF' + (fs.jefe ? '' : ' (firme primero)') + '</button>' +
       (firmado ? '<button class="btn" data-act="reabrir">Reabrir balance</button>' : '') + '</div>' +
       (!emitir ? '<div class="alert warn">No se puede firmar ni descargar el PDF hasta que el balance esté completo.</div>' : '') +
       (firmado && !img ? '<div class="alert warn">Cargue la imagen de su firma para que salga en el PDF.</div>' : '') +
