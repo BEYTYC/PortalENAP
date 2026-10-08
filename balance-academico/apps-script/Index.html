@@ -31,9 +31,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 #ocupado{position:fixed;right:20px;bottom:20px;z-index:60;display:none;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px rgba(18,40,76,.18);padding:9px 16px;font-size:13px;font-weight:600;color:var(--navy,#12284C)}
 #ocupado.on{display:flex}
 .gd.borrando{opacity:.55;pointer-events:none}
-.tabs{align-items:center;padding:8px 24px}
-.tabs .navbtns{display:flex;gap:8px;margin-left:auto}
-.tabs .est{margin-left:0;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
+.tabs{align-items:center;gap:14px;padding:12px 24px}
+.btn.nav{display:inline-flex;align-items:center;gap:8px;font-size:15px;padding:10px 18px;font-weight:600}
+.tabs .est{margin-left:4px;padding-bottom:0;display:flex;gap:8px;align-items:center;font-weight:600}
 main{flex:1;min-height:0;padding:16px 24px;overflow:hidden}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px}
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -2230,17 +2230,15 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   };
   function chipFase(f) { var x = FASES[f] || FASES.borrador; return '<span class="chip ' + x[0] + '">' + x[1] + '</span>'; }
 
-  function vTop() {
-    return '<div class="top"><b>Balance Académico</b><span class="sep">/</span><span>Escuela Naval de Cadetes “Almirante Padilla”</span>' +
-      '<div class="quien">' + (S.sesion.prueba ? '<span class="prueba">Modo prueba (sin sesión del Portal)</span>' : '') +
-      (S.sesion.email ? '<span style="opacity:.8">' + h(S.sesion.email) + '</span>' : '') +
-      '<span class="chip" style="background:var(--navy2);color:#fff">Jefe de Programa · Facultad de Administración</span></div></div>';
-  }
+  function vTop() { return ''; }   // sin franja superior
   function vTabs() {
     var hay = !!S.est;
+    var icoAtras = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+    var icoReiniciar = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>';
     return '<div class="tabs">' +
+      '<button class="btn nav" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>' + icoAtras + 'Atrás</button>' +
       (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
-      '<div class="navbtns"><button class="btn sm" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>← Atrás</button><button class="btn sm" data-act="reiniciar">Reiniciar solicitud</button></div>' +
+      '<button class="btn nav" data-act="reiniciar" style="margin-left:auto">' + icoReiniciar + 'Reiniciar solicitud</button>' +
       '</div>';
   }
 
