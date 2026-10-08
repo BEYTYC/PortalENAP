@@ -766,7 +766,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<span class="titulo">Generador de Balances Académico</span>' +
       (hay ? '<div class="est" style="margin-left:12px"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
       '<div class="navbtns"><button class="btn nav" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>' + icoAtras + 'Atrás</button>' +
-      '<button class="btn nav dorado" data-act="reiniciar">' + icoReiniciar + 'Reiniciar solicitud</button></div>' +
+      '</div>' +
       '</div>';
   }
 
