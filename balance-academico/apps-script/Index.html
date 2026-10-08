@@ -1888,15 +1888,14 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   /* Del SMA salen el programa, la cédula, los apellidos, los nombres y las notas. Se pueden pegar varios estudiantes seguidos. */
   function crear() {
     var texto = S.form.notas;
-    if (!texto.trim()) { S.formErr = ['Pegue el historial del SMA (puede pegar varios estudiantes seguidos).']; S.formAv = null; render(); return; }
+    if (!S.form.programaId || !PR.porId(S.form.programaId)) { S.formErr = ['Elija el programa del que se gradúa el estudiante.']; S.formAv = null; render(); return; }
+    if (!texto.trim()) { S.formErr = ['Pegue el historial del SMA.']; S.formAv = null; render(); return; }
+    var meta = PR.porId(S.form.programaId);                   // el programa lo elige el jefe: hay estudiantes homologados y el SMA no sirve para saberlo
     var bloques = M.separarHistorias(texto), nuevos = [], errores = [];
     bloques.forEach(function (b, i) {
       var d = M.estudianteDeSMA(b);
       var etq = 'Historial ' + (i + 1) + (d.apellidos || d.nombres ? ' (' + M.titulo((d.nombres + ' ' + d.apellidos).trim()) + ')' : '');
       if (!d.documento || !(d.nombres || d.apellidos)) { errores.push(etq + ': no se encontró el encabezado del estudiante (Código, N° Ident., Apellidos y Nombre). Copie el historial completo desde el SMA.'); return; }
-      var meta = PR.porTextoSMA(d.programaSMA);
-      if (!meta) { errores.push(etq + ': no se reconoció el programa “' + d.programaSMA + '”.'); return; }
-      if (!PR.estaActivo(meta)) { errores.push(etq + ': el programa ' + meta.nombre + ' aún no está habilitado en este módulo.'); return; }
       var est = M.nuevoEstado(meta.id, { nombres: d.nombres, apellidos: d.apellidos, tipoDoc: 'CC', documento: d.documento, nivel: meta.nivel }, quien());
       var dup = nuevos.filter(function (x) { return claveEstado(x) === claveEstado(est); })[0];
       var r = M.agregarNotas(dup || est, b, quien());
@@ -1910,18 +1909,24 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       : Promise.resolve(true);
     seguir.then(function (si) {
       if (!si) return;
-      S.formErr = null; S.formAv = null; S.creando = true; render();
-      return nuevos.reduce(function (p, est) {
-        return p.then(function () { return evaluar(est).then(function () { return Backend.guardar(est); }); });
-      }, Promise.resolve()).then(refrescarGuardados).then(function () {
+      S.formErr = null; S.formAv = null; S.creando = true;
+      var av = S.avance = { titulo: nuevos.length === 1 ? 'Creando balance' : 'Creando balances', hecho: 0, total: nuevos.length, actual: '', lineas: [], fin: false };
+      return avanzar(av, 0, 'Leyendo el pénsum…').then(function () {
+        return nuevos.reduce(function (p, est, n) {
+          var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
+          return p.then(function () { return avanzar(av, n, nom); }).then(function () { return evaluar(est); }).then(function () { return Backend.guardar(est); })
+            .then(function () { return avanzar(av, n + 1, '', { ok: true, t: nom + ': balance creado' }); });
+        }, Promise.resolve());
+      }).then(refrescarGuardados).then(function () {
         S.creando = false;
-        if (nuevos.length === 1 && !errores.length) { S.form.notas = ''; return abrir(nuevos[0], 'revision'); }
+        if (nuevos.length === 1 && !errores.length) { S.form.notas = ''; return abrir(nuevos[0], 'revision').then(function () { S.avance = null; render(); }); }
+        S.avance = null;
         S.sel = {}; nuevos.forEach(function (e) { S.sel[claveEstado(e)] = true; });
         S.form.notas = ''; S.formAv = errores.length ? ['No se crearon:'].concat(errores) : null;
         S.grupo.msg = { t: 'ok', x: nuevos.length + (nuevos.length === 1 ? ' balance creado' : ' balances creados') + ' y guardados' + (GAS ? ' en OneDrive' : '') + '. Revise los incompletos y firme en grupo los que estén listos.' };
         render();
       });
-    }).catch(function (err) { S.creando = false; S.formErr = ['No se pudieron crear los balances: ' + err.message]; render(); });
+    }).catch(function (err) { S.creando = false; S.avance = null; S.formErr = ['No se pudieron crear los balances: ' + err.message]; render(); });
   }
 
   /* Guarda el balance abierto y vuelve al visor para cargar otro; queda seleccionado en la lista. */
@@ -2201,6 +2206,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return '<div class="inicio"><div class="col">' +
       '<div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">' +
       '<div><div class="lbl">Notas del SMA</div><div style="color:var(--mute);font-size:12.5px;margin-top:4px">Copie el historial académico del estudiante tal como sale del SMA y péguelo aquí.</div></div>' +
+      '<label class="f" style="max-width:420px"><span class="lbl">Programa del que se gradúa</span><select id="f-programaId" style="margin-top:4px"><option value="">Elija el programa…</option>' + PR.activos().map(function (m) { return '<option value="' + h(m.id) + '"' + (f.programaId === m.id ? ' selected' : '') + '>' + h(m.nombre) + '</option>'; }).join('') + '</select></label>' +
       '<textarea id="f-notas" spellcheck="false" style="flex:1;min-height:200px" placeholder="Historia Academica&#10;Código&#9;…&#9;N° Ident. …&#10;Apellidos&#9;…&#10;Nombre&#9;…&#10;Programa&#9;…">' + h(f.notas) + '</textarea>' +
       (S.formErr ? '<div class="alert bad">' + S.formErr.map(h).join('<br>') + '</div>' : '') +
       (S.formAv && S.formAv.length ? '<div class="alert warn">' + S.formAv.map(h).join('<br>') + '</div>' : '') +
