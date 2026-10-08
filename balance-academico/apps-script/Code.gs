@@ -2,8 +2,8 @@
  * Balance Académico · ENAP — Google Apps Script (aplicación web independiente)
  *
  * Guardado: SIEMPRE en OneDrive (Microsoft Graph, credenciales de aplicación).
- * Identidad: la persona inicia sesión en Microsoft en el Portal; la pantalla entrega su token y este servidor
- *            lo valida con Graph (/me) y consulta sus roles con el mismo endpoint /api/roles del Portal.
+ * Identidad: aplicación independiente (sin Portal); el acceso lo controla el despliegue de Apps Script y,
+ *            si se quiere, la propiedad USUARIOS_PERMITIDOS.
  * Plantillas: los Excel Balance_*.xlsm se leen del Portal (…/balances/) o, si no, de OneDrive.
  *
  * Propiedades de la secuencia de comandos (Configuración del proyecto): ver LEEME.md.
@@ -47,11 +47,10 @@ function configurar() {
   var d = graph_('get', rutaDrive_() + '?$select=id,name,webUrl', null, t);
   asegurarCarpeta_(t);
   Logger.log('OneDrive conectado: ' + (d.webUrl || d.name) + '\nCarpeta de balances: ' + carpetaBalances_() +
-    '\nModo prueba (sin Portal): ' + (modoPrueba_() ? 'ACTIVO' : 'apagado') +
+    '\nUsuarios permitidos: ' + (prop_('USUARIOS_PERMITIDOS', '') || '(cualquiera que abra la página)') +
     '\nPlantillas: ' + (prop_('PORTAL_URL') ? prop_('PORTAL_URL').replace(/\/+$/, '') + '/balances/' : 'OneDrive ' + carpetaPlantillas_()));
 }
 
-function modoPrueba_() { return prop_('MODO_PRUEBA', 'true').toLowerCase() === 'true'; }
 function carpetaBalances_() { return prop_('ONEDRIVE_CARPETA', CARPETA_DEFECTO).replace(/^\/+|\/+$/g, ''); }
 function carpetaPlantillas_() { return prop_('ONEDRIVE_PLANTILLAS', carpetaBalances_() + '/Plantillas').replace(/^\/+|\/+$/g, ''); }
 
@@ -113,38 +112,15 @@ function sha_(t) {
   return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, t)).slice(0, 40);
 }
 
-/** Valida el token de Microsoft de la persona y devuelve {email, nombre, roles, prueba}. */
+/** Identidad: la aplicación web va sola en Apps Script (sin Portal). Si el despliegue es para cuentas del dominio,
+ *  Google entrega el correo de quien abre la página. Propiedad opcional USUARIOS_PERMITIDOS: correos separados por coma
+ *  (si existe, solo esas personas entran). El argumento `tokenUsuario` ya no se usa. */
 function sesionDe_(tokenUsuario) {
-  if (!tokenUsuario) {
-    if (modoPrueba_()) return { email: '', nombre: 'Modo prueba', roles: ['jefe'], prueba: true };
-    throw new Error('Abra el Balance Académico desde el Portal para iniciar sesión.');
-  }
-  var cache = CacheService.getScriptCache(), k = 'ses_' + sha_(tokenUsuario), hit = cache.get(k);
-  if (hit) return JSON.parse(hit);
-  var r = UrlFetchApp.fetch(GRAPH + '/me?$select=displayName,mail,userPrincipalName', { headers: { Authorization: 'Bearer ' + tokenUsuario }, muteHttpExceptions: true });
-  if (r.getResponseCode() !== 200) throw new Error('La sesión de Microsoft venció. Vuelva a abrir el Portal.');
-  var p = JSON.parse(r.getContentText());
-  var correo = String(p.mail || p.userPrincipalName || '').trim().toLowerCase();
-  if (!correo || correo.slice(-(DOMINIO.length + 1)) !== '@' + DOMINIO) throw new Error('Solo cuentas institucionales @' + DOMINIO + '.');
-  var rolesPortal = rolesPortal_(correo, tokenUsuario);
-  var roles = [];
-  if (rolesPortal.indexOf('ADMIN') >= 0) roles = ['jefe'];
-  Object.keys(ROLES_PORTAL).forEach(function (rp) { if (rolesPortal.indexOf(rp) >= 0 && roles.indexOf(ROLES_PORTAL[rp]) < 0) roles.push(ROLES_PORTAL[rp]); });
-  var s = { email: correo, nombre: p.displayName || correo, roles: roles, prueba: false };
-  cache.put(k, JSON.stringify(s), 300);
-  return s;
-}
-
-/** Mismo endpoint que usa el Portal para saber el rol (lista ENAP_Permisos_Usuarios). */
-function rolesPortal_(correo, tokenUsuario) {
-  var base = prop_('PORTAL_URL').replace(/\/+$/, '');
-  if (!base) throw new Error('Falta PORTAL_URL (dirección del Portal) para consultar los roles.');
-  var r = UrlFetchApp.fetch(base + '/api/roles', {
-    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
-    payload: JSON.stringify({ correo: correo, accessToken: tokenUsuario })
-  });
-  if (r.getResponseCode() !== 200) throw new Error('No se pudieron consultar los roles (' + r.getResponseCode() + ').');
-  return (JSON.parse(r.getContentText()).roles || []).map(function (x) { return String(x).toUpperCase(); });
+  var correo = '';
+  try { correo = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); } catch (e) {}
+  var permitidos = prop_('USUARIOS_PERMITIDOS', '').toLowerCase().split(/[,;\s]+/).filter(Boolean);
+  if (permitidos.length && permitidos.indexOf(correo) < 0) throw new Error('Su cuenta no tiene permiso para usar el Balance Académico.');
+  return { email: correo, nombre: correo, roles: ['jefe'], prueba: false };
 }
 
 function exigir_(token, permitidos) {

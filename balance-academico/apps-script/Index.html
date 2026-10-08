@@ -1718,26 +1718,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       google.script.run.withSuccessHandler(ok).withFailureHandler(function (e) { no(new Error((e && e.message) || String(e))); })[fn].apply(null, args);
     });
   }
-  /* Identidad: el Portal entrega el token de Microsoft (mismo mecanismo que Titulación y Concesiones).
-     Sin Portal (modo independiente) no llega token y el servidor decide si permite el modo prueba. */
-  var tokenMs = { valor: '', t: 0 };
-  function obtenerToken() {
-    if (!GAS) return Promise.resolve('');
-    if (tokenMs.valor && Date.now() - tokenMs.t < 40 * 60 * 1000) return Promise.resolve(tokenMs.valor);
-    if (tokenMs.sinPortal && Date.now() - tokenMs.sinPortal < 10 * 60 * 1000) return Promise.resolve('');
-    return new Promise(function (ok) {
-      var hecho = false;
-      function on(ev) {
-        if (ev.data && ev.data.type === 'balance:token' && ev.data.token) {
-          hecho = true; window.removeEventListener('message', on);
-          tokenMs = { valor: ev.data.token, t: Date.now() }; ok(ev.data.token);
-        }
-      }
-      window.addEventListener('message', on);
-      try { window.top.postMessage({ type: 'balance:token-request' }, '*'); } catch (e) {}
-      setTimeout(function () { if (!hecho) { window.removeEventListener('message', on); tokenMs.sinPortal = Date.now(); ok(''); } }, 2500);
-    });
-  }
+  /* Identidad: aplicación independiente en Apps Script; el servidor toma el correo de quien abre la página. */
+  function obtenerToken() { return Promise.resolve(''); }   // aplicación independiente: no hay token del Portal
   function srvAuth(fn) {
     var args = Array.prototype.slice.call(arguments, 1);
     function intento(reintento) {
