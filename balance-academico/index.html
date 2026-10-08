@@ -26,6 +26,8 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tab .n{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
 .tabs .cred{margin-left:auto;align-self:center;padding:0 0 6px 18px;font-size:12px;color:var(--mute);white-space:nowrap;font-weight:500}
 .tabs .est + .cred{margin-left:0}
+.tabs .navbtns{display:flex;gap:8px;align-self:center;padding-bottom:6px;margin-left:auto}
+.tabs .est + .navbtns{margin-left:14px}
 .tabs .est{margin-left:auto;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
 main{flex:1;min-height:0;padding:16px 24px;overflow:hidden}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px}
@@ -403,6 +405,21 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   }
 
   /* Guarda el balance abierto y vuelve al visor para cargar otro; queda seleccionado en la lista. */
+  function atras() {
+    if (S.vista === 'firma') S.vista = 'revision'; else if (S.vista === 'revision') S.vista = 'inicio'; else return;
+    S.msg = null; render();
+  }
+  /* Vuelve al principio con el formulario vacío; el balance abierto queda guardado tal como estaba. */
+  function reiniciar() {
+    var hay = !!S.est;
+    pregunta('Reiniciar solicitud', hay ? 'Se cierra el balance abierto (queda guardado tal como está) y se vuelve al inicio con el formulario vacío. ¿Continuar?' : 'Se borra lo pegado y los avisos. ¿Continuar?', 'Reiniciar').then(function (si) {
+      if (!si) return;
+      Promise.resolve(hay ? guardar() : null).then(refrescarGuardados).then(function () {
+        S.est = null; S.prog = null; S.res = null; S.fs = null; S.ver = null; S.msg = null; S.formErr = null; S.formAv = null; S.filtro = 'todas';
+        S.form.notas = ''; S.sel = {}; S.grupo.msg = null; S.editDecano = false; S.vista = 'inicio'; render();
+      });
+    });
+  }
   function guardarVolver() {
     if (!S.est) return;
     var k = claveEstado(S.est), nom = M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos);
@@ -640,6 +657,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     return '<div class="tabs" role="tablist">' + t.map(function (x) {
       return '<button class="tab" role="tab" data-vista="' + x[0] + '" aria-selected="' + (S.vista === x[0]) + '"' + (x[0] !== 'inicio' && !hay ? ' disabled' : '') + '><span class="n">' + x[2] + '</span>' + x[1] + '</button>';
     }).join('') + (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
+      '<div class="navbtns"><button class="btn sm" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>← Atrás</button><button class="btn sm" data-act="reiniciar">Reiniciar solicitud</button></div>' +
       '</div>';
   }
 
@@ -926,6 +944,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
     if (act === 'crear') crear();
     else if (act === 'guardar-volver') guardarVolver();
+    else if (act === 'atras') atras();
+    else if (act === 'reiniciar') reiniciar();
     else if (act === 'firmar-todos') firmarTodos();
     else if (act === 'abrir-g') {
       var g = S.guardados[+t.getAttribute('data-i')]; if (!g) return;
