@@ -1054,7 +1054,49 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     return XLSX.utils.sheet_to_json(h, { header: 1, defval: '', raw: true });
   }
 
+
+  /* Algunas plantillas (p. ej. Gestión Logística) traen los nombres EN MAYÚSCULAS y sin tildes: se presentan
+     como en los balances oficiales (“Logística de Alto Nivel”). Solo cambia la forma, nunca las palabras. */
+  var ACENTOS = ['logística','gestión','investigación','tecnología','tecnologías','ética','producción','distribución','dirección','administración',
+    'economía','matemática','matemáticas','física','química','ingeniería','electrónica','electrónico','oceanografía','metodología','práctica','análisis',
+    'política','información','comunicación','comunicaciones','formación','evaluación','operación','operaciones','organización','innovación','educación',
+    'aplicación','simulación','optimización','planeación','planificación','negociación','contratación','estadística','probabilística','numérica',
+    'hidrografía','cartografía','geografía','biología','geología','meteorología','navegación','instrumentación','automatización','electromagnéticas',
+    'mecánica','hidráulica','termodinámica','dinámica','estática','táctica','económica','académica','básica','cátedra','método','métodos','cálculo',
+    'álgebra','vectorial','sistémico','marítima','marítimo','náutica','náutico','científica','técnica','técnicas','jurídica','análisis','crítico',
+    'psicología','sociología','antropología','epistemología','también','módulo','módulos','proyección','prospectiva','tendencias','cadena','almacén',
+    'abastecimiento','inventarios','transporte','aprovisionamiento','presupuesto','régimen','situación','reflexión','decisión','decisiones','sostenibilidad',
+    'ambiental','ocupación','legislación','regulación','certificación','calidad','certificaciones','auditoría','contabilidad','contable'];
+  function sinTilde(t) { return String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function esMayusculas(t) { t = txt(t); return t.length > 2 && /[A-ZÁÉÍÓÚÑ]/.test(t) && t === t.toUpperCase(); }
+  function formatoNombre(t, mapa) {
+    t = txt(t); if (!esMayusculas(t)) return t;
+    var bajo = t.toLowerCase().replace(/[a-záéíóúüñ]+/g, function (w) {
+      var k = sinTilde(w); return /[áéíóú]/.test(w) ? w : (mapa[k] || w);
+    });
+    return bajo.replace(/(^|[\s\-'(])([a-záéíóúüñ])/g, function (m, a, b) { return a + b.toUpperCase(); })
+      .replace(/(^|\s)(De|Del|La|Las|Los|Y|E|En|Con|Para|Por|Al|A|El|O|U|Un|Una)(?=\s|$)/g, function (m, p, w, i) { return i === 0 ? m : p + w.toLowerCase(); })
+      .replace(/\b(Ii|Iii|Iv|Vi|Vii|Viii|Ix)\b/g, function (m) { return m.toUpperCase(); })
+      .replace(/\b(Scm|Tic|Tics|Iso|Omi|Stcw|Marpol|Solas|Erp|Pmi|Sma|Cn|Im)\b/g, function (m) { return m.toUpperCase(); });
+  }
+  function mapaAcentos(wb, XLSX) {
+    var m = {};
+    ACENTOS.forEach(function (w) { if (/[áéíóú]/.test(w)) m[sinTilde(w)] = w; });
+    // también las palabras con tilde que ya aparezcan en el propio Excel
+    Object.keys(wb.Sheets || {}).forEach(function (hoja) {
+      XLSX.utils.sheet_to_json(wb.Sheets[hoja], { header: 1, defval: '', raw: true }).forEach(function (fr) {
+        fr.forEach(function (v) {
+          if (typeof v !== 'string' || v.length > 90) return;
+          (v.toLowerCase().match(/[a-záéíóúüñ]*[áéíóú][a-záéíóúüñ]*/g) || []).forEach(function (w) { if (!m[sinTilde(w)] && w.length > 3) m[sinTilde(w)] = w; });
+        });
+      });
+    });
+    return m;
+  }
+
   function parsePrograma(XLSX, wb, meta) {
+    var acentos = mapaAcentos(wb, XLSX);
+    function fn(t) { return formatoNombre(t, acentos); }
     var rows = filas(XLSX, wb, 'Balance');
     if (!rows.length) throw new Error('El archivo ' + meta.archivo + ' no tiene la hoja “Balance”.');
     var c = function (r, i) { return rows[r] ? txt(rows[r][i]) : ''; };
@@ -1087,7 +1129,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       if (D && E) {                                   // asignatura del pénsum vigente
         if (C) area = C;
         bloque = null;
-        items.push({ kind: 'mat', id: idUnico(nCod(D)), area: area, cod: D, nombre: E, cred: esNum(J) ? J : 0 });
+        items.push({ kind: 'mat', id: idUnico(nCod(D)), area: area, cod: D, nombre: fn(E), cred: esNum(J) ? J : 0 });
         continue;
       }
       var etiqueta = C + ' ' + E;
@@ -1099,7 +1141,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         var slotAqui = E && !/cr[eé]ditos/i.test(E) && esNum(J);
         if (slotAqui) {                               // Maestría Gestión Logística: “Electiva I… III” fijas
           cuentaSlots++;
-          items.push({ kind: 'slot', id: 'slot' + cuentaSlots, area: areaB, cod: '', nombre: E, cred: J });
+          items.push({ kind: 'slot', id: 'slot' + cuentaSlots, area: areaB, cod: '', nombre: fn(E), cred: J });
           bloque = { slots: true, area: areaB };
         } else {
           var etq = conCred || C || E;
@@ -1110,7 +1152,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       }
       if (bloque && !D && E && !/cr[eé]ditos/i.test(E) && esNum(J) && bloque.slots) {
         cuentaSlots++;
-        items.push({ kind: 'slot', id: 'slot' + cuentaSlots, area: bloque.area, cod: '', nombre: E, cred: J });
+        items.push({ kind: 'slot', id: 'slot' + cuentaSlots, area: bloque.area, cod: '', nombre: fn(E), cred: J });
         continue;
       }
       if (!D && !E && C && !bloque) { area = C; continue; }   // rótulo de área suelto
@@ -1140,7 +1182,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       var k = nCod(cod);
       if (!k || !pareceCodigo(cod)) return;
       var cur = catalogo[k] || (catalogo[k] = { cod: txt(cod), nombre: '', cred: 0 });
-      if (!cur.nombre && txt(nombre)) cur.nombre = txt(nombre);
+      if (!cur.nombre && txt(nombre)) cur.nombre = fn(nombre);
       if (!(cur.cred > 0) && esNum(cred) && cred > 0) cur.cred = cred;
     }
     var eqRows = filas(XLSX, wb, 'Equivalencia');
@@ -1151,9 +1193,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       aCat(er[0], er[1], er[2]);
       var alts = [];
       [[4, 5], [7, 8]].forEach(function (p) {
-        if (nCod(er[p[0]])) { alts.push({ cod: txt(er[p[0]]), nombre: txt(er[p[1]]) }); aCat(er[p[0]], er[p[1]]); }
+        if (nCod(er[p[0]])) { alts.push({ cod: txt(er[p[0]]), nombre: fn(er[p[1]]) }); aCat(er[p[0]], er[p[1]]); }
       });
-      var cur = eq[v] || (eq[v] = { nombre: txt(er[1]), alts: [] });
+      var cur = eq[v] || (eq[v] = { nombre: fn(er[1]), alts: [] });
       alts.forEach(function (a) { if (!cur.alts.some(function (x) { return nCod(x.cod) === nCod(a.cod); })) cur.alts.push(a); });
     }
     ['Optativas', 'Electivas'].forEach(function (hoja) {
