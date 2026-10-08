@@ -39,7 +39,7 @@
     var lineas = res.lineas.filter(function (l) { return l.kind !== 'optvacia'; });
     var N = lineas.length;
     var HR = PITCH_MAX, pitch = PITCH_MAX;
-    for (var it0 = 0; it0 < 6; it0++) { pitch = Math.min(PITCH_MAX, (H - BAJO - topDe(HR)) / Math.max(N, 1)); HR = pitch; }
+    for (var it0 = 0; it0 < 6; it0++) { pitch = Math.min(PITCH_MAX, (H - BAJO - (2 * pitch - 19.7) - topDe(HR)) / Math.max(N, 1)); HR = pitch; }
     var E1 = HR - 11, GB = G + 2 * E1, GC = GB + (G - 0.8 - 3.3), GT = GC + (HR - 12.4), TOP = topDe(HR);
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1.1, pitch / PITCH * 1.04);
@@ -63,7 +63,7 @@
       try {
         doc.saveGraphicsState();
         doc.setGState(new doc.GState({ opacity: o.opacidadMarca || 1 }));
-        doc.addImage(o.marca, 'PNG', 96.3, 202.4 + (H - 972) / 2, 402.3, 503.2);
+        doc.addImage(o.marca, 'PNG', 297.45 - 342 / 2, 202.4 + (H - 972) / 2, 342, 503.2);   // más angosta: antes se veía estirada a lo ancho
         doc.restoreGraphicsState();
       } catch (err) { /* sin marca de agua */ }
     }
@@ -188,19 +188,19 @@
     [251.0, 281.8, 453.9, 494.0, 534.1].forEach(function (x) { negro(x, 100.3 + GC, x + 0.7, T); });
     negro(37.0, T - 0.8, 574.9, T);
 
-    /* totales y observaciones: cajas contiguas, una sola línea entre cada una */
-    var t0 = T - 0.8;
-    fondo(AZUL, LEFT, T, 574.7, T + 19.7);
-    negro(37.0, T + 19.0, 574.9, T + 19.7);
-    negro(36.2, T, 37.0, T + 19.7); negro(453.9, T, 454.7, T + 19.7); negro(574.2, T, 574.9, T + 19.7);
-    gris(37.0, T + 9.7, 453.9, T + 10.4); gris(454.7, T + 9.7, 574.2, T + 10.4);
-    texto('TOTAL CRÉDITOS APROBADOS', 443.4, T + 7.5, 6.1, true, 'right');
-    texto(String(res.totalCreditos).replace('.', ','), 514.85, T + 7.7, 6.8, true, 'center');
-    texto('PROMEDIO PONDERADO ACUMULADO', 443.4, T + 17.3, 6.1, true, 'right');
-    texto(fmt(res.promedio), 514.85, T + 17.5, 6.8, true, 'center');
-    negro(37.0, T + 47.9, 574.9, T + 48.6);
-    negro(36.2, T + 19.7, 37.0, T + 48.6); negro(574.2, T + 19.7, 574.9, T + 48.6);
-    texto('OBSERVACIONES:', 47.3, T + 27.1, 6.1, true);
+    /* totales y observaciones: cajas contiguas, una sola línea entre cada una. Los dos renglones de totales miden lo mismo que los de materias. */
+    var HB = 2 * pitch, TS = T + HB - 19.7;      // TS: lo que va debajo de los totales se corre lo que crecieron
+    fondo(AZUL, LEFT, T, 574.7, T + HB);
+    negro(37.0, T + HB - 0.7, 574.9, T + HB);
+    negro(36.2, T, 37.0, T + HB); negro(453.9, T, 454.7, T + HB); negro(574.2, T, 574.9, T + HB);
+    gris(37.0, T + HB / 2 - 0.35, 453.9, T + HB / 2 + 0.35); gris(454.7, T + HB / 2 - 0.35, 574.2, T + HB / 2 + 0.35);
+    texto('TOTAL CRÉDITOS APROBADOS', 443.4, T + HB / 4 + 2.6, 6.1, true, 'right');
+    texto(String(res.totalCreditos).replace('.', ','), 514.85, T + HB / 4 + 2.8, 6.8, true, 'center');
+    texto('PROMEDIO PONDERADO ACUMULADO', 443.4, T + 3 * HB / 4 + 2.6, 6.1, true, 'right');
+    texto(fmt(res.promedio), 514.85, T + 3 * HB / 4 + 2.8, 6.8, true, 'center');
+    negro(37.0, TS + 47.9, 574.9, TS + 48.6);
+    negro(36.2, TS + 19.7, 37.0, TS + 48.6); negro(574.2, TS + 19.7, 574.9, TS + 48.6);
+    texto('OBSERVACIONES:', 47.3, TS + 27.1, 6.1, true);
     (function () {                             // texto libre del jefe: hasta 3 renglones alineados después de la etiqueta
       var obs = String(e.observaciones || '').replace(/\s+/g, ' ').trim();
       if (!obs) return;
@@ -209,7 +209,7 @@
       doc.setFont('helvetica', 'normal'); doc.setFontSize(6.1);
       var ls = doc.splitTextToSize(obs, ancho);
       if (ls.length > 3) { ls = ls.slice(0, 3); var u = ls[2]; while (u.length > 1 && doc.getTextWidth(u + '…') > ancho) u = u.slice(0, -1); ls[2] = u.replace(/\s+$/, '') + '…'; }
-      ls.forEach(function (l, i) { texto(l, x0, T + 27.1 + i * 7.4, 6.1, false); });
+      ls.forEach(function (l, i) { texto(l, x0, TS + 27.1 + i * 7.4, 6.1, false); });
     })();
 
     /* firmas */
@@ -218,20 +218,20 @@
       if (f1 && f1.img) {
         if (!f1.oculta) {                       // “oculta”: la vista previa la dibuja el usuario encima, con el mouse
           var g = geometriaFirma(rol, f1.w, f1.h, f1.pos);
-          try { doc.addImage(f1.img, f1.tipo || 'PNG', g.cx - g.w / 2, T + g.top, g.w, g.h, undefined, 'FAST'); } catch (err) {}
+          try { doc.addImage(f1.img, f1.tipo || 'PNG', g.cx - g.w / 2, TS + g.top, g.w, g.h, undefined, 'FAST'); } catch (err) {}
         }
       }
       else if (!(f1 && f1.soloLinea)) {           // soloLinea: el Decano firma aparte, solo queda su línea y su cargo
         doc.setFont('helvetica', 'italic'); doc.setFontSize(7.6); doc.setTextColor(150, 150, 150);
-        doc.text('Pendiente de firma', cx, T + 87.8, { align: 'center' }); doc.setTextColor(0, 0, 0);
+        doc.text('Pendiente de firma', cx, TS + 87.8, { align: 'center' }); doc.setTextColor(0, 0, 0);
       }
-      negro(x0, T + 96.2, x1, T + 96.9);
-      texto(((f1 && f1.nombre) || '').toUpperCase(), cx, T + 103.5, 7.6, true, 'center', x1 - x0 + 20);
-      texto((f1 && f1.cargo) || '', cx, T + 112.7, 7.6, false, 'center', x1 - x0 + 40);
+      negro(x0, TS + 96.2, x1, TS + 96.9);
+      texto(((f1 && f1.nombre) || '').toUpperCase(), cx, TS + 103.5, 7.6, true, 'center', x1 - x0 + 20);
+      texto((f1 && f1.cargo) || '', cx, TS + 112.7, 7.6, false, 'center', x1 - x0 + 40);
     }
     bloqueFirma('jefe', f.jefe, 181.6, 80.9, 282.3);
     bloqueFirma('decano', f.decano, 442.1, 349.6, 534.6);
-    doc.balanceT = T;                           // la pantalla lo necesita para ubicar la firma sobre la vista previa
+    doc.balanceT = TS;                           // la pantalla lo necesita para ubicar la firma sobre la vista previa
     return doc;
   }
 
