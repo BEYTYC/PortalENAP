@@ -348,6 +348,10 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       (a.fin ? '<div style="display:flex;justify-content:flex-end"><button class="btn pri" data-act="avance-cerrar" id="avance-ok">Cerrar</button></div>' : '') +
       '</div></div></div>';
   }
+  function vGuardando() {
+    return '<div class="modal"><div class="box" role="dialog" aria-modal="true" aria-label="Guardando balance" style="width:min(380px,92vw)"><div class="hd"><b>Guardando balance</b></div>' +
+      '<div style="padding:22px 18px;display:flex;align-items:center;gap:14px;font-size:14px"><span class="spin" style="width:26px;height:26px;border-width:3px"></span><span>Guardando en OneDrive… no cierre la pantalla.</span></div></div></div>';
+  }
   function avanzar(a, hecho, actual, linea) { a.hecho = hecho; a.actual = actual; if (linea) a.lineas.push(linea); render(); return new Promise(function (ok) { setTimeout(ok, 40); }); }
 
   /* ───── flujo ───── */
@@ -492,11 +496,13 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   function guardarVolver() {
     if (!S.est) return;
     var k = claveEstado(S.est), nom = M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos);
+    S.guardandoBal = true; render();
     Promise.resolve(guardar()).then(refrescarGuardados).then(function () {
+      S.guardandoBal = false;
       S.sel[k] = true; S.est = null; S.prog = null; S.res = null; S.fs = null; S.ver = null; S.msg = null; S.formErr = null; S.formAv = null;
       S.grupo.msg = null;
       S.vista = 'inicio'; render();
-    }).catch(function (err) { S.msg = { t: 'bad', x: 'No se pudo guardar: ' + err.message }; render(); });
+    }).catch(function (err) { S.guardandoBal = false; S.msg = { t: 'bad', x: 'No se pudo guardar: ' + err.message }; render(); });
   }
   function seleccionarTodos() { S.sel = {}; S.guardados.forEach(function (g) { S.sel[g.key] = true; }); }
   function firmarTodos() { if (!S.guardados.length) return; seleccionarTodos(); firmarGrupo(); }
@@ -880,7 +886,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (S.arranque) { app.innerHTML = vTop() + '<main><div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Cargando…</div></main>'; return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
-    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '');
+    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
     if (S.vista === 'firma' && S.est) pintarPrevia();
     if (S.modal) { var q = $('#modal-q'); if (q) q.focus(); }
     if (S.dialogo) { var ok = $('#dialogo-ok'); if (ok) ok.focus(); }
