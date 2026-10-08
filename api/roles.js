@@ -35,6 +35,8 @@ const SITE_HOSTNAME = 'escuelanaval.sharepoint.com';
 const DEFAULT_SITE_PATH = 'sites/TitulacionENAP';
 const LISTA_PERMISOS = 'ENAP_Permisos_Usuarios';
 
+const CORREOS_BLOQUEADOS = ['peca@enap.edu.co'];
+
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -321,6 +323,11 @@ module.exports = async function handler(req, res) {
 
   try {
     await validarCorreoAutenticado(userAccessToken, correo);
+    // Cuentas sin acceso al Portal (mantener igual que CORREOS_BLOQUEADOS en index.html).
+    if (CORREOS_BLOQUEADOS.includes(String(correo).trim().toLowerCase())) {
+      res.status(403).json({ error: 'Cuenta sin autorización para ingresar al Portal.', bloqueado: true });
+      return;
+    }
     const appToken = await getAppAccessToken();
     const siteId = await resolveSiteId(appToken);
     const listaId = await resolveListId(appToken, siteId);

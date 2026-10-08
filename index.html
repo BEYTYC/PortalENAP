@@ -1,4 +1,5 @@
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal de Servicios Digitales</title>
 <link rel="preload" as="image" href="assets/escudo.png">
 <link rel="preload" as="image" href="assets/escudo-marca-agua.png">
@@ -410,16 +411,6 @@
     position:absolute; top:0; left:0; width:100%; height:calc(100% + 36px);
   }
 
-  /* ---------- Centro de Datos Institucional (en construcción) ---------- */
-  #viewHome{ width:100%; height:100%; display:flex; }
-  #viewHome[hidden]{ display:none; }
-  #viewHome:not([hidden]) > .wrap{ flex:1; width:100%; max-width:none; padding:0; margin:0; display:flex; }
-  .cdi-home{ position:relative; width:100%; height:100%; flex:1; overflow:hidden; background:#ECF0F6; }
-  .cdi-home .preview-tag{ z-index:3; }
-  .cdi-home__frame, .cdi-tab__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
-  .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
-  body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
-
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
     font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border);
@@ -668,6 +659,90 @@
   }
   .modo-pruebas-tab.show{display:inline-flex;}
   .modo-pruebas-tab .dot{width:7px; height:7px; border-radius:50%; background:#fca5a5; flex:none;}
+
+  /* =====================================================================
+     Adaptacion a celulares y tabletas (el Portal y sus paneles). Los
+     modulos incrustados (iframes) reciben el ancho real de esta caja, asi
+     que sus propias reglas responsive se activan solas.
+     ===================================================================== */
+  html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
+  body{ overflow-x:hidden; }
+  .registro-iframe{ min-width:0; max-width:100%; }
+
+  @media (max-width:1000px){
+    .navcats{ flex-shrink:1; flex-wrap:wrap; min-width:0; align-items:flex-start; align-content:flex-start; }
+    .navcat > .nav-btn{ height:auto; padding-top:12px; padding-bottom:12px; }
+  }
+
+  @media (max-width:860px){
+    .login-gate{ grid-template-columns:minmax(0,1fr); height:100vh; height:100dvh; }
+    .login-gate__brand, .login-gate__panel{ min-width:0; }
+    .login-gate__brand{ padding:24px 22px 22px; gap:20px; justify-content:flex-start; }
+    .login-gate__mark img{ height:50px; }
+    .login-gate__heading h1{ font-size:26px; }
+    .login-gate__heading p{ font-size:13px; margin-top:10px; }
+    .login-gate__footer{ display:none; }
+    .login-gate__panel{ padding:28px 20px 24px; flex-direction:column; align-items:center; justify-content:flex-start; }
+    .login-gate__card{ max-width:420px; width:100%; }
+  }
+
+  @media (max-width:760px){
+    header.masthead{ padding:10px 12px; gap:10px; border-bottom-width:4px; }
+    .header-logo{ width:38px; height:38px; }
+    header.masthead .titles h1{ font-size:12.5px; line-height:1.25; }
+    header.masthead .titles .ciudad{ display:none; }
+    header.masthead .right{ gap:8px; flex:none; }
+    header.masthead .sesion-usuario{ padding-left:0; border-left:none; gap:6px; }
+    header.masthead .sesion-usuario__rol{ max-width:92px; font-size:9.5px; }
+    header.masthead .sesion-usuario__btn{ font-size:0; gap:0; padding:0; width:32px; height:32px; justify-content:center; }
+    header.masthead .sesion-usuario__btn svg{ width:15px; height:15px; }
+
+    nav.topnav{ padding:0 6px; }
+    .nav-subsistema{ padding:6px 8px 8px; border-top:1px solid var(--border); }
+    .navcats{ flex:1 1 100%; flex-wrap:wrap; min-width:0; gap:0; align-items:flex-start; align-content:flex-start; }
+    .navcat{ position:static; }
+    .navcat > .nav-btn{ height:auto; padding:11px 10px; font-size:12px; }
+    .dropdown{
+      left:6px; right:6px; width:auto; min-width:0; max-width:none;
+      max-height:calc(100dvh - 160px); overflow-y:auto; -webkit-overflow-scrolling:touch;
+    }
+    .dropdown button{ padding:11px 12px; min-height:44px; font-size:13.5px; }
+    .dropdown button .label{ white-space:normal; }
+    .subitems a{ padding:10px 12px; font-size:13px; }
+
+    main{ padding:14px 12px; }
+    .hero-title{ font-size:21px; }
+    .cde-card{ margin-top:12px; padding:16px 14px; border-radius:14px; }
+    .cde-copy h2{ font-size:16.5px; }
+    .cde-cta{ width:100%; justify-content:center; padding:12px 16px; }
+    .cde-preview{ min-width:0; }
+    .watermark img{ width:80vw; }
+    #viewTitulacion .watermark img{ width:85vw; }
+
+    footer{ flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:2px; padding:7px 12px calc(7px + env(safe-area-inset-bottom)); font-size:10px; border-top-width:4px; }
+    footer .footer-glow{ display:none; }
+    footer .left, footer .right{ margin:0; text-align:center; min-width:0; }
+    footer .left b{ display:inline; font-size:10.5px; }
+    footer .right .line1{ font-size:9.5px; }
+    footer .copyright{ display:none; }
+
+    input, select, textarea{ font-size:16px !important; }
+    .toast{ bottom:calc(16px + env(safe-area-inset-bottom)); }
+  }
+
+  @media (max-width:640px){
+    .panel-app__inner{ padding:18px 14px 48px; }
+    .panel-app__header h2{ font-size:1.2rem; }
+    .panel-app__card{ padding:14px; }
+    .panel-app table{ display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; }
+    .panel-app__modal-body{ padding:22px 18px 20px; }
+    .panel-app__modal-actions{ flex-direction:column-reverse; }
+    .panel-app__modal-actions .panel-app__btn{ width:100%; justify-content:center; }
+    .sac-view__wrap{ padding:18px 14px 40px; }
+    .sac-view .panel-app__btn{ width:100%; justify-content:center; }
+    .sac-card, .sac-stat{ padding:16px; }
+    .modo-pruebas-barra{ font-size:11px; padding:8px 10px; }
+  }
 </style>
 
 <!--
@@ -1064,16 +1139,85 @@
   </div>
 </nav>
 
-<main id="main" class="main-full">
+<main id="main">
   <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
   <div id="viewHome" class="entrada-pendiente">
     <div class="wrap">
-      <!-- Centro de Datos Institucional (en construcción): la pantalla de bienvenida del
-           tablero (centro-datos/index.html?modo=inicio) se muestra aquí, escalada al ancho
-           de la tarjeta. Al elegir un módulo, el tablero avisa con postMessage
-           ("centrodatos:abrir") y el Portal abre la vista de Centro de Datos. -->
-      <section class="cdi-home" id="cdiHome">
-        <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" src="centro-datos/index.html?modo=inicio" allow="fullscreen"></iframe>
+      <div class="center">
+        <div class="eyebrow">Oficina de Estadística</div>
+        <h2 class="hero-title">Portal de Servicios Digitales</h2>
+        <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
+      </div>
+
+      <section class="cde-card">
+        <span class="preview-tag">Vista previa</span>
+        <div class="cde-deco" aria-hidden="true">
+          <svg viewBox="0 0 800 260" preserveAspectRatio="xMidYMid slice" fill="none">
+            <g font-family="'Aptos Display', 'Segoe UI', sans-serif" font-weight="600" font-variant-numeric="tabular-nums">
+              <text x="560" y="46" font-size="30" fill="#E3C767" opacity=".10">98,4%</text>
+              <text x="690" y="30" font-size="16" fill="#FFFFFF" opacity=".10">1.284</text>
+              <text x="470" y="112" font-size="42" fill="#FFFFFF" opacity=".05">312</text>
+              <text x="640" y="150" font-size="20" fill="#E3C767" opacity=".12">+96</text>
+              <text x="735" y="112" font-size="14" fill="#FFFFFF" opacity=".14">%</text>
+              <text x="500" y="205" font-size="15" fill="#FFFFFF" opacity=".10">2.026</text>
+              <text x="600" y="235" font-size="12" fill="#95AECF" opacity=".16">Σ</text>
+              <text x="45" y="235" font-size="46" fill="#FFFFFF" opacity=".035">01</text>
+            </g>
+            <g stroke="#95AECF" stroke-width="1">
+              <line x1="520" y1="60" x2="600" y2="20" opacity=".14"/>
+              <line x1="600" y1="20" x2="700" y2="55" opacity=".14"/>
+              <line x1="600" y1="20" x2="615" y2="120" opacity=".1"/>
+              <line x1="615" y1="120" x2="705" y2="160" opacity=".1"/>
+              <line x1="615" y1="120" x2="540" y2="175" opacity=".08"/>
+              <line x1="705" y1="160" x2="760" y2="205" opacity=".08"/>
+            </g>
+            <g fill="#E3C767">
+              <circle cx="520" cy="60" r="2.5" opacity=".3"/>
+              <circle cx="600" cy="20" r="3" opacity=".35"/>
+              <circle cx="700" cy="55" r="2.5" opacity=".3"/>
+              <circle cx="615" cy="120" r="2.5" opacity=".28"/>
+              <circle cx="705" cy="160" r="2.5" opacity=".26"/>
+              <circle cx="540" cy="175" r="2" opacity=".22"/>
+              <circle cx="760" cy="205" r="2" opacity=".2"/>
+            </g>
+            <g stroke="#FFFFFF" opacity=".06">
+              <line x1="0" y1="45" x2="800" y2="45"/>
+              <line x1="0" y1="130" x2="800" y2="130"/>
+              <line x1="0" y1="215" x2="800" y2="215"/>
+            </g>
+          </svg>
+        </div>
+        <div class="cde-inner">
+          <div class="cde-copy">
+            <span class="eyebrow2">Estadística · Panel institucional</span>
+            <h2>Centro de Datos ENAP</h2>
+            <p>Tablero con los indicadores oficiales de la Escuela Naval de Cadetes: cadetes activos, cursos registrados, graduados por período y avance de solicitudes, actualizados desde la Base de Datos institucional.</p>
+            <button class="cde-cta" id="cdeBtn" type="button">
+              Ingresar al Centro de Datos ENAP
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 12h14m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="cde-preview">
+            <div class="kpis">
+              <div class="kpi"><div class="n">1.284</div><div class="l">Cadetes activos</div></div>
+              <div class="kpi"><div class="n">96</div><div class="l">Cursos este año</div></div>
+              <div class="kpi"><div class="n">312</div><div class="l">Graduados 2026</div></div>
+              <div class="kpi"><div class="n">98,4%</div><div class="l">Solicitudes al día</div></div>
+            </div>
+            <div class="cde-chart">
+              <svg viewBox="0 0 300 90" preserveAspectRatio="none">
+                <polyline points="0,70 40,58 80,62 120,40 160,46 200,24 240,30 300,10" fill="none" stroke="#E3C767" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <polygon points="0,70 40,58 80,62 120,40 160,46 200,24 240,30 300,10 300,90 0,90" fill="url(#g1)" opacity="0.35"/>
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#E3C767"/>
+                    <stop offset="1" stop-color="#E3C767" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+              </svg>
+            </div>
+          </div>
+        </div>
       </section>
     </div>
   </div>
@@ -1119,13 +1263,22 @@
   </div>
 
   <div id="viewCDE" hidden>
-    <!-- Centro de Datos Institucional (en construcción): tablero propio incrustado
-         (centro-datos/index.html?modo=tablero). Mide 1440x900 y se escala para caber
-         en el área disponible (ver ajustarCDI). El tablero anterior de Power BI
-         "Publicar en la Web" se retiró de aquí; su dirección quedó en el repositorio
-         (historial de git) por si hay que volver a ponerlo. -->
-    <div class="cdi-tab" id="cdiTab">
-      <iframe id="cdeFrame" class="cdi-tab__frame" title="Centro de Datos Institucional (en construcción)" allow="fullscreen" allowfullscreen></iframe>
+    <!-- Centro de Datos ENAP: tablero de Power BI publicado ("app.powerbi.com/
+         view?r=..."), embebido igual que los demas modulos -- sin borde ni
+         fondo propio del Portal (misma clase "registro-iframe"). El fondo
+         que se ve adentro ya lo define el propio tablero de Power BI.
+         ".cde-frame-wrap" recorta la franja inferior fija que Power BI
+         agrega siempre a este tipo de tablero (ver comentario junto a
+         ".cde-frame-wrap" en el CSS). "navContentPaneEnabled=false" en la
+         URL apaga ademas el paginador interno de paginas del tablero. -->
+    <div class="cde-frame-wrap">
+      <iframe
+        id="cdeFrame"
+        class="registro-iframe cde-frame"
+        title="Centro de Datos ENAP"
+        src="https://app.powerbi.com/view?r=eyJrIjoiNDk0N2Y5NDgtN2JmOC00NGYwLThjM2MtY2IwZTJjYWFhMDQyIiwidCI6ImY1M2Y2NmIzLWVhMjMtNDYxYS1iNmZmLTAxNjU0MDQyYTc5OSIsImMiOjR9&navContentPaneEnabled=false"
+        allowfullscreen
+      ></iframe>
     </div>
   </div>
 
@@ -1467,10 +1620,50 @@
   // "USUARIO" y sin los paneles especiales, en vez de quedarse afuera.
   const DOMINIO_INSTITUCIONAL = 'enap.edu.co';
 
+  // Cuentas institucionales SIN acceso al Portal. Todas las demas cuentas
+  // @enap.edu.co si entran (con rol "USUARIO" si no tienen uno especial).
+  // La misma lista esta en api/roles.js; para bloquear a alguien mas, agregue
+  // su correo (en minusculas) en ambos sitios.
+  // ---------------------------------------------------------------
+  // ACCESO SIN LOGIN DE MICROSOFT -- TEMPORAL.
+  // Con "true", el Portal abre directo, sin pedir cuenta de Microsoft, como
+  // un usuario basico (rol USUARIO, sin panel de administracion). Los
+  // modulos que necesitan la cuenta de Microsoft (Solicitud de Grado,
+  // Concesiones Especiales, administracion y SAC) no podran identificar a
+  // nadie. Para volver al login normal, cambie a "false" y vuelva a subir
+  // el archivo.
+  // ---------------------------------------------------------------
+  const LOGIN_MICROSOFT_DESACTIVADO = true;
+  function entrarSinLogin() {
+    sesionEsSimulada = true;
+    const sesion = {
+      perfil: { mail: '', userPrincipalName: '', displayName: 'Acceso temporal' },
+      roles: ['USUARIO'],
+    };
+    window.PortalENAP.sesion = sesion;
+    ocultarGate();
+    mostrarSesionUsuario(sesion);
+    mostrarVistasSegunSesion(sesion);
+    const salir = document.getElementById('logoutBtn');
+    if (salir) salir.hidden = true;
+  }
+
+  const CORREOS_BLOQUEADOS = ['peca@enap.edu.co'];
+  function correoBloqueado(correo) {
+    return CORREOS_BLOQUEADOS.indexOf(String(correo || '').trim().toLowerCase()) !== -1;
+  }
+  function bloquearCuenta(correo) {
+    // Se borra la sesion de Microsoft guardada para que ningun modulo
+    // incrustado (p. ej. Solicitud de Grado) pueda pedir un token con ella.
+    limpiarCacheMsalLocal();
+    return new Error(`La cuenta "${correo}" no tiene autorización para ingresar al Portal Estadístico ENAP. Si cree que es un error, comuníquese con la Oficina de Estadística.`);
+  }
+
   async function obtenerRolesUsuario(cuenta) {
     const perfil = await obtenerPerfil(cuenta);
     const correo = perfil.mail || perfil.userPrincipalName;
     if (!correo) throw new Error('El usuario autenticado no tiene un correo asociado en su perfil de Microsoft.');
+    if (correoBloqueado(correo) || correoBloqueado(perfil.userPrincipalName)) throw bloquearCuenta(correo);
     if (!correo.trim().toLowerCase().endsWith('@' + DOMINIO_INSTITUCIONAL)) {
       throw new Error(`El Portal es exclusivo para cuentas institucionales de ENAP (@${DOMINIO_INSTITUCIONAL}). La cuenta "${correo}" no pertenece a ese dominio.`);
     }
@@ -1488,9 +1681,11 @@
         rolesEspeciales = data.roles || [];
       } else {
         const detalle = await resp.json().catch(() => ({}));
+        if (resp.status === 403 && detalle && detalle.bloqueado) throw bloquearCuenta(correo);
         console.warn('[PortalENAP] No se pudieron consultar roles especiales en SharePoint -- se concede acceso basico igual.', resp.status, detalle);
       }
     } catch (error) {
+      if (correoBloqueado(correo)) throw error;
       console.warn('[PortalENAP] Error consultando roles especiales en SharePoint -- se concede acceso basico igual.', error);
     }
 
@@ -2383,6 +2578,7 @@
       actualizarBadgeSolicitudes(e.target.value);
     });
 
+    if (LOGIN_MICROSOFT_DESACTIVADO) { entrarSinLogin(); return; }
     activarModoPruebas();
     procesarSesion().then(() => {
       // Si venimos de un cierre de sesion (ver PARAM_RELOGIN en
@@ -2609,19 +2805,9 @@
   }
   document.addEventListener('click', closeAllNav);
 
-  // ---- Centro de Datos Institucional (en construcción) ----
-  // El tablero mide 1440x900; se escala para caber (inicio: a lo ancho de la
-  // tarjeta; vista completa: al área disponible, centrado).
-  function ajustarCDI() {}
-  window.addEventListener('resize', ajustarCDI);
-  window.addEventListener('load', ajustarCDI);
-  function cargarCDI(tab) {
-    const f = document.getElementById('cdeFrame');
-    const t = ['general','graduados','retiros','concesiones','reconoc','formacion','programas'].indexOf(tab) >= 0 ? tab : 'general';
-    const url = 'centro-datos/index.html?modo=tablero&tab=' + t;
-    if (f.dataset.url !== url) { f.dataset.url = url; f.src = url; }
-    ajustarCDI();
-  }
+  document.getElementById('cdeBtn').addEventListener('click', () => {
+    abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
+  });
 
   let vistaActiva = 'viewHome';
 
@@ -2631,18 +2817,13 @@
     document.getElementById('navSubsistema').classList.add('show');
     document.getElementById('main').classList.add('main-full');
     vistaActiva = viewId;
-    if (viewId === 'viewCDE') cargarCDI(window.__cdiTab || 'general');
-    window.__cdiTab = null;
-    ajustarCDI();
   }
 
   function volverAlPortal() {
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
-    document.getElementById('main').classList.add('main-full');
-    document.body.classList.remove('cdi-fs');
+    document.getElementById('main').classList.remove('main-full');
     vistaActiva = 'viewHome';
-    setTimeout(ajustarCDI, 50);
   }
 
   // Los módulos incrustados (Registro y los que sigan) llaman a
@@ -2651,12 +2832,6 @@
   // este mensaje es el respaldo.
   window.addEventListener('message', (event) => {
     if (event.data === 'volverAlInicio') volverAlPortal();
-    // Centro de Datos Institucional (mismo origen): abrir un módulo o volver al inicio.
-    if (event.origin === window.location.origin && event.data && typeof event.data === 'object') {
-      if (event.data.type === 'centrodatos:pantalla-completa') document.body.classList.toggle('cdi-fs', !!event.data.fs);
-      else if (event.data.type === 'centrodatos:abrir') { window.__cdiTab = event.data.tab; abrirSubsistema('viewCDE', 'Centro de Datos ENAP'); }
-      else if (event.data.type === 'centrodatos:inicio') volverAlPortal();
-    }
   });
 
   // Concesiones Especiales: la primera vez que se abre se carga el iframe

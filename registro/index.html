@@ -12,6 +12,17 @@
     <script type="module" crossorigin src="./assets/main-CLjGEtH-.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill-BIgaVKhB.js">
     <link rel="stylesheet" crossorigin href="./assets/main-Dh21UtkA.css">
+    <style>
+      /* Celulares: la barra de botones (descargas, reiniciar, ajustes, inicio)
+         es fija arriba a la derecha; se deja un espacio para que no tape el
+         contenido. */
+      @media (max-width: 640px) {
+        #root > .isolate { padding-top: 54px; }
+      }
+      @media (max-width: 360px) {
+        #root > .isolate { padding-top: 88px; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
