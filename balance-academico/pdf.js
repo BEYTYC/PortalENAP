@@ -226,7 +226,7 @@
         doc.text('Pendiente de firma', cx, TS + 87.8, { align: 'center' }); doc.setTextColor(0, 0, 0);
       }
       negro(x0, TS + 96.2, x1, TS + 96.9);
-      texto(((f1 && f1.nombre) || '').toUpperCase(), cx, TS + 103.5, 7.6, true, 'center', x1 - x0 + 20);
+      texto(((f1 && f1.nombre) || '').toUpperCase(), cx, TS + 104.5, 7.6, true, 'center', x1 - x0 + 20);
       texto((f1 && f1.cargo) || '', cx, TS + 112.7, 7.6, false, 'center', x1 - x0 + 40);
       if (f1 && f1.img && f1.sello) {            // constancia de firma digital (solo el firmante que firma en el sistema)
         doc.setFont('helvetica', 'normal'); doc.setFontSize(6.1); doc.setTextColor(150, 150, 150);   // igual que “Pendiente de firma”
