@@ -605,9 +605,13 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       central.push(new Uint8Array(cen), nb);
       desde += cab.length + nb.length + datos.length;
     }
-    entrada(carpeta + '/', new Uint8Array(0));
-    archivos.forEach(function (a) { entrada(carpeta + '/' + a.nombre, a.datos); });
-    var tamC = central.reduce(function (t, x) { return t + x.length; }, 0), n = archivos.length + 1;
+    var hechasC = {};
+    function carpetas(ruta) {                   // crea las carpetas de la ruta (la principal y las de cada estudiante)
+      var partes = ruta.split('/'), acc = '';
+      for (var k = 0; k < partes.length - 1; k++) { acc += partes[k] + '/'; if (!hechasC[acc]) { hechasC[acc] = 1; entrada(acc, new Uint8Array(0)); } }
+    }
+    archivos.forEach(function (a) { var ruta = carpeta + '/' + a.nombre; carpetas(ruta); entrada(ruta, a.datos); });
+    var tamC = central.reduce(function (t, x) { return t + x.length; }, 0), n = central.length / 2;
     var fin = [0x50, 0x4B, 5, 6].concat(u16(0), u16(0), u16(n), u16(n), u32(tamC), u32(desde), u16(0));
     return new Blob(partes.concat(central, [new Uint8Array(fin)]), { type: 'application/zip' });
   }
@@ -629,11 +633,10 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     M.registrar(S.est, quien(), 'descargó el certificado'); guardar();
   }
 
-  /* Descarga en grupo: PDF (o certificados) de los seleccionados dentro de un ZIP con una carpeta. */
-  function descargarEnZip(tipo) {
+  /* Descarga en grupo: un ZIP con una carpeta; dentro, una carpeta por estudiante con su balance firmado y su certificado. */
+  function descargarEnZip() {
     var claves = clavesSel(); if (!claves.length) return;
-    var cert = tipo === 'certificados';
-    var a = S.avance = { titulo: cert ? 'Generando certificados' : 'Descargando balances firmados', hecho: 0, total: claves.length, actual: '', lineas: [], fin: false };
+    var a = S.avance = { titulo: 'Descargando balances y certificados', hecho: 0, total: claves.length, actual: '', lineas: [], fin: false };
     S.grupo.msg = null; S.grupo.trabajando = 'Armando el ZIP…';
     var hechos = 0, omitidos = [], usados = {}, archivos = [];
     avanzar(a, 0, 'Preparando…').then(function () {
@@ -644,25 +647,27 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
             return avanzar(a, n, nom).then(function () { return evaluar(est); }).then(function (x) {
               if (!x.ok) { omitidos.push(nom + ': incompleto'); a.lineas.push({ ok: false, t: nom + ': incompleto, se omitió' }); return; }
               if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); a.lineas.push({ ok: false, t: nom + ': falta firmarlo, se omitió' }); return; }
-              if (!cert && !S.imgs.jefe) { omitidos.push(nom + ': falta la imagen de la firma'); a.lineas.push({ ok: false, t: nom + ': falta la imagen de la firma' }); return; }
-              var doc = cert ? certificadoDe(est, x.prog, x.res) : pdfDe(est, x.prog, x.res, x.fs, false);
-              archivos.push({ datos: new Uint8Array(doc.output('arraybuffer')), nombre: nombreArchivo(est, usados, cert ? 'CERTIFICADO ' : '') });
-              M.registrar(est, quien(), cert ? 'descargó el certificado' : 'descargó el PDF', 'en grupo'); hechos++;
-              a.lineas.push({ ok: true, t: nom + (cert ? ': certificado listo' : ': PDF listo') });
+              if (!S.imgs.jefe) { omitidos.push(nom + ': falta la imagen de la firma'); a.lineas.push({ ok: false, t: nom + ': falta la imagen de la firma' }); return; }
+              var sub = nombreArchivo(est, usados).replace(/\.pdf$/, '');
+              var bal = pdfDe(est, x.prog, x.res, x.fs, false), cer = certificadoDe(est, x.prog, x.res);
+              archivos.push({ datos: new Uint8Array(bal.output('arraybuffer')), nombre: sub + '/' + sub + '.pdf' });
+              archivos.push({ datos: new Uint8Array(cer.output('arraybuffer')), nombre: sub + '/CERTIFICADO ' + sub + '.pdf' });
+              M.registrar(est, quien(), 'descargó el balance y el certificado', 'en grupo'); hechos++;
+              a.lineas.push({ ok: true, t: nom + ': balance y certificado listos' });
               return Backend.guardar(est);
             });
           }).then(function () { return avanzar(a, n + 1, ''); });
         });
       }, Promise.resolve());
     }).then(function () {
-      var carpeta = (cert ? 'Certificados ' : 'Balances firmados ') + fechaISO();
+      var carpeta = 'Balances firmados ' + fechaISO();
       if (archivos.length) bajar(crearZip(carpeta, archivos), carpeta + '.zip');
       S.grupo.trabajando = false; a.fin = true;
-      S.grupo.msg = { t: hechos ? 'ok' : 'warn', x: (hechos ? 'ZIP descargado con ' + hechos + (hechos === 1 ? ' archivo' : ' archivos') + ' en la carpeta “' + carpeta + '”. ' : 'No se descargó nada. ') + (omitidos.length ? 'Omitidos: ' + omitidos.join(' · ') + '.' : '') };
+      S.grupo.msg = { t: hechos ? 'ok' : 'warn', x: (hechos ? 'ZIP descargado con ' + hechos + (hechos === 1 ? ' estudiante' : ' estudiantes') + ' (balance y certificado de cada uno). ' : 'No se descargó nada. ') + (omitidos.length ? 'Omitidos: ' + omitidos.join(' · ') + '.' : '') };
       render();
     }).catch(function (err) { S.grupo.trabajando = false; S.avance = null; S.grupo.msg = { t: 'bad', x: 'No se pudo armar el ZIP: ' + err.message }; render(); });
   }
-  function descargarGrupo() { descargarEnZip('balances'); }
+  function descargarGrupo() { descargarEnZip(); }
 
   /* ───── vistas ───── */
   var FASES = {
@@ -695,9 +700,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   function panelFirmaGrupo(n) {
     var d = datosFirmante(), img = S.imgs.jefe, ocupado = S.grupo.trabajando;
     return '<div class="grupo">' + bloqueFirmantes(false) +
-      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="firmar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>' + (ocupado || 'Firmar seleccionados (' + n + ')') + '</button>' +
-      '<button class="btn" data-act="descargar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>Descargar firmados en ZIP (' + n + ')</button>' +
-      '<button class="btn" data-act="certificados-grupo"' + (n && !ocupado ? '' : ' disabled') + '>Certificados en ZIP (' + n + ')</button></div></div>';
+      '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="descargar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>Descargar en ZIP (' + n + ')</button></div></div>';
   }
 
   function vInicio() {
@@ -713,13 +716,13 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando || S.creando ? ' disabled' : '') + '>' + (S.creando ? 'Creando balances…' : S.cargando ? 'Leyendo pénsum…' : 'Crear balance') + '</button>' +
       '<span style="color:var(--mute);font-size:12px">Por ahora: Especialización en Gestión Logística y Maestría en Gestión Logística.</span></div>' +
       '</div></div>' +
-      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span><button class="btn pri sm" style="margin-left:auto" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' +
+      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span><button class="btn pri" style="margin-left:auto;padding:11px 24px;font-size:15px;font-weight:700" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' +
       (S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '" style="margin:10px 14px 0">' + h(S.grupo.msg.x) + '</div>' : '') +
       (guard.length ? guard.map(function (g, i) {
         var m = PR.porId(g.programaId);
         var bor = S.borrando && S.borrando[g.key];
         return '<div class="gd' + (bor ? ' borrando' : '') + '"><input type="checkbox" class="chk" data-sel="' + h(g.key) + '" aria-label="Seleccionar"' + (S.sel[g.key] ? ' checked' : '') + '><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + (bor ? '<span style="display:flex;gap:6px;align-items:center;font-size:12.5px"><span class="spin"></span>Eliminando…</span>' : chipLista(g)) +
-          '<button class="btn sm" data-act="abrir-g" data-i="' + i + '">Abrir</button><button class="btn sm" data-act="abrir-g" data-vista-a="revision" data-i="' + i + '">Editar</button><button class="btn sm" data-act="borrar-g" data-i="' + i + '" aria-label="Eliminar">✕</button></div>';
+          '<button class="btn sm" data-act="abrir-g" data-i="' + i + '">Visualizar</button><button class="btn sm" data-act="abrir-g" data-vista-a="revision" data-i="' + i + '">Editar</button><button class="btn sm" data-act="borrar-g" data-i="' + i + '" aria-label="Eliminar">✕</button></div>';
       }).join('') : '<div class="vacío">Aún no hay balances. Pegue un historial del SMA y pulse “Crear balance”.</div>') +
       '<div style="flex:1"></div>' + panelFirmaGrupo(nSel) +
       '</div></div></div>';
@@ -1017,7 +1020,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     else if (act === 'avance-cerrar') { S.avance = null; render(); }
     else if (act === 'firmar-grupo') firmarGrupo();
     else if (act === 'descargar-grupo') descargarGrupo();
-    else if (act === 'certificados-grupo') descargarEnZip('certificados');
     else if (act === 'certificado') descargarCertificado();
     else if (act === 'pdf') descargarPDF();
     else if (act === 'dec-editar') { S.editDecano = true; render(); var i = $('#dec-nombre'); if (i) { i.focus(); i.select(); } }
