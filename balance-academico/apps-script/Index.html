@@ -1295,7 +1295,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, G = 5, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
+  var LEFT = 36.6, RIGHT = 574.9, G = 9, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
   var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
@@ -1519,7 +1519,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
      Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
-  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 46, FIRMA_ARRIBA = 62.8;   // la cola de la “g” baja hasta el nombre
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 40, FIRMA_ARRIBA = 70.8;   // la cola de la “g” baja hasta el nombre
   function geometriaFirma(rol, w0, h0, pos) {
     var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
     if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
@@ -1692,6 +1692,19 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       '<div style="padding:16px 18px;white-space:pre-line">' + h(d.texto) + '</div><div style="padding:0 18px 16px;display:flex;gap:8px;justify-content:flex-end">' +
       (d.cancelar ? '<button class="btn" data-act="dialogo-no">' + h(d.cancelar) + '</button>' : '') + '<button class="btn pri" data-act="dialogo-si" id="dialogo-ok">' + h(d.ok) + '</button></div></div></div>';
   }
+
+  /* Cuadro con barra de avance para firmar o descargar en grupo. */
+  function vAvance() {
+    var a = S.avance, pct = a.total ? Math.round(a.hecho * 100 / a.total) : 0;
+    return '<div class="modal"><div class="box" role="dialog" aria-modal="true" aria-label="' + h(a.titulo) + '" style="width:min(520px,94vw)"><div class="hd"><b>' + h(a.titulo) + '</b></div>' +
+      '<div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:13px"><span>' + (a.fin ? 'Terminado' : h(a.actual || 'Preparando…')) + '</span><b>' + a.hecho + ' de ' + a.total + ' · ' + pct + '%</b></div>' +
+      '<div style="height:12px;border-radius:99px;background:var(--line2);overflow:hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + pct + '"><div style="height:100%;width:' + pct + '%;background:' + (a.fin ? 'var(--ok,#1F7A4D)' : 'var(--gold,#C9A227)') + ';transition:width .25s"></div></div>' +
+      '<div style="max-height:220px;overflow:auto;font-size:12.5px;display:flex;flex-direction:column;gap:3px">' + a.lineas.map(function (l) { return '<div style="display:flex;gap:6px"><span style="color:' + (l.ok ? '#1F7A4D' : '#B45309') + ';font-weight:700">' + (l.ok ? '✓' : '!') + '</span><span>' + h(l.t) + '</span></div>'; }).join('') + '</div>' +
+      (a.fin ? '<div style="display:flex;justify-content:flex-end"><button class="btn pri" data-act="avance-cerrar" id="avance-ok">Cerrar</button></div>' : '') +
+      '</div></div></div>';
+  }
+  function avanzar(a, hecho, actual, linea) { a.hecho = hecho; a.actual = actual; if (linea) a.lineas.push(linea); render(); return new Promise(function (ok) { setTimeout(ok, 40); }); }
 
   /* ───── flujo ───── */
   function recalcular() {
@@ -1876,53 +1889,59 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function grupoOcupado(msg) { S.grupo.trabajando = msg || false; render(); }
   function firmarGrupo() {
     var claves = clavesSel(); if (!claves.length) return;
-    if (!S.imgs.jefe) { S.grupo.msg = { t: 'bad', x: 'Cargue la imagen de su firma.' }; render(); return; }
-    if (!datosFirmante().nombre.trim()) { S.grupo.msg = { t: 'bad', x: 'Escriba su nombre para que salga bajo la firma.' }; render(); return; }
-    guardarFormFirma(); S.grupo.msg = null; grupoOcupado('Firmando…');
+    var a = S.avance = { titulo: 'Firmando balances', hecho: 0, total: claves.length, actual: '', lineas: [], fin: false };
+    S.grupo.msg = null; S.grupo.trabajando = 'Firmando…';
     var firmados = 0, omitidos = [];
-    claves.reduce(function (p, key) {
-      return p.then(function () {
-        return cargarEstado(key).then(function (est) {
-          var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
-          return evaluar(est).then(function (x) {
-            if (!x.ok) { omitidos.push(nom + ': el balance está incompleto'); return Backend.guardar(est); }
-            if (x.fs.jefe) { omitidos.push(nom + ': ya estaba firmado'); return; }
-            sellar(est, x.fs); M.registrar(est, quien(), 'firmó el balance', 'firma en grupo'); firmados++;
-            if (S.est && claveEstado(S.est) === key) { recalcular(); }
-            return Backend.guardar(est);
-          });
+    avanzar(a, 0, 'Preparando…').then(function () {
+      return claves.reduce(function (p, key, n) {
+        return p.then(function () {
+          return cargarEstado(key).then(function (est) {
+            var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
+            return avanzar(a, n, nom).then(function () { return evaluar(est); }).then(function (x) {
+              if (!x.ok) { omitidos.push(nom + ': el balance está incompleto'); a.lineas.push({ ok: false, t: nom + ': incompleto, no se firmó' }); return Backend.guardar(est); }
+              if (x.fs.jefe) { omitidos.push(nom + ': ya estaba firmado'); a.lineas.push({ ok: true, t: nom + ': ya estaba firmado' }); return; }
+              sellar(est, x.fs); M.registrar(est, quien(), 'firmó el balance', 'firma en grupo'); firmados++;
+              a.lineas.push({ ok: true, t: nom + ': firmado' });
+              if (S.est && claveEstado(S.est) === key) { recalcular(); }
+              return Backend.guardar(est);
+            });
+          }).then(function () { return avanzar(a, n + 1, ''); });
         });
-      });
-    }, Promise.resolve()).then(refrescarGuardados).then(function () {
-      S.grupo.trabajando = false;
+      }, Promise.resolve());
+    }).then(refrescarGuardados).then(function () {
+      S.grupo.trabajando = false; a.fin = true;
       S.grupo.msg = { t: firmados ? 'ok' : 'warn', x: (firmados ? firmados + (firmados === 1 ? ' balance firmado' : ' balances firmados') + '. ' : 'No se firmó ningún balance. ') + (omitidos.length ? 'Omitidos: ' + omitidos.join(' · ') + '.' : 'Ya puede descargarlos.') };
       render();
-    }).catch(function (err) { S.grupo.trabajando = false; S.grupo.msg = { t: 'bad', x: 'No se pudo firmar en grupo: ' + err.message }; render(); });
+    }).catch(function (err) { S.grupo.trabajando = false; S.avance = null; S.grupo.msg = { t: 'bad', x: 'No se pudo firmar en grupo: ' + err.message }; render(); });
   }
   function descargarGrupo() {
     var claves = clavesSel(); if (!claves.length) return;
-    S.grupo.msg = null; grupoOcupado('Armando los PDF…');
+    var a = S.avance = { titulo: 'Descargando PDF', hecho: 0, total: claves.length, actual: '', lineas: [], fin: false };
+    S.grupo.msg = null; S.grupo.trabajando = 'Armando los PDF…';
     var hechos = 0, omitidos = [], usados = {}, archivos = [];
-    claves.reduce(function (p, key) {
-      return p.then(function () {
-        return cargarEstado(key).then(function (est) {
-          var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
-          return evaluar(est).then(function (x) {
-            if (!x.ok) { omitidos.push(nom + ': incompleto'); return; }
-            if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); return; }
-            if (x.fs.jefe && !S.imgs.jefe) { omitidos.push(nom + ': falta cargar la imagen de su firma'); return; }
-            archivos.push({ blob: pdfDe(est, x.prog, x.res, x.fs, false).output('blob'), nombre: nombreArchivo(est, usados) });
-            M.registrar(est, quien(), 'descargó el PDF', x.fs.jefe ? 'firmado, en grupo' : 'sin firma, en grupo'); hechos++;
-            return Backend.guardar(est);
-          });
+    avanzar(a, 0, 'Preparando…').then(function () {
+      return claves.reduce(function (p, key, n) {
+        return p.then(function () {
+          return cargarEstado(key).then(function (est) {
+            var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
+            return avanzar(a, n, nom).then(function () { return evaluar(est); }).then(function (x) {
+              if (!x.ok) { omitidos.push(nom + ': incompleto'); a.lineas.push({ ok: false, t: nom + ': incompleto, se omitió' }); return; }
+              if (!x.fs.jefe) { omitidos.push(nom + ': falta firmarlo'); a.lineas.push({ ok: false, t: nom + ': falta firmarlo, se omitió' }); return; }
+              if (!S.imgs.jefe) { omitidos.push(nom + ': falta la imagen de la firma'); a.lineas.push({ ok: false, t: nom + ': falta la imagen de la firma' }); return; }
+              archivos.push({ blob: pdfDe(est, x.prog, x.res, x.fs, false).output('blob'), nombre: nombreArchivo(est, usados) });
+              M.registrar(est, quien(), 'descargó el PDF', 'firmado, en grupo'); hechos++;
+              a.lineas.push({ ok: true, t: nom + ': PDF listo' });
+              return Backend.guardar(est);
+            });
+          }).then(function () { return avanzar(a, n + 1, ''); });
         });
-      });
-    }, Promise.resolve()).then(function () {
-      archivos.forEach(function (a, i) { setTimeout(function () { bajar(a.blob, a.nombre); }, i * 700); });
-      S.grupo.trabajando = false;
+      }, Promise.resolve());
+    }).then(function () {
+      archivos.forEach(function (f, i) { setTimeout(function () { bajar(f.blob, f.nombre); }, i * 700); });
+      S.grupo.trabajando = false; a.fin = true;
       S.grupo.msg = { t: hechos ? 'ok' : 'warn', x: (hechos ? hechos + (hechos === 1 ? ' PDF descargado. ' : ' PDF descargados. ') + (hechos > 1 ? 'Si el navegador pregunta, permita las descargas múltiples. ' : '') : 'No se descargó ningún PDF. ') + (omitidos.length ? 'Omitidos: ' + omitidos.join(' · ') + '.' : '') };
       render();
-    }).catch(function (err) { S.grupo.trabajando = false; S.grupo.msg = { t: 'bad', x: 'No se pudieron armar los PDF: ' + err.message }; render(); });
+    }).catch(function (err) { S.grupo.trabajando = false; S.avance = null; S.grupo.msg = { t: 'bad', x: 'No se pudieron armar los PDF: ' + err.message }; render(); });
   }
 
   /* ───── vistas ───── */
@@ -2095,7 +2114,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (S.arranque) { app.innerHTML = vTop() + '<main><div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Cargando…</div></main>'; return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
-    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '');
+    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '');
     if (S.vista === 'firma' && S.est) pintarPrevia();
     if (S.modal) { var q = $('#modal-q'); if (q) q.focus(); }
     if (S.dialogo) { var ok = $('#dialogo-ok'); if (ok) ok.focus(); }
@@ -2257,6 +2276,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       });
     }
     else if (act === 'firmar') firmar();
+    else if (act === 'avance-cerrar') { S.avance = null; render(); }
     else if (act === 'firmar-grupo') firmarGrupo();
     else if (act === 'descargar-grupo') descargarGrupo();
     else if (act === 'pdf') descargarPDF();

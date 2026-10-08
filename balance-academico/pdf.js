@@ -9,7 +9,7 @@
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, G = 5, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
+  var LEFT = 36.6, RIGHT = 574.9, G = 9, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
   var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
@@ -233,7 +233,7 @@
 
   /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
      Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
-  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 46, FIRMA_ARRIBA = 62.8;   // la cola de la “g” baja hasta el nombre
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 40, FIRMA_ARRIBA = 70.8;   // la cola de la “g” baja hasta el nombre
   function geometriaFirma(rol, w0, h0, pos) {
     var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
     if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
