@@ -88,7 +88,13 @@ function graph_(metodo, ruta, cuerpo, token, opciones) {
     o.payload = typeof cuerpo === 'string' ? cuerpo : JSON.stringify(cuerpo);
     o.contentType = opciones.tipo || 'application/json';
   }
-  var r = UrlFetchApp.fetch(GRAPH + ruta, o), c = r.getResponseCode();
+  var r, c, intento = 0;
+  while (true) {                                 // reintenta fallas de red pasajeras (“Dirección no disponible”) y 429/5xx
+    try { r = UrlFetchApp.fetch(GRAPH + ruta, o); c = r.getResponseCode(); }
+    catch (err) { if (++intento >= 5) throw err; Utilities.sleep(700 * intento); continue; }
+    if ((c === 429 || c >= 500) && ++intento < 5) { Utilities.sleep(900 * intento); continue; }
+    break;
+  }
   if (opciones.crudo && c < 300) return r;
   if (c === 404 && opciones.noExiste) return null;
   if (c >= 300) throw new Error('OneDrive respondió ' + c + ': ' + String(r.getContentText()).slice(0, 180));

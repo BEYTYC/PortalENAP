@@ -631,7 +631,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   /* ───── en grupo: varios balances con una sola firma ───── */
   function clavesSel() { return S.guardados.filter(function (g) { return S.sel[g.key]; }).map(function (g) { return g.key; }); }
-  function cargarEstado(key) { return S.est && claveEstado(S.est) === key ? Promise.resolve(S.est) : Backend.cargar(key); }
+  function cargarEstado(key) { return S.est && claveEstado(S.est) === key ? Promise.resolve(S.est) : Backend.cargar(key).catch(function () { return Backend.cargar(key); }); }   // un reintento si falla la red
   function grupoOcupado(msg) { S.grupo.trabajando = msg || false; render(); }
   function firmarGrupo() {
     var claves = clavesSel(); if (!claves.length) return;
