@@ -16,11 +16,12 @@ def js(nombre):
     return '<script>\n' + t + '\n</script>'
 
 def uri(nombre):
-    return 'data:image/png;base64,' + base64.b64encode((AQUI / 'assets' / nombre).read_bytes()).decode()
+    mime = 'jpeg' if nombre.endswith('.jpg') else 'png'
+    return 'data:image/' + mime + ';base64,' + base64.b64encode((AQUI / 'assets' / nombre).read_bytes()).decode()
 
-MODULOS = '\n'.join(js(n) for n in ('motor.js', 'programas.js', 'lector-excel.js', 'pdf.js'))
+MODULOS = '\n'.join(js(n) for n in ('motor.js', 'programas.js', 'lector-excel.js', 'pdf.js', 'certificado.js'))
 ENTORNO = ('<script>window.__GAS = true; window.__PARAMS = <?!= params ?>;\n'
-           'window.__ASSETS = {logo: "%s", marca: "%s", firma: "%s"};</script>') % (uri('logo-armada.png'), uri('marca-agua.png'), uri('firma-olga.png'))
+           'window.__ASSETS = {logo: "%s", marca: "%s", firma: "%s", escudoC: "%s", marcaC: "%s", firmaC: "%s"};</script>') % (uri('logo-armada.png'), uri('marca-agua.png'), uri('firma-olga.png'), uri('escudo-cert.png'), uri('marca-cert.jpg'), uri('firma-cert.png'))
 
 def bloque(nombre, nuevo):
     global html

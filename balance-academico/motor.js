@@ -181,6 +181,7 @@
       ediciones: {},       // idFila -> {cod, nombre}  (solo código y nombre cursado, nunca notas)
       vinculos: {},        // idFila -> key de registro SMA (equivalencia aplicada por el jefe)
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
+      requisitos: { pago: false, cumple: false },   // el jefe confirma: pagó el balance previo / cumplió los requisitos del pénsum para graduarse
       observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
       firmas: { jefe: null },
@@ -199,8 +200,19 @@
     return hash(JSON.stringify({
       p: e.programaId, s: e.estudiante, t: e.textos.map(function (x) { return hash(x); }),
       d: e.ediciones, v: e.vinculos, o: e.optativas,
+      q: (e.requisitos && (e.requisitos.pago || e.requisitos.cumple)) ? e.requisitos : undefined,
       b: e.observaciones || undefined      // vacío no cambia la huella: los balances anteriores siguen válidos
     }));
+  }
+
+  var ETQ_REQ = { pago: 'el pago del balance previo', cumple: 'el cumplimiento de los requisitos del pénsum para la graduación' };
+  function editarRequisito(e, campo, valor, quien) {
+    e.requisitos = e.requisitos || { pago: false, cumple: false };
+    valor = !!valor;
+    if (!!e.requisitos[campo] === valor) return false;
+    e.requisitos[campo] = valor;
+    registrar(e, quien, (valor ? 'confirmó ' : 'quitó la confirmación de ') + ETQ_REQ[campo]);
+    return true;
   }
 
   var MAX_OBSERVACIONES = 400;
@@ -462,7 +474,7 @@
     verificarEstudiante: verificarEstudiante, nuevoEstado: nuevoEstado, registrar: registrar,
     agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
     quitarEquivalencia: quitarEquivalencia, agregarOptativa: agregarOptativa, quitarOptativa: quitarOptativa,
-    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, separarHistorias: separarHistorias, estudianteDeSMA: estudianteDeSMA, editarObservaciones: editarObservaciones, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
+    editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, separarHistorias: separarHistorias, estudianteDeSMA: estudianteDeSMA, editarObservaciones: editarObservaciones, editarRequisito: editarRequisito, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
     minimoAprobacion: minimoAprobacion, hash: hash
   };
 });
