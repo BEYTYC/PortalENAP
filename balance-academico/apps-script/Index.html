@@ -1905,7 +1905,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return '<div class="tabs" role="tablist">' + t.map(function (x) {
       return '<button class="tab" role="tab" data-vista="' + x[0] + '" aria-selected="' + (S.vista === x[0]) + '"' + (x[0] !== 'inicio' && !hay ? ' disabled' : '') + '><span class="n">' + x[2] + '</span>' + x[1] + '</button>';
     }).join('') + (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
-      '<span class="cred">Desarrollado por Beyty Camargo Martínez</span></div>';
+      '</div>';
   }
 
   function chipLista(g) {
