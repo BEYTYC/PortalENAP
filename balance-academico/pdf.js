@@ -115,7 +115,8 @@
     texto('PROGRAMA ACADÉMICO:', 47.4, Y2, 6.5, true);
     texto(String(prog.nombre || '').toUpperCase(), 135.9, Y2, 6.5, false, 'left', 310);
     texto('Fecha elaboración:', 458.0, Y1, 6.1, true);
-    texto(e.elaboracion, 536.0, Y1, 6.1, false);
+    var hoy = new Date();                      // la fecha de elaboración es siempre la del día en que se genera el PDF
+    texto(hoy.getDate() + '/' + (hoy.getMonth() + 1) + '/' + hoy.getFullYear(), 536.0, Y1, 6.1, false);
     texto('Periodo de terminación:', 458.0, Y2, 6.1, true);
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 

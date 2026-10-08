@@ -166,7 +166,6 @@
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
       observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
-      elaboracion: fmtFecha(new Date()),
       firmas: { jefe: null, decano: null },
       bitacora: []
     };
@@ -182,7 +181,7 @@
   function huella(e) {
     return hash(JSON.stringify({
       p: e.programaId, s: e.estudiante, t: e.textos.map(function (x) { return hash(x); }),
-      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion,
+      d: e.ediciones, v: e.vinculos, o: e.optativas,
       b: e.observaciones || undefined      // vacío no cambia la huella: los balances anteriores siguen válidos
     }));
   }

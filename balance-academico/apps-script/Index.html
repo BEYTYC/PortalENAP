@@ -692,7 +692,6 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       optativas: [],       // [{bloque, reg, cod?, nombre?}]
       observaciones: '',   // texto libre del jefe que sale en el recuadro OBSERVACIONES del PDF
       creado: new Date().toISOString(),
-      elaboracion: fmtFecha(new Date()),
       firmas: { jefe: null, decano: null },
       bitacora: []
     };
@@ -708,7 +707,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   function huella(e) {
     return hash(JSON.stringify({
       p: e.programaId, s: e.estudiante, t: e.textos.map(function (x) { return hash(x); }),
-      d: e.ediciones, v: e.vinculos, o: e.optativas, f: e.elaboracion,
+      d: e.ediciones, v: e.vinculos, o: e.optativas,
       b: e.observaciones || undefined      // vacío no cambia la huella: los balances anteriores siguen válidos
     }));
   }
@@ -1355,7 +1354,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     texto('PROGRAMA ACADÉMICO:', 47.4, Y2, 6.5, true);
     texto(String(prog.nombre || '').toUpperCase(), 135.9, Y2, 6.5, false, 'left', 310);
     texto('Fecha elaboración:', 458.0, Y1, 6.1, true);
-    texto(e.elaboracion, 536.0, Y1, 6.1, false);
+    var hoy = new Date();                      // la fecha de elaboración es siempre la del día en que se genera el PDF
+    texto(hoy.getDate() + '/' + (hoy.getMonth() + 1) + '/' + hoy.getFullYear(), 536.0, Y1, 6.1, false);
     texto('Periodo de terminación:', 458.0, Y2, 6.1, true);
     texto(res.periodoTerm, 536.0, Y2, 6.1, false);
 
