@@ -2804,7 +2804,10 @@
   }
   document.addEventListener('click', closeAllNav);
 
-  document.getElementById('cdeBtn').addEventListener('click', () => {
+  // Toda la tarjeta del Inicio lleva al Centro de Datos (no solo el botón).
+  const cdeCard = document.querySelector('.cde-card');
+  if (cdeCard) cdeCard.style.cursor = 'pointer';
+  (cdeCard || document.getElementById('cdeBtn')).addEventListener('click', () => {
     abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
   });
 
