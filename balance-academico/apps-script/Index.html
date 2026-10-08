@@ -31,9 +31,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 #ocupado{position:fixed;right:20px;bottom:20px;z-index:60;display:none;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px rgba(18,40,76,.18);padding:9px 16px;font-size:13px;font-weight:600;color:var(--navy,#12284C)}
 #ocupado.on{display:flex}
 .gd.borrando{opacity:.55;pointer-events:none}
-.tabs .navbtns{display:flex;gap:8px;align-self:center;padding-bottom:6px;margin-left:auto}
-.tabs .est + .navbtns{margin-left:14px}
-.tabs .est{margin-left:auto;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
+.tabs{align-items:center;padding:8px 24px}
+.tabs .navbtns{display:flex;gap:8px;margin-left:auto}
+.tabs .est{margin-left:0;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
 main{flex:1;min-height:0;padding:16px 24px;overflow:hidden}
 .card{background:#fff;border:1px solid var(--line);border-radius:10px}
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:2px 10px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -84,8 +84,11 @@ tr.perdida td{background:#FEF3F1}
 .cell.edit{background:#FFF8E8}
 .cell.falta-nombre{border-color:var(--bad);background:#FEF3F1}
 table{font-size:13px}
-td:nth-child(2){min-width:190px}td:nth-child(4){min-width:250px}
-td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+td:nth-child(2){min-width:230px}
+.tablewrap th:nth-child(1),.tablewrap th:nth-child(3),.tablewrap th:nth-child(5),.tablewrap th:nth-child(6),.tablewrap th:nth-child(7),.tablewrap th:nth-child(8),
+.tablewrap td:nth-child(1),.tablewrap td:nth-child(3),.tablewrap td:nth-child(5),.tablewrap td:nth-child(6),.tablewrap td:nth-child(7),.tablewrap td:nth-child(8){text-align:center}
+.tablewrap td:nth-child(3) input,.tablewrap td:nth-child(1) input,.tablewrap td:nth-child(5) input{text-align:center}td:nth-child(4){min-width:250px}
+td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 .mono{font-variant-numeric:tabular-nums}
 .side{display:flex;flex-direction:column;gap:12px;min-height:0;overflow:auto}
 .kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px}
@@ -1832,13 +1835,13 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
 
   /* ───── diálogos propios (sin alert/confirm del navegador) ───── */
-  function pregunta(titulo, texto, ok, cancelar) {
-    return new Promise(function (res) { S.dialogo = { titulo: titulo, texto: texto, ok: ok || 'Aceptar', cancelar: cancelar === undefined ? 'Cancelar' : cancelar, res: res }; render(); });
+  function pregunta(titulo, texto, ok, cancelar, fijo) {
+    return new Promise(function (res) { S.dialogo = { titulo: titulo, texto: texto, ok: ok || 'Aceptar', cancelar: cancelar === undefined ? 'Cancelar' : cancelar, fijo: !!fijo, res: res }; render(); });
   }
   function aviso(titulo, texto) { return pregunta(titulo, texto, 'Entendido', null); }
   function vDialogo() {
     var d = S.dialogo;
-    return '<div class="modal" data-act="dialogo-no"><div class="box" role="alertdialog" aria-modal="true" style="width:min(460px,94vw)"><div class="hd"><b>' + h(d.titulo) + '</b></div>' +
+    return '<div class="modal"' + (d.fijo ? '' : ' data-act="dialogo-no"') + '><div class="box" role="alertdialog" aria-modal="true" style="width:min(460px,94vw)"><div class="hd"><b>' + h(d.titulo) + '</b></div>' +
       '<div style="padding:16px 18px;white-space:pre-line">' + h(d.texto) + '</div><div style="padding:0 18px 16px;display:flex;gap:8px;justify-content:flex-end">' +
       (d.cancelar ? '<button class="btn" data-act="dialogo-no">' + h(d.cancelar) + '</button>' : '') + '<button class="btn pri" data-act="dialogo-si" id="dialogo-ok">' + h(d.ok) + '</button></div></div></div>';
   }
@@ -1866,7 +1869,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
   function bloqueos(est, res) {
     var b = [], r = est.requisitos || {}, v = vigencia(res && res.periodoTerm);
-    if (!v.ok) b.push('El balance no se puede generar: el estudiante terminó en ' + v.periodo + ', hace más de 3 años (no está vigente).');
+    if (!v.ok) b.push('Balance final vencido: el estudiante terminó en ' + v.periodo + ', hace más de 3 años. Debe cumplir con todas las materias del pénsum inicial' + (/^mae-/.test(est.programaId) ? ', incluyendo un nuevo trabajo de grado' : '') + '; este balance no se puede firmar.');
     if (!r.pago) b.push('Falta confirmar que el estudiante pagó el balance previo.');
     if (!r.cumple) b.push('Falta confirmar que el estudiante cumplió los requisitos del pénsum para su graduación.');
     return b;
@@ -1930,15 +1933,33 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     seguir.then(function (si) {
       if (!si) return;
       S.formErr = null; S.formAv = null; S.creando = true;
+      var vencidos = [];
       var av = S.avance = { titulo: nuevos.length === 1 ? 'Creando balance' : 'Creando balances', hecho: 0, total: nuevos.length, actual: '', lineas: [], fin: false };
       return avanzar(av, 0, 'Leyendo el pénsum…').then(function () {
         return nuevos.reduce(function (p, est, n) {
           var nom = M.titulo(est.estudiante.nombres + ' ' + est.estudiante.apellidos);
-          return p.then(function () { return avanzar(av, n, nom); }).then(function () { return evaluar(est); }).then(function () { return Backend.guardar(est); })
+          return p.then(function () { return avanzar(av, n, nom); }).then(function () { return evaluar(est); })
+            .then(function (x) { var v = vigencia(x.res.periodoTerm); if (!v.ok) vencidos.push({ est: est, nom: nom, periodo: v.periodo }); })
+            .then(function () { return Backend.guardar(est); })
             .then(function () { return avanzar(av, n + 1, '', { ok: true, t: nom + ': balance creado' }); });
         }, Promise.resolve());
       }).then(refrescarGuardados).then(function () {
         S.creando = false;
+        if (!vencidos.length) return;
+        S.avance = null; render();                // balance final vencido: la persona debe validarlo antes de seguir
+        var hayMae = vencidos.some(function (v) { return /^mae-/.test(v.est.programaId); });
+        return pregunta('Balance final vencido',
+          vencidos.map(function (v) { return v.nom + ': último periodo cursado ' + v.periodo + ' (hace más de 3 años).'; }).join('\n') +
+          '\n\nEl balance final está vencido. El estudiante debe cumplir con todas las materias del pénsum inicial' + (hayMae ? ', incluyendo un nuevo trabajo de grado' : '') + '.\nValide esta información antes de continuar.',
+          'Validado, continuar', 'Eliminar estos balances', true).then(function (ok) {
+            if (ok) return;
+            return Promise.all(vencidos.map(function (v) { return Backend.borrar(claveEstado(v.est)); })).then(refrescarGuardados).then(function () {
+              nuevos = nuevos.filter(function (e) { return !vencidos.some(function (v) { return v.est === e; }); });
+              errores.push('Se eliminaron los balances vencidos: ' + vencidos.map(function (v) { return v.nom; }).join(', ') + '.');
+            });
+          });
+      }).then(function () {
+        if (!nuevos.length) { S.avance = null; S.formAv = errores; render(); return; }
         if (nuevos.length === 1 && !errores.length) { S.form.notas = ''; return abrir(nuevos[0], 'revision').then(function () { S.avance = null; render(); }); }
         S.avance = null;
         S.sel = {}; nuevos.forEach(function (e) { S.sel[claveEstado(e)] = true; });
@@ -2203,10 +2224,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
   function vTabs() {
     var hay = !!S.est;
-    var t = [['inicio', 'Datos y notas', 1], ['revision', 'Revisión', 2], ['firma', 'Firma y PDF', 3]];
-    return '<div class="tabs" role="tablist">' + t.map(function (x) {
-      return '<button class="tab" role="tab" data-vista="' + x[0] + '" aria-selected="' + (S.vista === x[0]) + '"' + (x[0] !== 'inicio' && !hay ? ' disabled' : '') + '><span class="n">' + x[2] + '</span>' + x[1] + '</button>';
-    }).join('') + (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
+    return '<div class="tabs">' +
+      (hay ? '<div class="est"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
       '<div class="navbtns"><button class="btn sm" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>← Atrás</button><button class="btn sm" data-act="reiniciar">Reiniciar solicitud</button></div>' +
       '</div>';
   }
@@ -2254,15 +2273,16 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return '<span class="chip warn">Sin nota</span>';
   }
   function chipOrigen(l) {
-    var m = { 'codigo': '', 'codigo-editado': 'código editado', 'equiv1': 'equivalente 1', 'equiv2': 'equivalente 2', 'manual': 'equivalencia aplicada', 'optativa': 'optativa' };
+    var m = { 'codigo': '', 'codigo-editado': 'código editado', 'equiv1': 'equivalente 1', 'equiv2': 'equivalente 2', 'manual': '', 'optativa': 'optativa' };
     var x = m[l.origen]; return x ? '<span class="chip mute" style="margin-left:6px">' + x + '</span>' : '';
   }
 
   /* Celda editable del pénsum vigente (código, nombre o créditos). */
   function inVig(campo, l, lock, cls, ancho, etq) {
     var v = campo === 'cred' ? (l.cred > 0 ? l.cred : '') : l[campo];
-    return '<input class="cell ' + cls + (l.editadoVig ? ' edit' : '') + '" data-edit="' + campo + '" data-id="' + h(l.id) + '" data-opt="0" value="' + h(v) + '"' + (lock ? ' disabled' : '') + ' aria-label="' + etq + '"' + (ancho ? ' style="width:' + ancho + 'px' + (campo === 'cred' ? ';text-align:right' : '') + '"' : '') + '>';
+    return '<input class="cell ' + cls + (l.editadoVig ? ' edit' : '') + '" data-edit="' + campo + '" data-id="' + h(l.id) + '" data-opt="0" value="' + h(v) + '"' + (lock ? ' disabled' : '') + ' aria-label="' + etq + '"' + (ancho || true ? ' style="width:' + (ancho ? ancho + 'px' : '100%') + (campo === 'cred' ? ';text-align:center' : '') + '"' : '') + '>';
   }
+  function esElectiva(l) { return l.kind === 'slot' || /electiva/i.test(l.nombreVig || ''); }
   function vRevision() {
     var r = S.res, lock = bloqueado(), filas = '', areaPrev = null;
     var items = r.lineas;
@@ -2284,10 +2304,11 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       var acc = '';
       if (!lock) {
         if (esOpt) acc = '<button class="btn sm" data-act="quitar-opt" data-id="' + h(l.regKey) + '" title="Quitar optativa">Quitar</button>';
+        else if (esElectiva(l)) acc = '<button class="btn sm' + (l.estado === 'ok' ? '' : ' gold') + '" data-act="equiv" data-id="' + h(l.id) + '">' + (l.origen === 'manual' ? 'Cambiar electiva' : 'Elegir electiva') + '</button>' + (l.origen === 'manual' ? ' <button class="btn sm" data-act="quitar-eq" data-id="' + h(l.id) + '">Quitar</button>' : '');
         else if (l.origen === 'manual') acc = '<button class="btn sm" data-act="quitar-eq" data-id="' + h(l.id) + '">Quitar equiv.</button>';
         else if (l.estado !== 'ok') acc = '<button class="btn sm gold" data-act="equiv" data-id="' + h(l.id) + '">Equivalencia</button>';
       }
-      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + (esOpt ? h(l.codVig) : inVig('codVig', l, lock, 'mono', 64, 'Código del pénsum vigente')) + '</td><td>' + (esOpt ? h(l.etiqueta || '') : inVig('nombreVig', l, lock, '', 0, 'Nombre del pénsum vigente')) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
+      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + (esOpt ? h(l.codVig) : inVig('codVig', l, lock, 'mono', 78, 'Código del pénsum vigente')) + '</td><td>' + (esOpt ? h(l.etiqueta || '') : inVig('nombreVig', l, lock, '', 0, 'Nombre del pénsum vigente')) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
         '<td class="num">' + (esOpt ? (l.cred > 0 ? l.cred : '') : inVig('cred', l, lock, 'num', 40, 'Créditos')) + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
         '<td>' + chipEstado(l) + chipOrigen(l) + '</td><td style="text-align:right;white-space:nowrap">' + acc + '</td></tr>';
       if (esOpt && l.etiqueta !== undefined) { /* etiqueta ya mostrada */ }
@@ -2321,7 +2342,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
 
     return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
       '<div class="seg"><button data-filtro="todas" aria-pressed="' + (S.filtro === 'todas') + '">Todas</button><button data-filtro="pendientes" aria-pressed="' + (S.filtro === 'pendientes') + '">Pendientes (' + pendientes + ')</button></div></div>' +
-            '<div class="scroll"><table><thead><tr><th>Cód. vigente</th><th>Pénsum vigente</th><th>Cód. cursado</th><th>Pénsum cursado</th><th style="text-align:right">Créd.</th><th style="text-align:right">Nota</th><th style="text-align:right">Hab.</th><th>Estado</th><th></th></tr></thead><tbody>' + filas + '</tbody></table>' +
+            '<div class="scroll"><table><thead><tr><th>Cód. vigente</th><th>Pénsum vigente</th><th>Cód. cursado</th><th>Pénsum cursado</th><th>Créd.</th><th>Nota</th><th>Hab.</th><th>Estado</th><th></th></tr></thead><tbody>' + filas + '</tbody></table>' +
       (S.filtro === 'pendientes' && !filas.replace(/<tr class="area">.*?<\/tr>/g, '') ? '<div class="vacío">No hay pendientes.</div>' : '') + piesOpt + '</div></div>' +
       '<div class="side"><div class="card"><div class="kpis"><div class="kpi"><b>' + r.cruzadas + '<span style="font-size:14px;color:var(--mute);font-weight:400"> / ' + r.totalFilas + '</span></b><span>Asignaturas del pénsum con nota</span></div>' +
       '<div class="kpi"><b>' + r.totalCreditos + '</b><span>Créditos aprobados</span></div><div class="kpi"><b>' + M.fmtNota(r.promedio) + '</b><span>Promedio ponderado</span></div><div class="kpi"><b>' + h(r.periodoTerm || '—') + '</b><span>Periodo de terminación</span></div></div><div class="bar"><i style="width:' + pct + '%"></i></div></div>' +
@@ -2471,8 +2492,9 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var m = S.modal, r = S.res, q = M.normTexto(m.q || '');
     var lista = r.sinUsar.filter(function (x) { return !q || M.normTexto(x.cod + ' ' + x.nombre).indexOf(q) >= 0; });
     if (m.tipo === 'optativa') lista.sort(function (a, b) { return (S.prog.catalogo[M.normCode(b.cod)] ? 1 : 0) - (S.prog.catalogo[M.normCode(a.cod)] ? 1 : 0); });
-    var tit = m.tipo === 'optativa' ? 'Agregar optativa a ' + m.bloque.label : 'Aplicar equivalencia a ' + m.fila.nombreVig;
-    var sub = m.tipo === 'optativa' ? 'Asignaturas del SMA que no se usaron en el pénsum. Las del catálogo del programa van primero.' : 'Elija la asignatura cursada que equivale a ' + (m.fila.codVig ? m.fila.codVig + ' · ' : '') + m.fila.nombreVig + '. Queda registrado en el balance.';
+    var elec = m.tipo !== 'optativa' && esElectiva(m.fila);
+    var tit = m.tipo === 'optativa' ? 'Agregar optativa a ' + m.bloque.label : (elec ? 'Elegir electiva para ' : 'Aplicar equivalencia a ') + m.fila.nombreVig;
+    var sub = m.tipo === 'optativa' ? 'Asignaturas del SMA que no se usaron en el pénsum. Las del catálogo del programa van primero.' : (elec ? 'Notas del SMA que no fueron elegidas para otra materia del pénsum. Elija la que corresponde a esta electiva.' : 'Elija la asignatura cursada que equivale a ' + (m.fila.codVig ? m.fila.codVig + ' · ' : '') + m.fila.nombreVig + '. Queda registrado en el balance.');
     return '<div class="modal" data-act="cerrar-modal"><div class="box" role="dialog" aria-modal="true"><div class="hd"><div><b>' + h(tit) + '</b><div style="color:var(--mute);font-size:12px">' + h(sub) + '</div></div><button class="btn sm" data-act="cerrar-modal" style="margin-left:auto">Cerrar</button></div>' +
       '<input class="q" id="modal-q" placeholder="Buscar por código o nombre" value="' + h(m.q || '') + '"><div class="bd">' +
       (lista.length ? lista.map(function (x) {
