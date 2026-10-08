@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Balance Académico · ENAP</title>
+<style>
+  html,body{height:100%;margin:0;background:#f4f6fa;font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:#13294b}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f4f6fa}
+  #carga{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px}
+  #carga.off{display:none}
+  .spin{width:20px;height:20px;border:3px solid #c9d3e3;border-top-color:#13294b;border-radius:50%;animation:g .8s linear infinite}
+  @keyframes g{to{transform:rotate(360deg)}}
+  #aviso{padding:32px;max-width:520px;margin:12vh auto;line-height:1.5}
+</style>
+</head>
+<body>
+<div id="carga"><span class="spin"></span><span>Cargando Balance Académico…</span></div>
+<script src="config.js"></script>
+<script>
+(function () {
+  var u = window.BALANCE_URL || '';
+  if (!/^https:\/\/script\.google\.com\//.test(u)) {
+    document.getElementById('carga').className = 'off';
+    document.body.insertAdjacentHTML('beforeend', '<div id="aviso"><b>Falta la dirección del Balance Académico.</b><br>Pegue la URL de la implementación de Apps Script (termina en /exec) en <code>balances/config.js</code>.</div>');
+    return;
+  }
+  var f = document.createElement('iframe');
+  f.title = 'Balance Académico'; f.allow = 'clipboard-read; clipboard-write; downloads';
+  f.onload = function () { document.getElementById('carga').className = 'off'; };
+  f.src = u;
+  document.body.appendChild(f);
+})();
+</script>
+</body>
+</html>
