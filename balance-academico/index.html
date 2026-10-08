@@ -572,7 +572,6 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
               nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || prog.firmantes.jefe, pos: posJefe(est) },
       decano: { nombre: decanoNombre(), cargo: prog.firmantes.decano, soloLinea: true }       // el Decano firma aparte: solo queda su línea
     };
-    if (vista && est === S.est && !firmado && img) firmas.jefe.img = img;     // la vista previa muestra dónde queda la firma
     var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
     if (!JsPDF) throw new Error('No se cargó la librería de PDF (jsPDF). Recargue la página; si sigue igual, revise que el navegador no bloquee scripts.');
     return PDF.generar(JsPDF, { prog: prog, estado: est, res: res, logo: imagenesAssets.logo, marca: imagenesAssets.marca, firmas: firmas });
@@ -856,25 +855,8 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   function pasoFirma(ok, txt) { return '<div class="s"><span class="dot' + (ok ? ' ok' : '') + '">' + (ok ? '✓' : '·') + '</span><span>' + txt + '</span></div>'; }
 
-  function vFirma() {
-    var d = datosFirmante(), fs = S.fs, emitir = puedeEmitir();
-    var firmado = !!(S.est.firmas.jefe && fs.jefe);
-    var puedeFirmar = emitir && !firmado;
-    var img = S.imgs.jefe;
-    var msg = S.msg ? '<div class="alert ' + S.msg.t + '">' + h(S.msg.x) + '</div>' : '';
-    var panel = '<div class="panel"><div class="card" style="padding:14px 16px">' + bloqueFirmantes(firmado) + '</div>' +
-      msg +
-      '<div class="card" style="padding:14px 16px"><div class="steps">' +
-      pasoFirma(S.res.completo && S.ver.ok, 'Balance completo' + (S.res.completo ? '' : ' (faltan ' + S.res.faltantes.length + ')')) +
-      pasoFirma(fs.jefe, 'Firmado por el Jefe de Programa' + (fs.jefe ? ' · ' + h(S.est.firmas.jefe.nombre) : '')) + '</div></div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px">' +
-      '<button class="btn pri" data-act="firmar"' + (puedeFirmar ? '' : ' disabled') + '>' + (firmado ? 'Ya firmado' : 'Firmar balance') + '</button>' +
-      '<button class="btn" data-act="pdf"' + (emitir && fs.jefe ? '' : ' disabled') + '>Descargar PDF' + (fs.jefe ? '' : ' (firme primero)') + '</button>' +
-      '<button class="btn" data-act="certificado"' + (emitir && fs.jefe ? '' : ' disabled') + '>Certificado de Estadística (PDF)</button>' +
-      (firmado ? '<button class="btn" data-act="reabrir">Reabrir balance</button>' : '') + '</div>' +
-      (!emitir ? '<div class="alert warn">No se puede firmar ni descargar el PDF hasta que el balance esté completo.</div>' : '') +
-      '</div>';
-    return '<div class="firma">' + panel + '<div id="prev" style="min-height:0"></div></div>';
+  function vFirma() {   // visualización: solo el documento (sin firma si aún no está firmado), nada más
+    return '<div class="firma" style="grid-template-columns:minmax(0,1fr)"><div id="prev" style="min-height:0"></div></div>';
   }
 
   function render() {
