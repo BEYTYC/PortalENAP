@@ -10,6 +10,30 @@
   function quitarTildes(s) { return String(s == null ? '' : s).normalize('NFD').replace(/[̀-ͯ]/g, ''); }
   function normCode(s) { return String(s == null ? '' : s).toUpperCase().replace(/\s+/g, '').trim(); }
   function normTexto(s) { return quitarTildes(s).toUpperCase().replace(/[^A-Z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+  var PALABRAS_TILDE = 'administración adrián andrés angélica antropología análisis artillería atención auditoría automática automático benítez bermúdez biología básica básicas básico capítulo cartografía castañeda cañón computación comunicación construcción contratación cortés cortéz cálculo cálidad cárdenas céspedes dinámica dirección diseño distribución domínguez díaz ecología economía económica económico educación electrónica electrónicas electrónico eléctrica eléctrico español estadística estadístico estratégica estratégicas estratégico evaluación fabián fernández filosofía formación fundamentación física físico geografía geometría gestión gonzález gutiérrez gómez hernández hidrografía hidráulica héctor ibáñez información informática ingeniería inglés innovación introducción investigación jesús jiménez joaquín josé julián jurídica jurídico logística logísticas logístico logísticos lucía lópez martínez maría marín marítima marítimas marítimo matemática matemáticas matías mecánica mecánico mejía meteorología metodología metodológico muñoz máquina máquinas más méndez módulo módulos mónica navegación neumática nicolás náutica náuticas náutico número números núñez oceanografía operación ordóñez organización período peñaranda planeación planificación política políticas producción programación propulsión práctica prácticas psicología pérez pública públicas público química ramírez ramón rodríguez rubén sebastián según sistémico sociología sofía sánchez también tecnología tecnologías tecnológico teoría termodinámica teórica teórico tomás trigonometría táctica tácticas técnica técnico velásquez verónica vásquez vázquez víctor álgebra álvarez ángel ángela ética óscar'.split(' ');
+  var MAPA_TILDE = null;
+  function mapaTilde() {
+    if (MAPA_TILDE) return MAPA_TILDE;
+    MAPA_TILDE = {};
+    PALABRAS_TILDE.forEach(function (p) { MAPA_TILDE[quitarTildes(p).toLowerCase()] = p; });
+    return MAPA_TILDE;
+  }
+  /* Pone todas las tildes (y las ñ) que faltan en nombres de asignaturas y de personas, respetando mayúsculas.
+     `extra` (opcional): nombres ya bien escritos (p. ej. los del pénsum) de los que se aprenden más palabras. */
+  function tildar(texto, extra) {
+    var mapa = mapaTilde();
+    if (extra && extra.length) {
+      mapa = Object.assign({}, mapa);
+      extra.forEach(function (t) { String(t || '').split(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/).forEach(function (w) { if (w && quitarTildes(w) !== w) mapa[quitarTildes(w).toLowerCase()] = w.toLowerCase(); }); });
+    }
+    return String(texto == null ? '' : texto).replace(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g, function (w) {
+      var b = mapa[quitarTildes(w).toLowerCase()];
+      if (!b || quitarTildes(w) !== w && w.toLowerCase() === b) return w;
+      if (w === w.toUpperCase() && w.length > 1) return b.toUpperCase();
+      if (w.charAt(0) === w.charAt(0).toUpperCase() && w.charAt(0) !== w.charAt(0).toLowerCase()) return b.charAt(0).toUpperCase() + b.slice(1);
+      return b;
+    });
+  }
   function soloDigitos(s) { return String(s == null ? '' : s).replace(/\D+/g, ''); }
   function titulo(s) {
     return String(s || '').toLowerCase().replace(/(^|[\s\-'(])([a-záéíóúüñ])/g, function (m, a, b) { return a + b.toUpperCase(); })
@@ -141,7 +165,7 @@
   /* Los datos del estudiante salen del propio SMA. */
   function estudianteDeSMA(texto) {
     var id = parseSMA(texto).identidad;
-    return { documento: id.documento || '', nombres: id.nombres || '', apellidos: id.apellidos || '', programaSMA: id.programa || '', tipoDoc: 'CC' };
+    return { documento: id.documento || '', nombres: tildar(id.nombres || ''), apellidos: tildar(id.apellidos || ''), programaSMA: id.programa || '', tipoDoc: 'CC' };
   }
 
   function verificarEstudiante(smaUnido, est) {
@@ -346,11 +370,18 @@
     return ks.length === 1 ? nombres[ks[0]] : null;
   }
   /* Nombre completo con el que sale en el balance: Excel del programa primero; el SMA solo si no hay otro. */
+  function extraTilde(prog) {   // nombres del pénsum (ya con tildes): de ahí se aprenden más palabras
+    if (prog._extraTilde) return prog._extraTilde;
+    var l = [];
+    Object.keys(prog.catalogo || {}).forEach(function (k) { l.push(prog.catalogo[k].nombre); });
+    (prog.items || []).forEach(function (it) { l.push(it.nombre); l.push(it.label); });
+    return (prog._extraTilde = l);
+  }
   function nombreCompleto(prog, cod, nombreSMA) {
     var c = prog.catalogo[normCode(cod)];
-    if (c && c.nombre) return c.nombre;
-    if (truncado(nombreSMA)) return completarTruncado(prog, cod, nombreSMA) || nombreSMA;
-    return esMayusculas(nombreSMA) ? titulo(nombreSMA) : nombreSMA;
+    if (c && c.nombre) return tildar(c.nombre, extraTilde(prog));
+    if (truncado(nombreSMA)) return tildar(completarTruncado(prog, cod, nombreSMA) || nombreSMA, extraTilde(prog));
+    return tildar(esMayusculas(nombreSMA) ? titulo(nombreSMA) : nombreSMA, extraTilde(prog));
   }
 
   function minimoAprobacion(prog, est) {
@@ -408,7 +439,7 @@
           }
         }
         var linea = {
-          id: it.id, kind: it.kind, area: it.area, codVig: ed.codVig != null ? ed.codVig : (it.cod || ''), nombreVig: ed.nombreVig != null ? ed.nombreVig : it.nombre, cred: credEf,
+          id: it.id, kind: it.kind, area: it.area, codVig: ed.codVig != null ? ed.codVig : (it.cod || ''), nombreVig: ed.nombreVig != null ? ed.nombreVig : tildar(it.nombre, extraTilde(prog)), cred: credEf,
           estado: 'falta', cod: ed.cod || '', nombre: ed.nombre || '', nota: null, hab: null, periodo: '',
           origen: origen, regKey: reg ? reg.key : '', editado: !!(ed.cod || ed.nombre), editadoVig: !!(ed.codVig || ed.nombreVig || ed.cred != null), nombreTruncado: false
         };
@@ -490,7 +521,7 @@
     normCode: normCode, normTexto: normTexto, titulo: titulo, fmtNota: fmtNota, fmtFecha: fmtFecha,
     parseSMA: parseSMA, unirSMA: unirSMA, periodoTerminacion: periodoTerminacion, compararPeriodo: compararPeriodo,
     verificarEstudiante: verificarEstudiante, nuevoEstado: nuevoEstado, registrar: registrar,
-    agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
+    tildar: tildar, agregarNotas: agregarNotas, editarCursado: editarCursado, aplicarEquivalencia: aplicarEquivalencia,
     quitarEquivalencia: quitarEquivalencia, agregarOptativa: agregarOptativa, quitarOptativa: quitarOptativa,
     editarOptativa: editarOptativa, huella: huella, estadoFirmas: estadoFirmas, separarHistorias: separarHistorias, estudianteDeSMA: estudianteDeSMA, editarObservaciones: editarObservaciones, editarRequisito: editarRequisito, MAX_OBSERVACIONES: MAX_OBSERVACIONES, calcular: calcular,
     minimoAprobacion: minimoAprobacion, hash: hash

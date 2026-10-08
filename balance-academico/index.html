@@ -258,7 +258,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   function ocupar(texto, p) {
     enCurso++;
     var el = indicador(), t = document.getElementById('ocupado-t'); if (t && texto) t.textContent = texto;
-    if (!S.avance && !S.guardandoBal) el.classList.add('on');
+    if (!S.avance && !S.guardandoBal && !S.arranque) el.classList.add('on');
     function fin() { enCurso = Math.max(0, enCurso - 1); if (!enCurso) indicador().classList.remove('on'); }
     return Promise.resolve(p).then(function (v) { fin(); return v; }, function (e) { fin(); throw e; });
   }
@@ -785,7 +785,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       (S.formAv && S.formAv.length ? '<div class="alert warn">' + S.formAv.map(h).join('<br>') + '</div>' : '') +
       '<div style="display:flex;gap:10px;align-items:center"><button class="btn pri" data-act="crear"' + (S.cargando || S.creando ? ' disabled' : '') + '>' + (S.creando ? 'Creando balances…' : S.cargando ? 'Leyendo pénsum…' : 'Crear balance') + '</button></div>' +
       '</div></div>' +
-      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span><button class="btn pri" style="margin-left:auto;padding:11px 24px;font-size:15px;font-weight:700" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' +
+      '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px"><input type="checkbox" class="chk" id="sel-todos" aria-label="Seleccionar todos"' + (todos ? ' checked' : '') + (guard.length ? '' : ' disabled') + '><span class="lbl">Balances (' + guard.length + ')</span><span style="color:var(--mute);font-size:12px">' + nSel + ' seleccionado' + (nSel === 1 ? '' : 's') + '</span></div>' +
       (S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '" style="margin:10px 14px 0">' + h(S.grupo.msg.x) + '</div>' : '') +
       (guard.length ? guard.map(function (g, i) {
         var m = PR.porId(g.programaId);
@@ -793,7 +793,8 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
         return '<div class="gd' + (bor ? ' borrando' : '') + '"><input type="checkbox" class="chk" data-sel="' + h(g.key) + '" aria-label="Seleccionar"' + (S.sel[g.key] ? ' checked' : '') + '><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + (bor ? '<span style="display:flex;gap:6px;align-items:center;font-size:12.5px"><span class="spin"></span>Eliminando…</span>' : chipLista(g)) +
           '<button class="btn sm" data-act="abrir-g" data-i="' + i + '">Visualizar</button><button class="btn sm" data-act="abrir-g" data-vista-a="revision" data-i="' + i + '">Editar</button><button class="btn sm" data-act="borrar-g" data-i="' + i + '" aria-label="Eliminar">✕</button></div>';
       }).join('') : '<div class="vacío">Aún no hay balances. Pegue un historial del SMA y pulse “Crear balance”.</div>') +
-      '<div style="flex:1"></div>' + panelFirmaGrupo(nSel) +
+      '<div style="flex:1"></div>' +
+      '<div style="display:flex;justify-content:flex-end;padding:10px 14px"><button class="btn pri" style="padding:11px 24px;font-size:15px;font-weight:700" data-act="firmar-todos"' + (guard.length && !S.grupo.trabajando ? '' : ' disabled') + '>' + (S.grupo.trabajando || 'Firmar todos (' + guard.length + ')') + '</button></div>' + panelFirmaGrupo(nSel) +
       '</div></div></div>';
   }
 
@@ -887,7 +888,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (S.vista === 'inicio' || !S.est) cuerpo = vInicio();
     else if (S.vista === 'revision') cuerpo = vRevision();
     else cuerpo = vFirma();
-    if (S.arranque) { app.innerHTML = vTop() + '<main><div class="card vacío" style="height:100%;display:flex;align-items:center;justify-content:center">Cargando…</div></main>'; return; }
+    if (S.arranque) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;font-weight:600;color:var(--navy)"><span class="spin" style="width:28px;height:28px;border-width:3px"></span>Cargando…</div>'; return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
     app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
