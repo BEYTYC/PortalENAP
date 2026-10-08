@@ -598,6 +598,11 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     var x = m[l.origen]; return x ? '<span class="chip mute" style="margin-left:6px">' + x + '</span>' : '';
   }
 
+  /* Celda editable del pénsum vigente (código, nombre o créditos). */
+  function inVig(campo, l, lock, cls, ancho, etq) {
+    var v = campo === 'cred' ? (l.cred > 0 ? l.cred : '') : l[campo];
+    return '<input class="cell ' + cls + (l.editadoVig ? ' edit' : '') + '" data-edit="' + campo + '" data-id="' + h(l.id) + '" data-opt="0" value="' + h(v) + '"' + (lock ? ' disabled' : '') + ' aria-label="' + etq + '"' + (ancho ? ' style="width:' + ancho + 'px' + (campo === 'cred' ? ';text-align:right' : '') + '"' : '') + '>';
+  }
   function vRevision() {
     var r = S.res, lock = bloqueado(), filas = '', areaPrev = null;
     var items = r.lineas;
@@ -622,8 +627,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
         else if (l.origen === 'manual') acc = '<button class="btn sm" data-act="quitar-eq" data-id="' + h(l.id) + '">Quitar equiv.</button>';
         else if (l.estado !== 'ok') acc = '<button class="btn sm gold" data-act="equiv" data-id="' + h(l.id) + '">Equivalencia</button>';
       }
-      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + h(l.codVig) + '</td><td>' + h(esOpt ? (l.etiqueta || '') : l.nombreVig) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
-        '<td class="num">' + (l.cred > 0 ? l.cred : '') + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
+      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + (esOpt ? h(l.codVig) : inVig('codVig', l, lock, 'mono', 64, 'Código del pénsum vigente')) + '</td><td>' + (esOpt ? h(l.etiqueta || '') : inVig('nombreVig', l, lock, '', 0, 'Nombre del pénsum vigente')) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
+        '<td class="num">' + (esOpt ? (l.cred > 0 ? l.cred : '') : inVig('cred', l, lock, 'num', 40, 'Créditos')) + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
         '<td>' + chipEstado(l) + chipOrigen(l) + '</td><td style="text-align:right;white-space:nowrap">' + acc + '</td></tr>';
       if (esOpt && l.etiqueta !== undefined) { /* etiqueta ya mostrada */ }
     });

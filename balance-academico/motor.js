@@ -233,14 +233,18 @@
     return { agregados: n };
   }
 
+  var ETQ_CAMPO = { cod: 'código cursado', nombre: 'nombre cursado', codVig: 'código del pénsum vigente', nombreVig: 'nombre del pénsum vigente', cred: 'créditos' };
+  /* El jefe puede cambiar códigos, nombres y créditos de cada materia (nunca las notas); un valor vacío devuelve el original. */
   function editarCursado(e, fila, campo, valor, quien, etiqueta) {
     var ed = e.ediciones[fila.id] || (e.ediciones[fila.id] = {});
-    var antes = ed[campo] != null ? ed[campo] : (campo === 'cod' ? fila.cod : fila.nombre);
-    valor = String(valor || '').trim();
-    if (valor === String(antes || '')) return false;
+    var actual = campo === 'cod' ? fila.cod : campo === 'nombre' ? fila.nombre : campo === 'codVig' ? fila.codVig : campo === 'nombreVig' ? fila.nombreVig : fila.cred;
+    var antes = actual == null ? '' : actual;
+    valor = String(valor == null ? '' : valor).trim();
+    if (campo === 'cred' && valor !== '') { var n = parseFloat(valor.replace(',', '.')); if (!isFinite(n) || n < 0) return false; valor = String(n); }
+    if (valor === String(antes)) return false;
     if (valor === '') delete ed[campo]; else ed[campo] = valor;
-    registrar(e, quien, 'cambió el ' + (campo === 'cod' ? 'código' : 'nombre') + ' de ' + (etiqueta || fila.nombreVig),
-      '“' + (antes || '—') + '” → “' + (valor || '—') + '”');
+    registrar(e, quien, 'cambió ' + ETQ_CAMPO[campo] + ' de ' + (etiqueta || fila.nombreVig),
+      '“' + (antes === '' ? '—' : antes) + '” → “' + (valor || 'original') + '”');
     return true;
   }
 
@@ -356,6 +360,7 @@
     prog.items.forEach(function (it) {
       if (it.kind === 'mat' || it.kind === 'slot') {
         var ed = e.ediciones[it.id] || {};
+        var credEf = (ed.cred != null && ed.cred !== '') ? Number(ed.cred) : it.cred;
         var reg = null, origen = '', via = '';
         if (e.vinculos[it.id] && porClave[e.vinculos[it.id]]) {
           reg = porClave[e.vinculos[it.id]]; origen = 'manual';
@@ -373,14 +378,14 @@
           }
         }
         var linea = {
-          id: it.id, kind: it.kind, area: it.area, codVig: it.cod || '', nombreVig: it.nombre, cred: it.cred,
+          id: it.id, kind: it.kind, area: it.area, codVig: ed.codVig != null ? ed.codVig : (it.cod || ''), nombreVig: ed.nombreVig != null ? ed.nombreVig : it.nombre, cred: credEf,
           estado: 'falta', cod: ed.cod || '', nombre: ed.nombre || '', nota: null, hab: null, periodo: '',
-          origen: origen, regKey: reg ? reg.key : '', editado: !!(ed.cod || ed.nombre), nombreTruncado: false
+          origen: origen, regKey: reg ? reg.key : '', editado: !!(ed.cod || ed.nombre), editadoVig: !!(ed.codVig || ed.nombreVig || ed.cred != null), nombreTruncado: false
         };
         if (reg) {
           usados[normCode(reg.cod)] = true; regsUsados[reg.key] = true;
           (porCodigo[normCode(reg.cod)] || []).forEach(function (r) { regsUsados[r.key] = true; });
-          var sinCredito = !(it.cred > 0);
+          var sinCredito = !(credEf > 0);
           var ok = sinCredito ? conNota(reg) : aprobada(reg, minimo);
           linea.estado = ok ? 'ok' : 'perdida';
           linea.nota = reg.def; linea.hab = reg.hab > 0 ? reg.hab : null; linea.periodo = reg.periodo;

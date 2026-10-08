@@ -767,14 +767,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     return { agregados: n };
   }
 
+  var ETQ_CAMPO = { cod: 'código cursado', nombre: 'nombre cursado', codVig: 'código del pénsum vigente', nombreVig: 'nombre del pénsum vigente', cred: 'créditos' };
+  /* El jefe puede cambiar códigos, nombres y créditos de cada materia (nunca las notas); un valor vacío devuelve el original. */
   function editarCursado(e, fila, campo, valor, quien, etiqueta) {
     var ed = e.ediciones[fila.id] || (e.ediciones[fila.id] = {});
-    var antes = ed[campo] != null ? ed[campo] : (campo === 'cod' ? fila.cod : fila.nombre);
-    valor = String(valor || '').trim();
-    if (valor === String(antes || '')) return false;
+    var actual = campo === 'cod' ? fila.cod : campo === 'nombre' ? fila.nombre : campo === 'codVig' ? fila.codVig : campo === 'nombreVig' ? fila.nombreVig : fila.cred;
+    var antes = actual == null ? '' : actual;
+    valor = String(valor == null ? '' : valor).trim();
+    if (campo === 'cred' && valor !== '') { var n = parseFloat(valor.replace(',', '.')); if (!isFinite(n) || n < 0) return false; valor = String(n); }
+    if (valor === String(antes)) return false;
     if (valor === '') delete ed[campo]; else ed[campo] = valor;
-    registrar(e, quien, 'cambió el ' + (campo === 'cod' ? 'código' : 'nombre') + ' de ' + (etiqueta || fila.nombreVig),
-      '“' + (antes || '—') + '” → “' + (valor || '—') + '”');
+    registrar(e, quien, 'cambió ' + ETQ_CAMPO[campo] + ' de ' + (etiqueta || fila.nombreVig),
+      '“' + (antes === '' ? '—' : antes) + '” → “' + (valor || 'original') + '”');
     return true;
   }
 
@@ -890,6 +894,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     prog.items.forEach(function (it) {
       if (it.kind === 'mat' || it.kind === 'slot') {
         var ed = e.ediciones[it.id] || {};
+        var credEf = (ed.cred != null && ed.cred !== '') ? Number(ed.cred) : it.cred;
         var reg = null, origen = '', via = '';
         if (e.vinculos[it.id] && porClave[e.vinculos[it.id]]) {
           reg = porClave[e.vinculos[it.id]]; origen = 'manual';
@@ -907,14 +912,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           }
         }
         var linea = {
-          id: it.id, kind: it.kind, area: it.area, codVig: it.cod || '', nombreVig: it.nombre, cred: it.cred,
+          id: it.id, kind: it.kind, area: it.area, codVig: ed.codVig != null ? ed.codVig : (it.cod || ''), nombreVig: ed.nombreVig != null ? ed.nombreVig : it.nombre, cred: credEf,
           estado: 'falta', cod: ed.cod || '', nombre: ed.nombre || '', nota: null, hab: null, periodo: '',
-          origen: origen, regKey: reg ? reg.key : '', editado: !!(ed.cod || ed.nombre), nombreTruncado: false
+          origen: origen, regKey: reg ? reg.key : '', editado: !!(ed.cod || ed.nombre), editadoVig: !!(ed.codVig || ed.nombreVig || ed.cred != null), nombreTruncado: false
         };
         if (reg) {
           usados[normCode(reg.cod)] = true; regsUsados[reg.key] = true;
           (porCodigo[normCode(reg.cod)] || []).forEach(function (r) { regsUsados[r.key] = true; });
-          var sinCredito = !(it.cred > 0);
+          var sinCredito = !(credEf > 0);
           var ok = sinCredito ? conNota(reg) : aprobada(reg, minimo);
           linea.estado = ok ? 'ok' : 'perdida';
           linea.nota = reg.def; linea.hab = reg.hab > 0 ? reg.hab : null; linea.periodo = reg.periodo;
@@ -1514,7 +1519,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   /* Lugar de la firma: centro horizontal (cx), borde superior (top, desde el inicio del cuadro de firmas) y ancho (w), en puntos.
      Sin posición guardada va donde la plantilla la pone: abajo y centrada sobre la línea de firma. */
-  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 40.6, FIRMA_ARRIBA = 53.7;
+  var FIRMA_BASE = { jefe: { cx: 181.6, bw: 137.1 }, decano: { cx: 442.1, bw: 41.0 } }, FIRMA_ALTO = 46, FIRMA_ARRIBA = 52.8;   // la cola de la “g” baja hasta el nombre
   function geometriaFirma(rol, w0, h0, pos) {
     var b = FIRMA_BASE[rol], ratio = w0 && h0 ? h0 / w0 : null, w, h;
     if (ratio) { var k = Math.min(b.bw / w0, FIRMA_ALTO / h0); w = w0 * k; h = h0 * k; } else { w = b.bw; h = FIRMA_ALTO; ratio = h / w; }
@@ -1986,6 +1991,11 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var x = m[l.origen]; return x ? '<span class="chip mute" style="margin-left:6px">' + x + '</span>' : '';
   }
 
+  /* Celda editable del pénsum vigente (código, nombre o créditos). */
+  function inVig(campo, l, lock, cls, ancho, etq) {
+    var v = campo === 'cred' ? (l.cred > 0 ? l.cred : '') : l[campo];
+    return '<input class="cell ' + cls + (l.editadoVig ? ' edit' : '') + '" data-edit="' + campo + '" data-id="' + h(l.id) + '" data-opt="0" value="' + h(v) + '"' + (lock ? ' disabled' : '') + ' aria-label="' + etq + '"' + (ancho ? ' style="width:' + ancho + 'px' + (campo === 'cred' ? ';text-align:right' : '') + '"' : '') + '>';
+  }
   function vRevision() {
     var r = S.res, lock = bloqueado(), filas = '', areaPrev = null;
     var items = r.lineas;
@@ -2010,8 +2020,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
         else if (l.origen === 'manual') acc = '<button class="btn sm" data-act="quitar-eq" data-id="' + h(l.id) + '">Quitar equiv.</button>';
         else if (l.estado !== 'ok') acc = '<button class="btn sm gold" data-act="equiv" data-id="' + h(l.id) + '">Equivalencia</button>';
       }
-      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + h(l.codVig) + '</td><td>' + h(esOpt ? (l.etiqueta || '') : l.nombreVig) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
-        '<td class="num">' + (l.cred > 0 ? l.cred : '') + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
+      filas += '<tr class="' + (l.estado === 'ok' ? '' : l.estado) + '"><td class="mono" style="width:70px">' + (esOpt ? h(l.codVig) : inVig('codVig', l, lock, 'mono', 64, 'Código del pénsum vigente')) + '</td><td>' + (esOpt ? h(l.etiqueta || '') : inVig('nombreVig', l, lock, '', 0, 'Nombre del pénsum vigente')) + '</td><td>' + cod + '</td><td>' + nom + (l.nombreTruncado ? ' <span class="chip bad" title="El SMA corta los nombres y no se encontró el completo en las equivalencias">completar nombre</span>' : '') + '</td>' +
+        '<td class="num">' + (esOpt ? (l.cred > 0 ? l.cred : '') : inVig('cred', l, lock, 'num', 40, 'Créditos')) + '</td><td class="num">' + (l.nota != null ? M.fmtNota(l.nota) : '') + '</td><td class="num">' + (l.hab != null ? M.fmtNota(l.hab) : '') + '</td>' +
         '<td>' + chipEstado(l) + chipOrigen(l) + '</td><td style="text-align:right;white-space:nowrap">' + acc + '</td></tr>';
       if (esOpt && l.etiqueta !== undefined) { /* etiqueta ya mostrada */ }
     });
