@@ -804,18 +804,32 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     return true;
   }
 
+  function keyCod(k) { return String(k || '').split('|')[1] || ''; }
+  function codigoTomado(e, reg, exceptoFila) {   // ¿esa materia ya fue elegida en otra fila u optativa?
+    var c = normCode(reg.cod), tomado = false;
+    Object.keys(e.vinculos).forEach(function (id) {
+      if (id === exceptoFila) return;
+      if (keyCod(e.vinculos[id]) === c) tomado = true;
+    });
+    e.optativas.forEach(function (o) { if (keyCod(o.reg) === c) tomado = true; });
+    return tomado;
+  }
   function aplicarEquivalencia(e, fila, reg, quien) {
+    if (codigoTomado(e, reg, fila.id)) return false;
     e.vinculos[fila.id] = reg.key;
     registrar(e, quien, 'aplicó equivalencia a ' + fila.nombreVig,
       reg.cod + ' ' + reg.nombre + ' (' + reg.periodo + ') → ' + (fila.codVig || 'espacio de electiva'));
+    return true;
   }
   function quitarEquivalencia(e, fila, quien) {
     delete e.vinculos[fila.id];
     registrar(e, quien, 'quitó la equivalencia de ' + fila.nombreVig);
   }
   function agregarOptativa(e, bloque, reg, quien) {
+    if (codigoTomado(e, reg, null)) return false;
     e.optativas.push({ bloque: bloque.id, reg: reg.key });
     registrar(e, quien, 'agregó optativa a ' + bloque.label, reg.cod + ' ' + reg.nombre);
+    return true;
   }
   function quitarOptativa(e, regKey, quien, nombre) {
     e.optativas = e.optativas.filter(function (o) { return o.reg !== regKey; });
@@ -907,6 +921,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       return mejor;
     }
 
+    var reservados = {};        // materias elegidas a mano (electivas/equivalencias/optativas): ninguna otra fila puede tomarlas
+    Object.keys(e.vinculos).forEach(function (id) { var c = keyCod(e.vinculos[id]); if (c) reservados[c] = (reservados[c] || 0) + 1; });
+    e.optativas.forEach(function (o) { var c = keyCod(o.reg); if (c) reservados[c] = (reservados[c] || 0) + 1; });
     var usados = {};            // códigos del SMA que ya sirvieron a una fila
     var regsUsados = {};
     var lineas = [], bloques = [], faltantes = [];
@@ -918,7 +935,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         var ed = e.ediciones[it.id] || {};
         var credEf = (ed.cred != null && ed.cred !== '') ? Number(ed.cred) : it.cred;
         var reg = null, origen = '', via = '';
-        if (e.vinculos[it.id] && porClave[e.vinculos[it.id]]) {
+        if (e.vinculos[it.id] && porClave[e.vinculos[it.id]] && !usados[keyCod(e.vinculos[it.id])]) {
           reg = porClave[e.vinculos[it.id]]; origen = 'manual';
           var lm = porCodigo[normCode(reg.cod)];
           reg = ultimo(lm) || reg; // si repitió esa materia, vale la última
@@ -929,6 +946,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
           var eq = prog.equivalencias[normCode(it.cod)];
           if (eq) eq.alts.forEach(function (a, i) { cand.push({ c: normCode(a.cod), o: 'equiv' + (i + 1) }); });
           for (var i = 0; i < cand.length && !reg; i++) {
+            if (reservados[cand[i].c]) continue;
             var lista = porCodigo[cand[i].c];
             if (lista && lista.length) { reg = ultimo(lista); origen = cand[i].o; }
           }
