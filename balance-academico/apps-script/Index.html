@@ -1791,13 +1791,14 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function datosFirmante() { return { grado: FIRMANTE.grado, nombre: FIRMANTE.nombre, cargo: FIRMANTE.cargo }; }
   function decanoNombre() { return S.decano || DECANO_BASE; }
   function bloqueFirmantes(firmado) {
-    var d = datosFirmante(), img = S.imgs.jefe;
-    var dec = S.editDecano
-      ? '<div style="display:flex;gap:6px;align-items:center;margin-top:4px"><input id="dec-nombre" value="' + h(decanoNombre()) + '" style="flex:1"><button class="btn pri sm" data-act="dec-guardar">Guardar</button><button class="btn sm" data-act="dec-cancelar">Cancelar</button></div>'
-      : '<div style="display:flex;gap:8px;align-items:center;margin-top:4px"><b style="flex:1">' + h(decanoNombre()) + '</b><button class="btn sm" data-act="dec-editar">Editar</button></div>';
-    return '<div class="lbl">Jefe de Programa</div>' +
-      '<div style="display:flex;gap:10px;align-items:center;margin:6px 0"><div class="sigmini" style="width:120px">' + (img ? '<img alt="Firma" src="' + img + '">' : '') + '</div><div style="font-size:12.5px"><b>' + h(d.grado + ' ' + d.nombre) + '</b><br>' + h(d.cargo) + '</div></div>' +
-      '<div class="lbl" style="margin-top:8px">Decano de Facultad <span style="font-weight:400;color:var(--mute)">(firma aparte)</span></div>' + dec;
+    var d = datosFirmante(), cargoDec = S.prog ? S.prog.firmantes.decano : 'Decano de Facultad';
+    function fila(rol, nombre, cargo, extra) {
+      return '<div style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div style="font-size:12.5px;min-width:0"><div class="lbl" style="margin-bottom:2px">' + rol + '</div><b>' + nombre + '</b><br>' + cargo + '</div>' + (extra || '') + '</div>';
+    }
+    var decano = S.editDecano
+      ? '<div style="margin-top:10px"><div class="lbl" style="margin-bottom:4px">Decano de Facultad</div><div style="display:flex;gap:6px;align-items:center"><input id="dec-nombre" value="' + h(decanoNombre()) + '" style="flex:1;font-size:12.5px"><button class="btn pri sm" data-act="dec-guardar">Guardar</button><button class="btn sm" data-act="dec-cancelar">Cancelar</button></div></div>'
+      : '<div style="margin-top:10px">' + fila('Decano de Facultad', h(decanoNombre()), h(cargoDec), '<button class="btn sm" data-act="dec-editar">Editar</button>') + '</div>';
+    return fila('Jefe de Programa', h(d.grado + ' ' + d.nombre), h(d.cargo)) + decano;
   }
   function firmaLista() { return !!S.imgs.jefe; }
   function sellar(est, fs) {   // pone la firma del Jefe en un estado
