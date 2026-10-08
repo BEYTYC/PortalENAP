@@ -46,7 +46,7 @@
     img(d.marca, 'JPEG', 153.2, 118.4, 305.6, 551.2);                     // marca de agua
     txt('FUERZAS MILITARES DE COLOMBIA', CX, 95.7, 11, 'bold', { align: 'center' });
     txt('ARMADA DE COLOMBIA', CX, 109.8, 11, 'bold', { align: 'center' });
-    img(d.escudo, 'PNG', 277, 114, 58, 49);
+    img(d.escudo, 'PNG', CX - 21, 112, 42, 51.8);   // proporción real del escudo (171 x 211): antes se veía aplastado
     txt('ESCUELA NAVAL DE CADETES “ALMIRANTE PADILLA”', CX, 176.1, 11, 'bold', { align: 'center' });
     txt('NIT 800.141.648-9', CX, 188.6, 10.6, 'bold', { align: 'center' });
     txt('Reconocida como Universidad mediante Resolución No. 11893 de octubre 20 de 1977 y acreditada en Alta calidad mediante', CX, 226.1, 8.3, 'italic', { align: 'center' });
