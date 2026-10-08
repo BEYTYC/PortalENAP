@@ -404,22 +404,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
     bajar(doc.output('blob'), 'Balance_Academico_' + nom.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '_') + '.pdf');
     M.registrar(S.est, quien(), 'descargó el PDF', S.fs.fase === 'firmado' ? 'firmado' : S.fs.fase === 'cerrado_jefe' ? 'con firma del jefe' : 'sin firmas'); guardar();
   }
-  function importarArchivo(file) {
-    if (!file) return;
-    var fr = new FileReader();
-    fr.onload = function () {
-      try {
-        var e = JSON.parse(fr.result);
-        if (!e || !e.programaId || !e.textos || !e.estudiante) throw new Error('El archivo no es un balance.');
-        var imgs = e.firmasImg || { jefe: null, decano: null }; var dm = e.firmasDim || {}; delete e.firmasImg; delete e.firmasDim; S.dims = { jefe: dm.jefe || null, decano: dm.decano || null };
-        S.imgs = { jefe: imgs.jefe || null, decano: imgs.decano || null };
-        M.registrar(e, quien(), 'abrió el archivo del balance');
-        abrir(e, 'revision').then(guardar).then(refrescarGuardados);
-      } catch (err) { S.formErr = ['No se pudo abrir el archivo: ' + err.message]; render(); }
-    };
-    fr.readAsText(file);
-  }
-
   /* ───── vistas ───── */
   var FASES = {
     borrador: ['mute', 'En elaboración'], cerrado_jefe: ['warn', 'Cerrado por el Jefe · pasa al Decano'], firmado: ['ok', 'Firmado por el Decano']
@@ -443,7 +427,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   }
 
   function vInicio() {
-    var f = S.form, sel = PR.lista;
+    var f = S.form, sel = PR.activos();
     var guard = S.guardados;
     var progOpts = '<option value="">Elija el programa…</option>' + sel.map(function (p) { return '<option value="' + p.id + '"' + (f.programaId === p.id ? ' selected' : '') + '>' + h(p.nombre) + '</option>'; }).join('');
     var tipos = [['CC', 'Cédula de ciudadanía'], ['CE', 'Cédula de extranjería'], ['PA', 'Pasaporte']];
@@ -463,7 +447,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<span style="color:var(--mute);font-size:12px">Se compara la cédula con el SMA; con pasaporte o extranjería, solo los nombres. El código del estudiante no se valida.</span></div>' +
       '</div></div>' +
       '<div class="col"><div class="card guardados" style="flex:1"><div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px"><span class="lbl">Balances guardados</span>' +
-      '<label class="btn sm" style="margin-left:auto;cursor:pointer">Abrir archivo del balance<input type="file" id="abrir-archivo" accept=".json,application/json" hidden></label></div>' +
+      '</div>' +
       (guard.length ? guard.map(function (g, i) {
         var m = PR.porId(g.programaId), fs = g.fase || 'borrador';
         return '<div class="gd"><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + chipFase(fs) +
@@ -762,7 +746,6 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
       if (k === 'programaId') { var p = PR.porId(t.value); if (p) S.form.nivel = p.nivel; render(); }
       return;
     }
-    if (t.id === 'abrir-archivo') { importarArchivo(t.files[0]); return; }
     if (t.id === 'firma-img') { cargarFirma(t.files[0]); return; }
     if (t.id === 'firma-img-jefe') { cargarFirma(t.files[0], 'jefe'); return; }
     if (t.id && t.id.indexOf('fi-') === 0) {
@@ -792,7 +775,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   function precargar() {
     var q = new URLSearchParams(window.__PARAMS ? new URLSearchParams(window.__PARAMS).toString() : location.search), f = S.form;
     var p = PR.porId(q.get('programa')) || PR.porNombre(q.get('programa'));
-    if (p) { f.programaId = p.id; f.nivel = p.nivel; }
+    if (p && PR.estaActivo(p)) { f.programaId = p.id; f.nivel = p.nivel; }
+    else if (p) S.formErr = ['Por ahora este módulo genera balances solo para la Especialización en Gestión Logística y la Maestría en Gestión Logística.'];
     if (q.get('tipoDoc')) f.tipoDoc = q.get('tipoDoc').toUpperCase().slice(0, 2);
     if (q.get('documento')) f.documento = q.get('documento');
     if (q.get('nombres')) f.nombres = q.get('nombres');

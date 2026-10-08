@@ -6,6 +6,10 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
+  /* Programas en los que el módulo está habilitado por ahora. Los demás tienen su plantilla leída y probada,
+     pero no se ofrecen hasta que se decida abrirlos (basta agregar su id aquí). */
+  var ACTIVOS = ['esp-logistica', 'mae-logistica'];
+
   var LISTA = [
     { id: 'administracion',        archivo: 'Balance_Administracion.xlsm',                              nombre: 'Administración',                                      nivel: 'pregrado',  alias: ['Administración'] },
     { id: 'administracion-maritima', archivo: 'Balance_Administracion_Maritima.xlsm',                   nombre: 'Administración Marítima',                             nivel: 'pregrado',  alias: ['Administración Marítima'] },
@@ -41,7 +45,9 @@
     }
     return null;
   }
+  function activos() { return LISTA.filter(function (p) { return ACTIVOS.indexOf(p.id) >= 0; }); }
+  function estaActivo(p) { return !!p && ACTIVOS.indexOf(p.id) >= 0; }
   function esManual(n) { var x = norm(n); return MANUALES.some(function (m) { return norm(m) === x; }); }
 
-  return { lista: LISTA, manuales: MANUALES, porId: porId, porNombre: porNombre, esManual: esManual };
+  return { lista: LISTA, activos: activos, estaActivo: estaActivo, manuales: MANUALES, porId: porId, porNombre: porNombre, esManual: esManual };
 });
