@@ -9,7 +9,7 @@
 
   var X = { area0: 36.6, area1: 50.2, cod0: 50.4, cod1: 80.5, vig0: 81.2, vig1: 251.0, ccod0: 251.7, ccod1: 281.8,
             cnom0: 282.5, cnom1: 453.9, cre0: 454.7, cre1: 494.0, not0: 494.7, not1: 534.1, hab0: 534.8, hab1: 574.2 };
-  var LEFT = 36.6, RIGHT = 574.9, G = 9, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 13.2;   // G: espacio en blanco entre el título y el bloque de datos
+  var LEFT = 36.6, RIGHT = 574.9, G = 9, TOP = 113.4 + G, PITCH = 10.44, PITCH_MAX = 15.6, LINEA = [115, 115, 115];   // LINEA: gris de líneas y bordes   // G: espacio en blanco entre el título y el bloque de datos
   var CARTA = 792, OFICIO = 936, BAJO = 140;   // BAJO: del fin de la tabla al borde de la hoja (totales, observaciones, firmas y margen)
   var AZUL = [226, 238, 250], AZUL2 = [218, 233, 248], GRIS = [242, 242, 242];
 
@@ -40,7 +40,7 @@
     var T = TOP + N * pitch;                   // fin de la tabla
     var fs = 6.1 * Math.min(1.1, pitch / PITCH * 1.04);
 
-    function negro(x0, y0, x1, y1) { doc.setFillColor(0, 0, 0); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
+    function negro(x0, y0, x1, y1) { doc.setFillColor(LINEA[0], LINEA[1], LINEA[2]); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
     function gris(x0, y0, x1, y1) { doc.setFillColor(GRIS[0], GRIS[1], GRIS[2]); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
     function fondo(c, x0, y0, x1, y1) { doc.setFillColor(c[0], c[1], c[2]); doc.rect(x0, y0, x1 - x0, y1 - y0, 'F'); }
     function texto(s, x, y, size, bold, align, maxW) {
