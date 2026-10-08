@@ -20,7 +20,7 @@ def uri(nombre):
 
 MODULOS = '\n'.join(js(n) for n in ('motor.js', 'programas.js', 'lector-excel.js', 'pdf.js'))
 ENTORNO = ('<script>window.__GAS = true; window.__PARAMS = <?!= params ?>;\n'
-           'window.__ASSETS = {logo: "%s", marca: "%s"};</script>') % (uri('logo-armada.png'), uri('marca-agua.png'))
+           'window.__ASSETS = {logo: "%s", marca: "%s", firma: "%s"};</script>') % (uri('logo-armada.png'), uri('marca-agua.png'), uri('firma-olga.png'))
 
 def bloque(nombre, nuevo):
     global html
