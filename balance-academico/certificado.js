@@ -43,7 +43,7 @@
       doc.text(t, x, y, opts || {});
     }
 
-    img(d.marca, 'JPEG', 126.2, 64.1, 359.5, 648.5);                     // marca de agua
+    img(d.marca, 'JPEG', 153.2, 118.4, 305.6, 551.2);                     // marca de agua
     txt('FUERZAS MILITARES DE COLOMBIA', CX, 95.7, 11, 'bold', { align: 'center' });
     txt('ARMADA DE COLOMBIA', CX, 109.8, 11, 'bold', { align: 'center' });
     img(d.escudo, 'PNG', 277, 114, 58, 49);
