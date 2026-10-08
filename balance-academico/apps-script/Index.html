@@ -1600,6 +1600,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       negro(x0, TS + 96.2, x1, TS + 96.9);
       texto(((f1 && f1.nombre) || '').toUpperCase(), cx, TS + 103.5, 7.6, true, 'center', x1 - x0 + 20);
       texto((f1 && f1.cargo) || '', cx, TS + 112.7, 7.6, false, 'center', x1 - x0 + 40);
+      if (f1 && f1.img && f1.sello) {            // constancia de firma digital (solo el firmante que firma en el sistema)
+        doc.setTextColor(150, 150, 150);          // gris claro
+        texto('Balance generado y firmado digitalmente', cx, TS + 121.6, 6.1, false, 'center', x1 - x0 + 40);
+        texto(f1.sello, cx, TS + 129.2, 6.1, false, 'center', x1 - x0 + 40);
+        doc.setTextColor(0, 0, 0);
+      }
     }
     bloqueFirma('jefe', f.jefe, 181.6, 80.9, 282.3);
     bloqueFirma('decano', f.decano, 442.1, 349.6, 534.6);
@@ -2160,11 +2166,16 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   /* La firma se puede mover y cambiar de tamaño mientras el balance no esté firmado. */
   function firmaEditable() { return false; }     // la firma va siempre en su sitio, sobre la línea del Jefe de Programa
   function posJefe(est) { return null; }
+  function selloFirma(iso) {                      // 08/10/2026 05:55 p. m. (hora de Colombia)
+    var d = new Date(iso); if (isNaN(d)) return null;
+    var p = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).format(d);
+    return p.replace(/\s+/g, ' ').replace(/([ap])\.?\s?m\.?/i, function (m, x) { return x.toLowerCase() + '. m.'; }).replace(',', '');
+  }
   function pdfDe(est, prog, res, fs, vista) {
     var f = est.firmas.jefe, firmado = !!(f && fs.jefe), d = datosFirmante(), usar = firmado ? f : d, img = S.imgs.jefe, dm = S.dims.jefe || {};
     var firmas = {
       jefe: { img: firmado ? img : null, w: dm.w, h: dm.h, tipo: img && /image\/jpe?g/i.test(img) ? 'JPEG' : 'PNG',
-              nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || prog.firmantes.jefe, pos: posJefe(est) },
+              nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || prog.firmantes.jefe, pos: posJefe(est), sello: firmado ? selloFirma(f.fecha) : null },
       decano: { nombre: decanoNombre(), cargo: prog.firmantes.decano, soloLinea: true }       // el Decano firma aparte: solo queda su línea
     };
     var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;

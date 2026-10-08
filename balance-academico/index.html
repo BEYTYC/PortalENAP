@@ -588,11 +588,16 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   /* La firma se puede mover y cambiar de tamaño mientras el balance no esté firmado. */
   function firmaEditable() { return false; }     // la firma va siempre en su sitio, sobre la línea del Jefe de Programa
   function posJefe(est) { return null; }
+  function selloFirma(iso) {                      // 08/10/2026 05:55 p. m. (hora de Colombia)
+    var d = new Date(iso); if (isNaN(d)) return null;
+    var p = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }).format(d);
+    return p.replace(/\s+/g, ' ').replace(/([ap])\.?\s?m\.?/i, function (m, x) { return x.toLowerCase() + '. m.'; }).replace(',', '');
+  }
   function pdfDe(est, prog, res, fs, vista) {
     var f = est.firmas.jefe, firmado = !!(f && fs.jefe), d = datosFirmante(), usar = firmado ? f : d, img = S.imgs.jefe, dm = S.dims.jefe || {};
     var firmas = {
       jefe: { img: firmado ? img : null, w: dm.w, h: dm.h, tipo: img && /image\/jpe?g/i.test(img) ? 'JPEG' : 'PNG',
-              nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || prog.firmantes.jefe, pos: posJefe(est) },
+              nombre: ((usar.grado ? usar.grado + ' ' : '') + (usar.nombre || '')).trim(), cargo: usar.cargo || prog.firmantes.jefe, pos: posJefe(est), sello: firmado ? selloFirma(f.fecha) : null },
       decano: { nombre: decanoNombre(), cargo: prog.firmantes.decano, soloLinea: true }       // el Decano firma aparte: solo queda su línea
     };
     var JsPDF = (window.jspdf && window.jspdf.jsPDF) || window.jsPDF;
