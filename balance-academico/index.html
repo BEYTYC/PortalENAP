@@ -631,7 +631,11 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   /* ───── en grupo: varios balances con una sola firma ───── */
   function clavesSel() { return S.guardados.filter(function (g) { return S.sel[g.key]; }).map(function (g) { return g.key; }); }
-  function cargarEstado(key) { return S.est && claveEstado(S.est) === key ? Promise.resolve(S.est) : Backend.cargar(key).catch(function () { return Backend.cargar(key); }); }   // un reintento si falla la red
+  function conTildes(est) {                       // los balances guardados antes también muestran nombres y apellidos con tilde
+    if (est && est.estudiante) { est.estudiante.nombres = M.tildarNombre(est.estudiante.nombres || ''); est.estudiante.apellidos = M.tildarNombre(est.estudiante.apellidos || ''); }
+    return est;
+  }
+  function cargarEstado(key) { return S.est && claveEstado(S.est) === key ? Promise.resolve(S.est) : Backend.cargar(key).catch(function () { return Backend.cargar(key); }).then(conTildes); }   // un reintento si falla la red
   function grupoOcupado(msg) { S.grupo.trabajando = msg || false; render(); }
   function firmarGrupo() {
     var claves = clavesSel(); if (!claves.length) return;
@@ -1028,7 +1032,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     else if (act === 'abrir-g') {
       var g = S.guardados[+t.getAttribute('data-i')]; if (!g) return;
       S.cargando = true; render();
-      Backend.cargar(g.key).then(function (e) {
+      Backend.cargar(g.key).then(conTildes).then(function (e) {
         return abrir(e, t.getAttribute('data-vista-a') || 'firma');   // Abrir muestra el PDF; Editar, la revisión
       }).catch(function (err) { S.cargando = false; S.formErr = ['No se pudo abrir el balance: ' + err.message]; render(); });
     }
