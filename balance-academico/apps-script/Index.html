@@ -1742,9 +1742,10 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     return intento(false);
   }
   function b64aBuffer(b64) { var bin = atob(b64), n = bin.length, u = new Uint8Array(n); for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+  var VER_RESUMEN = 2;   // si cambian las reglas, sube este número: los balances guardados con otra versión se revisan solos
   function resumen(e) {
     var fs = M.estadoFirmas(e), info = e.info || {};
-    return { key: claveEstado(e), programaId: e.programaId, estudiante: e.estudiante, fase: fs.fase, completo: info.completo, pendientes: info.pendientes, actualizado: new Date().toISOString() };
+    return { v: VER_RESUMEN, key: claveEstado(e), programaId: e.programaId, estudiante: e.estudiante, fase: fs.fase, completo: info.completo, pendientes: info.pendientes, actualizado: new Date().toISOString() };
   }
   var Backend = {
     sesion: function () {
@@ -1822,10 +1823,27 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var m = { guardando: ['mute', 'Guardando…'], guardado: ['ok', 'Guardado'], error: ['bad', 'No se pudo guardar'] }[S.guardando];
     el.innerHTML = m ? '<span class="chip ' + m[0] + '" title="' + h(S.errorGuardado || '') + '">' + m[1] + '</span>' : '';
   }
+  var revisando = false;
   function refrescarGuardados() {
     return Backend.listar().then(function (l) {
       S.guardados = (l || []).sort(function (a, b) { return String(b.actualizado || '').localeCompare(String(a.actualizado || '')); });
+      revisarResumenes();
     }).catch(function () { S.guardados = []; });
+  }
+  /* El estado (Completo / Incompleto) de la lista sale de lo guardado. Si se guardó con reglas viejas, se vuelve a calcular. */
+  function revisarResumenes() {
+    if (revisando) return;
+    var viejos = S.guardados.filter(function (g) { return g.v !== VER_RESUMEN; });
+    if (!viejos.length) return;
+    revisando = true;
+    viejos.reduce(function (p, g) {
+      return p.then(function () {
+        return cargarEstado(g.key).then(function (est) { return est ? evaluar(est).then(function () { return Backend.guardar(est); }) : null; }).catch(function () {});
+      });
+    }, Promise.resolve()).then(function () { revisando = false; return Backend.listar(); }).then(function (l) {
+      S.guardados = (l || []).sort(function (a, b) { return String(b.actualizado || '').localeCompare(String(a.actualizado || '')); });
+      if (S.vista === 'inicio') render();
+    }).catch(function () { revisando = false; });
   }
 
   /* ───── carga de imágenes fijas del PDF ───── */
@@ -2350,24 +2368,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var pct = r.totalFilas ? Math.round(r.cruzadas / r.totalFilas * 100) : 0;
     var bit = S.est.bitacora.slice().reverse().map(function (b) { return '<div><time>' + h(fecha(b.t)) + ' · ' + h(b.quien) + '</time>' + h(b.accion) + (b.detalle ? ' — <span style="color:var(--mute)">' + h(b.detalle) + '</span>' : '') + '</div>'; }).join('');
 
-    var alertas = '';
-    if (ver && !ver.ok) alertas += '<div class="alert bad">' + ver.errores.map(h).join('<br>') + '</div>';
-    if (ver && ver.avisos.length) alertas += '<div class="alert warn">' + ver.avisos.map(h).join('<br>') + '</div>';
-    if (fase() !== 'borrador') alertas += '<div class="alert mute">Edición cerrada porque el balance ya está firmado. Use “Reabrir” en el paso 3 para cambiar algo (borra la firma).</div>';
-    var vg = vigencia(r.periodoTerm);
-    if (!vg.ok) alertas += '<div class="alert warn">Balance final vencido: el estudiante terminó en ' + h(vg.periodo) + ', hace más de 3 años. Debe cumplir con todas las materias del pénsum inicial' + (/^mae-/.test(S.est.programaId) ? ', incluyendo un nuevo trabajo de grado' : '') + '. El certificado dirá que el balance se encuentra actualizado.</div>';
-    if (r.avisosNombre) alertas += '<div class="alert bad">' + r.avisosNombre + (r.avisosNombre === 1 ? ' nombre sigue' : ' nombres siguen') + ' con puntos suspensivos: no estaban en las equivalencias. Escriba el nombre completo en “Pénsum cursado”; el cambio queda guardado.</div>';
-    if (r.faltantes.length) alertas += '<div class="alert warn">Falta completar ' + r.faltantes.length + ' ' + (r.faltantes.length === 1 ? 'asignatura' : 'asignaturas') + ' del pénsum.</div>';
-    if (!r.completo) alertas += '<div class="alert mute" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>No se puede firmar ni bajar el PDF hasta que el balance esté completo.</span><button class="btn sm" data-act="guardar-volver">Guardar y cargar otro</button></div>';
-    else if (bloqueos(S.est, r).length && fase() === 'borrador') {
-      alertas += '<div class="alert warn">' + bloqueos(S.est, r).map(h).join('<br>') + '</div>' +
-        '<div class="alert mute" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>No se puede firmar hasta resolver lo anterior.</span><button class="btn sm" data-act="guardar-volver">Guardar y cargar otro</button></div>';
-    }
-    else {
-      var tocaFirmar = fase() === 'borrador';
-      alertas += '<div class="alert ok" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap"><span>Balance completo: ya se puede firmar y descargar.</span>' +
-        '<span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri sm" data-act="guardar-volver">Guardar balance</button><button class="btn sm" data-vista="firma">' + (tocaFirmar ? 'Firmar solo este' : 'Ir a Firma y PDF') + '</button></span></div>';
-    }
+    // sin avisos: solo el botón para guardar el balance
+    var alertas = '<button class="btn pri" data-act="guardar-volver" style="font-size:17px;padding:16px 20px;width:100%">Guardar balance</button>';
 
     return '<div class="rev"><div class="card tablewrap"><div class="tbar"><b>Pénsum vigente y notas</b><span class="chip mute">Mínimo para aprobar: ' + M.fmtNota(r.minimo) + '</span>' +
       '<div class="seg"><button data-filtro="todas" aria-pressed="' + (S.filtro === 'todas') + '">Todas</button><button data-filtro="pendientes" aria-pressed="' + (S.filtro === 'pendientes') + '">Pendientes (' + pendientes + ')</button></div></div>' +
