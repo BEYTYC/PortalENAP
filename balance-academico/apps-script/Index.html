@@ -26,6 +26,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tab .n{width:20px;height:20px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center}
 .tabs .cred{margin-left:auto;align-self:center;padding:0 0 6px 18px;font-size:12px;color:var(--mute);white-space:nowrap;font-weight:500}
 .tabs .est + .cred{margin-left:0}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #cfd7e6;border-top-color:var(--navy,#12284C);border-radius:50%;animation:giro .7s linear infinite;vertical-align:-2px;flex-shrink:0}
+@keyframes giro{to{transform:rotate(360deg)}}
+#ocupado{position:fixed;right:20px;bottom:20px;z-index:60;display:none;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:999px;box-shadow:0 6px 24px rgba(18,40,76,.18);padding:9px 16px;font-size:13px;font-weight:600;color:var(--navy,#12284C)}
+#ocupado.on{display:flex}
+.gd.borrando{opacity:.55;pointer-events:none}
 .tabs .navbtns{display:flex;gap:8px;align-self:center;padding-bottom:6px;margin-left:auto}
 .tabs .est + .navbtns{margin-left:14px}
 .tabs .est{margin-left:auto;padding-bottom:8px;display:flex;gap:8px;align-items:center;font-weight:600}
@@ -1751,6 +1756,21 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     }
   };
 
+  /* Cualquier llamada al servidor muestra un circulito de “Cargando…” en una esquina. */
+  var enCurso = 0;
+  function indicador() {
+    var el = document.getElementById('ocupado');
+    if (!el) { el = document.createElement('div'); el.id = 'ocupado'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); el.innerHTML = '<span class="spin"></span><span id="ocupado-t">Cargando…</span>'; document.body.appendChild(el); }
+    return el;
+  }
+  function ocupar(texto, p) {
+    enCurso++; var el = indicador(); el.classList.add('on'); var t = document.getElementById('ocupado-t'); if (t && texto) t.textContent = texto;
+    function fin() { enCurso = Math.max(0, enCurso - 1); if (!enCurso) indicador().classList.remove('on'); }
+    return Promise.resolve(p).then(function (v) { fin(); return v; }, function (e) { fin(); throw e; });
+  }
+  var TEXTO_BACKEND = { guardar: 'Guardando…', borrar: 'Eliminando…', listar: 'Cargando balances…', cargar: 'Abriendo balance…', excel: 'Leyendo el pénsum…', sesion: 'Cargando…' };
+  Object.keys(Backend).forEach(function (k) { var f = Backend[k]; Backend[k] = function () { return ocupar(TEXTO_BACKEND[k], f.apply(Backend, arguments)); }; });
+
   /* ───── utilidades ───── */
   function h(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function $(sel, el) { return (el || document).querySelector(sel); }
@@ -1923,7 +1943,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
         S.avance = null;
         S.sel = {}; nuevos.forEach(function (e) { S.sel[claveEstado(e)] = true; });
         S.form.notas = ''; S.formAv = errores.length ? ['No se crearon:'].concat(errores) : null;
-        S.grupo.msg = { t: 'ok', x: nuevos.length + (nuevos.length === 1 ? ' balance creado' : ' balances creados') + ' y guardados' + (GAS ? ' en OneDrive' : '') + '. Revise los incompletos y firme en grupo los que estén listos.' };
+        S.grupo.msg = null;
         render();
       });
     }).catch(function (err) { S.creando = false; S.avance = null; S.formErr = ['No se pudieron crear los balances: ' + err.message]; render(); });
@@ -1950,7 +1970,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     var k = claveEstado(S.est), nom = M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos);
     Promise.resolve(guardar()).then(refrescarGuardados).then(function () {
       S.sel[k] = true; S.est = null; S.prog = null; S.res = null; S.fs = null; S.ver = null; S.msg = null; S.formErr = null; S.formAv = null;
-      S.grupo.msg = { t: 'ok', x: 'Balance de ' + nom + ' guardado. Pegue otro historial del SMA o firme todos cuando termine.' };
+      S.grupo.msg = null;
       S.vista = 'inicio'; render();
     }).catch(function (err) { S.msg = { t: 'bad', x: 'No se pudo guardar: ' + err.message }; render(); });
   }
@@ -2217,7 +2237,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       (S.grupo.msg ? '<div class="alert ' + S.grupo.msg.t + '" style="margin:10px 14px 0">' + h(S.grupo.msg.x) + '</div>' : '') +
       (guard.length ? guard.map(function (g, i) {
         var m = PR.porId(g.programaId);
-        return '<div class="gd"><input type="checkbox" class="chk" data-sel="' + h(g.key) + '" aria-label="Seleccionar"' + (S.sel[g.key] ? ' checked' : '') + '><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + chipLista(g) +
+        var bor = S.borrando && S.borrando[g.key];
+        return '<div class="gd' + (bor ? ' borrando' : '') + '"><input type="checkbox" class="chk" data-sel="' + h(g.key) + '" aria-label="Seleccionar"' + (S.sel[g.key] ? ' checked' : '') + '><div class="t"><b>' + h(M.titulo(g.estudiante.nombres + ' ' + g.estudiante.apellidos)) + '</b><span>' + h(m ? m.nombre : g.programaId) + ' · ' + h(g.estudiante.documento) + (g.actualizado ? ' · ' + h(fecha(g.actualizado)) : '') + '</span></div>' + (bor ? '<span style="display:flex;gap:6px;align-items:center;font-size:12.5px"><span class="spin"></span>Eliminando…</span>' : chipLista(g)) +
           '<button class="btn sm" data-act="abrir-g" data-i="' + i + '">Abrir</button><button class="btn sm" data-act="abrir-g" data-vista-a="revision" data-i="' + i + '">Editar</button><button class="btn sm" data-act="borrar-g" data-i="' + i + '" aria-label="Eliminar">✕</button></div>';
       }).join('') : '<div class="vacío">Aún no hay balances. Pegue un historial del SMA y pulse “Crear balance”.</div>') +
       '<div style="flex:1"></div>' + panelFirmaGrupo(nSel) +
@@ -2483,7 +2504,10 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     else if (act === 'borrar-g') {
       var g2 = S.guardados[+t.getAttribute('data-i')]; if (!g2) return;
       pregunta('Eliminar balance', 'Se eliminará el balance de ' + M.titulo(g2.estudiante.nombres + ' ' + g2.estudiante.apellidos) + '. No se puede deshacer.', 'Eliminar').then(function (si) {
-        if (si) Backend.borrar(g2.key).then(refrescarGuardados).then(render).catch(function (err) { aviso('No se pudo eliminar', err.message); });
+        if (!si) return;
+        S.borrando = S.borrando || {}; S.borrando[g2.key] = true; delete S.sel[g2.key]; render();
+        Backend.borrar(g2.key).then(refrescarGuardados).then(function () { delete S.borrando[g2.key]; render(); })
+          .catch(function (err) { delete S.borrando[g2.key]; render(); aviso('No se pudo eliminar', err.message); });
       });
     }
     else if (act === 'dialogo-si' || act === 'dialogo-no') {
