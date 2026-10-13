@@ -47,7 +47,7 @@ function configurar() {
   var d = graph_('get', rutaDrive_() + '?$select=id,name,webUrl', null, t);
   asegurarCarpeta_(t);
   Logger.log('OneDrive conectado: ' + (d.webUrl || d.name) + '\nCarpeta de balances: ' + carpetaBalances_() +
-    '\nUsuarios permitidos: ' + (prop_('USUARIOS_PERMITIDOS', '') || '(cualquiera que abra la página)') +
+    '\nClave de acceso: ' + (prop_('CLAVE_ACCESO') ? 'configurada' : '(no configurada)') + '\nUsuarios permitidos: ' + (prop_('USUARIOS_PERMITIDOS', '') || '(cualquiera que abra la página)') +
     '\nPlantillas: ' + (prop_('PORTAL_URL') ? prop_('PORTAL_URL').replace(/\/+$/, '') + '/balances/' : 'OneDrive ' + carpetaPlantillas_()));
 }
 
@@ -118,12 +118,31 @@ function sha_(t) {
   return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, t)).slice(0, 40);
 }
 
-/** Identidad: la aplicación web va sola en Apps Script (sin Portal). Si el despliegue es para cuentas del dominio,
- *  Google entrega el correo de quien abre la página. Propiedad opcional USUARIOS_PERMITIDOS: correos separados por coma
- *  (si existe, solo esas personas entran). El argumento `tokenUsuario` ya no se usa. */
+/** Identidad y acceso.
+ *  · Con la propiedad CLAVE_ACCESO la implementación puede ser de acceso “Cualquier persona” (así se ve dentro de la página
+ *    del Portal también en celulares): la aplicación pide la clave y el servidor la verifica en CADA acción.
+ *  · Sin esa propiedad se usa la cuenta de Google de quien abre la página (y USUARIOS_PERMITIDOS, si existe).
+ *  El argumento `tokenUsuario` es la clave que escribió la persona. */
+function requiereClave() { return !!prop_('CLAVE_ACCESO'); }
+function iguales_(a, b) {
+  a = String(a); b = String(b);
+  var d = a.length === b.length ? 0 : 1, n = Math.max(a.length, b.length);
+  for (var i = 0; i < n; i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+  return d === 0;
+}
 function sesionDe_(tokenUsuario) {
-  var correo = '';
+  var clave = prop_('CLAVE_ACCESO'), correo = '';
   try { correo = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); } catch (e) {}
+  if (clave) {
+    var cache = CacheService.getScriptCache(), fallos = Number(cache.get('fallos') || 0);
+    if (fallos >= 40) throw new Error('Clave incorrecta: demasiados intentos. Espere 10 minutos.');
+    if (!iguales_(tokenUsuario || '', clave)) {
+      cache.put('fallos', String(fallos + 1), 600); Utilities.sleep(1200);
+      throw new Error('Clave de acceso incorrecta.');
+    }
+    return { email: correo, nombre: correo || 'Jefe de Programa', roles: ['jefe'], prueba: false };
+  }
+  if (!correo) throw new Error('Falta configurar la propiedad CLAVE_ACCESO (la implementación es de acceso público y no hay cuenta de Google).');
   var permitidos = prop_('USUARIOS_PERMITIDOS', '').toLowerCase().split(/[,;\s]+/).filter(Boolean);
   if (permitidos.length && permitidos.indexOf(correo) < 0) throw new Error('Su cuenta no tiene permiso para usar el Balance Académico.');
   return { email: correo, nombre: correo, roles: ['jefe'], prueba: false };

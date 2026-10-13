@@ -181,7 +181,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     form: { notas: '' }, formErr: null, formAv: null, cargando: false, creando: false, filtro: 'todas', modal: null, firmaForm: { jefe: {} },
     sesion: { nombre: '', email: '', roles: ['jefe'], prueba: true }, msg: null,
     sel: {}, grupo: { msg: null, trabajando: false },
-    guardados: [], pensums: [], guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
+    guardados: [], pensums: [], clave: '', pedirClave: false, errorClave: null, guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
   };
 
   /* ───── entorno: Apps Script (producción) o navegador suelto (pruebas) ───── */
@@ -193,7 +193,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     });
   }
   /* Identidad: aplicación independiente en Apps Script; el servidor toma el correo de quien abre la página. */
-  function obtenerToken() { return Promise.resolve(''); }   // aplicación independiente: no hay token del Portal
+  function obtenerToken() { return Promise.resolve(S.clave || ''); }   // aplicación independiente: aquí va la clave de acceso, si el servidor la pide
   function srvAuth(fn) {
     var args = Array.prototype.slice.call(arguments, 1);
     function intento(reintento) {
@@ -901,6 +901,19 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     }).catch(function (e) { if (S.modal) { S.modal.err = ['No se pudo guardar la reforma: ' + e.message]; renderPensum(false); } });
   }
 
+  function vClave() {
+    return '<div style="height:100%;display:flex;align-items:center;justify-content:center;padding:16px"><div class="card" style="width:min(380px,100%);padding:24px;border-top:4px solid var(--gold)">' +
+      '<div style="font-size:18px;font-weight:700;color:var(--navy)">Generador de Balances Académico</div>' +
+      '<div style="color:var(--mute);font-size:13px;margin:6px 0 14px">Escuela Naval de Cadetes «Almirante Padilla». Escriba la clave de acceso.</div>' +
+      '<label class="f"><span class="lbl">Clave de acceso</span><input id="clave" type="password" autocomplete="current-password" style="margin-top:4px"></label>' +
+      (S.errorClave ? '<div class="alert bad" style="margin-top:10px">' + h(S.errorClave) + '</div>' : '') +
+      '<button class="btn pri" data-act="entrar-clave" style="width:100%;margin-top:14px;padding:10px">Entrar</button></div></div>';
+  }
+  function entrarConClave() {
+    var c = $('#clave'), v = c ? c.value : ''; if (!v) { S.errorClave = 'Escriba la clave.'; render(); return; }
+    S.clave = v; S.errorClave = null; S.pedirClave = false; S.arranque = true; render(); iniciar();
+  }
+
   function vInicio() {
     var f = S.form, guard = S.guardados, nSel = clavesSel().length;
     var todos = guard.length && guard.every(function (g) { return S.sel[g.key]; });
@@ -1018,6 +1031,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     else if (S.vista === 'revision') cuerpo = vRevision();
     else cuerpo = vFirma();
     if (S.arranque) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;font-weight:600;color:var(--navy)"><span class="spin" style="width:28px;height:28px;border-width:3px"></span>Cargando…</div>'; return; }
+    if (S.pedirClave) { app.innerHTML = vClave(); var cc = $('#clave'); if (cc) cc.focus(); return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
     app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main><footer class="pie">Desarrollado por PD02 Beyty Camargo M.</footer>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
@@ -1145,6 +1159,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (t.hasAttribute('data-filtro')) { S.filtro = t.getAttribute('data-filtro'); render(); return; }
     var act = t.getAttribute('data-act');
     if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
+    if (act === 'entrar-clave') { entrarConClave(); return; }
     if (act === 'pensum-nuevo') { if (S.form.programaId) abrirEditorPensum(null); return; }
     if (act === 'pensum-editar') { var rf0 = reformaPorId(S.form.pensumId); if (rf0) abrirEditorPensum(rf0); return; }
     if (act === 'pensum-eliminar') {
@@ -1261,14 +1276,33 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (t.id === 'obs') { var n = $('#obs-n'); if (n) n.textContent = t.value.length; }
     if (t.id && t.id.indexOf('f-') === 0 && t.id !== 'f-notas' && t.tagName === 'INPUT') S.form[t.id.slice(2)] = t.value;
   });
-  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal && S.modal.tipo !== 'pensum') { S.modal = null; render(); } });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Enter' && ev.target && ev.target.id === 'clave') { entrarConClave(); return; }
+   if (ev.key === 'Escape' && S.modal && S.modal.tipo !== 'pensum') { S.modal = null; render(); } });
 
   /* ───── arranque ───── */
   function precargar() { return Backend.decano().then(function (x) { if (x && String(x).trim()) S.decano = String(x).trim(); }).catch(function () { cargarFormFirma(); }); }
+  function iniciar() {
+    var assets = cargarAssets();
+    leerSesion().then(function () {         // primero se valida la clave (una sola vez); luego lo demás
+      try { if (S.clave) sessionStorage.setItem('balance.clave', S.clave); } catch (e) {}
+      return Promise.all([assets, refrescarGuardados(), Backend.pensums().then(function (l) { S.pensums = l || []; }).catch(function () { S.pensums = []; })]);
+    }).then(function () {
+      return precargar();
+    }).then(function () { S.arranque = false; render(); })
+    .catch(function (err) {
+      if (/clave|intentos/i.test(err.message)) {
+        try { sessionStorage.removeItem('balance.clave'); } catch (e) {}
+        S.clave = ''; S.errorClave = S.errorClave || err.message; S.pedirClave = true; S.arranque = false; render();
+      } else { S.arranque = false; S.errorArranque = err.message; render(); }
+    });
+  }
   render();
-  Promise.all([leerSesion(), refrescarGuardados(), cargarAssets(), Backend.pensums().then(function (l) { S.pensums = l || []; }).catch(function () { S.pensums = []; })]).then(function () {
-    precargar().then(function () { S.arranque = false; render(); });
-  }).catch(function (err) { S.arranque = false; S.errorArranque = err.message; render(); });
+  if (GAS) {
+    try { S.clave = sessionStorage.getItem('balance.clave') || ''; } catch (e) {}
+    srv('requiereClave').then(function (pide) {
+      if (pide && !S.clave) { S.pedirClave = true; S.arranque = false; render(); } else iniciar();
+    }).catch(function () { iniciar(); });
+  } else iniciar();
   window.BalanceApp = { estado: S }; // útil para pruebas
 })();
 </script>
