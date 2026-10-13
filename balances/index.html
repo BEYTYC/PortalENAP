@@ -25,6 +25,10 @@
     document.body.insertAdjacentHTML('beforeend', '<div id="aviso"><b>Falta la dirección del Balance Académico.</b><br>Pegue la URL de la implementación de Apps Script (termina en /exec) en <code>balances/config.js</code>.</div>');
     return;
   }
+  /* En celulares y tabletas el navegador bloquea las cookies de Google dentro de un marco, y Google responde “401”.
+     Ahí se abre la aplicación directamente (sigue siendo la misma, con su inicio de sesión de Google). */
+  var movil = /Android|iPhone|iPad|iPod|Mobile|CriOS|FxiOS/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  if (movil) { window.location.replace(u); return; }
   var f = document.createElement('iframe');
   f.title = 'Balance Académico'; f.allow = 'clipboard-read; clipboard-write; downloads';
   f.onload = function () { document.getElementById('carga').className = 'off'; };
