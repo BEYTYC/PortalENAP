@@ -180,7 +180,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     form: { notas: '' }, formErr: null, formAv: null, cargando: false, creando: false, filtro: 'todas', modal: null, firmaForm: { jefe: {} },
     sesion: { nombre: '', email: '', roles: ['jefe'], prueba: true }, msg: null,
     sel: {}, grupo: { msg: null, trabajando: false },
-    guardados: [], guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
+    guardados: [], pensums: [], guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
   };
 
   /* ───── entorno: Apps Script (producción) o navegador suelto (pruebas) ───── */
@@ -207,7 +207,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   var VER_RESUMEN = 2;   // si cambian las reglas, sube este número: los balances guardados con otra versión se revisan solos
   function resumen(e) {
     var fs = M.estadoFirmas(e), info = e.info || {};
-    return { v: VER_RESUMEN, key: claveEstado(e), programaId: e.programaId, estudiante: e.estudiante, fase: fs.fase, completo: info.completo, pendientes: info.pendientes, actualizado: new Date().toISOString() };
+    return { v: VER_RESUMEN, key: claveEstado(e), programaId: e.programaId, pensumId: e.pensumId || '', estudiante: e.estudiante, fase: fs.fase, completo: info.completo, pendientes: info.pendientes, actualizado: new Date().toISOString() };
   }
   var Backend = {
     sesion: function () {
@@ -221,6 +221,20 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       if (GAS) return srvAuth('guardarDecano', nombre);
       try { localStorage.setItem('balance.decano', nombre); } catch (e) {}
       return Promise.resolve(nombre);
+    },
+    pensums: function () {
+      if (GAS) return srvAuth('listarPensums');
+      try { return Promise.resolve(JSON.parse(localStorage.getItem('balance.pensums') || '[]')); } catch (e) { return Promise.resolve([]); }
+    },
+    guardarPensum: function (p) {
+      if (GAS) return srvAuth('guardarPensum', JSON.stringify(p));
+      try { var l = JSON.parse(localStorage.getItem('balance.pensums') || '[]').filter(function (x) { return x.id !== p.id; }); l.push(p); localStorage.setItem('balance.pensums', JSON.stringify(l)); } catch (e) {}
+      return Promise.resolve(p);
+    },
+    eliminarPensum: function (id) {
+      if (GAS) return srvAuth('eliminarPensum', id);
+      try { localStorage.setItem('balance.pensums', JSON.stringify(JSON.parse(localStorage.getItem('balance.pensums') || '[]').filter(function (x) { return x.id !== id; }))); } catch (e) {}
+      return Promise.resolve(true);
     },
     excel: function (meta) { return GAS ? srvAuth('plantilla', meta.archivo).then(b64aBuffer) : null; },
     listar: function () {
@@ -262,7 +276,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     function fin() { enCurso = Math.max(0, enCurso - 1); if (!enCurso) indicador().classList.remove('on'); }
     return Promise.resolve(p).then(function (v) { fin(); return v; }, function (e) { fin(); throw e; });
   }
-  var TEXTO_BACKEND = { guardar: 'Guardando balance', guardarDecano: 'Guardando nombre del Decano', decano: 'Cargando', borrar: 'Eliminando balance', listar: 'Cargando balances', cargar: 'Abriendo balance', excel: 'Leyendo el pénsum', sesion: 'Cargando' };
+  var TEXTO_BACKEND = { guardar: 'Guardando balance', guardarDecano: 'Guardando nombre del Decano', decano: 'Cargando', borrar: 'Eliminando balance', listar: 'Cargando balances', cargar: 'Abriendo balance', excel: 'Leyendo el pénsum', sesion: 'Cargando', pensums: 'Cargando', guardarPensum: 'Guardando la reforma del pénsum', eliminarPensum: 'Eliminando la reforma del pénsum' };
   Object.keys(Backend).forEach(function (k) { var f = Backend[k]; Backend[k] = function () { return ocupar(TEXTO_BACKEND[k], f.apply(Backend, arguments)); }; });
 
   /* ───── utilidades ───── */
@@ -399,11 +413,31 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   function bloqueado() { return fase() !== 'borrador'; }
   function puedeEmitir() { return S.res && S.res.completo && S.ver && S.ver.ok && !bloqueos(S.est, S.res).length; }
 
+  /* Pénsum de un balance: el vigente (Excel del programa) o una reforma creada por el Jefe de Programa. */
+  function reformaPorId(id) { return (S.pensums || []).filter(function (p) { return p.id === id; })[0] || null; }
+  function derivarPrograma(base, rf) {
+    var p = Object.assign({}, base), cat = Object.assign({}, base.catalogo);
+    p.items = JSON.parse(JSON.stringify(rf.items));
+    p.items.forEach(function (it) { if (it.kind === 'mat' && it.cod) cat[M.normCode(it.cod)] = { cod: it.cod, nombre: it.nombre, cred: it.cred || 0 }; });
+    p.catalogo = cat; p.pensumId = rf.id; p.pensumNombre = rf.nombre; p._extraTilde = null;
+    return p;
+  }
+  function progDe(est) {
+    var meta = PR.porId(est.programaId);
+    if (!meta) return Promise.reject(new Error('El programa de este balance ya no tiene plantilla.'));
+    return LE.cargarPrograma(meta, null, GAS ? Backend.excel : null).then(function (base) {
+      if (!est.pensumId) return base;
+      var rf = reformaPorId(est.pensumId);
+      if (!rf) throw new Error('La reforma de pénsum de este balance ya no existe.');
+      return derivarPrograma(base, rf);
+    });
+  }
+
   /* Lee el pénsum del programa y calcula el balance de cualquier estado (abierto o no). */
   function evaluar(est) {
     var meta = PR.porId(est.programaId);
     if (!meta) return Promise.reject(new Error('El programa de este balance ya no tiene plantilla.'));
-    return LE.cargarPrograma(meta, null, GAS ? Backend.excel : null).then(function (prog) {
+    return progDe(est).then(function (prog) {
       var res = M.calcular(prog, est), ver = M.verificarEstudiante(res.sma, est.estudiante), fs = M.estadoFirmas(est);
       var bl = bloqueos(est, res);
       est.info = { completo: !!(res.completo && ver.ok && !bl.length), pendientes: res.faltantes.length + (res.avisosNombre || 0) + bl.length };
@@ -425,7 +459,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     var meta = PR.porId(estado.programaId);
     if (!meta) { aviso('Programa no disponible', 'El programa de este balance ya no tiene plantilla.'); return Promise.resolve(); }
     S.cargando = true; render();
-    return LE.cargarPrograma(meta, null, GAS ? Backend.excel : null).then(function (prog) {
+    return progDe(estado).then(function (prog) {
       S.prog = prog; S.est = estado; S.cargando = false;
       if (estado.firmas && estado.firmas.jefe) S.firmaForm.jefe = { grado: estado.firmas.jefe.grado, nombre: estado.firmas.jefe.nombre, cargo: estado.firmas.jefe.cargo };
       recalcular(); S.vista = irA || 'revision'; S.msg = null; render();
@@ -444,6 +478,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       var etq = 'Historial ' + (i + 1) + (d.apellidos || d.nombres ? ' (' + M.titulo((d.nombres + ' ' + d.apellidos).trim()) + ')' : '');
       if (!d.documento || !(d.nombres || d.apellidos)) { errores.push(etq + ': no se encontró el encabezado del estudiante (Código, N° Ident., Apellidos y Nombre). Copie el historial completo desde el SMA.'); return; }
       var est = M.nuevoEstado(meta.id, { nombres: d.nombres, apellidos: d.apellidos, tipoDoc: 'CC', documento: d.documento, nivel: meta.nivel }, quien());
+      if (S.form.pensumId && reformaPorId(S.form.pensumId)) est.pensumId = S.form.pensumId;
       var dup = nuevos.filter(function (x) { return claveEstado(x) === claveEstado(est); })[0];
       var r = M.agregarNotas(dup || est, b, quien());
       if (!r.agregados && !dup) { errores.push(etq + ': no se encontraron asignaturas con nota.'); return; }
@@ -764,7 +799,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     var deco = '<div class="deco" aria-hidden="true"><svg viewBox="0 0 900 110" preserveAspectRatio="xMidYMid slice"><path d="M-20 100 C 90 40, 160 130, 270 55 S 430 10, 540 70 S 700 120, 820 45" fill="none" stroke="#8FB0DE" stroke-width="1" opacity=".16"/><path d="M-20 30 C 80 90, 190 -10, 300 45 S 470 110, 580 40 S 760 -10, 920 55" fill="none" stroke="#E3C767" stroke-width="1" opacity=".16"/><path d="M60 112 C 120 60, 180 118, 250 60 S 360 20, 420 70" fill="none" stroke="#5F80B0" stroke-width="1" opacity=".22"/><circle cx="640" cy="26" r="46" fill="none" stroke="#E3C767" stroke-width="1" opacity=".18"/><circle cx="760" cy="80" r="70" fill="none" stroke="#E3C767" stroke-width="1" opacity=".12"/><path d="M610 108 C 652 50, 694 118, 760 40" fill="none" stroke="#E3C767" stroke-width="1.2" opacity=".18"/><circle cx="758" cy="52" r="3" fill="#E3C767" opacity=".45"/><circle cx="150" cy="20" r="2" fill="#E3C767" opacity=".3"/><circle cx="330" cy="90" r="2.2" fill="#5F80B0" opacity=".3"/></svg></div>';
     return '<div class="tabs">' + deco +
       '<span class="titulo">Generador de Balances Académico</span>' +
-      (hay ? '<div class="est" style="margin-left:12px"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
+      (hay ? '<div class="est" style="margin-left:12px"><span id="estado-guardado"></span><span>' + h(M.titulo(S.est.estudiante.nombres + ' ' + S.est.estudiante.apellidos)) + '</span><span class="chip mute">' + h(S.prog ? S.prog.nombre : '') + (S.prog && S.prog.pensumNombre ? ' · ' + h(S.prog.pensumNombre) : '') + '</span>' + chipFase(fase()) + '</div>' : '') +
       '<div class="navbtns"><button class="btn nav" data-act="atras"' + (S.vista === 'inicio' || !hay ? ' disabled' : '') + '>' + icoAtras + 'Atrás</button>' +
       '</div>' +
       '</div>';
@@ -782,6 +817,88 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn pri" data-act="descargar-grupo"' + (n && !ocupado ? '' : ' disabled') + '>Descargar en ZIP (' + n + ')</button></div></div>';
   }
 
+  function reformasDe(programaId) { return (S.pensums || []).filter(function (p) { return p.programaId === programaId; }).sort(function (a, b) { return a.nombre.localeCompare(b.nombre); }); }
+  function vSelPensum() {
+    var f = S.form; if (!f.programaId || !PR.porId(f.programaId)) return '';
+    var rs = reformasDe(f.programaId), act = f.pensumId && reformaPorId(f.pensumId);
+    return '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap"><label class="f" style="max-width:300px;flex:1"><span class="lbl">Pénsum</span><select id="f-pensumId" style="margin-top:4px"><option value="">Vigente</option>' +
+      rs.map(function (r) { return '<option value="' + h(r.id) + '"' + (f.pensumId === r.id ? ' selected' : '') + '>' + h(r.nombre) + '</option>'; }).join('') + '</select></label>' +
+      '<button class="btn sm" data-act="pensum-nuevo" title="Crear otra versión del pénsum para estudiantes antiguos">+ Agregar nueva reforma</button>' +
+      (act ? '<button class="btn sm" data-act="pensum-editar">Editar</button><button class="btn sm" data-act="pensum-eliminar">Eliminar</button>' : '') + '</div>';
+  }
+
+  /* ───── editor de reformas de pénsum ───── */
+  var NPE = 0;
+  function nuevoIdPe(pref) { NPE++; return pref + Date.now().toString(36) + NPE; }
+  function slug(t) { return M.normTexto(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'reforma'; }
+  function abrirEditorPensum(rf) {
+    var meta = PR.porId(S.form.programaId);
+    S.modal = { tipo: 'pensum', programaId: meta.id, err: null, cargando: !rf, id: rf ? rf.id : null, nombre: rf ? rf.nombre : '', items: rf ? JSON.parse(JSON.stringify(rf.items)) : [] };
+    render();
+    if (!rf) LE.cargarPrograma(meta, null, GAS ? Backend.excel : null).then(function (base) {
+      if (!S.modal || S.modal.tipo !== 'pensum') return;
+      S.modal.items = JSON.parse(JSON.stringify(base.items)); S.modal.cargando = false; render();
+    }).catch(function (err) { S.modal = null; render(); aviso('No se pudo abrir el editor', err.message); });
+  }
+  function vPensum() {
+    var m = S.modal, meta = PR.porId(m.programaId);
+    function ce(i, campo, v, ph, num) { return '<input class="cell" data-pe="' + campo + '" data-i="' + i + '" value="' + h(v == null ? '' : v) + '" placeholder="' + h(ph || '') + '" style="width:100%;border-color:var(--line)"' + (num ? ' inputmode="decimal"' : '') + '>'; }
+    var filas = m.items.map(function (it, i) {
+      var x = '<button class="btn sm" data-act="pe-del" data-i="' + i + '" title="Quitar esta fila" aria-label="Quitar fila">✕</button>';
+      if (it.kind === 'bloque') return '<tr style="background:#F6F1E0"><td>' + ce(i, 'area', it.area, 'Área') + '</td><td colspan="2"><div style="display:flex;gap:8px;align-items:center"><b style="font-size:12px;color:var(--mute);white-space:nowrap">Bloque de electivas / optativas</b>' + ce(i, 'label', it.label, 'Ej.: Optativas: 8 créditos') + '</div></td><td>' + ce(i, 'req', it.req, 'Créd.', true) + '</td><td>' + x + '</td></tr>';
+      if (it.kind === 'slot') return '<tr style="background:#F6F1E0"><td>' + ce(i, 'area', it.area, 'Área') + '</td><td><span class="chip mute">Electiva fija</span></td><td>' + ce(i, 'nombre', it.nombre, 'Nombre de la electiva') + '</td><td>' + ce(i, 'cred', it.cred, 'Créd.', true) + '</td><td>' + x + '</td></tr>';
+      return '<tr><td>' + ce(i, 'area', it.area, 'Área') + '</td><td>' + ce(i, 'cod', it.cod, 'Código') + '</td><td>' + ce(i, 'nombre', it.nombre, 'Nombre de la asignatura') + '</td><td>' + ce(i, 'cred', it.cred, 'Créd.', true) + '</td><td>' + x + '</td></tr>';
+    }).join('');
+    return '<div class="modal"><div class="box" role="dialog" aria-modal="true" style="width:min(1020px,96vw)"><div class="hd"><div><b>' + (m.id ? 'Editar reforma del pénsum' : 'Agregar nueva reforma del pénsum') + '</b><div style="color:var(--mute);font-size:12px">' + h(meta.nombre) + ' · ' + (m.id ? 'los cambios aplican a los balances que usen esta reforma.' : 'se parte del pénsum vigente: agregue, quite o cambie las asignaturas que haga falta.') + '</div></div></div>' +
+      '<div style="padding:12px 18px 0"><label class="f" style="max-width:420px"><span class="lbl">Nombre de la reforma</span><input id="pe-nombre" value="' + h(m.nombre) + '" placeholder="Ej.: Reforma Pensional 2023" style="margin-top:4px"></label></div>' +
+      '<div class="bd" style="padding:10px 18px">' + (m.cargando ? '<div class="vacío">Leyendo el pénsum vigente…</div>' :
+        '<table style="width:100%;border-collapse:separate;border-spacing:0 3px;table-layout:fixed"><colgroup><col style="width:17%"><col style="width:15%"><col><col style="width:9%"><col style="width:52px"></colgroup><thead><tr style="text-align:left;font-size:12px;color:var(--mute)"><th>Área</th><th>Código</th><th>Asignatura</th><th>Créd.</th><th></th></tr></thead><tbody>' + filas + '</tbody></table>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn sm" data-act="pe-add-mat">+ Asignatura</button><button class="btn sm" data-act="pe-add-slot">+ Electiva fija</button><button class="btn sm" data-act="pe-add-bloque">+ Bloque de optativas / electivas</button></div>') + '</div>' +
+      (m.err ? '<div class="alert bad" style="margin:0 18px">' + m.err.map(h).join('<br>') + '</div>' : '') +
+      '<div style="display:flex;justify-content:flex-end;gap:10px;padding:12px 18px;border-top:1px solid var(--line)"><button class="btn" data-act="pe-cancelar">Cancelar</button><button class="btn pri" data-act="pe-guardar"' + (m.cargando ? ' disabled' : '') + '>Guardar reforma</button></div></div></div>';
+  }
+  function renderPensum(alFinal) {
+    var bd = $('.modal .bd'), st = bd ? bd.scrollTop : 0; render();
+    bd = $('.modal .bd'); if (bd) bd.scrollTop = alFinal ? bd.scrollHeight : st;
+    if (alFinal) { var fil = document.querySelectorAll('.modal tbody tr'), u = fil[fil.length - 1], inp = u && (u.querySelector('input[data-pe="cod"]') || u.querySelector('input[data-pe="nombre"]') || u.querySelector('input[data-pe="label"]')); if (inp) inp.focus(); }
+  }
+  function validarPensum(m) {
+    var err = [], nom = String(m.nombre || '').replace(/\s+/g, ' ').trim(), cods = {}, hay = false;
+    if (!nom) err.push('Escriba el nombre de la reforma.');
+    else if (/^vigente$/i.test(nom) || reformasDe(m.programaId).some(function (r) { return r.id !== m.id && r.nombre.toLowerCase() === nom.toLowerCase(); })) err.push('Ya existe un pénsum con ese nombre en este programa.');
+    m.items.forEach(function (it, i) {
+      var n = i + 1;
+      if (it.kind === 'bloque') { if (!String(it.label || '').trim()) err.push('Fila ' + n + ': escriba el rótulo del bloque (ej. “Optativas: 8 créditos”).'); return; }
+      hay = true;
+      if (it.kind === 'mat') {
+        if (!String(it.cod || '').trim()) err.push('Fila ' + n + ': falta el código.');
+        else { var k = M.normCode(it.cod); if (cods[k]) err.push('Fila ' + n + ': el código ' + it.cod + ' está repetido.'); cods[k] = true; }
+      }
+      if (!String(it.nombre || '').trim()) err.push('Fila ' + n + ': falta el nombre.');
+      if (!(Number(String(it.cred).replace(',', '.')) > 0)) err.push('Fila ' + n + ': los créditos deben ser mayores que 0.');
+    });
+    if (!hay) err.push('Agregue al menos una asignatura.');
+    return err;
+  }
+  function guardarReforma() {
+    var m = S.modal, err = validarPensum(m), area = '';
+    if (err.length) { m.err = err.slice(0, 6); renderPensum(false); return; }
+    var rf = {
+      id: m.id || (slug(m.programaId + ' ' + m.nombre) + '-' + Date.now().toString(36)), programaId: m.programaId, nombre: m.nombre.replace(/\s+/g, ' ').trim(),
+      items: m.items.map(function (it) {
+        if (it.area && String(it.area).trim()) area = String(it.area).trim();
+        var o = { kind: it.kind, id: it.id, area: (it.area && String(it.area).trim()) || area };
+        if (it.kind === 'bloque') { o.label = String(it.label).trim(); o.req = Number(String(it.req).replace(',', '.')) || 0; }
+        else { o.cod = it.kind === 'mat' ? String(it.cod).trim() : ''; o.nombre = String(it.nombre).trim(); o.cred = Number(String(it.cred).replace(',', '.')); }
+        return o;
+      })
+    };
+    Backend.guardarPensum(rf).then(function (g) {
+      S.pensums = (S.pensums || []).filter(function (p) { return p.id !== rf.id; }).concat([g || rf]);
+      S.form.pensumId = rf.id; S.modal = null; render();
+    }).catch(function (e) { if (S.modal) { S.modal.err = ['No se pudo guardar la reforma: ' + e.message]; renderPensum(false); } });
+  }
+
   function vInicio() {
     var f = S.form, guard = S.guardados, nSel = clavesSel().length;
     var todos = guard.length && guard.every(function (g) { return S.sel[g.key]; });
@@ -789,6 +906,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
       '<div class="card" style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;flex:1;min-height:0">' +
       '<div><div class="lbl">Notas del SMA</div><div style="color:var(--mute);font-size:12.5px;margin-top:4px">Copie el historial académico del estudiante tal como sale del SMA y péguelo aquí.</div></div>' +
       '<label class="f" style="max-width:420px"><span class="lbl">Programa del que se gradúa</span><select id="f-programaId" style="margin-top:4px"><option value="">Elija el programa…</option>' + PR.activos().map(function (m) { return '<option value="' + h(m.id) + '"' + (f.programaId === m.id ? ' selected' : '') + '>' + h(m.nombre) + '</option>'; }).join('') + '</select></label>' +
+      vSelPensum() +
       '<textarea id="f-notas" spellcheck="false" style="flex:1;min-height:200px" placeholder="Historia Academica&#10;Código&#9;…&#9;N° Ident. …&#10;Apellidos&#9;…&#10;Nombre&#9;…&#10;Programa&#9;…">' + h(f.notas) + '</textarea>' +
       (S.formErr ? '<div class="alert bad">' + S.formErr.map(h).join('<br>') + '</div>' : '') +
       (S.formAv && S.formAv.length ? '<div class="alert warn">' + S.formAv.map(h).join('<br>') + '</div>' : '') +
@@ -999,6 +1117,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   /* ───── modal de selección de asignatura del SMA ───── */
   function vModal() {
+    if (S.modal.tipo === 'pensum') return vPensum();
     var m = S.modal, r = S.res, q = M.normTexto(m.q || '');
     var lista = r.sinUsar.filter(function (x) { return !q || M.normTexto(x.cod + ' ' + x.nombre).indexOf(q) >= 0; });
     if (m.tipo === 'optativa') lista.sort(function (a, b) { return (S.prog.catalogo[M.normCode(b.cod)] ? 1 : 0) - (S.prog.catalogo[M.normCode(a.cod)] ? 1 : 0); });
@@ -1024,6 +1143,28 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (t.hasAttribute('data-filtro')) { S.filtro = t.getAttribute('data-filtro'); render(); return; }
     var act = t.getAttribute('data-act');
     if (act === 'cerrar-modal') { if (ev.target === t || t.tagName === 'BUTTON') { S.modal = null; render(); } return; }
+    if (act === 'pensum-nuevo') { if (S.form.programaId) abrirEditorPensum(null); return; }
+    if (act === 'pensum-editar') { var rf0 = reformaPorId(S.form.pensumId); if (rf0) abrirEditorPensum(rf0); return; }
+    if (act === 'pensum-eliminar') {
+      var rf1 = reformaPorId(S.form.pensumId); if (!rf1) return;
+      var enUso = S.guardados.filter(function (g) { return g.pensumId === rf1.id; }).length;
+      if (enUso) { aviso('No se puede eliminar', 'Hay ' + enUso + (enUso === 1 ? ' balance guardado' : ' balances guardados') + ' con la reforma “' + rf1.nombre + '”. Elimínelos primero.'); return; }
+      pregunta('Eliminar reforma', 'Se eliminará la reforma “' + rf1.nombre + '”. No se puede deshacer.', 'Eliminar').then(function (si) {
+        if (!si) return;
+        Backend.eliminarPensum(rf1.id).then(function () { S.pensums = S.pensums.filter(function (p) { return p.id !== rf1.id; }); S.form.pensumId = ''; render(); }).catch(function (e) { aviso('No se pudo eliminar', e.message); });
+      });
+      return;
+    }
+    if (act === 'pe-cancelar') { S.modal = null; render(); return; }
+    if (act === 'pe-guardar') { guardarReforma(); return; }
+    if (act === 'pe-del') { S.modal.items.splice(+t.getAttribute('data-i'), 1); renderPensum(false); return; }
+    if (act === 'pe-add-mat' || act === 'pe-add-slot' || act === 'pe-add-bloque') {
+      var ult = S.modal.items.length ? S.modal.items[S.modal.items.length - 1].area : '';
+      S.modal.items.push(act === 'pe-add-mat' ? { kind: 'mat', id: nuevoIdPe('m'), area: ult, cod: '', nombre: '', cred: '' }
+        : act === 'pe-add-slot' ? { kind: 'slot', id: nuevoIdPe('slot'), area: ult, cod: '', nombre: '', cred: '' }
+        : { kind: 'bloque', id: nuevoIdPe('bloque'), area: ult, label: '', req: 0 });
+      renderPensum(true); return;
+    }
     if (act === 'crear') crear();
     else if (act === 'guardar-volver') { if (puedeEmitir()) guardarVolver(); }
     else if (act === 'atras') atras();
@@ -1092,6 +1233,8 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
     if (t.hasAttribute && t.hasAttribute('data-sel')) { var kk = t.getAttribute('data-sel'); if (t.checked) S.sel[kk] = true; else delete S.sel[kk]; render(); return; }
     if (t.id && t.id.indexOf('f-') === 0) {
       var k = t.id.slice(2); S.form[k] = t.value;
+      if (k === 'programaId') S.form.pensumId = '';
+      if (k === 'pensumId') { render(); return; }
       if (k === 'programaId') { var p = PR.porId(t.value); if (p) S.form.nivel = p.nivel; render(); }
       return;
     }
@@ -1109,17 +1252,19 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
   });
   document.addEventListener('input', function (ev) {
     var t = ev.target;
+    if (t.hasAttribute && t.hasAttribute('data-pe')) { S.modal.items[+t.getAttribute('data-i')][t.getAttribute('data-pe')] = t.value; return; }
+    if (t.id === 'pe-nombre') { S.modal.nombre = t.value; return; }
     if (t.id === 'modal-q') { S.modal.q = t.value; var pos = t.selectionStart; render(); var q = $('#modal-q'); q.focus(); q.setSelectionRange(pos, pos); }
     if (t.id === 'f-notas') S.form.notas = t.value;
     if (t.id === 'obs') { var n = $('#obs-n'); if (n) n.textContent = t.value.length; }
     if (t.id && t.id.indexOf('f-') === 0 && t.id !== 'f-notas' && t.tagName === 'INPUT') S.form[t.id.slice(2)] = t.value;
   });
-  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal) { S.modal = null; render(); } });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && S.modal && S.modal.tipo !== 'pensum') { S.modal = null; render(); } });
 
   /* ───── arranque ───── */
   function precargar() { return Backend.decano().then(function (x) { if (x && String(x).trim()) S.decano = String(x).trim(); }).catch(function () { cargarFormFirma(); }); }
   render();
-  Promise.all([leerSesion(), refrescarGuardados(), cargarAssets()]).then(function () {
+  Promise.all([leerSesion(), refrescarGuardados(), cargarAssets(), Backend.pensums().then(function (l) { S.pensums = l || []; }).catch(function () { S.pensums = []; })]).then(function () {
     precargar().then(function () { S.arranque = false; render(); });
   }).catch(function (err) { S.arranque = false; S.errorArranque = err.message; render(); });
   window.BalanceApp = { estado: S }; // útil para pruebas

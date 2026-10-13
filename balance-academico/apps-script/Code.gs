@@ -255,6 +255,61 @@ function listarBalances(token) {
     .sort(function (a, b) { return String(b.actualizado).localeCompare(String(a.actualizado)); }).slice(0, 300);
 }
 
+/* ───── Reformas de pénsum (versiones del pénsum creadas por el Jefe de Programa) ───── */
+function rutaPensums_() { return carpetaBalances_() + '/_pensums.json'; }
+function leerPensums_(t) {
+  var r = graph_('get', rutaItem_(rutaPensums_()) + ':/content', null, t, { crudo: true, noExiste: true });
+  if (!r) return {};
+  try { return JSON.parse(r.getContentText()) || {}; } catch (e) { return {}; }
+}
+function listarPensums(token) {
+  exigir_(token, ['jefe']);
+  var o = leerPensums_(tokenApp_());
+  return Object.keys(o).map(function (k) { return o[k]; });
+}
+function limpiarPensum_(p) {
+  var txt = function (v, n) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, n || 200); };
+  var num = function (v) { var n = Number(v); return isFinite(n) && n >= 0 ? n : 0; };
+  if (!/^[a-z0-9-]{3,80}$/.test(String(p.id))) throw new Error('Identificador de pénsum no válido.');
+  if (!txt(p.programaId, 60) || !txt(p.nombre, 80)) throw new Error('Faltan el programa o el nombre de la reforma.');
+  if (!Array.isArray(p.items) || !p.items.length || p.items.length > 250) throw new Error('El pénsum debe tener entre 1 y 250 filas.');
+  return {
+    id: String(p.id), programaId: txt(p.programaId, 60), nombre: txt(p.nombre, 80),
+    items: p.items.map(function (it) {
+      var k = it.kind === 'bloque' ? 'bloque' : (it.kind === 'slot' ? 'slot' : 'mat');
+      var o = { kind: k, id: txt(it.id, 60), area: txt(it.area, 120) };
+      if (k === 'bloque') { o.label = txt(it.label, 160); o.req = num(it.req); }
+      else { o.cod = k === 'mat' ? txt(it.cod, 30) : ''; o.nombre = txt(it.nombre, 200); o.cred = num(it.cred); }
+      return o;
+    })
+  };
+}
+function guardarPensum(token, json) {
+  var s = exigir_(token, ['jefe']);
+  var p = limpiarPensum_(JSON.parse(json));
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var t = tokenApp_();
+    asegurarCarpeta_(t);
+    var o = leerPensums_(t);
+    p.actualizado = new Date().toISOString(); p.por = s.email || s.nombre || '';
+    if (o[p.id] && o[p.id].creado) p.creado = o[p.id].creado; else p.creado = p.actualizado;
+    o[p.id] = p;
+    graph_('put', rutaItem_(rutaPensums_()) + ':/content', JSON.stringify(o), t, { tipo: 'application/json' });
+  } finally { lock.releaseLock(); }
+  return p;
+}
+function eliminarPensum(token, id) {
+  exigir_(token, ['jefe']);
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var t = tokenApp_(), o = leerPensums_(t);
+    delete o[String(id)];
+    graph_('put', rutaItem_(rutaPensums_()) + ':/content', JSON.stringify(o), t, { tipo: 'application/json' });
+  } finally { lock.releaseLock(); }
+  return true;
+}
+
 /** Solo el Jefe de Programa elimina. */
 function eliminarBalance(token, key) {
   exigir_(token, ['jefe']);
