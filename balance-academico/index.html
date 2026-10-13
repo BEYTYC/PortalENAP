@@ -820,7 +820,8 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 
   function reformasDe(programaId) { return (S.pensums || []).filter(function (p) { return p.programaId === programaId; }).sort(function (a, b) { return a.nombre.localeCompare(b.nombre); }); }
   function vSelPensum() {
-    var f = S.form; if (!f.programaId || !PR.porId(f.programaId)) return '';
+    var f = S.form;
+    if (!f.programaId || !PR.porId(f.programaId)) return '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap"><label class="f" style="max-width:300px;flex:1"><span class="lbl">Pénsum</span><select disabled style="margin-top:4px"><option>Elija primero el programa…</option></select></label><button class="btn sm" disabled title="Elija primero el programa">+ Agregar nueva reforma</button></div>';
     var rs = reformasDe(f.programaId), act = f.pensumId && reformaPorId(f.pensumId);
     return '<div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap"><label class="f" style="max-width:300px;flex:1"><span class="lbl">Pénsum</span><select id="f-pensumId" style="margin-top:4px"><option value="">Vigente</option>' +
       rs.map(function (r) { return '<option value="' + h(r.id) + '"' + (f.pensumId === r.id ? ' selected' : '') + '>' + h(r.nombre) + '</option>'; }).join('') + '</select></label>' +
