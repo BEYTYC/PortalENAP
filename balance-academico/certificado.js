@@ -46,16 +46,16 @@
     img(d.marca, 'JPEG', 153.2, 118.4, 305.6, 551.2);                     // marca de agua
     txt('FUERZAS MILITARES DE COLOMBIA', CX, 95.7, 11, 'bold', { align: 'center' });
     txt('ARMADA DE COLOMBIA', CX, 109.8, 11, 'bold', { align: 'center' });
-    img(d.escudo, 'PNG', 277, 114, 58, 49);
+    img(d.escudo, 'PNG', CX - 21, 112, 42, 51.8);   // proporción real del escudo (171 x 211): antes se veía aplastado
     txt('ESCUELA NAVAL DE CADETES “ALMIRANTE PADILLA”', CX, 176.1, 11, 'bold', { align: 'center' });
     txt('NIT 800.141.648-9', CX, 188.6, 10.6, 'bold', { align: 'center' });
     txt('Reconocida como Universidad mediante Resolución No. 11893 de octubre 20 de 1977 y acreditada en Alta calidad mediante', CX, 226.1, 8.3, 'italic', { align: 'center' });
-    txt('Resolución No. 007469 de mayo 15 de 2024- Ministerio de Educación Nacional', CX, 237.4, 8.5, 'italic', { align: 'center' });
+    txt('Resolución No. 007469 de mayo 15 de 2024- Ministerio de Educación Nacional', CX, 235.4, 8.5, 'italic', { align: 'center' });
     txt('LA SECCIÓN DE ESTADÍSTICA', CX, 278.7, 11, 'bold', { align: 'center' });
     txt('C E R T I F I C A:', CX, 307.2, 10.8, 'bold', { align: 'center' });
 
     /* párrafo justificado con tramos en negrilla */
-    var FS = 9.9, LINEA = 11.28;
+    var FS = 9.9, LINEA = 12.6;
     function parrafo(tramos, y0) {
       var pal = [];
       tramos.forEach(function (tr) { tr.t.split(/\s+/).filter(Boolean).forEach(function (w) { pal.push({ w: w, b: !!tr.b }); }); });
@@ -82,17 +82,17 @@
         ') en el programa de ' + d.programa + ', que culminó académicamente en el periodo ' + d.periodo + ', de acuerdo con el Balance Académico emitido el ' + fechaCorta(d.fechaBalance) +
         ' por la facultad de ' + d.facultad + '. Este balance académico se encuentra ' + (d.vencido ? 'actualizado' : 'vigente') + ' de acuerdo con la fecha de finalización de estudios plasmada en el balance.' }
     ];
-    var fin1 = parrafo(p1, 334.8);
+    var fin1 = parrafo(p1, 324.8);
     var yN = fin1 + 11.1;
-    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yN, 10.4, 'bold');
-    parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) }], yN + 22.5);
+    var fin2 = parrafo([{ t: 'Este certificado se expide a solicitud de la Facultad de ' + d.facultad + '. Dado en Cartagena de Indias D. T. y C., ' + fechaLarga(d.fecha) + '.' }], yN);
+    var yA = fin2 + 11.3;
+    txt('NINGUNA ANOTACIÓN POSTERIOR TIENE VALIDEZ.', X0, yA, 10.4, 'bold');
+    txt('ESTE CERTIFICADO FUE GENERADO DIGITALMENTE.', X0, yA + 23.8, 10.4, 'bold');
 
-    img(d.firma, 'PNG', CX - 55, 458, 110, 90.2);                         // firma de la Jefe de Estadística
+    img(d.firma, 'PNG', CX - 55, 466, 110, 90.2);                         // firma de la Jefe de Estadística
     txt('PD02 BEYTY PATRICIA CAMARGO MARTÍNEZ', CX, 537, 9.9, 'bold', { align: 'center' });
     txt('Jefe de Estadística Escuela Naval de Cadetes “Almirante Padilla”', CX, 548.5, 9.6, 'normal', { align: 'center' });
 
-    ['Los certificados que presenten enmendaduras no tendrán validez', 'Certificado firmado digitalmente', 'Autenticación de Firma', 'NOTARIA SEXTA.', 'Bosque, Carrera 51 No. 21-63.']
-      .forEach(function (t, i) { txt(t, X0, 587.9 + i * 6.75, 5.85, 'normal'); });
     txt('“Protegemos el azul de la Bandera”', X0, 716.8, 6.05, 'normal', null, 'helvetica');
     txt('Línea anticorrupción Armada Nacional 01 8000 11 69 69 – 24 Horas', X0, 723.7, 6.05, 'normal', null, 'helvetica');
     txt('Barrio Manzanillo, Avenida El Bosque – Conmutador 5-6724610 Ext 143 - Cartagena, Colombia', X0, 730.6, 6.05, 'normal', null, 'helvetica');
