@@ -417,15 +417,18 @@
   body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
 
   /* ---------- Centro de Datos Institucional (en construcción) ---------- */
-  .cdi-home{
-    margin-top:18px; position:relative; overflow:visible; background:transparent;
-    width:min(1000px, calc(100vw - 64px)); margin-left:calc(50% - min(500px, (100vw - 64px) / 2));
-  }
+  /* Inicio del Centro de Datos a todo el espacio del Portal (sin recuadro). */
+  main:has(> #viewHome:not([hidden])){ padding:0; align-items:stretch; justify-content:stretch; }
+  #viewHome{ width:100%; height:100%; align-self:stretch; position:relative; }
+  #viewHome .wrap{ max-width:none; height:100%; margin:0; }
+  .cdi-home{ position:absolute; inset:0; margin:0; background:transparent; }
   .cdi-home .preview-tag{ display:none; }
-  .cdi-home__stage{ position:relative; width:100%; height:520px; overflow:hidden; background:transparent;
-    -webkit-mask-image:linear-gradient(to right,transparent,#000 4.5%,#000 95.5%,transparent),linear-gradient(to bottom,transparent,#000 7%,#000 93%,transparent);
-    -webkit-mask-composite:source-in; mask-image:linear-gradient(to right,transparent,#000 4.5%,#000 95.5%,transparent),linear-gradient(to bottom,transparent,#000 7%,#000 93%,transparent); mask-composite:intersect; }
-  .cdi-home__frame{ position:absolute; top:0; left:0; width:1440px; height:900px; border:0; transform-origin:top left; }
+  .cdi-home__stage{ position:absolute; inset:0; overflow:hidden; background:transparent; }
+  .cdi-home__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; background:transparent; }
+  .cdi-tab{ flex:1; width:100%; height:100%; position:relative; overflow:hidden; background:#ECF0F6; }
+  .cdi-tab__frame{ position:absolute; top:0; left:0; width:100%; height:100%; border:0; }
+  body.cdi-fs header.masthead, body.cdi-fs nav.topnav, body.cdi-fs footer{ display:none !important; }
+
   .dz-back{
     display:inline-flex; align-items:center; gap:6px; background:transparent; color:var(--text-muted);
     font-size:11.5px; font-weight:600; padding:6px 11px; border-radius:8px; border:1.5px solid var(--border);
@@ -1164,12 +1167,6 @@
   <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
   <div id="viewHome" class="entrada-pendiente">
     <div class="wrap">
-      <div class="center">
-        <div class="eyebrow">Oficina de Estadística</div>
-        <h2 class="hero-title">Portal de Servicios Digitales</h2>
-        <p class="hero-sub">Seleccione un servicio en el menú superior según su dependencia, o ingrese al Centro de Datos ENAP para ver los indicadores de la Escuela Naval en un solo lugar.</p>
-      </div>
-
       <!-- Centro de Datos Institucional: la pantalla de inicio del tablero
            (centro-datos/index.html?modo=inicio) se muestra aquí, escalada al ancho de la
            tarjeta. Al elegir un módulo, el tablero avisa con postMessage
@@ -2742,15 +2739,7 @@
 
   // ---- Centro de Datos Institucional ----
   // El inicio del tablero mide 1440x900; se escala al ancho de la tarjeta.
-  function ajustarCDI() {
-    const hs = document.getElementById('cdiHomeStage'), hf = document.getElementById('cdiHomeFrame');
-    if (hs && hf && hs.parentElement.offsetWidth) {
-      // Solo se muestra la franja 60..840 (alto 780) de los 900 px del tablero.
-      const k = hs.clientWidth / 1440;
-      hs.style.height = Math.round(780 * k) + 'px';
-      hf.style.transform = 'scale(' + k + ') translateY(-60px)';
-    }
-  }
+  function ajustarCDI() { /* el inicio llena todo el espacio: no necesita escala */ }
   window.addEventListener('resize', ajustarCDI);
   window.addEventListener('load', ajustarCDI);
   function cargarCDI(tab) {
