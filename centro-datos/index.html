@@ -1760,14 +1760,14 @@ class Component extends DCLogic {
     // ---------- PROGRAMAS (SNIES)
     let spo = {};
     if (tab === 'programas') {
-      const SN = Object.assign({}, this._snies, { PR: this._snies.PR.concat([['Otros cursos de formación', 'P'], ['Otros posgrados', 'S']]) }), sp = this.state.sp, YC2 = this._real.Y;
+      const SN = this._snies, sp = this.state.sp, YC2 = this._real.Y;
       const upS = (patch) => this.setState({ sp: Object.assign({}, this.state.sp, patch) });
       const togS = (k, v) => () => upS({ [k]: this.state.sp[k] === v ? null : v });
       const cn = (c) => (c === -1 ? 'Sin dato' : c === -3 ? 'Nacidos en el exterior' : c >= YC2.length ? 'Otras ciudades' : YC2[c][0]);
       const lv = (p) => SN.PR[p][1];
       // Graduados (estado 4) y retirados (estado 5) de la base de estudiantes, en el mismo formato que SNIES
       const PGI = { navales: 0, infanteria: 1, mercantes: 2, maquinas: 3 };
-      const stuRows = []; const gf = this._gradFile; const cNorm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/,.*$/, '').replace(/ DE INDIAS$/, '').trim(); const ycIdx = {}; YC2.forEach((y, i) => { ycIdx[cNorm(y[0])] = i; }); gf.R.forEach((g) => { const nm = gf.C[g[3]]; const k = nm ? cNorm(nm) : ''; stuRows.push([4, g[0], g[1], g[2], !nm ? -1 : ycIdx[k] !== undefined ? ycIdx[k] : YC2.length, 1]); }); this._retFile.forEach((g) => { stuRows.push([5, g[0], g[1], g[2], -1, 1]); });
+      const stuRows = []; const gf = this._gradFile; const cNorm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/,.*$/, '').replace(/ DE INDIAS$/, '').trim(); const ycIdx = {}; YC2.forEach((y, i) => { ycIdx[cNorm(y[0])] = i; }); gf.R.forEach((g) => { if (g[0] > 13) return; const nm = gf.C[g[3]]; const k = nm ? cNorm(nm) : ''; stuRows.push([4, g[0], g[1], g[2], !nm ? -1 : ycIdx[k] !== undefined ? ycIdx[k] : YC2.length, 1]); }); this._retFile.forEach((g) => { if (g[0] > 3) return; stuRows.push([5, g[0], g[1], g[2], -1, 1]); });
       const RR = SN.R.concat(stuRows);
       const sPass = (r, ex) => {
         if (ex !== 'prog' && sp.prog !== null && r[1] !== sp.prog) return false;
@@ -1859,7 +1859,7 @@ class Component extends DCLogic {
         rdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (sp.prog !== null ? '#D9B25A' : '#DDE3EE') + ';background:' + (sp.prog !== null ? '#FBF3DE' : '#fff') + ';color:' + (sp.prog !== null ? '#7A5510' : '#26364F'),
         chips: sChips, noChips: !anyS, clearAll: () => this.setState({ sp: { prog: null, nivel: null, year: null, range: null, ciudad: null, periods: null, metric: this.state.sp.metric } }),
         clearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (anyS ? '#B8841F' : '#DDE3EE') + ';background:' + (anyS ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (anyS ? '#1A1405' : '#8190A8'),
-        countTxt: fmt(tot[mt[2]] === undefined ? 0 : tot[mI]) + ' ' + mt[1].toLowerCase(), dataNote: mt[2] === 4 ? 'Fuente: Graduados_en_la_ENAP.xlsx (hoja Grados), todos los registros, por año de grado' : mt[2] === 5 ? 'Fuente: Bajas_y_Ascensos.xlsm (pestaña Bajas), todos los registros, por año de retiro' : 'Fuente: Sistema Nacional de Información de la Educación Superior - SNIES'
+        countTxt: fmt(tot[mt[2]] === undefined ? 0 : tot[mI]) + ' ' + mt[1].toLowerCase(), dataNote: mt[2] === 4 ? 'Fuente: Graduados_en_la_ENAP.xlsx (hoja Grados), solo programas académicos, por año de grado' : mt[2] === 5 ? 'Fuente: Bajas_y_Ascensos.xlsm (pestaña Bajas), solo programas académicos (NAV, IM, MC, MM), por año de retiro' : 'Fuente: Sistema Nacional de Información de la Educación Superior - SNIES'
       };
     }
 
