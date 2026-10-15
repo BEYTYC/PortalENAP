@@ -858,7 +858,7 @@ class Component extends DCLogic {
     const mobq = aw < 700 || (aw < 1100 && ah > aw * 1.15);
     const isIni = this._modo === 'inicio' && !fsOn;
     const wmDisp = 'none';
-    const bgMask = 'position:absolute;inset:0;pointer-events:none' + (isIni ? ';-webkit-mask-image:radial-gradient(ellipse 58% 62% at 50% 52%,#000 45%,transparent 100%);mask-image:radial-gradient(ellipse 58% 62% at 50% 52%,#000 45%,transparent 100%)' : '');
+    const bgMask = 'position:absolute;inset:0;pointer-events:none';
     const scr = this._modo === 'tablero' && !fsOn;
     const fsk0 = isIni ? Math.max(0.3, Math.min(aw / 1300, ah / 645)) : scr ? Math.max(0.3, (aw - 15) / 1750) : fsOn ? Math.max(0.3, Math.min(aw / 1550, ah / 880)) : Math.max(0.3, Math.min(aw / 1440, ah / 900));
     const fsk = (this._modo === 'tablero' && !fsOn && mobq) ? aw / 480 : fsk0;
