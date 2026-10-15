@@ -419,6 +419,7 @@
   /* ---------- Centro de Datos Institucional (en construcción) ---------- */
   /* Inicio del Centro de Datos a todo el espacio del Portal (sin recuadro). */
   main:has(> #viewHome:not([hidden])){ padding:0; align-items:stretch; justify-content:stretch; }
+  main:has(> #viewHome:not([hidden])) > .watermark{ display:none; }
   #viewHome{ width:100%; height:100%; align-self:stretch; position:relative; }
   #viewHome .wrap{ max-width:none; height:100%; margin:0; }
   .cdi-home{ position:absolute; inset:0; margin:0; background:transparent; }
