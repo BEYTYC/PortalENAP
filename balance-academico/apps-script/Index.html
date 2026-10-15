@@ -2501,7 +2501,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function vClave() {
     return '<div style="height:100%;display:flex;align-items:center;justify-content:center;padding:16px"><div class="card" style="width:min(380px,100%);padding:24px;border-top:4px solid var(--gold)">' +
       '<div style="font-size:18px;font-weight:700;color:var(--navy)">Generador de Balances Académico</div>' +
-      '<div style="color:var(--mute);font-size:13px;margin:6px 0 14px">Escuela Naval de Cadetes «Almirante Padilla». Escriba la clave de acceso.</div>' +
+      '<div style="color:var(--mute);font-size:13px;margin:6px 0 14px">Escuela Naval de Cadetes «Almirante Padilla». Escriba la clave de acceso; el navegador la recordará en este equipo.</div>' +
       '<label class="f"><span class="lbl">Clave de acceso</span><input id="clave" type="password" autocomplete="current-password" style="margin-top:4px"></label>' +
       (S.errorClave ? '<div class="alert bad" style="margin-top:10px">' + h(S.errorClave) + '</div>' : '') +
       '<button class="btn pri" data-act="entrar-clave" style="width:100%;margin-top:14px;padding:10px">Entrar</button></div></div>';
@@ -2881,21 +2881,21 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function iniciar() {
     var assets = cargarAssets();
     leerSesion().then(function () {         // primero se valida la clave (una sola vez); luego lo demás
-      try { if (S.clave) sessionStorage.setItem('balance.clave', S.clave); } catch (e) {}
+      try { if (S.clave) { localStorage.setItem('balance.clave', S.clave); } } catch (e) { try { if (S.clave) sessionStorage.setItem('balance.clave', S.clave); } catch (e2) {} }
       return Promise.all([assets, refrescarGuardados(), Backend.pensums().then(function (l) { S.pensums = l || []; }).catch(function () { S.pensums = []; })]);
     }).then(function () {
       return precargar();
     }).then(function () { S.arranque = false; render(); })
     .catch(function (err) {
       if (/clave|intentos/i.test(err.message)) {
-        try { sessionStorage.removeItem('balance.clave'); } catch (e) {}
+        try { localStorage.removeItem('balance.clave'); } catch (e) {} try { sessionStorage.removeItem('balance.clave'); } catch (e) {}
         S.clave = ''; S.errorClave = S.errorClave || err.message; S.pedirClave = true; S.arranque = false; render();
       } else { S.arranque = false; S.errorArranque = err.message; render(); }
     });
   }
   render();
   if (GAS) {
-    try { S.clave = sessionStorage.getItem('balance.clave') || ''; } catch (e) {}
+    try { S.clave = localStorage.getItem('balance.clave') || sessionStorage.getItem('balance.clave') || ''; } catch (e) {}
     srv('requiereClave').then(function (pide) {
       if (pide && !S.clave) { S.pedirClave = true; S.arranque = false; render(); } else iniciar();
     }).catch(function () { iniciar(); });
