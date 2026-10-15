@@ -319,11 +319,12 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="rise d3" style="{{ panel }};grid-column:span 5">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ detTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ detSub }}</div>
 <div style="margin-top:6px;height:calc(100% - 44px);display:flex;justify-content:center">
-<svg viewBox="0 0 160 172" style="height:100%;max-width:100%" role="img" aria-label="Mapa de ciudad de nacimiento">
+<sc-if value="{{ showWorld }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 360 140" style="width:100%;max-height:100%;align-self:center" role="img" aria-label="Mapamundi de país de nacimiento"><rect width="360" height="140" rx="10" fill="#F1F5FB"/><sc-for list="{{ worldPolys }}" as="p" hint-placeholder-count="6"><polygon fill="#DDE5F2" stroke="#C4D0E4" stroke-width=".6" stroke-linejoin="round" points="{{ p.pts }}"/></sc-for><sc-for list="{{ worldDots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for><sc-for list="{{ worldLab }}" as="t" hint-placeholder-count="4"><text x="{{ t.x }}" y="{{ t.y }}" font-size="5.5" fill="#26364F" style="pointer-events:none">{{ t.t }}</text></sc-for></svg></sc-if>
+<sc-if value="{{ showCol }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 160 172" style="height:100%;max-width:100%" role="img" aria-label="Mapa de ciudad de nacimiento">
 <polygon fill="#E3EAF4" stroke="#C4D0E4" stroke-width="1" stroke-linejoin="round" points="{{ colPoly }}"/>
 <sc-for list="{{ cityDots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for>
 <sc-for list="{{ cityLab }}" as="t" hint-placeholder-count="5"><text x="{{ t.x }}" y="{{ t.y }}" font-size="6" fill="#26364F" style="pointer-events:none">{{ t.t }}</text></sc-for>
-</svg>
+</svg></sc-if>
 </div>
 </div>
 
@@ -1485,8 +1486,9 @@ class Component extends DCLogic {
     const named = YC.map((y) => y[0]).filter((k) => cCnt[k]).sort((a, b) => cCnt[b] - cCnt[a]);
     const cMax = Math.max(1, ...named.map((k) => cCnt[k]));
     const conCiudad = cityData.length - (cCnt['Sin dato'] || 0) - (cCnt['Nacidos en el exterior'] || 0);
-    const detTitle = 'Ciudad de nacimiento';
-    const detSub = fmt(conCiudad) + ' con ciudad registrada de ' + fmt(cityData.length) + '. Toca una ciudad para filtrar.';
+    const isWorld = f.card === 'ext' || !!f.pais;
+    const detTitle = isWorld ? 'País de nacimiento' : 'Ciudad de nacimiento';
+    const detSub = isWorld ? fmt(paisData.length) + ' nacidos en ' + Object.keys(pCnt).length + ' países. Toca un país para filtrar.' : fmt(conCiudad) + ' con ciudad registrada de ' + fmt(cityData.length) + '. Toca una ciudad para filtrar.';
     const COLP = [[-77.35,8.67],[-76.9,8.6],[-76.3,9.3],[-75.6,10.0],[-75.55,10.6],[-75.0,10.95],[-74.2,11.3],[-73.4,11.3],[-72.3,11.9],[-71.3,12.4],[-71.6,11.5],[-72.0,11.0],[-72.8,10.2],[-72.6,9.3],[-72.0,8.9],[-72.4,8.2],[-72.1,7.0],[-71.1,7.0],[-70.1,6.95],[-69.4,6.1],[-67.5,6.2],[-67.4,4.4],[-67.8,2.8],[-67.2,1.8],[-66.9,1.2],[-67.6,2.0],[-68.3,1.8],[-69.9,1.1],[-69.8,0.6],[-70.1,-0.1],[-69.5,-1.0],[-69.4,-2.1],[-69.9,-4.2],[-70.5,-3.8],[-71.5,-2.6],[-72.9,-2.4],[-74.2,-1.0],[-75.3,-0.1],[-76.3,0.4],[-77.4,0.4],[-78.0,1.2],[-78.9,1.5],[-78.6,2.4],[-77.6,3.8],[-77.3,5.6],[-77.9,7.2]];
     const mx = (lon) => ((lon + 82) * 10).toFixed(1), my = (lat) => ((12.8 - lat) * 10).toFixed(1);
     const colPoly = COLP.map((q) => mx(q[0]) + ',' + my(q[1])).join(' ');
@@ -1495,6 +1497,13 @@ class Component extends DCLogic {
       return { tip: y[0] + ': ' + fmt(cCnt[y[0]]), cx: mx(y[2]), cy: my(y[1]), r: (3 + Math.sqrt(cCnt[y[0]] / cMax) * 15).toFixed(1), fill: dCol, op: on ? 0.78 : 0.2, go: tog('ciudad', y[0]) };
     });
     const cityLab = YC.filter((y) => cCnt[y[0]] && cCnt[y[0]] / cMax > 0.12).map((y) => ({ t: y[0], x: (parseFloat(mx(y[2])) + 6 + Math.sqrt(cCnt[y[0]] / cMax) * 15).toFixed(1), y: (parseFloat(my(y[1])) + 3).toFixed(1) }));
+    const wx = (lon) => (lon + 180).toFixed(1), wy = (lat) => (84 - lat).toFixed(1);
+    const WCOORD = Object.assign({ 'Alemania': [51, 10], 'Francia': [46.5, 2.5], 'Bélgica': [50.6, 4.6] }, COORD);
+    const wMax = Math.max(1, ...Object.keys(pCnt).map((k) => pCnt[k]));
+    const worldPolys = [[[-168,66],[-162,70],[-156,71],[-141,70],[-128,70],[-115,68],[-95,72],[-82,68],[-80,63],[-94,60],[-93,57],[-85,55],[-79,52],[-78,58],[-70,60],[-65,58],[-60,54],[-56,52],[-66,45],[-70,42],[-76,38],[-76,35],[-81,31],[-80,26],[-83,29],[-89,30],[-94,29],[-97,26],[-97,22],[-92,18.5],[-88,21],[-87,16],[-83,15],[-83,10],[-80,8],[-85,10],[-88,13],[-94,16],[-105,20],[-110,24],[-112,29],[-115,30],[-117,33],[-121,35],[-124,40],[-124,47],[-130,54],[-140,60],[-150,59],[-158,57],[-165,60]],[[-77,8],[-72,12],[-64,10.5],[-57,6],[-52,4.5],[-50,0],[-44,-2.5],[-35,-5.5],[-37,-11],[-39,-15],[-41,-22],[-48,-26],[-53,-34],[-58,-38.5],[-63,-41],[-66,-47],[-68,-52],[-70,-55],[-74,-50],[-73.5,-43],[-72,-37],[-71.5,-30],[-70.3,-23],[-71.5,-17.5],[-76,-14],[-79,-7.5],[-81,-4],[-80,-1],[-78.5,2]],[[-10,36],[-9,43],[-2,44],[-4,48],[2,51],[8,54],[10,57],[5,60],[5,62],[14,67],[22,70],[30,71],[40,68],[45,68],[60,70],[70,73],[80,73],[100,77],[113,74],[130,72],[142,72],[160,70],[170,70],[180,68],[180,65],[170,60],[162,58],[156,51],[142,53],[140,48],[135,43],[129,41],[127,38],[126,35],[122,40],[118,38],[121,32],[120,27],[110,21],[108,17],[105,10],[100,13],[100,7],[104,1.5],[98,8],[98,16],[94,20],[90,22],[87,21],[80,15],[78,8],[73,16],[72,21],[66,25],[57,26],[56,24],[59,22],[52,17],[43,13],[39,21],[35,28],[34,31],[36,36],[30,36],[26,40],[24,38],[20,40],[16,38],[12,42],[8,44],[3,43],[-1,37],[-6,36]],[[-17,21],[-16,28],[-9,32],[-6,36],[10,37],[11,33],[20,31],[32,31],[34,28],[38,20],[43,12],[51,12],[49,7],[41,-3],[40,-11],[35,-20],[33,-26],[28,-33],[20,-35],[17,-30],[12,-17],[13,-9],[9,-1],[9,4],[3,6],[-8,4.5],[-13,8],[-17,14]],[[114,-22],[122,-18],[131,-12],[137,-12],[141,-12],[146,-19],[153,-26],[150,-37],[141,-38],[131,-31],[124,-33],[115,-34]],[[-55,60],[-45,60],[-20,70],[-18,78],[-30,83],[-60,82],[-70,77],[-55,70]]].map((p) => ({ pts: p.map((q) => wx(q[0]) + ',' + wy(q[1])).join(' ') }));
+    const wKeys = Object.keys(pCnt).filter((k) => WCOORD[k]).sort((a, b) => pCnt[b] - pCnt[a]);
+    const worldDots = wKeys.map((k) => ({ tip: k + ': ' + fmt(pCnt[k]), cx: wx(WCOORD[k][1]), cy: wy(WCOORD[k][0]), r: (2 + Math.sqrt(pCnt[k] / wMax) * 9).toFixed(1), fill: '#7C5CD6', op: f.pais && f.pais !== k ? 0.25 : 0.78, go: tog('pais', k) }));
+    const worldLab = wKeys.slice(0, 4).map((k) => ({ t: k, x: (parseFloat(wx(WCOORD[k][1])) + 4 + Math.sqrt(pCnt[k] / wMax) * 9).toFixed(1), y: (parseFloat(wy(WCOORD[k][0])) + 2).toFixed(1) }));
     const cityLine = (k, col) => ({ label: k, num: fmt(cCnt[k] || 0), share: pct(cCnt[k] || 0, cityData.length), go: tog('ciudad', k), rowStyle: 'width:100%;display:block;padding:2px 4px;border:0;background:none;cursor:pointer;border-radius:8px;text-align:left;flex:none;opacity:' + (f.ciudad && f.ciudad !== k ? 0.4 : 1), sh: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + col + 'AA,' + col + ');width:' + ((cCnt[k] || 0) / cMax * 100).toFixed(1) + '%' });
     const cityRows = named.slice(0, 8).map((k) => cityLine(k, dCol)).concat(cCnt['Otras ciudades'] ? [cityLine('Otras ciudades', '#8190A8')] : []).concat(cCnt['Nacidos en el exterior'] ? [cityLine('Nacidos en el exterior', '#7C5CD6')] : []).concat(cCnt['Sin dato'] ? [cityLine('Sin dato', '#B8C2D4')] : []);
     const pfE = {}; full.forEach((r) => { pfE[r.esp] = (pfE[r.esp] || 0) + 1; });
@@ -1875,7 +1884,7 @@ class Component extends DCLogic {
       spL1: sp1.l, spA1: sp1.a, spL2: sp2.l, spA2: sp2.a, spL3: sp3.l, spA3: sp3.a, nodes: nodes, linesD: linesD.trim(),
       panel: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden',
       sexoBtns: sexoBtns, progLabel: progLabel, rdOptions: rdOptions, rdLabel: rdLabel, rdSub: rdSub, rdBtnStyle: rdBtnStyle, rdOpen: this.state.rd, rdToggle: () => this.setState({ ed: false, pd: false, cd: false, rd: !this.state.rd }), estadoBtns: estadoBtns, rangoBtns: rangoBtns,
-      rowA: rowA, rowB: rowB, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
+      rowA: rowA, rowB: rowB, showWorld: isWorld, showCol: !isWorld, worldPolys: worldPolys, worldDots: worldDots, worldLab: worldLab, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
       clearStyle: clearStyle, clearAll: clearAll, tabs: tabs,
       railGen: railGen, railOther: !railGen, espOptions: espOptions, edLabel: edLabel, edSub: edSub, edBtnStyle: edBtnStyle, edOpen: this.state.ed, edToggle: () => this.setState({ rd: false, pd: false, cd: false, ed: !this.state.ed }),
       cdOptions: cdOptions, cdQuery: this.state.cq, cdSearch: (e) => this.setState({ cq: (e && e.target ? e.target.value : '') }), cdNone: cdNone, cdLabel: cdLabel, cdSub: cdSub, cdBtnStyle: cdBtnStyle, cdOpen: this.state.cd, cdToggle: () => this.setState({ rd: false, pd: false, ed: false, cd: !this.state.cd, cq: '' }), dataNote: 'En construcción · cifras preliminares',
