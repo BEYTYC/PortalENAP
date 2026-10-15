@@ -1032,7 +1032,7 @@ class Component extends DCLogic {
     const retF = (r) => r.estado === 'retirado';
     const gradF0 = gradF, retF0 = retF;
     const rate = (num, den) => (den > 0 ? pct(num, den) : '—');
-    const PER = f.periods ? Math.max(...f.periods.map((q) => parseInt(q, 10))) : (f.year || 2025), PRV = PER - 1;
+    const PER = f.periods ? Math.max(...f.periods.map((q) => parseInt(q, 10))) : (f.year || Math.max(...this._data.map((r) => r.year))), PRV = PER - 1;
     const kRows = data.filter((r) => { skipCard = true; const v = pass(r, 'year'); skipCard = false; return v; });
     const cardRows = D('card');
     const kCur = kRows.filter((r) => r.year === PER), kPrv = kRows.filter((r) => r.year === PRV);
@@ -1776,7 +1776,7 @@ class Component extends DCLogic {
       const sSum = (st, ex, yr) => { let t = 0; SN.R.forEach((r) => { if (r[0] === st && (yr === undefined || (r[2] === yr && (!semSet || semSet.indexOf(r[3]) >= 0))) && sPass(r, ex)) t += r[5]; }); return t; };
       const MET = [['ins', 'Inscritos', 0, '#2F6FE0'], ['adm', 'Admitidos', 1, '#0FA89A'], ['pc', 'Primer curso', 2, '#F0A22E'], ['mat', 'Matrículas', 3, '#0C2050']];
       const mI = Math.max(0, MET.findIndex((m) => m[0] === sp.metric)), mt = MET[mI], mCol = mt[3];
-      const PERs = sp.year || (sp.periods ? Math.max(...sp.periods.map((k) => parseInt(k, 10))) : (sp.range ? sp.range[1] : 2025)), PRVs = PERs - 1;
+      const PERs = sp.year || (sp.periods ? Math.max(...sp.periods.map((k) => parseInt(k, 10))) : (sp.range ? sp.range[1] : Math.max(...SN.R.map((r) => r[2])))), PRVs = PERs - 1;
       const dlt = (cur, prv, pp, inv) => {
         if (cur === prv) return { t: '= vs ' + PRVs, c: '#6B7A94' };
         const up = cur > prv, txt = pp ? Math.abs((cur - prv) * 100).toFixed(1).replace('.', ',') + ' pp' : prv === 0 ? 'nuevo' : Math.abs((cur - prv) / prv * 100).toFixed(1).replace('.', ',') + '%';
