@@ -316,10 +316,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 
 <div style="{{ rowB }}">
 
-<div class="rise d3" style="{{ panel }};grid-column:span 5">
+<div class="rise d3" style="{{ mapStyle }}">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ detTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ detSub }}</div>
 <div style="margin-top:6px;height:calc(100% - 44px);display:flex;justify-content:center">
-<sc-if value="{{ showWorld }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 360 140" style="width:100%;max-height:100%;align-self:center" role="img" aria-label="Mapamundi de país de nacimiento"><rect width="360" height="140" rx="10" fill="#F1F5FB"/><sc-for list="{{ worldPolys }}" as="p" hint-placeholder-count="6"><polygon fill="#DDE5F2" stroke="#C4D0E4" stroke-width=".6" stroke-linejoin="round" points="{{ p.pts }}"/></sc-for><sc-for list="{{ worldDots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for><sc-for list="{{ worldLab }}" as="t" hint-placeholder-count="4"><text x="{{ t.x }}" y="{{ t.y }}" font-size="5.5" fill="#26364F" style="pointer-events:none">{{ t.t }}</text></sc-for></svg></sc-if>
+<sc-if value="{{ showWorld }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid meet" style="width:100%;height:100%" role="img" aria-label="Mapamundi de país de nacimiento"><rect width="360" height="140" rx="10" fill="#F1F5FB"/><sc-for list="{{ worldPolys }}" as="p" hint-placeholder-count="6"><polygon fill="#DDE5F2" stroke="#C4D0E4" stroke-width=".6" stroke-linejoin="round" points="{{ p.pts }}"/></sc-for><sc-for list="{{ worldDots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for><sc-for list="{{ worldLab }}" as="t" hint-placeholder-count="4"><text x="{{ t.x }}" y="{{ t.y }}" font-size="5.5" fill="#26364F" style="pointer-events:none">{{ t.t }}</text></sc-for></svg></sc-if>
 <sc-if value="{{ showCol }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 160 172" style="height:100%;max-width:100%" role="img" aria-label="Mapa de ciudad de nacimiento">
 <polygon fill="#E3EAF4" stroke="#C4D0E4" stroke-width="1" stroke-linejoin="round" points="{{ colPoly }}"/>
 <sc-for list="{{ cityDots }}" as="d" hint-placeholder-count="10"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for>
@@ -328,7 +328,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 </div>
 
-<div class="rise d4" style="{{ panel }};grid-column:span 3">
+<sc-if value="{{ showCol }}" hint-placeholder-val="{{ true }}"><div class="rise d4" style="{{ panel }};grid-column:span 3">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Ciudades principales</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Dónde nacieron</div>
 <div style="margin-top:8px;display:flex;flex-direction:column;gap:3px">
 <sc-for list="{{ cityRows }}" as="c" hint-placeholder-count="9">
@@ -338,7 +338,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </button>
 </sc-for>
 </div>
-</div>
+</div></sc-if>
 
 <div class="rise d5" style="{{ panel }};grid-column:span 4">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ pfTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Quiénes son y por dónde ingresaron</div>
@@ -1884,7 +1884,7 @@ class Component extends DCLogic {
       spL1: sp1.l, spA1: sp1.a, spL2: sp2.l, spA2: sp2.a, spL3: sp3.l, spA3: sp3.a, nodes: nodes, linesD: linesD.trim(),
       panel: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden',
       sexoBtns: sexoBtns, progLabel: progLabel, rdOptions: rdOptions, rdLabel: rdLabel, rdSub: rdSub, rdBtnStyle: rdBtnStyle, rdOpen: this.state.rd, rdToggle: () => this.setState({ ed: false, pd: false, cd: false, rd: !this.state.rd }), estadoBtns: estadoBtns, rangoBtns: rangoBtns,
-      rowA: rowA, rowB: rowB, showWorld: isWorld, showCol: !isWorld, worldPolys: worldPolys, worldDots: worldDots, worldLab: worldLab, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
+      rowA: rowA, rowB: rowB, mapStyle: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden' + ';grid-column:span ' + (isWorld ? 8 : 5), showWorld: isWorld, showCol: !isWorld, worldPolys: worldPolys, worldDots: worldDots, worldLab: worldLab, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
       clearStyle: clearStyle, clearAll: clearAll, tabs: tabs,
       railGen: railGen, railOther: !railGen, espOptions: espOptions, edLabel: edLabel, edSub: edSub, edBtnStyle: edBtnStyle, edOpen: this.state.ed, edToggle: () => this.setState({ rd: false, pd: false, cd: false, ed: !this.state.ed }),
       cdOptions: cdOptions, cdQuery: this.state.cq, cdSearch: (e) => this.setState({ cq: (e && e.target ? e.target.value : '') }), cdNone: cdNone, cdLabel: cdLabel, cdSub: cdSub, cdBtnStyle: cdBtnStyle, cdOpen: this.state.cd, cdToggle: () => this.setState({ rd: false, pd: false, ed: false, cd: !this.state.cd, cq: '' }), dataNote: 'En construcción · cifras preliminares',
