@@ -821,7 +821,7 @@ class Component extends DCLogic {
       const estado = a[5] === 0 ? 'graduado' : a[5] === 1 ? 'activo' : 'retirado';
       const causal = a[6] >= 0 ? R.K[a[6]] : null;
       const meses = a[7] >= 0 ? a[7] : null;
-      const pais = R.P[a[8]]; const ciudad = a[9] >= 0 ? (a[9] < R.Y.length ? R.Y[a[9]][0] : 'Otras ciudades') : 'Sin dato';
+      const pais = R.P[a[8]]; const ciudad = pais !== 'Colombia' ? 'Nacidos en el exterior' : a[9] >= 0 ? (a[9] < R.Y.length ? R.Y[a[9]][0] : 'Otras ciudades') : 'Sin dato';
       const prog = esp === 'Infantería de Marina' || esp === 'Cadete IM Profesional' || esp === 'Curso Extraordinario IM' ? 'infanteria' : esp === 'Mercantes' ? (cont.indexOf('MAQ') === 0 || cont.indexOf('MÁQ') === 0 ? 'maquinas' : 'mercantes') : 'navales';
       const concesion = this.hs(i, 5) < 0.14 ? pk([['Hijo(a) de militar', 0.53], ['Votaciones', 0.23], ['Reservista de primera clase', 0.09], ['Afro e indígena', 0.08], ['Excelencia académica', 0.07]], this.hs(i, 6)) : null;
       const reconoc = estado === 'retirado' ? null : pk([['medalla', 0.07], ['premio', 0.05], ['distinguido', 0.04], [null, 0.84]], this.hs(i, 7));
@@ -1484,7 +1484,7 @@ class Component extends DCLogic {
     const YC = this._real.Y;
     const named = YC.map((y) => y[0]).filter((k) => cCnt[k]).sort((a, b) => cCnt[b] - cCnt[a]);
     const cMax = Math.max(1, ...named.map((k) => cCnt[k]));
-    const conCiudad = cityData.length - (cCnt['Sin dato'] || 0);
+    const conCiudad = cityData.length - (cCnt['Sin dato'] || 0) - (cCnt['Nacidos en el exterior'] || 0);
     const detTitle = 'Ciudad de nacimiento';
     const detSub = fmt(conCiudad) + ' con ciudad registrada de ' + fmt(cityData.length) + '. Toca una ciudad para filtrar.';
     const COLP = [[-77.35,8.67],[-76.9,8.6],[-76.3,9.3],[-75.6,10.0],[-75.55,10.6],[-75.0,10.95],[-74.2,11.3],[-73.4,11.3],[-72.3,11.9],[-71.3,12.4],[-71.6,11.5],[-72.0,11.0],[-72.8,10.2],[-72.6,9.3],[-72.0,8.9],[-72.4,8.2],[-72.1,7.0],[-71.1,7.0],[-70.1,6.95],[-69.4,6.1],[-67.5,6.2],[-67.4,4.4],[-67.8,2.8],[-67.2,1.8],[-66.9,1.2],[-67.6,2.0],[-68.3,1.8],[-69.9,1.1],[-69.8,0.6],[-70.1,-0.1],[-69.5,-1.0],[-69.4,-2.1],[-69.9,-4.2],[-70.5,-3.8],[-71.5,-2.6],[-72.9,-2.4],[-74.2,-1.0],[-75.3,-0.1],[-76.3,0.4],[-77.4,0.4],[-78.0,1.2],[-78.9,1.5],[-78.6,2.4],[-77.6,3.8],[-77.3,5.6],[-77.9,7.2]];
@@ -1496,7 +1496,7 @@ class Component extends DCLogic {
     });
     const cityLab = YC.filter((y) => cCnt[y[0]] && cCnt[y[0]] / cMax > 0.12).map((y) => ({ t: y[0], x: (parseFloat(mx(y[2])) + 6 + Math.sqrt(cCnt[y[0]] / cMax) * 15).toFixed(1), y: (parseFloat(my(y[1])) + 3).toFixed(1) }));
     const cityLine = (k, col) => ({ label: k, num: fmt(cCnt[k] || 0), share: pct(cCnt[k] || 0, cityData.length), go: tog('ciudad', k), rowStyle: 'width:100%;display:block;padding:2px 4px;border:0;background:none;cursor:pointer;border-radius:8px;text-align:left;flex:none;opacity:' + (f.ciudad && f.ciudad !== k ? 0.4 : 1), sh: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + col + 'AA,' + col + ');width:' + ((cCnt[k] || 0) / cMax * 100).toFixed(1) + '%' });
-    const cityRows = named.slice(0, 8).map((k) => cityLine(k, dCol)).concat(cCnt['Otras ciudades'] ? [cityLine('Otras ciudades', '#8190A8')] : []).concat(cCnt['Sin dato'] ? [cityLine('Sin dato', '#B8C2D4')] : []);
+    const cityRows = named.slice(0, 8).map((k) => cityLine(k, dCol)).concat(cCnt['Otras ciudades'] ? [cityLine('Otras ciudades', '#8190A8')] : []).concat(cCnt['Nacidos en el exterior'] ? [cityLine('Nacidos en el exterior', '#7C5CD6')] : []).concat(cCnt['Sin dato'] ? [cityLine('Sin dato', '#B8C2D4')] : []);
     const pfE = {}; full.forEach((r) => { pfE[r.esp] = (pfE[r.esp] || 0) + 1; });
     const pfKeys = Object.keys(pfE).sort((a, b) => pfE[b] - pfE[a]).slice(0, 5);
     const pfMax = Math.max(1, ...pfKeys.map((k) => pfE[k]));
