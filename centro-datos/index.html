@@ -1767,7 +1767,7 @@ class Component extends DCLogic {
       const lv = (p) => SN.PR[p][1];
       // Graduados (estado 4) y retirados (estado 5) de la base de estudiantes, en el mismo formato que SNIES
       const PGI = { navales: 0, infanteria: 1, mercantes: 2, maquinas: 3 };
-      const stuRows = []; const gf = this._gradFile; const cNorm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/,.*$/, '').replace(/ DE INDIAS$/, '').trim(); const ycIdx = {}; YC2.forEach((y, i) => { ycIdx[cNorm(y[0])] = i; }); gf.R.forEach((g) => { const nm = gf.C[g[3]]; const k = nm ? cNorm(nm) : ''; stuRows.push([4, g[0], Math.max(2006, g[1]), g[2], !nm ? -1 : ycIdx[k] !== undefined ? ycIdx[k] : YC2.length, 1]); }); this._retFile.forEach((g) => { stuRows.push([5, g[0], Math.max(2006, g[1]), g[2], -1, 1]); });
+      const stuRows = []; const gf = this._gradFile; const cNorm = (t) => String(t).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/,.*$/, '').replace(/ DE INDIAS$/, '').trim(); const ycIdx = {}; YC2.forEach((y, i) => { ycIdx[cNorm(y[0])] = i; }); gf.R.forEach((g) => { const nm = gf.C[g[3]]; const k = nm ? cNorm(nm) : ''; stuRows.push([4, g[0], g[1], g[2], !nm ? -1 : ycIdx[k] !== undefined ? ycIdx[k] : YC2.length, 1]); }); this._retFile.forEach((g) => { stuRows.push([5, g[0], g[1], g[2], -1, 1]); });
       const RR = SN.R.concat(stuRows);
       const sPass = (r, ex) => {
         if (ex !== 'prog' && sp.prog !== null && r[1] !== sp.prog) return false;
@@ -1801,10 +1801,10 @@ class Component extends DCLogic {
         sk.push({ label: m[1], dot: dot(m[3]), value: fmt(tt), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) + (sp.metric !== m[0] ? ';opacity:.85' : ''), bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tt / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: false, ex1l: 'Ingreso ' + PERs, ex1v: fmt(cur), ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) });
       });
       // evolución por año
-      const yrs = []; for (let y = mt[2] >= 4 ? 2006 : 2007; y <= 2026; y++) yrs.push(y);
+      const yMin = RR.reduce((a, r) => (r[0] === mt[2] && r[2] > 0 && r[2] < a ? r[2] : a), 2026), yNoDate = RR.reduce((a, r) => a + (r[0] === mt[2] && r[2] === 0 && sPass(r, 'year') ? r[5] : 0), 0), yStep = Math.ceil((2026 - yMin + 1) / 22); const yrs = []; for (let y = yMin; y <= 2026; y++) yrs.push(y);
       const yTot = yrs.map((y) => { let a = 0, b = 0; RR.forEach((r) => { if (r[0] === mt[2] && r[2] === y && sPass(r, 'year')) { if (lv(r[1]) === 'P') a += r[5]; else b += r[5]; } }); return [a, b]; });
       const yMax = Math.max(1, ...yTot.map((q) => q[0] + q[1])), BH = 168;
-      const spYears = yrs.map((y, i) => { const q = yTot[i], t = q[0] + q[1], h = t / yMax * BH; return { label: y === 2006 && mt[2] >= 4 ? '≤06' : String(y).slice(2), total: t ? fmt(t) : '', aria: y + ': ' + fmt(t), go: () => upS({ year: this.state.sp.year === y ? null : y, periods: null }), op: sp.year && sp.year !== y ? 0.35 : 1, stack: 'height:' + h.toFixed(1) + 'px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 2px 2px;overflow:hidden;box-shadow:0 3px 8px rgba(20,35,63,.12)', sg: 'height:' + (t ? q[0] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#5B93F0,#2F6FE0)', sp: 'height:' + (t ? q[1] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#F0C260,#E3A92E);order:-1' }; });
+      const spYears = yrs.map((y, i) => { const q = yTot[i], t = q[0] + q[1], h = t / yMax * BH; return { label: i % yStep === 0 ? String(y).slice(2) : '', total: t && yStep === 1 ? fmt(t) : '', aria: y + ': ' + fmt(t), go: () => upS({ year: this.state.sp.year === y ? null : y, periods: null }), op: sp.year && sp.year !== y ? 0.35 : 1, stack: 'height:' + h.toFixed(1) + 'px;display:flex;flex-direction:column;justify-content:flex-end;border-radius:5px 5px 2px 2px;overflow:hidden;box-shadow:0 3px 8px rgba(20,35,63,.12)', sg: 'height:' + (t ? q[0] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#5B93F0,#2F6FE0)', sp: 'height:' + (t ? q[1] / t * 100 : 0).toFixed(1) + '%;background:linear-gradient(180deg,#F0C260,#E3A92E);order:-1' }; });
       const spTr = barTr(yTot.map((q) => q[0] + q[1]), yMax, BH, 19);
       // embudo
       const fcur = MET.map((m) => sSum(m[2], 'year', PERs)), fprv = MET.map((m) => sSum(m[2], 'year', PRVs)), fMax = Math.max(1, ...fcur);
@@ -1830,8 +1830,8 @@ class Component extends DCLogic {
       const progOpts = [[null, 'Todos los programas']].concat(SN.PR.map((q, i) => [i, q[0]])).map((a) => { const n = a[0] === null ? sSum(mt[2], 'prog') : sSum(mt[2], 'prog') * 0 + RR.reduce((t, r) => t + (r[0] === mt[2] && r[1] === a[0] && sPass(r, 'prog') ? r[5] : 0), 0); const on = sp.prog === a[0]; return { label: a[1], sub: fmt(n) + ' ' + mt[1].toLowerCase(), go: () => this.setState({ rd: false, dd: false, sp: Object.assign({}, this.state.sp, { prog: a[0] }) }), style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border:0;border-radius:10px;font-size:12.5px;font-weight:' + (on ? 700 : 500) + ';cursor:pointer;text-align:left;background:' + (on ? '#FBF3DE' : 'transparent') + ';color:#14233F' }; });
       const progSel = sp.prog !== null ? SN.PR[sp.prog][0] : 'Todos los programas';
       const nivBtns = [['P', 'Pregrado', '#2F6FE0'], ['S', 'Posgrado', '#E3A92E']].map((a) => ({ label: a[1], dot: dot(a[2]), sub: fmt(RR.reduce((t, r) => t + (r[0] === mt[2] && lv(r[1]) === a[0] && sPass(r, 'nivel') ? r[5] : 0), 0)) + ' ' + mt[1].toLowerCase(), subStyle: subSt, go: togS('nivel', a[0]), style: btnCol(sp.nivel === a[0]) }));
-      const rngs = (mt[2] >= 4 ? [[0, 2006]] : []).concat([[2007, 2012], [2013, 2019], [2020, 2026]]);
-      const rngBtns = rngs.map((rg) => { const on = sp.range && sp.range[0] === rg[0]; return { label: rg[0] === 0 ? 'Hasta 2006' : rg[0] + '–' + rg[1], dot: noDot, sub: fmt(RR.reduce((t, r) => t + (r[0] === mt[2] && r[2] >= rg[0] && r[2] <= rg[1] && sPass(r, 'year') ? r[5] : 0), 0)) + ' ' + mt[1].toLowerCase(), subStyle: subSt, go: () => upS({ range: on ? null : rg, year: null }), style: btnRow(on) }; });
+      const rngs = (mt[2] >= 4 ? [[1, 2006]] : []).concat([[2007, 2012], [2013, 2019], [2020, 2026]]);
+      const rngBtns = rngs.map((rg) => { const on = sp.range && sp.range[0] === rg[0]; return { label: rg[0] === 1 ? 'Hasta 2006' : rg[0] + '–' + rg[1], dot: noDot, sub: fmt(RR.reduce((t, r) => t + (r[0] === mt[2] && r[2] >= rg[0] && r[2] <= rg[1] && sPass(r, 'year') ? r[5] : 0), 0)) + ' ' + mt[1].toLowerCase(), subStyle: subSt, go: () => upS({ range: on ? null : rg, year: null }), style: btnRow(on) }; });
       const setP = (arr) => upS({ periods: arr.length ? arr : null, year: null });
       const pOnS = (k) => !!sp.periods && sp.periods.indexOf(k) >= 0;
       const pCh = (on) => 'flex:none;padding:3px 9px;border-radius:8px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid ' + (on ? '#D9B25A' : '#DDE3EE') + ';background:' + (on ? '#FBF3DE' : '#fff') + ';color:' + (on ? '#7A5510' : '#26364F');
@@ -1844,14 +1844,14 @@ class Component extends DCLogic {
       if (sp.periods) sChips.push({ label: sp.periods.length > 3 ? sp.periods.length + ' periodos' : 'Periodo ' + sp.periods.slice().sort().join(', '), go: () => upS({ periods: null }) });
       if (sp.prog !== null) sChips.push({ label: SN.PR[sp.prog][0], go: () => upS({ prog: null }) });
       if (sp.nivel) sChips.push({ label: sp.nivel === 'P' ? 'Pregrado' : 'Posgrado', go: () => upS({ nivel: null }) });
-      if (sp.range) sChips.push({ label: sp.range[0] === 0 ? 'Hasta 2006' : sp.range[0] + '–' + sp.range[1], go: () => upS({ range: null }) });
+      if (sp.range) sChips.push({ label: sp.range[0] === 1 ? 'Hasta 2006' : sp.range[0] + '–' + sp.range[1], go: () => upS({ range: null }) });
       if (sp.year) sChips.push({ label: String(sp.year), go: () => upS({ year: null }) });
       if (sp.ciudad) sChips.push({ label: 'Nació en ' + sp.ciudad, go: () => upS({ ciudad: null }) });
       const anyS = sChips.length > 0;
       const pdOn = !!sp.periods;
       spo = {
         kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;height:112px',
-        spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: mt[2] >= 4 ? 'La primera barra reúne 2006 y antes, y los sin fecha' : 'Desde 2007', spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
+        spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: 'Desde ' + yMin + (yNoDate ? ' · ' + fmt(yNoDate) + ' sin fecha' : ''), spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
         spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
         railPd: true, pdRows: pdRows2, pdLabel: pdLabel2, pdSub: fmt(tot[mI]) + ' ' + mt[1].toLowerCase(), pdClear: () => upS({ periods: null }), pdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (pdOn ? '#D9B25A' : '#DDE3EE') + ';background:' + (pdOn ? '#FBF3DE' : '#fff') + ';color:' + (pdOn ? '#7A5510' : '#26364F'),
