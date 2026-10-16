@@ -338,15 +338,11 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 html,body{background:transparent!important}:root{color-scheme:light}
 .mtool{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:14px}.fsb{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:var(--navy);border:1px solid var(--line);border-radius:50%;padding:0;cursor:pointer;box-shadow:0 2px 10px rgba(20,50,100,.18)}.fsb:hover{border-color:var(--bar-fill)}html:fullscreen,html:fullscreen body{background:#EAF2FC!important}.mtool .vt{background:transparent;border:0;padding:0}.mtool .vt .gearb{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--navy)}.mtool .vt .gearb:hover{border-color:var(--bar-fill)}.mtool .vt .gearb[aria-pressed="true"]{background:var(--navy);color:#fff}.mtool[hidden]{display:none}
 
-/* sin cuadros grandes: todo sobre el fondo del Portal, solo tarjetas pequeñas */
-.card,.pod,.grid>.card,.card.ch,.card.nov,.card.stu,.card.ac,.gbox:not(.small){background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
-.card:hover,.pod:hover{box-shadow:none!important}
-.grid>.card{overflow:visible!important}
-.card.ch.an,.card.ac,.card.nov,.card.ch{padding-left:2px;padding-right:2px}
-.card h3,.pod h3{padding-left:2px}
-.tw table{background:transparent}.tw thead th{background:transparent}
-.tw tbody tr{border-bottom:1px solid var(--line)}
-.k,.nb,.pd,.kv>div,.gbox{background:var(--card)}
+/* mientras se verifica el acceso no se ve nada del módulo, solo el aviso */
+body:has(#gate:not([hidden])) #pub,body:has(#gate:not([hidden])) .mtool,body:has(#gate:not([hidden])) #admin,body:has(#gate:not([hidden])) #nodata{display:none!important}
+/* podio: tarjeta del nombre con borde gris, sin bloque blanco suelto */
+.pd{background:transparent!important}
+.pd .pi{background:var(--card);border:1px solid #D3DAE5;border-radius:12px;margin-bottom:6px;padding:8px 6px 10px}
 </style>
 <h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
 <div class="wrap">
@@ -424,6 +420,11 @@ function buscar(qq){
   D.esc.forEach((s,i)=>{if(hit(s))add(s,'ESC',i)});
   return rows;
 }
+const PART=new Set(['DE','DEL','LA','LAS','LOS','SAN','SANTA','Y']);
+function corto(n){const w=String(n).split(/\s+/);let i=0;
+  const ap=()=>{while(i<w.length-1&&PART.has(w[i]))i++;i++};
+  const ini=w[0];ap();const a1=w.slice(0,i).join(' ');ap();
+  const nom=w[i];return nom?a1+' '+nom:a1}
 function render(){
   chips();
   document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento 2026-1':'Antigüedades '+(window.__PER||'2026-2');
@@ -437,7 +438,7 @@ function render(){
     list=ls(cur);
     const ranked=list.filter(s=>s.e!=='Aplazado').sort((a,b)=>(a.p??1e9)-(b.p??1e9));
     const apl=list.filter(s=>s.e==='Aplazado');
-    {const top=cur==='1.1'?[]:ranked.slice(0,3),ord=[1,0,2].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':cur)+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="pn">${s.g}</span><b class="nm1">${s.n}${ic(s)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
+    {const top=cur==='1.1'?[]:ranked.slice(0,3),ord=[1,0,2].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':cur)+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}${ic(s)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
@@ -568,7 +569,7 @@ function stuRender(){
   const s=sel,list=ls(selK).filter(x=>x.f!=null&&x.e!=='Aplazado');
   const avg={};['ac','an','di','cf','f'].forEach(f=>{const v=list.filter(x=>x[f]!=null).map(x=>x[f]);avg[f]=v.length?mean(v):null});
   const c=v=>`<td class="${v!=null&&v<6?'lo':''}">${f3(v)}</td>`;
-  const body=s.h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':b[0]}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('');
+  const body=s.h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
