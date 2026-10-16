@@ -383,6 +383,11 @@ body.has-dl .bar{padding-right:44px}body.has-gear .bar{padding-right:44px}body.h
 /* misma altura: pestañas de semestre y buscador */
 .bar .chips{min-height:48px;box-sizing:border-box;align-items:center}
 .bar input[type=search]{height:48px;box-sizing:border-box;padding:0 18px!important}
+
+body:has(#admin:not([hidden])) .adm{max-width:720px;margin-inline:auto;grid-template-columns:minmax(0,1fr)!important}
+body:has(#admin:not([hidden])) .mtool .vt .gearb{position:fixed;top:12px;right:16px}
+body:has(#admin:not([hidden])) .dlb{position:fixed;top:12px;right:60px}
+.mtool .vt .gearb[aria-pressed="true"]{color:var(--navy)!important;border-color:var(--navy)!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
