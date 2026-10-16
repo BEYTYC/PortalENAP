@@ -206,11 +206,11 @@ tr.r.sel{background:var(--soft)}
 .kpi{grid-template-columns:repeat(7,minmax(0,1fr))}.kpi .k{grid-column:auto;padding:12px 14px}.kpi .k span{font-size:10px;letter-spacing:.06em;white-space:nowrap}.kpi .k b{font-size:23px}
 @media (max-width:980px){.kpi{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:560px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.charts .ch svg{display:block;width:100%;height:auto;max-height:190px;margin-inline:auto}
+.charts .ch svg{display:block;width:100%;height:auto;max-height:260px;margin-inline:auto}
 .charts{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 .dl{display:block;margin-top:2px;font-size:10.5px;letter-spacing:-.1px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.dl.up{color:var(--good)}.dl.dn{color:var(--warn)}.kpi .k{min-height:84px}
-.charts .ch svg{max-width:440px}
+.charts .ch svg{max-width:none}
 .stu .hd{flex-direction:column;align-items:flex-start;gap:3px}.stu .rd h4{text-align:center}
 .stu .rd h4{margin-bottom:26px}.stu .rd svg{overflow:visible}
 .cred{max-width:1240px;margin:26px auto 4px;text-align:right;font-size:12px;letter-spacing:.04em;color:var(--mute)}
@@ -464,7 +464,7 @@ function chartsRender(){
   const first=use.findIndex(u=>u.n>0),lastI=use.length-1-[...use].reverse().findIndex(u=>u.n>0);
   use=use.filter(u=>u.i>=first&&u.i<=lastI);
   const sbI=sel&&sel.f!=null?lim.findIndex(l=>sel.f>=l[0]&&sel.f<l[1]):-1;
-  const W=360,H=185,pl=8,pr=8,pt=36,pb=36,mx=Math.max(...use.map(u=>u.n)),nb=use.length,bw=(W-pl-pr)/nb;
+  const W=580,H=215,pl=8,pr=8,pt=36,pb=36,mx=Math.max(...use.map(u=>u.n)),nb=use.length,bw=(W-pl-pr)/nb;
   let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Distribución del promedio final por rangos">`;
   const tx=[];
   use.forEach((u,i)=>{const bh=(H-pt-pb)*u.n/mx,x=pl+i*bw,cx=x+bw/2,bd=bands[u.i];
