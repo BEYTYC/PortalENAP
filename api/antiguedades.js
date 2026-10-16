@@ -20,6 +20,8 @@
  *   datos.json     { meta:{actualizado, por, periodo}, datos:{...} }
  *   accesos.json   { consulta:[{correo, agregado, por, descarga}], vistos:{correo: ISO} }
  *   descargas.json [ {correo, fecha} ]   bitácora de descargas del Excel
+ *   BD.xlsx        el Excel "BD Antigüedades" que se descarga (lo sube un administrador)
+ *   excel-meta.json { actualizado, por, nombre, bytes }
  *   intentos.json  { "correo": {intentos, ultimo} }
  *
  * Todas las acciones son POST con { accessToken, accion, ... }, donde
@@ -33,6 +35,7 @@ const DOMINIO = '@enap.edu.co';
 const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
 const CARPETA = 'Antiguedades';
 const MAX_BYTES_DATOS = 8 * 1024 * 1024;
+const MAX_BYTES_EXCEL = 3 * 1024 * 1024; // el cuerpo de una función de Vercel admite ~4,5 MB (base64 incluido)
 
 function error(mensaje, status) {
   const e = new Error(mensaje);
@@ -77,6 +80,22 @@ async function escribirJson(nombre, valor) {
     method: 'PUT',
     headers: { Authorization: `Bearer ${appToken}`, 'Content-Type': 'application/json' },
     body: JSON.stringify(valor),
+  });
+  if (!resp.ok) throw error(`No se pudo guardar ${nombre} en SharePoint (${resp.status}). ${(await resp.text()).slice(0, 300)}`, 502);
+}
+
+async function leerBinario(nombre) {
+  const resp = await fetch(rutaArchivo(nombre), { headers: { Authorization: `Bearer ${appToken}` } });
+  if (resp.status === 404) return null;
+  if (!resp.ok) throw error(`No se pudo leer ${nombre} en SharePoint (${resp.status}).`, 502);
+  return Buffer.from(await resp.arrayBuffer());
+}
+
+async function escribirBinario(nombre, buffer) {
+  const resp = await fetch(rutaArchivo(nombre), {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${appToken}`, 'Content-Type': 'application/octet-stream' },
+    body: buffer,
   });
   if (!resp.ok) throw error(`No se pudo guardar ${nombre} en SharePoint (${resp.status}). ${(await resp.text()).slice(0, 300)}`, 502);
 }
@@ -159,7 +178,8 @@ module.exports = async function handler(req, res) {
       const d = (await leerJson('descargas.json')) || [];
       d.push({ correo: yo.correo, fecha: ahora() });
       await escribirJson('descargas.json', d.slice(-500));
-      res.status(200).json({ ok: true, fecha: ahora(), correo: yo.correo });
+      const bin = await leerBinario('BD.xlsx');
+      res.status(200).json({ ok: true, fecha: ahora(), correo: yo.correo, xlsx: bin ? bin.toString('base64') : null });
       return;
     }
 
@@ -185,6 +205,7 @@ module.exports = async function handler(req, res) {
         consulta: accesos.consulta.map((x) => ({ ...x, ultimo: accesos.vistos[x.correo] || null })),
         intentos: Object.entries(intentos).map(([correo, v]) => ({ correo, ...v })).sort((a, b) => String(b.ultimo).localeCompare(String(a.ultimo))),
         descargas: ((await leerJson('descargas.json')) || []).slice(-20).reverse(),
+        excel: await leerJson('excel-meta.json'),
       });
       return;
     }
@@ -198,6 +219,19 @@ module.exports = async function handler(req, res) {
       const intentos = (await leerJson('intentos.json')) || {};
       if (intentos[correo]) { delete intentos[correo]; await escribirJson('intentos.json', intentos); }
       res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (accion === 'guardar-excel') {
+      const b64 = String(body.xlsx || '');
+      if (!b64) throw error('Falta el archivo.', 400);
+      const buf = Buffer.from(b64, 'base64');
+      if (buf.length < 4 || buf[0] !== 0x50 || buf[1] !== 0x4b) throw error('El archivo no es un Excel (.xlsx) válido.', 400);
+      if (buf.length > MAX_BYTES_EXCEL) throw error('El Excel es demasiado grande (máximo 3 MB).', 413);
+      await escribirBinario('BD.xlsx', buf);
+      const meta = { actualizado: ahora(), por: yo.correo, nombre: String(body.nombre || 'BD Antigüedades.xlsx').slice(0, 120), bytes: buf.length };
+      await escribirJson('excel-meta.json', meta);
+      res.status(200).json({ ok: true, meta });
       return;
     }
 
