@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generación de Antigüedades · ENAP</title>
+<title>Antigüedades ENAP</title>
 <style>
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
 :root{--bg:#EAF2FC;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
@@ -714,7 +714,7 @@ function iniciar(){
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
   }).catch(function(e){
-    if(e.message==='fuera')msg('Ábrelo desde el Portal','Este módulo se abre desde el Portal ENAP (Estadística › Generación de Antigüedades) con tu sesión institucional.');
+    if(e.message==='fuera')msg('Ábrelo desde el Portal','Este módulo se abre desde el Portal ENAP (Estadística › Antigüedades ENAP) con tu sesión institucional.');
     else msg('No se pudo abrir',e.message)
   })
 }
