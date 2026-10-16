@@ -1239,14 +1239,14 @@
   </div>
 
   <div id="viewAntiguedades" hidden>
-    <!-- Generación de Antigüedades (antiguedades/index.html, mismo origen).
+    <!-- Antigüedades ENAP (antiguedades/index.html, mismo origen).
          El iframe se carga la primera vez que se abre; el módulo pide el
          token de Microsoft al Portal y /api/antiguedades decide quién entra
          (administradores fijos + correos dados de alta en su panel). -->
     <iframe
       id="antiguedadesFrame"
       class="registro-iframe"
-      title="Generación de Antigüedades"
+      title="Antigüedades ENAP"
       allow="fullscreen"
       allowfullscreen
     ></iframe>
@@ -2671,7 +2671,7 @@
       key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
-        { nombre: 'Generación de Antigüedades', status: 'ok' },
+        { nombre: 'Antigüedades ENAP', status: 'ok' },
         { nombre: 'Aprobación de Certificados', status: 'soon' },
         { nombre: 'Concesiones Especiales', status: 'ok' },
         { nombre: 'Generación de Promedios Académicos', status: 'soon' },
@@ -2778,7 +2778,7 @@
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
-          else if (item.status === 'ok' && item.nombre === 'Generación de Antigüedades') { abrirSubsistema('viewAntiguedades', 'Generación de Antigüedades'); cargarAntiguedades(); }
+          else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
@@ -2885,7 +2885,7 @@
     }
   });
 
-  // Generación de Antigüedades: el iframe (mismo origen) se carga la primera
+  // Antigüedades ENAP: el iframe (mismo origen) se carga la primera
   // vez que se abre, ya con sesión iniciada, para que el módulo pueda pedir
   // el token de Microsoft de inmediato.
   function cargarAntiguedades() {

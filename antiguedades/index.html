@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Generación de Antigüedades · ENAP</title>
+<title>Antigüedades ENAP</title>
 <style>
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
 :root{--bg:#EAF2FC;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
@@ -340,9 +340,6 @@ html,body{background:transparent!important}:root{color-scheme:light}
 
 /* mientras se verifica el acceso no se ve nada del módulo, solo el aviso */
 body:has(#gate:not([hidden])) #pub,body:has(#gate:not([hidden])) .mtool,body:has(#gate:not([hidden])) #admin,body:has(#gate:not([hidden])) #nodata{display:none!important}
-/* podio: tarjeta del nombre con borde gris, sin bloque blanco suelto */
-.pd{background:transparent!important}
-.pd .pi{background:var(--card);border:1px solid #D3DAE5;border-radius:12px;margin-bottom:6px;padding:8px 6px 10px}
 </style>
 <h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
 <div class="wrap">
@@ -717,7 +714,7 @@ function iniciar(){
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
   }).catch(function(e){
-    if(e.message==='fuera')msg('Ábrelo desde el Portal','Este módulo se abre desde el Portal ENAP (Estadística › Generación de Antigüedades) con tu sesión institucional.');
+    if(e.message==='fuera')msg('Ábrelo desde el Portal','Este módulo se abre desde el Portal ENAP (Estadística › Antigüedades ENAP) con tu sesión institucional.');
     else msg('No se pudo abrir',e.message)
   })
 }

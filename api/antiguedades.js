@@ -1,7 +1,7 @@
 /**
  * api/antiguedades.js
  *
- * Servidor del módulo "Generación de Antigüedades".
+ * Servidor del módulo "Antigüedades ENAP".
  *
  * Por qué existe: los datos de los estudiantes (notas, cédulas, puestos) NO
  * pueden estar en el repositorio (es público) ni en el navegador de nadie.

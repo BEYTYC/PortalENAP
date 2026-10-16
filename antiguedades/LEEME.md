@@ -1,6 +1,6 @@
-# Generación de Antigüedades
+# Antigüedades ENAP
 
-Módulo del Portal (Estadística › Generación de Antigüedades). HTML/CSS/JS plano, sin compilación.
+Módulo del Portal (Estadística › Antigüedades ENAP). HTML/CSS/JS plano, sin compilación.
 
 ## Cómo funciona
 - `antiguedades/index.html` se abre embebido desde `index.html` (iframe del mismo origen). Pide el token de Microsoft al Portal (`PortalENAP.tokenMicrosoft`).
@@ -14,7 +14,7 @@ Módulo del Portal (Estadística › Generación de Antigüedades). HTML/CSS/JS 
 
 ## Primera puesta en marcha
 1. Desplegar (Vercel) y abrir el Portal con `jestadisticaplen@enap.edu.co`.
-2. Estadística › Generación de Antigüedades › **Administración** › "Datos cargados": elegir el JSON de datos, escribir el periodo y **Cargar datos**.
+2. Estadística › Antigüedades ENAP › **Administración** › "Datos cargados": elegir el JSON de datos, escribir el periodo y **Cargar datos**.
 3. Dar acceso de consulta a quien corresponda.
 
 ## Pendiente
