@@ -220,6 +220,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </sc-if>
 </div>
 </sc-if>
+<button class="x" onClick="{{ toAna }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:0;background:linear-gradient(135deg,#7C5CD6,#2F6FE0);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;order:99">Ver analítica ›</button>
 <sc-if value="{{ noChips }}" hint-placeholder-val="{{ true }}"><span style="font-size:12.5px;color:#6B7A94">Sin filtros: se muestran todos los registros</span></sc-if>
 <sc-for list="{{ chips }}" as="c" hint-placeholder-count="0"><button class="x" onClick="{{ c.go }}" style="display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1px solid #9DBBF2;background:#E6EEFC;color:#1D3F9E;font-size:12.5px;font-weight:600;cursor:pointer">{{ c.label }}<span aria-hidden="true" style="font-size:14px;line-height:1">×</span></button></sc-for>
 </div>
@@ -794,12 +795,13 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:auto;gap:14px;padding-bottom:6px">
 
 <div style="grid-column:span 12;display:flex;flex-direction:column;gap:10px">
-<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;font-weight:700;color:#0C2050">Analizar ingresos</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span><span style="font-size:11.5px;font-weight:600;color:#1D4FD8">Pasa el cursor sobre cada gráfica para ver cómo leerla y qué muestra.</span></div>
-<div style="padding:14px 18px;border-radius:18px;background:linear-gradient(135deg,#0C2050,#1D4FD8);color:#fff"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.8">Lo que dicen los datos</div><div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px"><sc-for list="{{ summary }}" as="x" hint-placeholder-count="5"><div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;margin-top:6px;width:6px;height:6px;border-radius:50%;background:#7FC8FF"></span><span>{{ x.t }}</span></div></sc-for></div></div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="x" onClick="{{ toData }}" style="padding:5px 12px;border-radius:999px;border:1px solid #D5DCE8;background:#fff;color:#0C2050;font-size:12px;font-weight:700;cursor:pointer">‹ Volver a los datos</button><span style="font-size:14px;font-weight:700;color:#0C2050">Analítica · {{ topicName }}</span><span style="font-size:12px;font-weight:600;color:#6B7A94">Ingresos desde:</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span><span style="font-size:11.5px;font-weight:600;color:#1D4FD8">Pasa el cursor sobre cada gráfica para ver cómo leerla y qué muestra.</span></div>
+<div style="{{ sh.sum }};padding:14px 18px;border-radius:18px;background:linear-gradient(135deg,#0C2050,#1D4FD8);color:#fff"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.8">Lo que dicen los datos</div><div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px"><sc-for list="{{ summary }}" as="x" hint-placeholder-count="5"><div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;margin-top:6px;width:6px;height:6px;border-radius:50%;background:#7FC8FF"></span><span>{{ x.t }}</span></div></sc-for></div></div>
 </div>
 
 
 
+<div style="{{ sh.early }}">
 <div style="grid-column:span 12;margin-top:6px;padding:14px 18px;border-radius:18px;background:linear-gradient(135deg,#7A1E16,#C8352B);color:#fff">
 <div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.85">Foco: retiros en los primeros 6 meses</div>
 <div style="margin-top:4px;font-size:14px;line-height:1.45">Aquí se pierde más de la mitad de los retiros. Esta sección muestra cuándo, por qué y quiénes se van pronto, y qué acciones pueden retenerlos.</div>
@@ -865,6 +867,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="margin-top:12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px"><sc-for list="{{ eaPlay }}" as="c" hint-placeholder-count="6"><div style="padding:14px 16px;border-radius:16px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04);display:flex;flex-direction:column;gap:8px"><div style="display:flex;align-items:center;gap:10px"><span style="flex:none;width:26px;height:26px;border-radius:50%;background:#0C2050;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ c.n }}</span><b style="font-size:13.5px;color:#0C2050;line-height:1.25">{{ c.t }}</b></div><div style="font-size:11.5px;line-height:1.45;color:#B3261E;font-weight:600">{{ c.dato }}</div><ul style="margin:0;padding-left:18px;font-size:11.5px;line-height:1.5;color:#3D4D69"><sc-for list="{{ c.acc }}" as="a" hint-placeholder-count="3"><li>{{ a }}</li></sc-for></ul><div style="margin-top:auto;padding-top:8px;border-top:1px solid #EEF1F6;font-size:10.5px;color:#6B7A94"><div><b style="color:#0C2050">Responsable sugerido:</b> {{ c.resp }}</div><div style="margin-top:2px"><b style="color:#0C2050">Indicador:</b> {{ c.ind }}</div></div></div></sc-for></div>
 </div>
 
+</div>
+<div style="{{ sh.brk }}">
 <div class="rise d3" style="{{ panel }};overflow:visible;grid-column:span 12">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Puntos de quiebre: ¿desde qué año cambió la tendencia?</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Solo aparecen los indicadores donde se detectó un cambio de tendencia significativo. Línea azul: antes del cambio. Línea naranja: después. Pasa el cursor sobre cada tarjeta para ver la explicación</div>
@@ -881,7 +885,9 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <sc-if value="{{ brkNo }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;padding:14px;border-radius:12px;background:#FFF6E8;border:1px solid #F3D9A8;font-size:12.5px;color:#7A4B0B">{{ brkMsg }}</div></sc-if>
 </div>
 
-<div class="rise d3 xp" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
+</div>
+<div style="{{ sh.km }}">
+<div class="rise d3 xp" style="{{ panel }};overflow:visible;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Curvas de permanencia (Kaplan-Meier)</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Cuántos siguen en la escuela mes a mes, sin retirarse. {{ rangeTxt }}. Pasa el cursor sobre la gráfica</div></div>
 <div style="display:flex;gap:6px"><sc-for list="{{ svBtns }}" as="b" hint-placeholder-count="2"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></div></div>
 <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#3D4D69"><sc-for list="{{ svLegend }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.name }}</span></sc-for></div>
@@ -904,7 +910,9 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howKm }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finKm }}</div></div>
 </div>
 
-<div class="rise d3 xp" style="{{ panel }};overflow:visible;grid-column:span 5">
+</div>
+<div style="{{ sh.forest }}">
+<div class="rise d3 xp" style="{{ panel }};overflow:visible;height:100%;box-sizing:border-box">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Factores de riesgo de deserción</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ lrSub }}</div>
 <div style="position:relative;height:270px;margin-top:6px">
@@ -923,7 +931,9 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howForest }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finForest }}</div></div>
 </div>
 
-<div class="rise d4 xp" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
+</div>
+<div style="{{ sh.pj }}">
+<div class="rise d4 xp" style="{{ panel }};overflow:visible;height:100%;box-sizing:border-box;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ pjTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ pjSub }}</div></div>
 <div style="display:flex;gap:6px"><sc-for list="{{ pjBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></div></div>
 <div style="margin-top:8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"><sc-for list="{{ pjChips }}" as="c" hint-placeholder-count="4"><div style="padding:7px 10px;border-radius:12px;background:#F4F7FC;border:1px solid #E3E8F0"><div style="font-size:10px;color:#6B7A94">{{ c.l }}</div><div class="x" style="font-size:19px;font-weight:700;color:#0C2050;line-height:1.15;font-variant-numeric:tabular-nums">{{ c.v }}</div><div style="font-size:10px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.s }}</div></div></sc-for></div>
@@ -943,7 +953,9 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howPj }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finPj }}</div></div>
 </div>
 
-<div class="rise d4 xp" style="{{ panel }};overflow:visible;grid-column:span 5">
+</div>
+<div style="{{ sh.calc }}">
+<div class="rise d4 xp" style="{{ panel }};overflow:visible;height:100%;box-sizing:border-box">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Calculadora de riesgo de retiro</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Probabilidad estimada de retiro (frente a egresar) según el perfil de ingreso</div>
 <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
@@ -959,6 +971,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howCalc }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finCalc }}</div></div>
 </div>
 
+</div>
+<div style="{{ sh.heat }}">
 <div class="rise d5 xp" style="{{ panel }};overflow:visible;grid-column:span 7">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Mapa de calor: % de retiro por especialidad, sexo y cohorte</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Sobre ingresos con desenlace (egreso o retiro). Cada celda: % de retiro y número de casos. *2020+ aún en curso: sobreestima el retiro</div>
@@ -984,6 +998,21 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howWhy }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finWhy }}</div></div>
 </div>
 
+
+</div>
+<div style="{{ sh.dyn }}">
+<sc-for list="{{ dynK }}" as="k" hint-placeholder-count="0"><div style="grid-column:span 3;padding:12px 14px;border-radius:16px;background:#fff;border:1px solid #E3E8F0"><div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:#6B7A94">{{ k.l }}</div><div style="margin-top:4px;font-size:24px;font-weight:700;color:{{ k.c }};font-variant-numeric:tabular-nums">{{ k.v }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ k.s }}</div></div></sc-for>
+<sc-for list="{{ dyn }}" as="p" hint-placeholder-count="0">
+<div class="rise d4 xp" style="{{ p.style }}">
+<div style="font-size:15px;font-weight:600;color:#0C2050">{{ p.title }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ p.sub }}</div>
+<sc-if value="{{ p.isBars }}" hint-placeholder-val="{{ true }}"><div style="margin-top:12px;display:flex;flex-direction:column;gap:9px"><sc-for list="{{ p.rows }}" as="r" hint-placeholder-count="4"><div title="{{ r.tip }}"><div style="display:flex;justify-content:space-between;gap:8px;font-size:12px"><span style="color:#26364F">{{ r.label }}</span><span style="font-weight:700;color:{{ r.col }};font-variant-numeric:tabular-nums">{{ r.val }}</span></div><div style="margin-top:3px;height:9px;border-radius:5px;background:rgba(12,32,80,.07);overflow:hidden"><div style="{{ r.bar }}"></div></div><div style="margin-top:2px;font-size:10.5px;color:#6B7A94">{{ r.note }}</div></div></sc-for></div></sc-if>
+<sc-if value="{{ p.isCols }}" hint-placeholder-val="{{ false }}"><div style="margin-top:12px;display:flex;align-items:flex-end;gap:5px;height:170px"><sc-for list="{{ p.cols }}" as="c" hint-placeholder-count="10"><div title="{{ c.tip }}" style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:3px;min-width:0"><span style="font-size:9.5px;font-weight:700;color:#26364F;font-variant-numeric:tabular-nums">{{ c.val }}</span><div style="{{ c.bar }}"></div><span style="font-size:9.5px;color:#6B7A94">{{ c.lab }}</span></div></sc-for></div></sc-if>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ p.how }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ p.fin }}</div></div>
+</div></sc-for>
+<sc-if value="{{ dynNote }}" hint-placeholder-val="{{ false }}"><div style="grid-column:span 12;font-size:11.5px;color:#8A4B0F;background:#FFF6E8;border:1px solid #F3D9A8;border-radius:12px;padding:8px 14px">{{ dynNote }}</div></sc-if>
+<sc-if value="{{ dynNone }}" hint-placeholder-val="{{ false }}"><div style="grid-column:span 12;padding:16px 18px;border-radius:16px;background:#F4F6FA;border:1px solid #E3E8F0;font-size:13px;color:#51617D">{{ dynNoneMsg }}</div></sc-if>
+</div>
+<div style="{{ sh.coh }}">
 <div class="rise d5 xp" style="{{ panel }};overflow:visible;grid-column:span 12;align-self:start">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Cada cohorte de ingreso: tamaño y % de retiro</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Altura = ingresos del año · color y etiqueta = % de retiro entre quienes ya tuvieron desenlace. Las barras rayadas (2021+) siguen en curso y sobreestiman el retiro</div>
@@ -995,7 +1024,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 
 
-<div class="rise d6" style="{{ panel }};overflow:visible;grid-column:span 12;align-self:start">
+</div>
+<div class="rise d6" style="{{ panel }};{{ sh.gloss }};overflow:visible;grid-column:span 12;align-self:start">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Glosario: cómo entender los términos</div>
 <div style="margin-top:10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 24px"><sc-for list="{{ gloss }}" as="g" hint-placeholder-count="7"><div><div style="font-size:12px;font-weight:700;color:#0C2050">{{ g.t }}</div><div style="margin-top:2px;font-size:11.5px;line-height:1.45;color:#51617D">{{ g.d }}</div></div></sc-for></div>
 </div>
@@ -1219,7 +1249,7 @@ class Component extends DCLogic {
     const clearAll = () => this.setState({ f: { sexo: null, prog: null, estado: null, causal: null, concesion: null, pais: null, year: null, range: null, esp: null, periods: null, cont: null, card: null, ciudad: null, yret: null, edad: null } });
 
     // ---------- pestañas
-    const tabDefs = [['general', 'General'], ['concesiones', 'Concesiones'], ['programas', 'Programas'], ['analitica', 'Analítica']];
+    const tabDefs = [['general', 'General'], ['concesiones', 'Concesiones'], ['programas', 'Programas']];
     const tabs = tabDefs.map((t) => ({
       label: t[1], go: () => this.setState({ tab: t[0], dd: false, rd: false, ed: false, pd: false, cd: false }),
       style: 'padding:11px 22px;border-radius:999px;border:0;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;background:' + (tab === t[0] ? '#0C2050' : 'transparent') + ';color:' + (tab === t[0] ? '#fff' : '#51617D')
@@ -1301,7 +1331,10 @@ class Component extends DCLogic {
     const AX = (() => {
       const st = this.state, S0 = st.anFrom || '2000', A = this._an[S0], v = {};
       const f1 = (x) => String(x).replace('.', ',');
-      const mode = st.anSurv || 'esp', pj = st.anProj || 'ing';
+      const ana = st.view === 'ana';
+      const T = tab === 'general' ? (f.card || 'all') : tab === 'programas' ? 'prog' : tab === 'concesiones' ? 'con' : tab === 'graduados' ? 'esc' : tab === 'retiros' ? 'ret' : 'all';
+      const TNM = { all: 'visión general', ing: 'ingresos', esc: 'escalafonados', ret: 'retirados', act: 'estudiando', ext: 'extranjeros', prog: 'programas', con: 'concesiones especiales' };
+      const mode = st.anSurv || 'esp', pj = ({ ing: 'ing', esc: 'egr', ret: 'ret' })[T] || st.anProj || 'ing';
       const cE = st.cEsp === undefined ? 0 : st.cEsp, cS = st.cSexo || 0, cC = Math.min(st.cCoh === undefined ? Math.max(0, A.eras.length - 2) : st.cCoh, A.eras.length - 1), cX = !!st.cExt;
       const COL = ['#0C2050', '#2F6FE0', '#0FA89A', '#E0872F'];
       const tx = (x, y, W, H, an, sz, col, wt) => 'position:absolute;left:' + (x / W * 100).toFixed(2) + '%;top:' + ((y - 3) / H * 100).toFixed(2) + '%;transform:translate(' + (an === 'end' ? '-100%' : an === 'middle' ? '-50%' : '0') + ',-50%);font-size:' + sz + 'px;color:' + col + ';font-weight:' + (wt || 500) + ';white-space:nowrap;line-height:1;pointer-events:none';
@@ -1345,7 +1378,7 @@ class Component extends DCLogic {
       v.pjHits = hist.concat(fut).map((h, i) => ({ st: box(PX0 + i * bw, 10, bw, 220, W2, H2, 'cursor:default'), tip: (i < nH ? P.y0 + i : P.fy0 + i - nH) + ': ' + (i < nH ? h : h + ' (banda 80%: ' + P.lo[i - nH] + '–' + P.hi[i - nH] + ')') }));
       v.pjSplit = box(PX0 + nH * bw - 1, 10, 1, 212, W2, H2, 'border-left:1.5px dashed #B9C5D8');
       v.pjSplitT = tx(PX0 + nH * bw + 4, 14, W2, H2, 'start', 9.5, '#8A4B0F', 700);
-      v.pjBtns = [['ing', 'Ingresos'], ['egr', 'Egresos'], ['ret', 'Retiros']].map((b) => ({ label: b[1], go: () => this.setState({ anProj: b[0] }), style: btn(pj === b[0]) }));
+      v.pjBtns = ({ ing: 1, esc: 1, ret: 1 })[T] ? [] : [['ing', 'Ingresos'], ['egr', 'Egresos'], ['ret', 'Retiros']].map((b) => ({ label: b[1], go: () => this.setState({ anProj: b[0] }), style: btn(pj === b[0]) }));
       const lbl = { ing: 'ingresos', egr: 'egresos (graduados)', ret: 'retiros' }[pj];
       v.pjTitle = 'Proyección de ' + lbl + ' ' + P.fy0 + '–' + (P.fy0 + 4);
       v.pjSub = 'Tendencia lineal desde ' + P.y0 + ' · banda 80% · error de validación (MAPE) ' + f1(P.mape) + '%' + (pj === 'ret' ? ' · poca precisión' : '');
@@ -1403,8 +1436,9 @@ class Component extends DCLogic {
         hi && lo ? hi.n + ' es la especialidad con más retiro (' + Math.round(hi.p) + '%); ' + lo.n + ' la que menos (' + Math.round(lo.p) + '%).' : '',
         fM && fH ? 'Las mujeres se retiran menos que los hombres (' + Math.round(fM.ret) + '% frente a ' + Math.round(fH.ret) + '%).' : '',
         'La causal más común es «' + c0.n + '» (' + Math.round(c0.N / cT * 100) + '%) y ' + Math.round(h0.N / hT2 * 100) + '% de los retiros ocurre en los primeros 6 meses.',
-        'Si sigue la tendencia, se esperan ' + PI.f[0] + ' ingresos en ' + PI.fy0 + ' (entre ' + PI.lo[0] + ' y ' + PI.hi[0] + ') y ' + PE.f[0] + ' egresos en ' + PE.fy0 + '.'
-      ].filter((x) => x).map((t) => ({ t: t }));
+        'Si sigue la tendencia, se esperan ' + PI.f[0] + ' ingresos en ' + PI.fy0 + ' (entre ' + PI.lo[0] + ' y ' + PI.hi[0] + ').',
+        'Si sigue la tendencia, se esperan ' + PE.f[0] + ' egresos (graduados) en ' + PE.fy0 + ' (entre ' + PE.lo[0] + ' y ' + PE.hi[0] + ').'
+      ].map((s, i) => (s ? { t: s, tp: [['esc', 'ret', 'all'], ['ret', 'prog', 'all'], ['ret', 'prog', 'all'], ['ret', 'all'], ['ing', 'all'], ['esc', 'all']][i] } : null)).filter((x) => x);
       const sv = ser.filter((s) => s.s[36] !== undefined).sort((a, b) => b.s[36] - a.s[36]);
       v.howKm = 'Todas las líneas parten del 100% el día del ingreso. Cada vez que una línea baja, es porque estudiantes se retiraron. Una línea más alta significa que más estudiantes se quedan.';
       v.finKm = 'Al mes 12 siguen ' + f1(k.m12) + '% y al mes 48, ' + f1(k.m48) + '%: la mayor caída está en el primer año.' + (sv.length > 1 ? ' A los 36 meses, ' + sv[0].n + ' conserva ' + sv[0].s[36].toFixed(0) + '% y ' + sv[sv.length - 1].n + ' ' + sv[sv.length - 1].s[36].toFixed(0) + '%.' : '');
@@ -1425,6 +1459,7 @@ class Component extends DCLogic {
       v.finYr = yy.length > 1 ? 'Entre los años ya cerrados, ' + yy[0][0] + ' tuvo el mayor retiro (' + Math.round(yy[0][2]) + '%) y ' + yy[yy.length - 1][0] + ' el menor (' + Math.round(yy[yy.length - 1][2]) + '%).' : '';
       v.gloss = [['Curva de permanencia (Kaplan-Meier)', 'Porcentaje de estudiantes que siguen en la escuela después de cada mes. Parte de 100% y solo puede bajar.'], ['Razón de momios (×)', 'Compara las probabilidades de retiro de un grupo con las del grupo de referencia. 1× = igual; 2× = el doble; 0,5× = la mitad.'], ['AUC', 'Mide qué tan bien el modelo separa a quienes se retiran de quienes egresan. 0,5 es como lanzar una moneda; 1,0 sería perfecto.'], ['Banda del 80%', 'Rango en el que esperamos que caiga el dato real 8 de cada 10 veces.'], ['MAPE (error de validación)', 'Qué tanto se equivocó el método, en promedio, al predecir años que ya conocemos. Menor es mejor.'], ['Cohorte', 'Grupo de estudiantes que ingresaron en el mismo período.'], ['Con desenlace', 'Estudiantes que ya terminaron su ciclo: egresaron o se retiraron. Los que siguen activos no cuentan.']].map((g) => ({ t: g[0], d: g[1] }));
       // ---------- puntos de quiebre
+      const brkTp = (n) => (/^Egresos/.test(n) ? ['esc', 'all'] : /^Retiros|retiro/.test(n) ? ['ret', 'all'] : /^Ingresos de/.test(n) ? ['ing', 'prog', 'all'] : ['ing', 'all']);
       const lowN = (s) => s.charAt(0).toLowerCase() + s.slice(1);
       const sg2 = (x) => (x > 0 ? '+' : x < 0 ? '−' : '') + f1(Math.abs(x).toFixed(1));
       v.brkOk = A.brk.some((b) => b.ok && b.p < .05);
@@ -1453,7 +1488,7 @@ class Component extends DCLogic {
         };
       });
       const clr = A.brk.filter((b) => b.ok && b.p < .01).sort((a, b) => a.p - b.p).slice(0, 2);
-      clr.forEach((b) => { const d = (s) => (s > 0 ? 'subía' : s < 0 ? 'bajaba' : 'estaba estable'); v.summary.push({ t: 'A partir de ' + b.k + ', «' + lowN(b.name) + '» cambió de tendencia: antes ' + d(b.s1) + ' (' + sg2(b.s1) + '/año) y después ' + (b.s2 > 0 ? 'sube' : b.s2 < 0 ? 'baja' : 'está estable') + ' (' + sg2(b.s2) + '/año).' }); });
+      clr.forEach((b) => { const d = (s) => (s > 0 ? 'subía' : s < 0 ? 'bajaba' : 'estaba estable'); v.summary.push({ t: 'A partir de ' + b.k + ', «' + lowN(b.name) + '» cambió de tendencia: antes ' + d(b.s1) + ' (' + sg2(b.s1) + '/año) y después ' + (b.s2 > 0 ? 'sube' : b.s2 < 0 ? 'baja' : 'está estable') + ' (' + sg2(b.s2) + '/año).', tp: brkTp(b.name) }); });
       // ---------- retiros tempranos
       const E = A.early, eT = E.cause_early.reduce((a, b) => a + b, 0) || 1, lT = E.cause_late.reduce((a, b) => a + b, 0) || 1;
       const mTot = E.months.filter((m) => m.m >= 0).reduce((a, b) => a + b.N, 0) || 1, m02 = E.months.filter((m) => m.m >= 0 && m.m <= 2).reduce((a, b) => a + b.N, 0);
@@ -1505,6 +1540,118 @@ class Component extends DCLogic {
         { label: 'Ingresos proyectados ' + A.proj.ing.fy0, value: fmt(A.proj.ing.f[0]), frac: A.proj.ing.f[0] / 500, vs: 'banda 80%: ' + A.proj.ing.lo[0] + '–' + A.proj.ing.hi[0], color: '#E0872F' },
         { label: 'Egresos proyectados ' + A.proj.egr.fy0, value: fmt(A.proj.egr.f[0]), frac: A.proj.egr.f[0] / 400, vs: 'banda 80%: ' + A.proj.egr.lo[0] + '–' + A.proj.egr.hi[0], color: '#0C2050' }
       ];
+
+      // ---------- visibilidad por tema: solo se muestra lo que tiene hallazgos
+      v.summary = v.summary.filter((s) => !s.tp || s.tp.indexOf(T) >= 0);
+      const brkShown = A.brk.filter((b) => b.ok && b.p < .05 && brkTp(b.name).indexOf(T) >= 0);
+      v.brkCards = v.brkCards.filter((c) => brkShown.some((b) => b.name === c.name));
+      const sigF = A.lr.f.some((x) => (x.lo > 1 && x.n !== 'Cohorte 2020+') || x.hi < 1);
+      const dsp = (b) => (b ? 'display:contents' : 'display:none');
+      const gs = (b, sp) => (b ? 'grid-column:span ' + sp : 'display:none');
+      const isM = ({ all: 1, ing: 1, esc: 1, ret: 1, prog: 1 })[T];
+      const kmOn = ({ all: 1, esc: 1, ret: 1, prog: 1 })[T], pjOn = ({ all: 1, ing: 1, esc: 1, ret: 1 })[T], retOn = T === 'ret';
+      const dynOn = ({ ext: 1, con: 1, act: 1 })[T];
+      // ---------- paneles dinámicos: extranjeros, concesiones, estudiando
+      const rowsAll = this._data, cerr = rowsAll.filter((r) => r.year >= +S0 && r.year <= 2019 && r.estado !== 'activo');
+      const zt = (a, n1, b, n2) => { const q = (a + b) / (n1 + n2), se = Math.sqrt(q * (1 - q) * (1 / n1 + 1 / n2)); return se ? (a / n1 - b / n2) / se : 0; };
+      const z1 = (a, n, p0) => { const se = Math.sqrt(p0 * (1 - p0) / n); return se ? (a / n - p0) / se : 0; };
+      const ols = (xs, ys) => { const n = xs.length, mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n; let sxx = 0, sxy = 0; xs.forEach((x, i) => { sxx += (x - mx) * (x - mx); sxy += (x - mx) * (ys[i] - my); }); const s = sxy / sxx, b0 = my - s * mx; let sse = 0; xs.forEach((x, i) => { const e = ys[i] - (b0 + s * x); sse += e * e; }); const se = Math.sqrt(sse / Math.max(1, n - 2) / sxx); const df = Math.max(1, n - 2); return { s: s, t: se ? s / se : 0, sig: se ? Math.abs(s / se) > 2.0 + 2.5 / df : false, n: n }; };
+      const pc = (x) => f1(x.toFixed(1)) + '%', pc0 = (x) => Math.round(x) + '%';
+      const PCS = 'grid-column:span 6;box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.72);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:visible';
+      const bars = (title, sub, items, how, fin, span) => ({ title: title, sub: sub, isBars: true, isCols: false, how: how, fin: fin, style: PCS.replace('span 6', 'span ' + (span || 6)), rows: items.map((x) => ({ label: x.l, val: x.v, col: x.c || '#0C2050', note: x.note || '', tip: x.tip || x.note || x.l, bar: 'height:100%;border-radius:5px;background:' + (x.c || '#0C2050') + ';width:' + Math.max(1.5, Math.min(100, x.w)).toFixed(1) + '%' })), cols: [] });
+      const cols = (title, sub, items, how, fin, color, span) => { const mxc = Math.max.apply(null, items.map((x) => x.w)) || 1; return { title: title, sub: sub, isBars: false, isCols: true, how: how, fin: fin, style: PCS.replace('span 6', 'span ' + (span || 6)), rows: [], cols: items.map((x) => ({ lab: x.l, val: x.v, tip: x.tip || x.l, bar: 'width:100%;border-radius:4px 4px 0 0;min-height:2px;height:' + Math.max(2, x.w / mxc * 120).toFixed(0) + 'px;background:' + (x.c || color) })) }; };
+      const sgn = (x) => (x > 0 ? '+' : x < 0 ? '−' : '') + f1(Math.abs(x).toFixed(1));
+      v.dyn = []; v.dynK = []; v.dynNone = false; v.dynNoneMsg = '';
+      const yrs = []; for (let y = +S0; y <= 2026; y++) yrs.push(y);
+      const byYear = (fn) => yrs.map((y) => { const rs = rowsAll.filter((r) => r.year === y); return { y: y, n: rs.length, k: rs.filter(fn).length }; }).filter((o) => o.n > 0);
+      const tendencia = (nombre, serie, unidad, minPts) => {
+        const sr = serie.filter((o) => o.n >= (minPts || 20)); if (sr.length < 6) return null;
+        const o = ols(sr.map((x) => x.y), sr.map((x) => x.k / x.n * 100)); if (!o.sig) return null;
+        return cols(nombre, 'Por año de ingreso, desde ' + sr[0].y, sr.map((x) => ({ l: String(x.y).slice(2), v: Math.round(x.k / x.n * 100) + '', w: x.k / x.n * 100, tip: x.y + ': ' + pc(x.k / x.n * 100) + ' (' + x.k + ' de ' + x.n + ')' })), 'Cada columna es un año de ingreso; la altura es el porcentaje de ese año que cumple la condición. Pasa el cursor para ver el detalle.', 'La tendencia ' + (o.s > 0 ? 'sube' : 'baja') + ' ' + sgn(o.s) + ' puntos porcentuales por año y el cambio es estadísticamente claro (no parece casualidad).', '#7C5CD6', 12);
+      };
+      const comparar = (title, sub, A1, B1, fn, nameA, nameB, how, colA, colB) => {
+        const a = A1.filter(fn).length, b = B1.filter(fn).length, n1 = A1.length, n2 = B1.length; if (n1 < 30 || n2 < 30) return null;
+        const z = zt(a, n1, b, n2); if (Math.abs(z) < 1.96) return null; const pa = a / n1 * 100, pb = b / n2 * 100;
+        return { z: z, panel: bars(title, sub, [{ l: nameA, v: pc(pa), w: Math.max(pa, pb) ? pa / Math.max(pa, pb) * 100 : 0, c: colA, note: fmt(n1) + ' estudiantes', tip: a + ' de ' + n1 }, { l: nameB, v: pc(pb), w: Math.max(pa, pb) ? pb / Math.max(pa, pb) * 100 : 0, c: colB, note: fmt(n2) + ' estudiantes', tip: b + ' de ' + n2 }], how, nameA + ' tiene ' + (pa > pb ? 'más' : 'menos') + ' (' + pc(pa) + ' frente a ' + pc(pb) + '): una diferencia de ' + f1(Math.abs(pa - pb).toFixed(1)) + ' puntos que es estadísticamente clara.', 6) };
+      };
+      const gruposSig = (title, sub, rowsG, keyFn, fn, base, how, minN, col, wholeLabel) => {
+        const g = {}; rowsG.forEach((r) => { const k = keyFn(r); if (k == null) return; (g[k] = g[k] || []).push(r); });
+        const out = Object.keys(g).filter((k) => g[k].length >= (minN || 30)).map((k) => { const n = g[k].length, a = g[k].filter(fn).length; return { k: k, n: n, a: a, p: a / n * 100, z: z1(a, n, base) }; }).filter((o) => Math.abs(o.z) >= 1.96).sort((x, y) => y.p - x.p).slice(0, 7);
+        if (!out.length) return null; const mxg = Math.max.apply(null, out.map((o) => o.p), base * 100) || 1;
+        return bars(title, sub, out.map((o) => ({ l: o.k, v: pc(o.p), w: o.p / mxg * 100, c: o.z > 0 ? '#C8352B' : '#0FA89A', note: fmt(o.n) + ' estudiantes · ' + (o.z > 0 ? 'por encima' : 'por debajo') + ' del promedio (' + pc(base * 100) + ')', tip: o.a + ' de ' + o.n })).concat([{ l: wholeLabel || 'Promedio', v: pc(base * 100), w: base * 100 / mxg * 100, c: '#8A97AD', note: 'referencia' }]), how, 'Solo se muestran los grupos que se alejan claramente del promedio. ' + out[0].k + ' tiene ' + pc(out[0].p) + (out[0].z > 0 ? ', el valor más alto' : ', el valor más bajo') + ' (promedio ' + pc(base * 100) + ').', 6);
+      };
+      const retF2 = (r) => r.estado === 'retirado', grF2 = (r) => r.estado === 'graduado';
+      if (T === 'ext') {
+        const ex = rowsAll.filter((r) => r.pais !== 'Colombia' && r.year >= +S0), nac = rowsAll.filter((r) => r.pais === 'Colombia' && r.year >= +S0);
+        const exC = cerr.filter((r) => r.pais !== 'Colombia'), naC = cerr.filter((r) => r.pais === 'Colombia');
+        const pm = {}; ex.forEach((r) => { pm[r.pais] = (pm[r.pais] || 0) + 1; }); const nPais = Object.keys(pm).length;
+        v.dynK = [
+          { l: 'Extranjeros desde ' + S0, v: fmt(ex.length), s: pc(ex.length / Math.max(1, ex.length + nac.length) * 100) + ' de los ingresos', c: '#7C5CD6' },
+          { l: 'Retiro (cohortes cerradas)', v: exC.length ? pc(exC.filter(retF2).length / exC.length * 100) : '—', s: 'nacionales: ' + (naC.length ? pc(naC.filter(retF2).length / naC.length * 100) : '—'), c: '#C8352B' },
+          { l: 'Países de origen', v: String(nPais), s: 'principal: ' + (Object.keys(pm).sort((a, b) => pm[b] - pm[a])[0] || '—'), c: '#2F6FE0' },
+          { l: 'Graduación (cohortes cerradas)', v: exC.length ? pc(exC.filter(grF2).length / exC.length * 100) : '—', s: 'nacionales: ' + (naC.length ? pc(naC.filter(grF2).length / naC.length * 100) : '—'), c: '#0FA89A' }
+        ];
+        const ps = [tendencia('Peso de los extranjeros entre los ingresos de cada año', byYear((r) => r.pais !== 'Colombia'), '%', 40)];
+        const c1 = comparar('Retiro: extranjeros frente a colombianos', 'Cohortes cerradas (ingresos hasta 2019)', exC, naC, retF2, 'Extranjeros', 'Colombianos', 'Compara qué porcentaje de cada grupo terminó retirándose. La prueba estadística indica si la diferencia es real o casualidad.', '#7C5CD6', '#0C2050');
+        const c2 = comparar('Graduación: extranjeros frente a colombianos', 'Cohortes cerradas (ingresos hasta 2019)', exC, naC, grF2, 'Extranjeros', 'Colombianos', 'Compara qué porcentaje de cada grupo terminó graduándose.', '#7C5CD6', '#0C2050');
+        ps.push(c1 && c1.panel, c2 && c2.panel);
+        ps.push(gruposSig('Países con retiro distinto al de los demás extranjeros', 'Cohortes cerradas, países con 30 o más casos', exC, (r) => r.pais, retF2, exC.length ? exC.filter(retF2).length / exC.length : 0, 'Cada barra es un país de origen y su porcentaje de retiro. Rojo: claramente más alto que el promedio de extranjeros; verde: más bajo.', 30, '#7C5CD6', 'Promedio extranjeros'));
+        ps.push(gruposSig('Especialidades donde el retiro de extranjeros se aleja del promedio', 'Cohortes cerradas', exC, (r) => r.esp, retF2, exC.length ? exC.filter(retF2).length / exC.length : 0, 'Cada barra es una especialidad y el porcentaje de extranjeros que se retiró.', 25, '#7C5CD6', 'Promedio extranjeros'));
+        const sx = gruposSig('Género entre los extranjeros', 'Retiro por sexo, cohortes cerradas', exC, (r) => (r.sexo === 'M' ? 'Mujeres' : 'Hombres'), retF2, exC.length ? exC.filter(retF2).length / exC.length : 0, 'Retiro de extranjeros según sexo.', 25, '#7C5CD6', 'Promedio extranjeros'); ps.push(sx);
+        v.dyn = ps.filter((x) => x);
+      } else if (T === 'con') {
+        const cn = rowsAll.filter((r) => r.concesion && r.year >= +S0), sin = rowsAll.filter((r) => !r.concesion && r.year >= +S0);
+        const cnC = cerr.filter((r) => r.concesion), siC = cerr.filter((r) => !r.concesion);
+        const valTot = cn.reduce((a, r) => a + valOf(r), 0);
+        v.dynK = [
+          { l: 'Con concesión desde ' + S0, v: fmt(cn.length), s: pc(cn.length / Math.max(1, cn.length + sin.length) * 100) + ' de los ingresos', c: '#2F6FE0' },
+          { l: 'Valor estimado', v: moneyM(valTot), s: 'matrícula × % del descuento (2020–2026)', c: '#B8841F' },
+          { l: 'Retiro con concesión', v: cnC.length ? pc(cnC.filter(retF2).length / cnC.length * 100) : '—', s: 'sin concesión: ' + (siC.length ? pc(siC.filter(retF2).length / siC.length * 100) : '—'), c: '#C8352B' },
+          { l: 'Graduación con concesión', v: cnC.length ? pc(cnC.filter(grF2).length / cnC.length * 100) : '—', s: 'sin concesión: ' + (siC.length ? pc(siC.filter(grF2).length / siC.length * 100) : '—'), c: '#0FA89A' }
+        ];
+        const ps = [tendencia('Peso de las concesiones entre los ingresos de cada año', byYear((r) => !!r.concesion), '%', 40)];
+        const c1 = comparar('Retiro: con concesión frente a sin concesión', 'Cohortes cerradas (ingresos hasta 2019)', cnC, siC, retF2, 'Con concesión', 'Sin concesión', 'Compara qué porcentaje de cada grupo terminó retirándose.', '#2F6FE0', '#0C2050');
+        const c2 = comparar('Graduación: con concesión frente a sin concesión', 'Cohortes cerradas (ingresos hasta 2019)', cnC, siC, grF2, 'Con concesión', 'Sin concesión', 'Compara qué porcentaje de cada grupo terminó graduándose.', '#2F6FE0', '#0C2050');
+        ps.push(c1 && c1.panel, c2 && c2.panel);
+        const baseR = siC.length ? siC.filter(retF2).length / siC.length : 0;
+        ps.push(gruposSig('Tipos de concesión con retiro distinto al de quienes no tienen', 'Cohortes cerradas; referencia: sin concesión', cnC, (r) => r.concesion, retF2, baseR, 'Cada barra es un tipo de concesión y su porcentaje de retiro. Rojo: más alto que quienes no tienen concesión; verde: más bajo.', 30, '#2F6FE0', 'Sin concesión'));
+        const mujAll = rowsAll.filter((r) => r.year >= +S0 && r.sexo === 'M').length / Math.max(1, cn.length + sin.length);
+        const mC = cn.filter((r) => r.sexo === 'M').length, zE = z1(mC, cn.length, mujAll);
+        if (cn.length >= 50 && Math.abs(zE) >= 1.96) ps.push(bars('Equidad: mujeres entre quienes reciben concesión', 'Frente a su peso en los ingresos', [{ l: 'Mujeres con concesión', v: pc(mC / cn.length * 100), w: 100, c: '#E0489A', note: fmt(mC) + ' de ' + fmt(cn.length) }, { l: 'Mujeres entre todos los ingresos', v: pc(mujAll * 100), w: mujAll / Math.max(mC / cn.length, mujAll) * 100, c: '#8A97AD', note: 'referencia' }], 'Compara el peso de las mujeres entre quienes reciben concesión con su peso entre todos los ingresos.', 'Las mujeres están ' + (zE > 0 ? 'sobre' : 'sub') + 'rrepresentadas entre quienes reciben concesión (' + pc(mC / cn.length * 100) + ' frente a ' + pc(mujAll * 100) + ').', 6));
+        const allShare = cn.length / Math.max(1, cn.length + sin.length);
+        ps.push(gruposSig('Especialidades con más o menos concesiones de lo esperado', 'Porcentaje de ingresos con concesión', rowsAll.filter((r) => r.year >= +S0), (r) => r.esp, (r) => !!r.concesion, allShare, 'Cada barra es una especialidad y el porcentaje de sus ingresos que tiene concesión.', 60, '#2F6FE0', 'Promedio institucional'));
+        const vy = yrs.filter((y) => y >= 2020).map((y) => ({ y: y, n: 1, k: rowsAll.filter((r) => r.year === y).reduce((a, r) => a + valOf(r), 0) / 1e6 })).filter((o) => o.k > 0);
+        if (vy.length >= 4) { const o = ols(vy.map((x) => x.y), vy.map((x) => x.k)); if (o.sig) ps.push(cols('Valor estimado de las concesiones por año de ingreso', 'Millones de pesos', vy.map((x) => ({ l: String(x.y).slice(2), v: Math.round(x.k) + '', w: x.k, tip: x.y + ': $' + Math.round(x.k) + ' M' })), 'Cada columna es el valor estimado de los descuentos de los estudiantes que ingresaron ese año.', 'El valor ' + (o.s > 0 ? 'crece' : 'baja') + ' cerca de $' + Math.abs(Math.round(o.s)) + ' millones por año.', '#B8841F', 12)); }
+        v.dyn = ps.filter((x) => x);
+      } else if (T === 'act') {
+        const ac = rowsAll.filter((r) => r.estado === 'activo');
+        const tp = {}; ac.forEach((r) => { tp[r.esp] = (tp[r.esp] || 0) + 1; });
+        v.dynK = [
+          { l: 'Estudiando hoy', v: fmt(ac.length), s: 'activos en la escuela', c: '#0FA89A' },
+          { l: 'Mujeres', v: pc(ac.filter((r) => r.sexo === 'M').length / Math.max(1, ac.length) * 100), s: 'de los activos', c: '#E0489A' },
+          { l: 'Extranjeros', v: pc(ac.filter((r) => r.pais !== 'Colombia').length / Math.max(1, ac.length) * 100), s: 'de los activos', c: '#7C5CD6' },
+          { l: 'Riesgo medio estimado', v: pc(A.act.esp.reduce((a, e) => a + e.p * e.N, 0) / Math.max(1, A.act.esp.reduce((a, e) => a + e.N, 0))), s: 'modelo de deserción', c: '#C8352B' }
+        ];
+        const hiR = A.act.esp.filter((e) => e.p >= 30 && e.N >= 30).sort((a, b) => b.p - a.p);
+        const ps = [];
+        if (hiR.length) ps.push(bars('Activos con riesgo de retiro medio o alto', 'Por especialidad, según el modelo de deserción', hiR.map((e) => ({ l: e.n, v: pc0(e.p), w: e.p, c: e.p >= 45 ? '#C8352B' : '#E0872F', note: fmt(e.N) + ' activos', tip: e.n })), 'Cada barra es el riesgo promedio estimado de los estudiantes que hoy están estudiando en esa especialidad. Solo aparecen las de riesgo medio o alto.', hiR[0].n + ' concentra el mayor riesgo (' + pc0(hiR[0].p) + ').', 6));
+        const nuevos = ac.filter((r) => r.year >= 2025).length;
+        v.dyn = ps.filter((x) => x);
+      }
+      v.dynNote = T === 'con' ? 'Nota: las concesiones de este tablero son cifras de ejemplo hasta conectar la Base de Concesiones real; solo se muestran agregados, sin nombres de estudiantes.' : '';
+      v.dynNone = !!dynOn && v.dyn.length === 0;
+      v.dynNoneMsg = 'No se detectaron diferencias ni cambios claramente significativos para ' + TNM[T] + ' con ingresos desde ' + S0 + '. Cuando los haya, aparecerán aquí.';
+      // ---------- qué secciones se muestran
+      v.sh = {
+        sum: v.summary.length && T !== 'ext' && T !== 'con' && T !== 'act' ? 'display:block' : 'display:none',
+        early: dsp(retOn), brk: brkShown.length && isM ? dsp(1) : 'display:none',
+        km: kmOn ? (sigF && retOn || T === 'all' && sigF ? 'grid-column:span 7' : 'grid-column:span 12') : 'display:none',
+        forest: (retOn || T === 'all') && sigF ? 'grid-column:span 5' : 'display:none',
+        pj: pjOn ? (retOn ? 'grid-column:span 7' : 'grid-column:span 12') : 'display:none', calc: retOn ? 'grid-column:span 5' : 'display:none',
+        heat: dsp(retOn || T === 'prog'), coh: dsp(retOn || T === 'ing'), dyn: dsp(dynOn), gloss: (retOn || T === 'all' || T === 'esc') ? 'display:block' : 'display:none'
+      };
+      v.topicName = TNM[T]; v.toData = () => this.setState({ view: 'datos' }); v.toAna = () => this.setState({ view: 'ana' }); v.ana = ana;
+      v.showRangeNote = true;
       return { v: v };
     })();
     let kpis = [];
@@ -1528,9 +1675,7 @@ class Component extends DCLogic {
         exs(kp('Extranjeros', '#7C5CD6', nExt, null, fr(nExt.t, allC.t), ''), ['% de los ingresos', rate(nExt.t, allC.t)], [ 'Principal país', topPais ])
       ];
       const CK = ['ing', 'esc', 'ret', 'act', 'ext'];
-      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => this.setState({ f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
-    } else if (tab === 'analitica') {
-      kpis = AX.v.kpiRows.map((k) => ({ go: () => {}, since: '', label: k.label, value: k.value, dot: dot(k.color), vs: k.vs, vsStyle: 'margin-top:5px;font-size:10.5px;font-weight:600;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis', style: 'box-sizing:border-box;display:block;width:100%;text-align:left;font:inherit;cursor:default;padding:10px 14px;border-radius:16px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 6px 18px rgba(20,35,63,.04)', bar: 'height:4px;border-radius:2px;background:' + k.color + ';width:' + Math.round(Math.min(1, k.frac) * 100) + '%' }));
+      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => this.setState({ view: on ? 'datos' : 'ana', f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
     } else if (tab === 'programas') {
       kpis = [
         kp('Estudiantes', '#0C2050', all, null, total > 0 ? 1 : 0, '10–19: ' + fmt(ia) + ' vs ' + fmt(ib)),
@@ -1880,7 +2025,7 @@ class Component extends DCLogic {
     const ICON_H = svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><circle cx="14" cy="6.5" r="5.5" fill="#2F6FE0"/><path d="M5 18a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v9h-3.5v11h-4.5V28h-2v10h-4.5V27H5z" fill="#2F6FE0"/></svg>');
     const ICON_M = svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><circle cx="14" cy="6.5" r="5.5" fill="#E0489A"/><path d="M10 15h8a3 3 0 0 1 3 2.4L25 31h-5.2v7.5h-4V31h-3.6v7.5h-4V31H3l4-13.6A3 3 0 0 1 10 15z" fill="#E0489A"/></svg>');
     const genCards = [['H', 'Hombres', nH, '#2F6FE0', '#EAF1FD', ICON_H], ['M', 'Mujeres', nM, '#E0489A', '#FCEAF3', ICON_M]].map((a) => ({
-      label: a[1], num: fmt(a[2]), share: pct(a[2], nH + nM), col: a[3], icon: a[5], go: tog('sexo', a[0]),
+      label: a[1], num: fmt(a[2]), share: (nH + nM) > 0 ? (a[2] / (nH + nM) * 100).toFixed(2).replace('.', ',') + '%' : '—', col: a[3], icon: a[5], go: tog('sexo', a[0]),
       style: 'display:flex;align-items:center;gap:10px;padding:10px 12px;min-width:0;min-height:0;border-radius:16px;text-align:left;cursor:pointer;background:' + a[4] + ';border:1.5px solid ' + (f.sexo === a[0] ? '#B8841F' : 'transparent') + ';opacity:' + (f.sexo && f.sexo !== a[0] ? 0.4 : 1),
       bar: 'height:4px;border-radius:2px;background:' + a[3] + ';width:' + ((nH + nM) > 0 ? (a[2] / (nH + nM) * 100).toFixed(1) : 0) + '%'
     }));
@@ -2133,7 +2278,6 @@ class Component extends DCLogic {
       ['retiros', 'Retirados', fmt(wCnt(retF)) + ' retirados', '#5B93F0'],
       ['concesiones', 'Concesiones', fmt(wCnt((r) => r.concesion)) + ' con descuento', '#2F6FE0'],
       ['programas', 'Programas', '14 programas', '#8DB6FF'],
-      ['analitica', 'Analítica', 'modelos predictivos', '#7C5CD6']
     ];
     const ncx = 290, ncy = 290, nr = 222;
     let linesD = '';
@@ -2319,7 +2463,7 @@ class Component extends DCLogic {
       railGen: railGen, railOther: !railGen, espOptions: espOptions, edLabel: edLabel, edSub: edSub, edBtnStyle: edBtnStyle, edOpen: this.state.ed, edToggle: () => this.setState({ rd: false, pd: false, cd: false, ed: !this.state.ed }),
       cdOptions: cdOptions, cdQuery: this.state.cq, cdSearch: (e) => this.setState({ cq: (e && e.target ? e.target.value : '') }), cdNone: cdNone, cdLabel: cdLabel, cdSub: cdSub, cdBtnStyle: cdBtnStyle, cdOpen: this.state.cd, cdToggle: () => this.setState({ rd: false, pd: false, ed: false, cd: !this.state.cd, cq: '' }), dataNote: 'En construcción · cifras preliminares',
       pdRows: pdRows, pdLabel: pdLabel, pdSub: pdSub, pdBtnStyle: pdBtnStyle, pdOpen: this.state.pd, pdToggle: () => this.setState({ rd: false, ed: false, cd: false, pd: !this.state.pd }), pdClear: () => setPeriods([]),
-      pGeneral: tab === 'general' && f.card !== 'ret' && f.card !== 'esc', pGraduados: tab === 'graduados' || (tab === 'general' && f.card === 'esc'), pRetiros: tab === 'retiros' || (tab === 'general' && f.card === 'ret'), pConcesiones: tab === 'concesiones', pReconoc: tab === 'reconoc', pFormacion: tab === 'formacion', pProgramas: tab === 'programas', pAnalitica: tab === 'analitica', showAside: tab !== 'analitica', showChips: tab !== 'analitica', ...AX.v,
+      pGeneral: !AX.v.ana && tab === 'general' && f.card !== 'ret' && f.card !== 'esc', pGraduados: !AX.v.ana && (tab === 'graduados' || (tab === 'general' && f.card === 'esc')), pRetiros: !AX.v.ana && (tab === 'retiros' || (tab === 'general' && f.card === 'ret')), pConcesiones: !AX.v.ana && tab === 'concesiones', pReconoc: !AX.v.ana && tab === 'reconoc', pFormacion: !AX.v.ana && tab === 'formacion', pProgramas: !AX.v.ana && tab === 'programas', pAnalitica: AX.v.ana, showAside: !AX.v.ana, showChips: !AX.v.ana, ...AX.v,
       ddOpen: this.state.dd, ddToggle: () => this.setState({ dd: !this.state.dd }), ddOptions: ddOptions, ddLabel: progNombre, progNombre: progNombre,
       chips: chipDefs, noChips: chipDefs.length === 0,
       countTxt: fmt(total) + ' de ' + fmt(data.length),
