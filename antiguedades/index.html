@@ -5,8 +5,6 @@
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
 :root{--bg:#EAF2FC;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
 --font:"Aptos","Aptos Display","Figtree","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,sans-serif}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F2038;--card:#17294A;--ink:#EAF1FB;--mute:#9DB2CF;--line:#284166;--navy:#2F6FD6;--navy-mute:#CFE2FB;--bar-fill:#6AB0F2;--bar:#25395E;--hi:#B7D8FB;--soft:#1E3358;--hover:#1C3052;--good:#5CC59B;--warn:#FF8A80;--shadow:none;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#0F2038;--card:#17294A;--ink:#EAF1FB;--mute:#9DB2CF;--line:#284166;--navy:#2F6FD6;--navy-mute:#CFE2FB;--bar-fill:#6AB0F2;--bar:#25395E;--hi:#B7D8FB;--soft:#1E3358;--hover:#1C3052;--good:#5CC59B;--warn:#FF8A80;--shadow:none;color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 36px}
 .top{background:var(--navy);color:var(--navy-ink);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px))) calc(-1*max(16px,env(safe-area-inset-right,0px)));padding:22px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
@@ -257,8 +255,6 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .pd.p3 .pb{height:68px;background:linear-gradient(180deg,#8DB4E2,#B5CFEE);color:var(--ink)}
 .pd.p1 .pf{font-size:26px}
 @media(max-width:640px){.pd .nm1{font-size:11.5px;white-space:normal}.pd .pf{font-size:17px}.pd.p1 .pf{font-size:19px}}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pd.p3 .pb{color:#0F2038}}
-:root[data-theme="dark"] .pd.p3 .pb{color:#0F2038}
 .podio{max-width:620px;gap:8px;margin:2px auto 10px}
 .pd .pi{padding:0 4px 6px}.pd .pn{font-size:10px}.pd .nm1{font-size:12px}.pd .pf{font-size:16px}.pd.p1 .pf{font-size:18px}.pd small{font-size:10.5px}
 .pd .pb{font-size:20px;padding-top:5px;border-radius:10px 10px 3px 3px}
@@ -285,8 +281,6 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .duo:has(#pod:empty){grid-template-columns:minmax(0,1fr)}
 .duo:has(#pod:empty) .nov .nt{grid-template-columns:repeat(4,minmax(0,1fr))}.duo:has(#pod:empty) .nov .nl{min-width:640px;font-size:13px}
 .nvb{display:inline-block;margin-left:8px;vertical-align:1px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#1F4E8C;background:#E3EEFB;border:1px solid #B7CFEE;border-radius:999px;padding:1px 8px;white-space:nowrap}
-:root[data-theme="dark"] .nvb{color:#BBD3F5;background:#1B2F4D;border-color:#33507D}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .nvb{color:#BBD3F5;background:#1B2F4D;border-color:#33507D}}
 .nov .nt,.duo:has(#pod:empty) .nov .nt{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 .nov .nb{padding:10px}.nov .nb span{font-size:10px;letter-spacing:.05em}
 #pub.one>:not(#stu){display:none!important}
@@ -322,8 +316,6 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .bdg .mi{width:13px;height:15px;vertical-align:-3px;margin-right:5px}
 .bdg.bx{color:#1F4E8C;background:#E3EEFB;border-color:#B7CFEE}
 .bdg.bx .mi{height:13px;vertical-align:-2px}
-:root[data-theme="dark"] .bdg.bx{color:#BBD3F5;background:#1B2F4D;border-color:#33507D}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bdg.bx{color:#BBD3F5;background:#1B2F4D;border-color:#33507D}}
 .nb .mi{width:15px;height:17px;vertical-align:-3px;margin-right:6px}
 .pd .pb{font-size:34px!important;align-items:center!important;padding-top:0!important}
 .podc .pd.p1 .pb{height:78px!important}.podc .pd.p2 .pb{height:62px!important}.podc .pd.p3 .pb{height:48px!important}
@@ -332,8 +324,6 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .podc .pd .nm1{font-size:10px!important}
 .duo{align-items:stretch!important}
 .bdg{display:inline-block;margin-left:10px;vertical-align:2px;font-size:10.5px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#8A5A0B;background:#FBEFC9;border:1px solid #E7C873;border-radius:999px;padding:2px 9px}
-:root[data-theme="dark"] .bdg{color:#F3D48A;background:#4A3A12;border-color:#7A5F1E}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .bdg{color:#F3D48A;background:#4A3A12;border-color:#7A5F1E}}
 .duo:has(#pod:empty) .nov .nt{grid-template-columns:repeat(3,minmax(0,1fr))}
 #mr.ana-grid{grid-template-columns:minmax(0,1fr)}
 #mr .an .two{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
@@ -344,18 +334,10 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .pfh{display:flex;align-items:baseline;gap:12px;margin-bottom:6px}.pfh b{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums}.pfh span{color:var(--mute);font-size:12.5px}
 .pfc svg{width:100%;max-width:460px;height:auto;display:block}
 .pfd{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.dl2{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}.dl2.up{color:var(--good)}.dl2.dn{color:var(--warn)}
+html,body{background:transparent!important}:root{color-scheme:light}
+.mtool{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:14px}.fsb{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:var(--navy);border:1px solid var(--line);border-radius:50%;padding:0;cursor:pointer;box-shadow:0 2px 10px rgba(20,50,100,.18)}.fsb:hover{border-color:var(--bar-fill)}html:fullscreen,html:fullscreen body{background:#EAF2FC!important}.mtool .vt{background:var(--card);border:1px solid var(--line)}.mtool .vt button{color:var(--mute)}.mtool .vt button[aria-pressed="true"]{background:var(--navy);color:#fff}.mtool[hidden]{display:none}
 </style>
-<div class="bgs"></div><div class="top"><svg class="abs" viewBox="0 0 1200 140" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs><pattern id="dp" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#fff" fill-opacity=".28"/></pattern><linearGradient id="fg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><mask id="mk"><rect width="1200" height="140" fill="#fff"/><rect width="520" height="140" fill="#000"/></mask></defs>
-<rect x="640" y="0" width="560" height="140" fill="url(#dp)" mask="url(#mk)"/>
-<circle cx="1010" cy="40" r="150" fill="url(#fg)"/>
-<g fill="none" stroke="#fff"><circle cx="1010" cy="40" r="60" stroke-opacity=".30"/><circle cx="1010" cy="40" r="95" stroke-opacity=".22"/><circle cx="1010" cy="40" r="130" stroke-opacity=".16"/><circle cx="1010" cy="40" r="170" stroke-opacity=".10"/></g>
-<g fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="1.2"><path d="M360 140C470 96 560 128 680 84S900 70 1060 110 1160 120 1200 104"/><path d="M300 140C430 108 540 138 660 100S880 88 1040 126 1150 134 1200 122"/><path d="M420 140C520 86 620 118 740 70S940 54 1090 92 1170 100 1200 86"/></g>
-<path d="M-10 140C110 96 210 128 330 96S520 90 600 140Z" fill="#fff" fill-opacity=".07"/>
-<path d="M760 0C800 40 880 54 940 32S1040 -14 1100 12 1180 50 1200 40V0Z" fill="#fff" fill-opacity=".08"/>
-<g class="spin" style="transform-origin:1010px 40px"><circle cx="1010" cy="-55" r="5" fill="#fff" fill-opacity=".7"/><circle cx="1105" cy="40" r="3" fill="#fff" fill-opacity=".5"/></g>
-<rect x="838" y="78" width="46" height="46" rx="12" fill="none" stroke="#fff" stroke-opacity=".30" transform="rotate(16 861 101)"/>
-<rect x="858" y="98" width="46" height="46" rx="12" fill="#fff" fill-opacity=".07" transform="rotate(16 881 121)"/>
-</svg><div class="wrap"><div><div class="sub">Escuela Naval de Cadetes «Almirante Padilla»</div><h1 id="h1">Antigüedades 2026-2</h1><div class="ofi">Oficina de Estadística</div></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true">Consulta</button><button id="va" aria-pressed="false">Administración</button></div></div></div></div>
+<h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true">Consulta</button><button id="va" aria-pressed="false">Administración</button></div></div>
 <div class="wrap">
 <div id="pub"><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Buscar por apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="card stu" id="stu" hidden></div>
@@ -368,7 +350,7 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 <aside class="card side" id="side" aria-live="polite"></aside></div>
 <div class="foot">Notas del semestre 2026-1 y promedio final acumulado. Aplazados fuera del orden.</div></div>
 </div>
-<div class="cred">Desarrollado por PD02 Beyty Camargo Martínez · Jefe de Estadística<span>Fuente: Oficina de Estadística</span></div>
+<div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Ve a <b>Administración › Datos cargados</b> y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
 <section class="card ac"><h3>Accesos por correo</h3><p>Entran con su cuenta institucional del Portal. Solo los administradores y los correos de esta lista pueden abrir las antigüedades.</p>
 <div class="frm"><input id="em" type="email" placeholder="correo@enap.edu.co" aria-label="Correo"><button class="btn" id="add">Dar acceso de consulta</button></div><div class="err" id="er" role="alert"></div>
@@ -672,8 +654,8 @@ document.getElementById('vp').onclick=()=>vista(false);document.getElementById('
 (function(){
 var gate=document.getElementById('gate'),gt=document.getElementById('gt'),gm=document.getElementById('gm');
 function msg(t,m){gate.hidden=false;gt.textContent=t;gm.textContent=m}
-function tok(){var P=window.parent&&window.parent!==window?window.parent.PortalENAP:null;if(!P||!P.tokenMicrosoft)return Promise.reject(new Error('fuera'));return P.tokenMicrosoft()}
-function api(accion,extra){return tok().then(function(t){return fetch('/api/antiguedades',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))})}).then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
+function tok(){var P=window.parent&&window.parent!==window?window.parent.PortalENAP:null;if(!P||!P.tokenMicrosoft)return Promise.reject(new Error('fuera'));return Promise.race([P.tokenMicrosoft(),new Promise(function(_,rj){setTimeout(function(){rj(new Error('No se pudo obtener tu sesión de Microsoft del Portal. Cierra sesión, vuelve a entrar y abre de nuevo el módulo.'))},25000)})])}
+function api(accion,extra){return tok().then(function(t){var ac=new AbortController();setTimeout(function(){ac.abort()},40000);return fetch('/api/antiguedades',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))}).catch(function(e){throw new Error(e&&e.name==='AbortError'?'El servidor tardó demasiado en responder (más de 40 s). Intenta de nuevo.':'No se pudo conectar con el servidor ('+(e&&e.message)+').')})}).then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
 window.__api=api;
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var fh=function(iso){if(!iso)return 'Nunca';var d=new Date(iso);return isNaN(d)?'—':d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
@@ -708,7 +690,10 @@ function iniciar(){
       if(!esAdmin)document.querySelector('.vt').hidden=true;
       if(esAdmin){metaTxt(r.meta);admin()}
       if(!r.datos){
-        if(esAdmin){gate.hidden=true;document.getElementById('pub').hidden=true;document.getElementById('admin').hidden=false;document.getElementById('va').setAttribute('aria-pressed','true');document.getElementById('vp').setAttribute('aria-pressed','false');document.getElementById('vp').disabled=true;document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
+        if(esAdmin){gate.hidden=true;document.getElementById('pub').hidden=true;document.getElementById('admin').hidden=false;document.getElementById('va').setAttribute('aria-pressed','true');document.getElementById('vp').setAttribute('aria-pressed','false');var nd=document.getElementById('nodata'),vp=document.getElementById('vp'),va=document.getElementById('va');
+        function vNoData(a){nd.hidden=a;document.getElementById('admin').hidden=!a;vp.setAttribute('aria-pressed',String(!a));va.setAttribute('aria-pressed',String(a))}
+        vp.onclick=function(){vNoData(false)};va.onclick=function(){vNoData(true)};
+        document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
       window.__D=r.datos;window.__PER=r.meta&&r.meta.periodo;gate.hidden=true;
       document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);
@@ -721,5 +706,12 @@ function iniciar(){
 }
 iniciar();
 })();
+(function(){var b=document.getElementById('fs'),tx=document.getElementById('fst');if(!b)return;
+function es(){return !!document.fullscreenElement}
+function pinta(){tx.textContent=es()?'Salir de pantalla completa':'Pantalla completa';b.title=es()?'Salir de pantalla completa':'Abrir en pantalla completa'}
+b.onclick=function(){try{if(es())document.exitFullscreen();else document.documentElement.requestFullscreen().catch(function(){})}catch(e){}};
+document.addEventListener('fullscreenchange',pinta);
+if(!document.documentElement.requestFullscreen)b.hidden=true})();
+
 </script>
 </body></html>
