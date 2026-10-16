@@ -483,14 +483,14 @@ function chartsRender(){
   const gs=Object.entries(g).map(([k,v])=>({k,m:mean(v),n:v.length,lo:Math.min(...v),hi:Math.max(...v)})).sort((a,b)=>b.m-a.m);
   const mu=mean(fs),sh=gs.slice(0,8);
   const smin=Math.floor(Math.min(...sh.map(x=>x.lo))*2)/2,smax=Math.max(smin+1,Math.ceil(Math.max(...sh.map(x=>x.hi))*2)/2);
-  const rowH=32,H2=sh.length*rowH+34,lw=66,rw=92,X=v=>lw+(W-lw-rw)*(v-smin)/(smax-smin);
+  const rowH=24,H2=sh.length*rowH+34,lw=88,rw=118,X=v=>lw+(W-lw-rw)*(v-smin)/(smax-smin);
   let k=`<svg viewBox="0 0 ${W} ${H2}" role="img" aria-label="Promedio final por curso, con el rango de notas de cada curso">`;
   [smin,(smin+smax)/2,smax].forEach(v=>{k+=`<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="2" y2="${H2-22}"/><text x="${X(v)}" y="${H2-8}" text-anchor="middle">${c2(v)}</text>`});
   sh.forEach((o,i)=>{const y=16+i*rowH,on=sel&&sel.cu===o.k,d=o.m-mu,up=d>=0,c=on?'var(--hi)':'var(--bar-fill)';
-    k+=`<text class="lab" x="0" y="${y+1}">${o.k}</text><text x="0" y="${y+13}" style="fill:var(--mute);font-size:9.5px">${o.n} est.</text>`;
+    k+=`<text class="lab" x="0" y="${y+4}">${o.k}<tspan style="fill:var(--mute);font-size:9.5px" dx="5">${o.n} est.</tspan></text>`;
     if(o.n>1)k+=`<line x1="${X(o.lo)}" x2="${X(o.hi)}" y1="${y}" y2="${y}" stroke="${c}" stroke-width="9" stroke-linecap="round" opacity=".22"/>`;
     k+=`<circle cx="${X(o.m)}" cy="${y}" r="5.5" fill="${c}" stroke="var(--card)" stroke-width="1.5"/>`+
-       `<text class="cnt" x="${W-rw+8}" y="${y-1}" style="font-size:12px">${c2(o.m)}</text><text x="${W-rw+8}" y="${y+12}" style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</text>`});
+       `<text class="cnt" x="${W-rw+8}" y="${y+4}" style="font-size:12px">${c2(o.m)}<tspan style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}" dx="7">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</tspan></text>`});
   k+=`<line x1="${X(mu)}" x2="${X(mu)}" y1="0" y2="${H2-22}" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 3" opacity=".6"/></svg>`;
   const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Promedio del curso</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
   const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
