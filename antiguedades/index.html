@@ -344,11 +344,11 @@ body:has(#gate:not([hidden])) #pub,body:has(#gate:not([hidden])) .mtool,body:has
 .gbox{background:transparent!important;border:0!important;box-shadow:none!important}
 /* menos espacio arriba: el engranaje flota en la esquina, en la misma fila que el buscador */
 body{position:relative}
-.mtool{padding:0!important;height:0}.mtool .vt{display:contents}
-.mtool .vt .gearb{z-index:60;position:fixed;top:14px;right:max(16px,env(safe-area-inset-right,0px))}
+.mtool{position:absolute;top:0;right:0;padding:0!important;height:0;z-index:60}.mtool .vt{display:contents}
+.mtool .vt .gearb{z-index:60;position:absolute;top:8px;right:0}
 .bar{margin-top:12px!important}
-body:has(.vt:not([hidden])) .bar{padding-right:48px}
-.adm,#nodata{margin-top:52px!important}
+
+.adm,#nodata{margin-top:56px!important}
 /* blanco de las tarjetas más transparente (se ve la marca de agua del Portal) */
 .card,.k,.nb,.chips,input[type=search],.mtool .vt .gearb,.fsb{background:rgba(255,255,255,.5)!important}
 .gt{background:transparent}
@@ -363,10 +363,10 @@ body:has(.vt:not([hidden])) .bar{padding-right:48px}
 .pd.p1 .pb,.pd.p2 .pb,.pd.p3 .pb{background:linear-gradient(180deg,var(--navy),#2F68B5)!important;color:#fff!important}
 .podio{grid-template-columns:minmax(0,150px) minmax(0,170px) minmax(0,150px)!important}
 /* botón de descarga (a la derecha, junto al engranaje) y casilla de permiso */
-.dlb{position:fixed;z-index:60;top:14px;right:max(16px,env(safe-area-inset-right,0px));width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%;border:1px solid var(--line);color:var(--navy);cursor:pointer;background:rgba(255,255,255,.5)}
+.dlb{position:absolute;z-index:60;top:8px;right:0;width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%;border:1px solid var(--line);color:var(--navy);cursor:pointer;background:rgba(255,255,255,.5)}
 .dlb:hover{border-color:var(--bar-fill)}.dlb[hidden]{display:none}
-body.has-gear .dlb{right:calc(max(16px,env(safe-area-inset-right,0px)) + 44px)}
-body.has-dl .bar{padding-right:48px}body.has-gear.has-dl .bar{padding-right:92px}
+body.has-gear .dlb{right:44px}
+body.has-dl .bar{padding-right:44px}body.has-gear .bar{padding-right:44px}body.has-gear.has-dl .bar{padding-right:88px}
 .chk{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:13px;color:var(--mute)}
 .at input[type=checkbox]{width:16px;height:16px;cursor:pointer}
 /* tabla general de estudiantes oculta; solo aparece al buscar */
@@ -379,9 +379,14 @@ body.has-dl .bar{padding-right:48px}body.has-gear.has-dl .bar{padding-right:92px
 .pd .pb,.pd .pb span{width:96px}.pd .pb span{width:auto}
 /* ficha del cadete: blanco al 50 % */
 .card.stu{background:rgba(255,255,255,.5)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+
+/* misma altura: pestañas de semestre y buscador */
+.bar .chips{min-height:48px;box-sizing:border-box;align-items:center}
+.bar input[type=search]{height:48px;box-sizing:border-box;padding:0 18px!important}
 </style>
-<h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
+<h1 id="h1" hidden></h1>
 <div class="wrap">
+<div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
 <div id="pub"><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Buscar por apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="card stu" id="stu" hidden></div>
 <div class="kpi" id="kpi"></div>
@@ -406,7 +411,7 @@ body.has-dl .bar{padding-right:48px}body.has-gear.has-dl .bar{padding-right:92px
 <div class="path" id="meta">Cargando…</div>
 <div class="frm"><input id="per" type="text" placeholder="Periodo (ej. 2026-2)" aria-label="Periodo" style="max-width:160px"><input id="fi" type="file" accept=".json,application/json" aria-label="Archivo de datos"></div>
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
-<section class="card ac"><h3>Descargar para compartir</h3><p>Excel "BD Antigüedades" con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><button class="btn" id="dl2">Descargar Excel</button><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
+<section class="card ac"><h3>Descargar para compartir</h3><p>Excel "BD Antigüedades" con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div class="path" id="xm">Cargando…</div><div class="frm"><input id="fx" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Archivo BD Antigüedades"></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn ghost" id="upx">Cargar este Excel</button><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" role="status"><div class="gbox"><b id="gt">Verificando acceso…</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
@@ -737,7 +742,21 @@ function armarExcel(D,quien,periodo){
 var yo={correo:'',puede:false};
 function descargar(msgEl){
   var m=function(t){if(msgEl)msgEl.textContent=t};m('Preparando el Excel…');
-  return api('descargar').then(function(r){return cargaXLSX().then(function(){armarExcel(window.__D,r.correo||yo.correo,window.__PER);m('Listo. La descarga quedó registrada.');if(window.__recargarAdmin)window.__recargarAdmin()})}).catch(function(e){m(e.message)})}
+  return api('descargar').then(function(r){
+    var fin=function(){m('Listo. La descarga quedó registrada.');if(window.__recargarAdmin)window.__recargarAdmin()};
+    if(r.xlsx)return sellarYBajar(r.xlsx,r.correo||yo.correo).then(fin);
+    return cargaXLSX().then(function(){armarExcel(window.__D,r.correo||yo.correo,window.__PER);fin()})}).catch(function(e){m(e.message)})}
+var MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+function cargaJSZip(){return new Promise(function(ok,no){if(window.JSZip)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el componente de descarga. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
+function sellarYBajar(b64,quien){
+  var ahora=new Date(),f=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/\u00a0/g,' ');
+  var p=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'numeric',year:'2-digit'}).formatToParts(ahora),g=function(k){return (p.filter(function(x){return x.type===k})[0]||{}).value};
+  var nombre='BD Antigüedades '+g('day')+MES[parseInt(g('month'),10)-1]+g('year')+'.xlsx';
+  var texto='Descargada el '+f.replace(',',' ·').replace(/&/g,'&amp;').replace(/</g,'&lt;')+' · por '+String(quien).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  return cargaJSZip().then(function(){return window.JSZip.loadAsync(b64,{base64:true})}).then(function(zip){
+    var tareas=[];zip.file(/^xl\/worksheets\/sheet\d+\.xml$/).forEach(function(fl){tareas.push(fl.async('string').then(function(x){zip.file(fl.name,x.replace(/Descargada el [^<]*/g,texto))}))});
+    return Promise.all(tareas).then(function(){return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})
+  }).then(function(blob){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500)})}
 document.getElementById('dl').onclick=function(){descargar(null).then(function(){})};
 document.getElementById('dl2').onclick=function(){descargar(document.getElementById('dm'))};
 function mostrarDl(puede,admin){yo.puede=puede;var b=document.getElementById('dl');b.hidden=!puede||!window.__D;document.body.classList.toggle('has-dl',!b.hidden);document.body.classList.toggle('has-gear',!!admin)}
@@ -745,7 +764,7 @@ function arrancar(app){var s=document.createElement('script');s.textContent=app;
 function admin(){
   var er=document.getElementById('er');
   function cargar(){api('accesos').then(function(a){
-    document.getElementById('ab').innerHTML=a.admins.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Administrador</td><td>'+fh(x.ultimo)+'</td><td>Sí</td><td></td></tr>'}).join('')+a.consulta.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Consulta</td><td>'+fh(x.ultimo)+'</td><td><input type="checkbox" data-x="'+esc(x.correo)+'" '+(x.descarga?'checked':'')+' aria-label="Puede descargar el Excel"></td><td><button class="btn ghost" data-q="'+esc(x.correo)+'">Quitar</button></td></tr>'}).join('');document.getElementById('dls').innerHTML=(a.descargas&&a.descargas.length)?a.descargas.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+fh(x.fecha)+'</td></tr>'}).join(''):'<tr><td colspan="2" class="empty">Todavía nadie lo ha descargado.</td></tr>';document.querySelectorAll('[data-x]').forEach(function(c){c.onchange=function(){api('descarga-permiso',{correo:c.dataset.x,valor:c.checked}).catch(function(e){er.textContent=e.message;c.checked=!c.checked})}});
+    document.getElementById('ab').innerHTML=a.admins.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Administrador</td><td>'+fh(x.ultimo)+'</td><td>Sí</td><td></td></tr>'}).join('')+a.consulta.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Consulta</td><td>'+fh(x.ultimo)+'</td><td><input type="checkbox" data-x="'+esc(x.correo)+'" '+(x.descarga?'checked':'')+' aria-label="Puede descargar el Excel"></td><td><button class="btn ghost" data-q="'+esc(x.correo)+'">Quitar</button></td></tr>'}).join('');document.getElementById('xm').textContent=a.excel?('Excel cargado: '+a.excel.nombre+' · '+fh(a.excel.actualizado)+' · '+a.excel.por):'Todavía no se ha cargado el Excel BD Antigüedades; se usará uno generado con los datos.';document.getElementById('dls').innerHTML=(a.descargas&&a.descargas.length)?a.descargas.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+fh(x.fecha)+'</td></tr>'}).join(''):'<tr><td colspan="2" class="empty">Todavía nadie lo ha descargado.</td></tr>';document.querySelectorAll('[data-x]').forEach(function(c){c.onchange=function(){api('descarga-permiso',{correo:c.dataset.x,valor:c.checked}).catch(function(e){er.textContent=e.message;c.checked=!c.checked})}});
     document.getElementById('db').innerHTML=a.intentos.length?a.intentos.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+x.intentos+'</td><td>'+fh(x.ultimo)+'</td><td style="white-space:nowrap"><button class="btn ghost" data-g="'+esc(x.correo)+'">Dar acceso</button> <button class="btn ghost" data-d="'+esc(x.correo)+'">Descartar</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nadie ha intentado entrar sin permiso.</td></tr>';
     document.querySelectorAll('[data-q]').forEach(function(b){b.onclick=function(){api('acceso-quitar',{correo:b.dataset.q}).then(cargar).catch(function(e){er.textContent=e.message})}});
     document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){api('acceso-agregar',{correo:b.dataset.g}).then(cargar).catch(function(e){er.textContent=e.message})}});
@@ -760,6 +779,13 @@ function admin(){
     f.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){throw new Error('El archivo no es un JSON válido.')}
       um.textContent='Guardando en SharePoint…';
       return api('guardar-datos',{datos:d,periodo:document.getElementById('per').value})}).then(function(r){um.textContent='Listo. Se guardó correctamente; recarga la página para verlo.';metaTxt(r.meta)}).catch(function(e){um.textContent=e.message})};
+  document.getElementById('upx').onclick=function(){
+    var f=document.getElementById('fx').files[0],dm=document.getElementById('dm');
+    if(!f){dm.textContent='Elige primero el archivo BD Antigüedades (.xlsx).';return}
+    dm.textContent='Subiendo…';
+    var rd=new FileReader();rd.onload=function(){var b64=String(rd.result).split(',')[1]||'';
+      api('guardar-excel',{xlsx:b64,nombre:f.name}).then(function(){dm.textContent='Listo. Este Excel es el que se descargará.';cargar()}).catch(function(e){dm.textContent=e.message})};
+    rd.onerror=function(){dm.textContent='No se pudo leer el archivo.'};rd.readAsDataURL(f)};
   window.__recargarAdmin=cargar;cargar();
 }
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
