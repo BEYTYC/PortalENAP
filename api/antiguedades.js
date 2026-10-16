@@ -18,7 +18,8 @@
  *
  * Archivos en SharePoint (carpeta Antiguedades/):
  *   datos.json     { meta:{actualizado, por, periodo}, datos:{...} }
- *   accesos.json   { consulta:[{correo, agregado, por}], vistos:{correo: ISO} }
+ *   accesos.json   { consulta:[{correo, agregado, por, descarga}], vistos:{correo: ISO} }
+ *   descargas.json [ {correo, fecha} ]   bitácora de descargas del Excel
  *   intentos.json  { "correo": {intentos, ultimo} }
  *
  * Todas las acciones son POST con { accessToken, accion, ... }, donde
@@ -91,6 +92,12 @@ function rolDe(correo, accesos) {
   return null;
 }
 
+function puedeDescargar(correo, accesos) {
+  if (ADMINS.includes(correo)) return true;
+  const x = (accesos.consulta || []).find((c) => c.correo === correo);
+  return !!(x && x.descarga === true);
+}
+
 async function leerAccesos() {
   const a = (await leerJson('accesos.json')) || {};
   return { consulta: a.consulta || [], vistos: a.vistos || {} };
@@ -134,7 +141,7 @@ module.exports = async function handler(req, res) {
         accesos.vistos[yo.correo] = ahora();
         await escribirJson('accesos.json', accesos);
       }
-      res.status(200).json({ correo: yo.correo, nombre: yo.nombre, rol });
+      res.status(200).json({ correo: yo.correo, nombre: yo.nombre, rol, descarga: puedeDescargar(yo.correo, accesos) });
       return;
     }
 
@@ -143,6 +150,16 @@ module.exports = async function handler(req, res) {
     if (accion === 'datos') {
       const d = await leerJson('datos.json');
       res.status(200).json(d || { meta: null, datos: null });
+      return;
+    }
+
+    /* ---- descargar el Excel: solo quien tenga permiso; queda anotado ---- */
+    if (accion === 'descargar') {
+      if (!puedeDescargar(yo.correo, accesos)) throw error('No tiene permiso para descargar el Excel.', 403);
+      const d = (await leerJson('descargas.json')) || [];
+      d.push({ correo: yo.correo, fecha: ahora() });
+      await escribirJson('descargas.json', d.slice(-500));
+      res.status(200).json({ ok: true, fecha: ahora(), correo: yo.correo });
       return;
     }
 
@@ -167,6 +184,7 @@ module.exports = async function handler(req, res) {
         admins: ADMINS.map((c) => ({ correo: c, ultimo: accesos.vistos[c] || null })),
         consulta: accesos.consulta.map((x) => ({ ...x, ultimo: accesos.vistos[x.correo] || null })),
         intentos: Object.entries(intentos).map(([correo, v]) => ({ correo, ...v })).sort((a, b) => String(b.ultimo).localeCompare(String(a.ultimo))),
+        descargas: ((await leerJson('descargas.json')) || []).slice(-20).reverse(),
       });
       return;
     }
@@ -175,10 +193,20 @@ module.exports = async function handler(req, res) {
       const correo = String(body.correo || '').trim().toLowerCase();
       if (!esCorreoValido(correo)) throw error(`Escriba un correo institucional (${DOMINIO}).`, 400);
       if (rolDe(correo, accesos)) throw error('Ese correo ya tiene acceso.', 409);
-      accesos.consulta.push({ correo, agregado: ahora(), por: yo.correo });
+      accesos.consulta.push({ correo, agregado: ahora(), por: yo.correo, descarga: body.descarga === true });
       await escribirJson('accesos.json', accesos);
       const intentos = (await leerJson('intentos.json')) || {};
       if (intentos[correo]) { delete intentos[correo]; await escribirJson('intentos.json', intentos); }
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (accion === 'descarga-permiso') {
+      const correo = String(body.correo || '').trim().toLowerCase();
+      const x = accesos.consulta.find((c) => c.correo === correo);
+      if (!x) throw error('Ese correo no está en la lista de consulta.', 404);
+      x.descarga = body.valor === true;
+      await escribirJson('accesos.json', accesos);
       res.status(200).json({ ok: true });
       return;
     }
