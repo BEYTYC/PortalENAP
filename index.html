@@ -1,8 +1,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal de Servicios Digitales</title>
-<link rel="preload" as="image" href="assets/escudo.png">
-<link rel="preload" as="image" href="assets/escudo-marca-agua.png">
+<link rel="preload" as="image" href="assets/escudo-sm.webp" type="image/webp">
+<link rel="preload" as="image" href="assets/escudo-marca-agua-sm.webp" type="image/webp">
 <style>
   :root{
     --navy-950:#04142E; --navy-900:#071142; --navy-800:#0B2A5B; --navy-700:#123A73;
@@ -56,10 +56,10 @@
        esquinas, para que la franja se sienta menos "brillante"/uniforme y
        mas elegante. */
     background:
-      radial-gradient(120% 220% at 50% 45%, var(--navy-700) 0%, var(--navy-800) 32%, var(--navy-900) 62%, var(--navy-950) 100%);
+      linear-gradient(90deg, #082357 0%, #0C3376 31%, #0E3D88 50%, #154EA4 70%, #2B73D4 100%);
     color:#fff;
     display:flex; align-items:center; gap:14px;
-    padding:20px 22px; border-bottom:5px solid var(--gold-500);
+    padding:20px 22px; border-bottom:5px solid #5FA8F0;
     position:relative; overflow:hidden;
   }
   header.masthead .titles{display:flex; flex-direction:column; gap:1px; min-width:0; position:relative; z-index:1;}
@@ -1118,7 +1118,7 @@
       <circle cx="330" cy="90" r="2.2" fill="#5F80B0" opacity=".3"/>
     </svg>
   </div>
-  <span class="logo-glow header-glow"><img class="logo-plain header-logo" src="assets/escudo.png" alt="Escudo ENAP"></span>
+  <span class="logo-glow header-glow"><img class="logo-plain header-logo" src="assets/escudo-sm.webp" alt="Escudo ENAP"></span>
   <div class="titles">
     <h1>Escuela Naval de Cadetes "Almirante Padilla"</h1>
     <span class="oficina">OFICINA DE ESTADÍSTICA</span>
@@ -1165,7 +1165,7 @@
 </nav>
 
 <main id="main">
-  <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
+  <div class="watermark"><img src="assets/escudo-marca-agua-sm.webp" decoding="async" alt=""></div>
   <div id="viewHome" class="entrada-pendiente">
     <div class="wrap">
       <!-- Centro de Datos Institucional: la pantalla de inicio del tablero
@@ -1195,7 +1195,7 @@
          estilo que usa el resto del Portal) -- solo se vera si la
          pagina de Apps Script tiene su propio fondo transparente (sin
          eso, su fondo blanco opaco la tapa por completo). -->
-  <div class="watermark"><img src="assets/escudo-marca-agua.png" alt=""></div>
+  <div class="watermark"><img src="assets/escudo-marca-agua-sm.webp" decoding="async" alt=""></div>
     <!-- "Solicitud de Grado": el iframe se deja vacio hasta que se abre
          por primera vez (cargarTitulacion(), mas abajo) -- igual que
          Concesiones Especiales -- para poder mostrar "Cargando sesion..."
@@ -1300,7 +1300,7 @@
       <circle cx="360" cy="42" r="2" fill="#E3C767" opacity=".28"/>
     </svg>
   </div>
-  <span class="logo-glow footer-glow"><img class="logo-plain footer-logo" src="assets/escudo.png" alt="Escudo ENAP"></span>
+  <span class="logo-glow footer-glow"><img class="logo-plain footer-logo" src="assets/escudo-sm.webp" alt="Escudo ENAP"></span>
   <div class="left">
     <b>Oficina de Estadística</b>
     Portal de Servicios Digitales
