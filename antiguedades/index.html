@@ -604,11 +604,11 @@ function stuRender(){
       return `<div class="tt ${kd}"><h5>${nm}<span class="tk">${AR[kd]} ${TXT[kd]}</span></h5><div class="tv">${f3(last)}<small>último</small></div>${g}<div class="tf">${b!=null?`<span><b>${sg(b)}</b> por semestre</span>`:'<span>Un solo semestre</span>'}${dp!=null?`<span>vs. anterior <b class="${dp<0?'dn':dp>0?'up':''}">${sg(dp)}</b></span>`:''}</div></div>`};
     const labs=s.h.map(h=>h[0].replace(/A$/,' (rep.)'));
     const tiles=S.map(([nm,k])=>tile(nm,s.h.map(h=>h[k]),labs)).join('');
-    const avg=s.h.map(h=>{const v=[h[1],h[2],h[3],h[4]].filter(x=>x!=null);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null});
+    const WT=[.5,.2,.2,.1],avg=s.h.map(h=>{let sw=0,sv=0;WT.forEach((w,i)=>{const x=h[i+1];if(x!=null){sw+=w;sv+=w*x}});return sw?sv/sw:null});
     const av=avg.filter(x=>x!=null),ab=slope(av),ak=kind(ab);
     const cnt={up:0,dn:0,eq:0};S.forEach(([nm,k])=>{const vs=s.h.map(h=>h[k]).filter(x=>x!=null),b=slope(vs),kd=kind(b);if(cnt[kd]!=null)cnt[kd]++});
     const head=n<2?'Solo hay un semestre registrado: aún no se puede medir una tendencia.':ak==='dn'?'El estudiante viene a la baja':ak==='up'?'El estudiante viene mejorando':'El estudiante se mantiene estable';
-    const sub=n<2?'':`Promedio simple de los cuatro componentes: ${fm(av[0])} → ${fm(av[av.length-1])} (${sg(ab)} por semestre). Componentes: ${cnt.up} mejoran, ${cnt.eq} estables, ${cnt.dn} empeoran.`;
+    const sub=n<2?'':`Promedio ponderado por semestre (50 % académica, 20 % apt. naval, 20 % disciplina, 10 % C. física): ${fm(av[0])} → ${fm(av[av.length-1])} (${sg(ab)} por semestre). Componentes: ${cnt.up} mejoran, ${cnt.eq} estables, ${cnt.dn} empeoran.`;
     evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="evh ${ak}"><span class="evb">${AR[ak]}</span><div><b>${head}</b><small>${sub}</small></div></div><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los semestres (±0,05 por semestre se considera estable). La línea discontinua roja marca la nota mínima de 6.</div></div>`;
   }
   const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+selK;
