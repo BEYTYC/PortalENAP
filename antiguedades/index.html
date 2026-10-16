@@ -448,7 +448,7 @@ function render(){
 }
 
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
-const c2=v=>v.toFixed(3).replace('.',',');
+const c2=v=>v==null?'—':v.toFixed(3).replace('.',',');
 function chartsRender(){
   const el=document.getElementById('charts');
   const key=sel?selK:cur, list=ls(key).filter(s=>s.f!=null&&s.e!=='Aplazado');
@@ -497,7 +497,7 @@ function chartsRender(){
   const c3h=`<div class="card ch"><h3>Componentes · ${sel?'estudiante frente al semestre':'promedio del semestre'}</h3>${m}</div>`;
   el.innerHTML=c1+c2h+(sel?c3h:'');
 }
-const c3=v=>v.toFixed(3).replace('.',',');
+const c3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 
 let nk=null;
 const NOVS=[['Repitente','Repitentes'],['Retardado','Retardados'],['Comisión','Comisión'],['Aplazado','Aplazados'],['Refuerzo','Refuerzo'],['Reingresado','Reingresados']];
@@ -526,8 +526,8 @@ function chart(h){
   const y=v=>pt+(H-pt-pb)*(1-(v-5)/5);
   let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Nota académica por semestre">`;
   [6,8,10].forEach(g=>s+=`<line x1="0" x2="${W}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)" stroke-width="1"/>`);
-  h.forEach((b,i)=>{const x=pl+gap/2+i*(bw+gap);const v=Math.max(5,b[1]);const last=i===h.length-1;
-    s+=`<rect x="${x}" y="${y(v)}" width="${bw}" height="${y(5)-y(v)}" rx="3" fill="${last?'var(--hi)':'var(--bar-fill)'}"/><text class="v" x="${x+bw/2}" y="${y(v)-4}" text-anchor="middle">${b[1].toFixed(2).replace('.',',')}</text><text x="${x+bw/2}" y="${H-7}" text-anchor="middle">${b[0]}</text>`});
+  h.forEach((b,i)=>{const x=pl+gap/2+i*(bw+gap);const v=Math.max(5,b[1]??5);const last=i===h.length-1;
+    s+=`<rect x="${x}" y="${y(v)}" width="${bw}" height="${y(5)-y(v)}" rx="3" fill="${last?'var(--hi)':'var(--bar-fill)'}"/><text class="v" x="${x+bw/2}" y="${y(v)-4}" text-anchor="middle">${b[1]==null?'—':b[1].toFixed(2).replace('.',',')}</text><text x="${x+bw/2}" y="${H-7}" text-anchor="middle">${b[0]}</text>`});
   return s+'</svg>';
 }
 function notas(h){
@@ -693,7 +693,7 @@ function metaTxt(m){document.getElementById('meta').textContent=m?('Última carg
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 function iniciar(){
   api('sesion').then(function(s){
-    if(!s.rol){msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Tu intento quedó registrado: pide a la Oficina de Estadística que te dé acceso.');return}
+    if(!s.rol){msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Solicítalo a la Oficina de Estadística.');return}
     return api('datos').then(function(r){
       var esAdmin=s.rol==='ADMIN';
       if(!esAdmin)document.querySelector('.vt').hidden=true;
