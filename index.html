@@ -1034,6 +1034,23 @@
     <p class="panel-app__error" id="adminError"></p>
   </div>
 
+  <div class="panel-app__card" id="ingresosCard" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;color:#0a2540;font-size:1rem;">Ingresos al Portal</h3>
+      <div style="display:flex;gap:8px;">
+        <button type="button" class="panel-app__btn panel-app__btn--ghost" id="ingresosFiltroBtn" style="padding:4px 10px;font-size:.78rem;">Ver solo intentos sin éxito</button>
+        <button type="button" class="panel-app__btn panel-app__btn--ghost" id="ingresosRecargarBtn" style="padding:4px 10px;font-size:.78rem;">Actualizar</button>
+      </div>
+    </div>
+    <p style="font-size:.82rem;color:#5b6b7c;margin:6px 0 10px;">Quién entró o intentó entrar y a qué hora (hora de Colombia). Una misma cuenta se anota una vez cada 10 minutos.</p>
+    <div style="max-height:420px;overflow:auto;">
+    <table>
+      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
+      <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
   <div class="panel-app__card">
     <table>
       <thead><tr><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
@@ -1600,8 +1617,9 @@
     const perfil = await obtenerPerfil(cuenta);
     const correo = perfil.mail || perfil.userPrincipalName;
     if (!correo) throw new Error('El usuario autenticado no tiene un correo asociado en su perfil de Microsoft.');
-    if (correoBloqueado(correo) || correoBloqueado(perfil.userPrincipalName)) throw bloquearCuenta(correo);
+    if (correoBloqueado(correo) || correoBloqueado(perfil.userPrincipalName)) { await anotarYEsperar(cuenta); throw bloquearCuenta(correo); }
     if (!correo.trim().toLowerCase().endsWith('@' + DOMINIO_INSTITUCIONAL)) {
+      await anotarYEsperar(cuenta);
       throw new Error(`El Portal es exclusivo para cuentas institucionales de ENAP (@${DOMINIO_INSTITUCIONAL}). La cuenta "${correo}" no pertenece a ese dominio.`);
     }
 
@@ -1627,6 +1645,7 @@
     }
 
     const roles = rolesEspeciales.length ? rolesEspeciales : ['USUARIO'];
+    registrarIngresoPortal(cuenta);
     return { perfil, roles };
   }
 
@@ -2157,14 +2176,77 @@
   // pinta el correo + rol del usuario en el header, con su boton de
   // cerrar sesion.
   // ---------------------------------------------------------------
+  // ---------------------------------------------------------------
+  // Bitacora de ingresos al Portal (api/ingresos-portal.js). Cada ingreso o
+  // intento queda anotado en el servidor; solo los dos administradores
+  // fijos pueden verla.
+  // ---------------------------------------------------------------
+  const ADMINS_BITACORA = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
+  let ingresosSoloFallidos = false;
+  let ingresosDatos = [];
+  async function llamarIngresos(accion, token) {
+    const resp = await fetch('/api/ingresos-portal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accessToken: token, accion }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.error || ('Error ' + resp.status));
+    return data;
+  }
+  // Se llama sin esperar y sin romper el ingreso si falla.
+  async function registrarIngresoPortal(cuenta) {
+    try {
+      const token = await adquirirToken(['User.Read'], cuenta);
+      await llamarIngresos('registrar', token);
+    } catch (e) { console.warn('[PortalENAP] No se pudo anotar el ingreso', e); }
+  }
+  // Para cuentas rechazadas: se espera (maximo 4 s) a que quede anotado antes de cerrar su sesion.
+  function anotarYEsperar(cuenta) {
+    return Promise.race([registrarIngresoPortal(cuenta), new Promise((r) => setTimeout(r, 4000))]);
+  }
+  function esAdminBitacora(sesion) {
+    const p = (sesion && sesion.perfil) || {};
+    return ADMINS_BITACORA.indexOf(String(p.mail || p.userPrincipalName || '').trim().toLowerCase()) !== -1;
+  }
+  function pintarIngresos() {
+    const cuerpo = document.getElementById('ingresosBody');
+    const filas = ingresosDatos.filter((e) => !ingresosSoloFallidos || e.resultado !== 'Ingresó');
+    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
+    const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+    cuerpo.innerHTML = filas.slice(0, 500).map((e) => {
+      const ok = e.resultado === 'Ingresó';
+      return `<tr><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
+        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td></tr>`;
+    }).join('');
+  }
+  async function cargarIngresos() {
+    const cuerpo = document.getElementById('ingresosBody');
+    cuerpo.innerHTML = '<tr><td colspan="4">Cargando…</td></tr>';
+    try {
+      const cuentas = (await getMsal()).getAllAccounts();
+      if (!cuentas.length) return;
+      const token = await adquirirToken(['User.Read'], cuentas[0]);
+      ingresosDatos = (await llamarIngresos('listar', token)).eventos || [];
+      pintarIngresos();
+    } catch (e) {
+      cuerpo.innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
+    }
+  }
+
   function mostrarVistasSegunSesion(sesion) {
     const roles = (sesion && sesion.roles) || [];
     // El panel de Admin es ahora el engranaje del header (ver
     // configurarEngranajeAdmin) y el modulo SAC se abre desde el menu
     // "Secretaría Académica" (ver MENU / renderNav) -- aqui solo se
     // precargan los datos para que esten listos cuando el usuario entre.
-    configurarEngranajeAdmin(roles);
+    configurarEngranajeAdmin(roles, sesion);
     if (roles.includes('ADMIN')) cargarVistaAdmin();
+    if (esAdminBitacora(sesion)) {
+      document.getElementById('ingresosCard').hidden = false;
+      cargarIngresos();
+    }
     if (roles.includes('ADMIN') || roles.includes('SAC')) cargarSelectorCeremonias();
     renderNav();
     // Solicitud de Grado se precarga en segundo plano apenas hay sesion
@@ -2192,8 +2274,8 @@
   // Engranaje de Admin en el header: solo visible para el rol ADMIN,
   // abre/cierra el panel de administracion de usuarios (#vistaAdmin, ahora
   // un panel de pantalla completa, ver su CSS ".panel-app").
-  function configurarEngranajeAdmin(roles) {
-    document.getElementById('adminGearBtn').hidden = !roles.includes('ADMIN');
+  function configurarEngranajeAdmin(roles, sesion) {
+    document.getElementById('adminGearBtn').hidden = !(roles.includes('ADMIN') || esAdminBitacora(sesion));
   }
   function alternarVistaAdmin() {
     document.getElementById('vistaAdmin').classList.toggle('show');
@@ -2499,6 +2581,12 @@
     document.getElementById('adminCerrarBtn').addEventListener('click', alternarVistaAdmin);
     document.getElementById('adminGuardarBtn').addEventListener('click', guardarUsuarioAdmin);
     document.getElementById('adminRecargarBtn').addEventListener('click', cargarVistaAdmin);
+    document.getElementById('ingresosRecargarBtn').addEventListener('click', cargarIngresos);
+    document.getElementById('ingresosFiltroBtn').addEventListener('click', () => {
+      ingresosSoloFallidos = !ingresosSoloFallidos;
+      document.getElementById('ingresosFiltroBtn').textContent = ingresosSoloFallidos ? 'Ver todos los ingresos' : 'Ver solo intentos sin éxito';
+      pintarIngresos();
+    });
     document.querySelectorAll('#adminEstadoToggle .panel-app__toggle-btn').forEach((btn) => {
       btn.addEventListener('click', () => seleccionarEstadoAdmin(btn.dataset.estado));
     });
