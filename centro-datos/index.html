@@ -62,6 +62,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 .mob .appin{position:relative !important;inset:auto !important;flex-direction:column !important}
+.xp{position:relative}.xpt{position:absolute;left:12px;right:12px;bottom:12px;z-index:40;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.97);border:1px solid #C9D8F3;box-shadow:0 14px 40px rgba(12,32,80,.22);font-size:12px;line-height:1.5;color:#3D4D69;opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease;pointer-events:none}.xp:hover .xpt{opacity:1;transform:none}.xp:after{content:"ⓘ Pasa el cursor";position:absolute;bottom:10px;right:14px;font-size:10px;font-weight:600;color:#8A97AD;pointer-events:none;opacity:.9}.xp:hover:after{opacity:0}
 .mob aside{width:100% !important;zoom:1 !important}
 .mob main{flex:none !important;width:100%}
 .mob{display:flex;flex-direction:column}
@@ -793,11 +794,11 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:auto;gap:14px;padding-bottom:6px">
 
 <div style="grid-column:span 12;display:flex;flex-direction:column;gap:10px">
-<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;font-weight:700;color:#0C2050">Analizar ingresos</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span></div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:12px;font-weight:700;color:#0C2050">Analizar ingresos</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span><span style="font-size:11.5px;font-weight:600;color:#1D4FD8">Pasa el cursor sobre cada gráfica para ver cómo leerla y qué muestra.</span></div>
 <div style="padding:14px 18px;border-radius:18px;background:linear-gradient(135deg,#0C2050,#1D4FD8);color:#fff"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.8">Lo que dicen los datos</div><div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px"><sc-for list="{{ summary }}" as="x" hint-placeholder-count="5"><div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;margin-top:6px;width:6px;height:6px;border-radius:50%;background:#7FC8FF"></span><span>{{ x.t }}</span></div></sc-for></div></div>
 </div>
 
-<div class="rise d3" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
+<div class="rise d3 xp" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Curvas de permanencia (Kaplan-Meier)</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Cuántos siguen en la escuela mes a mes, sin retirarse. {{ rangeTxt }}. Pasa el cursor sobre la gráfica</div></div>
 <div style="display:flex;gap:6px"><sc-for list="{{ svBtns }}" as="b" hint-placeholder-count="2"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></div></div>
 <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:8px;font-size:11px;color:#3D4D69"><sc-for list="{{ svLegend }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.name }}</span></sc-for></div>
@@ -817,10 +818,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <span style="color:#6B7A94;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:600">Permanencia</span><span style="color:#6B7A94;font-size:10px;font-weight:600">12 m</span><span style="color:#6B7A94;font-size:10px;font-weight:600">24 m</span><span style="color:#6B7A94;font-size:10px;font-weight:600">36 m</span><span style="color:#6B7A94;font-size:10px;font-weight:600">48 m</span>
 <sc-for list="{{ svTable }}" as="r" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:6px"><span style="{{ r.dot }}"></span>{{ r.name }}</span><sc-for list="{{ r.c }}" as="c" hint-placeholder-count="4"><div><b style="color:#0C2050;font-size:13px">{{ c.t }}</b><div style="{{ c.bar }}"></div></div></sc-for></sc-for>
 </div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howKm }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finKm }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howKm }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finKm }}</div></div>
 </div>
 
-<div class="rise d3" style="{{ panel }};overflow:visible;grid-column:span 5">
+<div class="rise d3 xp" style="{{ panel }};overflow:visible;grid-column:span 5">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Factores de riesgo de deserción</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ lrSub }}</div>
 <div style="position:relative;height:270px;margin-top:6px">
@@ -836,10 +837,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <sc-for list="{{ forest }}" as="f" hint-placeholder-count="9"><span style="{{ f.ns }}">{{ f.name }}</span><span style="{{ f.vs }}">{{ f.vl }}</span><span title="{{ f.tip }}" style="{{ f.ds }}"></span></sc-for>
 </div>
 <div style="font-size:10.5px;color:#6B7A94">{{ forestRef }}. Barra: intervalo de confianza 90%. Gris: sin diferencia clara</div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howForest }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finForest }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howForest }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finForest }}</div></div>
 </div>
 
-<div class="rise d4" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
+<div class="rise d4 xp" style="{{ panel }};overflow:visible;grid-column:span 7;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ pjTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ pjSub }}</div></div>
 <div style="display:flex;gap:6px"><sc-for list="{{ pjBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for></div></div>
 <div style="margin-top:8px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px"><sc-for list="{{ pjChips }}" as="c" hint-placeholder-count="4"><div style="padding:7px 10px;border-radius:12px;background:#F4F7FC;border:1px solid #E3E8F0"><div style="font-size:10px;color:#6B7A94">{{ c.l }}</div><div class="x" style="font-size:19px;font-weight:700;color:#0C2050;line-height:1.15;font-variant-numeric:tabular-nums">{{ c.v }}</div><div style="font-size:10px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.s }}</div></div></sc-for></div>
@@ -856,10 +857,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <sc-for list="{{ pjHits }}" as="h" hint-placeholder-count="20"><div title="{{ h.tip }}" style="{{ h.st }}"></div></sc-for>
 </div>
 <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#2F6FE0"></span>Histórico (más oscuro = más reciente)</span><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#E0872F"></span>Proyección</span><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:rgba(224,135,47,.25)"></span>Banda 80%</span><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:16px;border-top:2px dashed #0C2050"></span>Tendencia</span></div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howPj }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finPj }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howPj }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finPj }}</div></div>
 </div>
 
-<div class="rise d4" style="{{ panel }};overflow:visible;grid-column:span 5">
+<div class="rise d4 xp" style="{{ panel }};overflow:visible;grid-column:span 5">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Calculadora de riesgo de retiro</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Probabilidad estimada de retiro (frente a egresar) según el perfil de ingreso</div>
 <div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
@@ -872,10 +873,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 <div style="text-align:center;font-size:11px;color:#6B7A94;margin-top:2px">{{ calcBase }}</div>
 <div style="margin-top:8px;display:flex;flex-direction:column;gap:5px"><sc-for list="{{ calcSteps }}" as="s" hint-placeholder-count="3"><div><div style="display:flex;justify-content:space-between;font-size:11px;color:#3D4D69"><span>{{ s.name }}</span><span style="{{ s.vst }}">{{ s.val }}</span></div><div style="margin-top:2px;height:6px;border-radius:3px;background:rgba(12,32,80,.06)"><div style="{{ s.bar }}"></div></div></div></sc-for></div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howCalc }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finCalc }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howCalc }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finCalc }}</div></div>
 </div>
 
-<div class="rise d5" style="{{ panel }};overflow:visible;grid-column:span 7">
+<div class="rise d5 xp" style="{{ panel }};overflow:visible;grid-column:span 7">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Mapa de calor: % de retiro por especialidad, sexo y cohorte</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Sobre ingresos con desenlace (egreso o retiro). Cada celda: % de retiro y número de casos. *2020+ aún en curso: sobreestima el retiro</div>
 <div style="{{ hmGrid }}">
@@ -883,10 +884,10 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <sc-for list="{{ hmRows }}" as="r" hint-placeholder-count="6"><span style="display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:#3D4D69;font-weight:600"><span style="{{ r.dot }}"></span>{{ r.name }}</span><sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="5"><div title="{{ c.tip }}" style="{{ c.st }};border-radius:9px;padding:6px 4px;text-align:center;min-height:32px;display:flex;flex-direction:column;justify-content:center"><div class="x" style="font-size:15px;font-weight:700;color:#0C2050;line-height:1.1;font-variant-numeric:tabular-nums">{{ c.t }}</div><div style="font-size:9px;color:#51617D">{{ c.n }}</div></div></sc-for></sc-for>
 </div>
 <div style="margin-top:10px;display:flex;align-items:center;gap:8px;font-size:10.5px;color:#6B7A94"><span>Menos retiro</span><span style="flex:1;max-width:240px;height:8px;border-radius:4px;background:linear-gradient(90deg,#BFE3DC,#FFF1DC,#F7C98B,#D9483B)"></span><span>Más retiro</span></div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howHeat }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finHeat }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howHeat }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finHeat }}</div></div>
 </div>
 
-<div class="rise d5" style="{{ panel }};overflow:visible;grid-column:span 5">
+<div class="rise d5 xp" style="{{ panel }};overflow:visible;grid-column:span 5">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Por qué y cuándo se retiran</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Causal de retiro y mes de permanencia en que ocurre</div>
 <div style="margin-top:8px;display:flex;align-items:center;gap:16px">
@@ -897,17 +898,17 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 <div style="display:flex;gap:8px;margin-top:3px"><sc-for list="{{ alHaz }}" as="h" hint-placeholder-count="5"><span style="flex:1;text-align:center;font-size:10px;color:#6B7A94">{{ h.name }} m</span></sc-for></div>
 <div style="margin-top:12px;font-size:12px;font-weight:600;color:#0C2050">{{ actTitle }}</div>
 <div style="margin-top:6px;display:flex;flex-direction:column;gap:5px"><sc-for list="{{ alAct }}" as="r" hint-placeholder-count="4"><div style="display:flex;align-items:center;gap:8px;font-size:11px;color:#3D4D69"><span style="width:150px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.name }} <span style="color:#8A97AD">· {{ r.n }}</span></span><div style="flex:1;height:8px;border-radius:4px;background:rgba(12,32,80,.07)"><div style="{{ r.bar }}"></div></div><b style="width:32px;text-align:right;color:#0C2050">{{ r.pct }}</b></div></sc-for></div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howWhy }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finWhy }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howWhy }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finWhy }}</div></div>
 </div>
 
-<div class="rise d5" style="{{ panel }};overflow:visible;grid-column:span 12;align-self:start">
+<div class="rise d5 xp" style="{{ panel }};overflow:visible;grid-column:span 12;align-self:start">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Cada cohorte de ingreso: tamaño y % de retiro</div>
 <div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Altura = ingresos del año · color y etiqueta = % de retiro entre quienes ya tuvieron desenlace. Las barras rayadas (2021+) siguen en curso y sobreestiman el retiro</div>
 <div style="margin-top:12px;display:flex;align-items:flex-end;gap:5px;height:230px">
 <sc-for list="{{ yrBars }}" as="b" hint-placeholder-count="35"><div title="{{ b.tip }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center"><span class="x" style="font-size:9.5px;font-weight:700;color:#0C2050;margin-bottom:1px">{{ b.rate }}</span><span style="font-size:9px;color:#8A97AD;margin-bottom:2px;font-variant-numeric:tabular-nums">{{ b.n }}</span><div style="{{ b.colSt }}"></div></div></sc-for>
 </div>
 <div style="display:flex;gap:5px;margin-top:3px"><sc-for list="{{ yrBars }}" as="b" hint-placeholder-count="35"><span style="flex:1;min-width:0;text-align:center;font-size:9px;color:#6B7A94">{{ b.lab }}</span></sc-for></div>
-<div style="margin-top:10px;padding:9px 12px;border-radius:12px;background:#F3F7FE;border:1px solid #DCE6F8;font-size:11.5px;line-height:1.45;color:#3D4D69"><b style="color:#0C2050">Cómo leerlo.</b> {{ howYr }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finYr }}</div></div>
+<div class="xpt"><b style="color:#0C2050">Cómo leerlo.</b> {{ howYr }}<div style="margin-top:4px"><b style="color:#1D4FD8">Hallazgo.</b> {{ finYr }}</div></div>
 </div>
 
 
