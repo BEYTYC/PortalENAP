@@ -315,6 +315,9 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .tf{display:flex;justify-content:space-between;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--mute)}.tf b{color:var(--ink);font-weight:600}.tf b.up{color:var(--g)}.tf b.dn{color:var(--r)}
 .evn{margin-top:10px;font-size:11.5px;color:var(--mute)}
 .nb b .de{font-size:13px;font-weight:400;color:var(--mute);letter-spacing:0}
+.lg2{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:6px;font-size:11px;color:var(--mute)}.lg2 i{display:inline-block;vertical-align:middle;margin-right:5px}.lg2 i.r{width:16px;height:7px;border-radius:4px;background:var(--bar-fill);opacity:.28}.lg2 i.d{width:9px;height:9px;border-radius:50%;background:var(--bar-fill)}.lg2 i.m{width:0;height:12px;border-left:2px dashed var(--ink);opacity:.6}
+.charts .ch.cc svg{max-height:none}
+.card.ch:not(.cc){justify-content:center}
 .ic{display:inline-flex;gap:3px;margin-left:6px;vertical-align:-2px}.ic .mi{width:13px;height:15px}
 .bdg .mi{width:13px;height:15px;vertical-align:-3px;margin-right:5px}
 .bdg.bx{color:#1F4E8C;background:#E3EEFB;border-color:#B7CFEE}
@@ -403,7 +406,7 @@ function pv(s){
 }
 const _mc={};
 function mp(k){if(!(k in _mc)){const v=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f);_mc[k]=v.length?Math.max(0,Math.min(100,(v.reduce((a,b)=>a+b,0)/v.length-6)/4*100)):-9}return _mc[k]}
-const MEDAL='<svg class="mi" viewBox="0 0 28 34" aria-hidden="true"><defs><linearGradient id="gdm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FBE08A"/><stop offset=".55" stop-color="#E0A93A"/><stop offset="1" stop-color="#B9801C"/></linearGradient></defs><path d="M6 0h6l3 11-5 2z" fill="#2F68B5"/><path d="M22 0h-6l-3 11 5 2z" fill="#1B4688"/><circle cx="14" cy="21" r="10.5" fill="url(#gdm)" stroke="#B9801C" stroke-width="1"/><circle cx="14" cy="21" r="7.4" fill="none" stroke="#FFF3C4" stroke-opacity=".8" stroke-width="1"/><path d="M14 15.6l1.6 3.4 3.7.5-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.5z" fill="#FFF3C4"/></svg>',STAR='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><defs><linearGradient id="gst" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6AA2DC"/><stop offset="1" stop-color="#1F4E8C"/></linearGradient></defs><path d="M14 1.5l3.9 8.1 8.8 1.2-6.4 6.2 1.6 8.8L14 21.5l-7.9 4.3 1.6-8.8L1.3 10.8l8.8-1.2z" fill="url(#gst)"/><path d="M14 7.2l1.9 4 4.4.6-3.2 3.1.8 4.4-3.9-2.1-3.9 2.1.8-4.4-3.2-3.1 4.4-.6z" fill="#fff" fill-opacity=".35"/></svg>';
+const MEDAL='<svg class="mi" viewBox="0 0 28 34" aria-hidden="true"><path d="M6 0h6l3 11-5 2z" fill="#2F68B5"/><path d="M22 0h-6l-3 11 5 2z" fill="#1B4688"/><circle cx="14" cy="21" r="10.5" fill="#E8B13A" stroke="#B9801C" stroke-width="1"/><circle cx="14" cy="21" r="7.4" fill="none" stroke="#FFF3C4" stroke-opacity=".8" stroke-width="1"/><path d="M14 15.6l1.6 3.4 3.7.5-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.5z" fill="#FFF3C4"/></svg>',STAR='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 1.5l3.9 8.1 8.8 1.2-6.4 6.2 1.6 8.8L14 21.5l-7.9 4.3 1.6-8.8L1.3 10.8l8.8-1.2z" fill="#3F7FCB"/><path d="M14 7.2l1.9 4 4.4.6-3.2 3.1.8 4.4-3.9-2.1-3.9 2.1.8-4.4-3.2-3.1 4.4-.6z" fill="#fff" fill-opacity=".35"/></svg>';
 function ic(s){return (s.dis?'<span class="ic" title="Alumno distinguido">'+MEDAL+'</span>':'')+(s.exc?'<span class="ic" title="Excelencia académica">'+STAR+'</span>':'')}
 function nvb(s){return s.e&&s.e!=='Normal'?`<span class="nvb">${s.e}</span>`:''}
 function row(s,k,i){
@@ -475,17 +478,22 @@ function chartsRender(){
     h+=`<line x1="${mx_}" x2="${mx_}" y1="${pt-18}" y2="${H-pb}" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3" opacity=".75"/><text transform="translate(${fr<.5?mx_+13:mx_-4},${H-pb-Math.max(bhMu,62)/2}) rotate(-90)" text-anchor="middle" class="cnt" style="fill:${bhMu>62?'#C4D0E2':'var(--mute)'};font-style:italic;font-weight:400">Prom: ${c3(mu)}</text>`}}
   h+=tx.join('')+`<line class="ax" x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}"/></svg>`;
   const c1=`<div class="card ch"><h3>Distribución del promedio final por rangos</h3>${h}</div>`;
-  // promedio por curso
+  // promedio por curso: rango de notas (mín–máx), promedio y diferencia frente al semestre
   const g={};list.forEach(s=>{const k=s.cu||'—';(g[k]=g[k]||[]).push(s.f)});
-  let gs=Object.entries(g).map(([k,v])=>[k,mean(v),v.length]).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const gmin=Math.floor(Math.min(...gs.map(x=>x[1]))*4)/4-.0, gmax=Math.ceil(Math.max(...gs.map(x=>x[1]))*4)/4;
-  const dmin=gmin===gmax?gmin-.25:gmin,rowH=20,H2=gs.length*rowH+30,lw=62,X=v=>lw+(W-lw-84)*(v-dmin)/(gmax-dmin);
-  let k=`<svg viewBox="0 0 ${W} ${H2}" role="img" aria-label="Promedio final por curso">`;
-  [dmin,(dmin+gmax)/2,gmax].forEach(v=>{k+=`<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="2" y2="${H2-20}"/><text x="${X(v)}" y="${H2-6}" text-anchor="middle">${c2(v)}</text>`});
-  gs.forEach(([n,m,c],i)=>{const y=10+i*rowH,on=sel&&sel.cu===n;
-    k+=`<text class="lab" x="0" y="${y+4}">${n}</text><line x1="${lw}" x2="${X(m)}" y1="${y}" y2="${y}" stroke="${on?'var(--hi)':'var(--bar-fill)'}" stroke-width="3" stroke-linecap="round"/><circle cx="${X(m)}" cy="${y}" r="5" fill="${on?'var(--hi)':'var(--bar-fill)'}"/><text class="cnt" x="${X(m)+9}" y="${y+4}">${c3(m)} · ${c}</text>`});
-  k+='</svg>';
-  const c2h=`<div class="card ch"><h3>Promedio por curso (${gs.length>=8?'8 más altos':'todos'})</h3>${k}</div>`;
+  const gs=Object.entries(g).map(([k,v])=>({k,m:mean(v),n:v.length,lo:Math.min(...v),hi:Math.max(...v)})).sort((a,b)=>b.m-a.m);
+  const mu=mean(fs),sh=gs.slice(0,8);
+  const smin=Math.floor(Math.min(...sh.map(x=>x.lo))*2)/2,smax=Math.max(smin+1,Math.ceil(Math.max(...sh.map(x=>x.hi))*2)/2);
+  const rowH=32,H2=sh.length*rowH+34,lw=66,rw=92,X=v=>lw+(W-lw-rw)*(v-smin)/(smax-smin);
+  let k=`<svg viewBox="0 0 ${W} ${H2}" role="img" aria-label="Promedio final por curso, con el rango de notas de cada curso">`;
+  [smin,(smin+smax)/2,smax].forEach(v=>{k+=`<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="2" y2="${H2-22}"/><text x="${X(v)}" y="${H2-8}" text-anchor="middle">${c2(v)}</text>`});
+  sh.forEach((o,i)=>{const y=16+i*rowH,on=sel&&sel.cu===o.k,d=o.m-mu,up=d>=0,c=on?'var(--hi)':'var(--bar-fill)';
+    k+=`<text class="lab" x="0" y="${y+1}">${o.k}</text><text x="0" y="${y+13}" style="fill:var(--mute);font-size:9.5px">${o.n} est.</text>`;
+    if(o.n>1)k+=`<line x1="${X(o.lo)}" x2="${X(o.hi)}" y1="${y}" y2="${y}" stroke="${c}" stroke-width="9" stroke-linecap="round" opacity=".22"/>`;
+    k+=`<circle cx="${X(o.m)}" cy="${y}" r="5.5" fill="${c}" stroke="var(--card)" stroke-width="1.5"/>`+
+       `<text class="cnt" x="${W-rw+8}" y="${y-1}" style="font-size:12px">${c2(o.m)}</text><text x="${W-rw+8}" y="${y+12}" style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</text>`});
+  k+=`<line x1="${X(mu)}" x2="${X(mu)}" y1="0" y2="${H2-22}" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 3" opacity=".6"/></svg>`;
+  const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Promedio del curso</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
+  const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
   // comparación componentes
   const comps=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
   const H3=comps.length*34+26,lw3=70;const X3=v=>lw3+(W-lw3-52)*(v-6)/4;
