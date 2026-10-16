@@ -285,6 +285,7 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .nov .nb{padding:10px}.nov .nb span{font-size:10px;letter-spacing:.05em}
 #pub.one>:not(#stu){display:none!important}
 #pub.one>#stu{margin-top:14px}
+#pub.one.srch>.bar:not(#stu){display:flex!important;margin-bottom:0}#pub.one.srch .chips{display:none}
 .stu{position:relative}
 .back{position:absolute;top:16px;right:20px;margin:0!important;font:inherit;font-size:13px;color:var(--navy);background:var(--soft);border:1px solid var(--line);border-radius:999px;padding:6px 14px;cursor:pointer;margin-bottom:12px;display:inline-block}
 .back:hover{border-color:var(--bar-fill)}
@@ -335,9 +336,19 @@ table.mini{min-width:0;width:100%;font-size:12.5px}.mini th{position:sticky;top:
 .pfc svg{width:100%;max-width:460px;height:auto;display:block}
 .pfd{display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}.dl2{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}.dl2.up{color:var(--good)}.dl2.dn{color:var(--warn)}
 html,body{background:transparent!important}:root{color-scheme:light}
-.mtool{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:14px}.fsb{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:var(--navy);border:1px solid var(--line);border-radius:50%;padding:0;cursor:pointer;box-shadow:0 2px 10px rgba(20,50,100,.18)}.fsb:hover{border-color:var(--bar-fill)}html:fullscreen,html:fullscreen body{background:#EAF2FC!important}.mtool .vt{background:var(--card);border:1px solid var(--line)}.mtool .vt button{color:var(--mute)}.mtool .vt button[aria-pressed="true"]{background:var(--navy);color:#fff}.mtool[hidden]{display:none}
+.mtool{display:flex;justify-content:flex-end;align-items:center;gap:10px;padding-top:14px}.fsb{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:50;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;background:var(--card);color:var(--navy);border:1px solid var(--line);border-radius:50%;padding:0;cursor:pointer;box-shadow:0 2px 10px rgba(20,50,100,.18)}.fsb:hover{border-color:var(--bar-fill)}html:fullscreen,html:fullscreen body{background:#EAF2FC!important}.mtool .vt{background:transparent;border:0;padding:0}.mtool .vt .gearb{width:36px;height:36px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%;background:var(--card);border:1px solid var(--line);color:var(--navy)}.mtool .vt .gearb:hover{border-color:var(--bar-fill)}.mtool .vt .gearb[aria-pressed="true"]{background:var(--navy);color:#fff}.mtool[hidden]{display:none}
+
+/* sin cuadros grandes: todo sobre el fondo del Portal, solo tarjetas pequeñas */
+.card,.pod,.grid>.card,.card.ch,.card.nov,.card.stu,.card.ac,.gbox:not(.small){background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+.card:hover,.pod:hover{box-shadow:none!important}
+.grid>.card{overflow:visible!important}
+.card.ch.an,.card.ac,.card.nov,.card.ch{padding-left:2px;padding-right:2px}
+.card h3,.pod h3{padding-left:2px}
+.tw table{background:transparent}.tw thead th{background:transparent}
+.tw tbody tr{border-bottom:1px solid var(--line)}
+.k,.nb,.pd,.kv>div,.gbox{background:var(--card)}
 </style>
-<h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true">Consulta</button><button id="va" aria-pressed="false">Administración</button></div></div>
+<h1 id="h1" hidden></h1><div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
 <div class="wrap">
 <div id="pub"><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Buscar por apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="card stu" id="stu" hidden></div>
@@ -350,7 +361,7 @@ html,body{background:transparent!important}:root{color-scheme:light}
 <aside class="card side" id="side" aria-live="polite"></aside></div>
 <div class="foot">Notas del semestre 2026-1 y promedio final acumulado. Aplazados fuera del orden.</div></div>
 </div>
-<div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Ve a <b>Administración › Datos cargados</b> y sube el archivo de datos para empezar.</span></div>
+<div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
 <section class="card ac"><h3>Accesos por correo</h3><p>Entran con su cuenta institucional del Portal. Solo los administradores y los correos de esta lista pueden abrir las antigüedades.</p>
 <div class="frm"><input id="em" type="email" placeholder="correo@enap.edu.co" aria-label="Correo"><button class="btn" id="add">Dar acceso de consulta</button></div><div class="err" id="er" role="alert"></div>
@@ -365,7 +376,7 @@ html,body{background:transparent!important}:root{color-scheme:light}
 <section class="card ac"><h3>Descargar para compartir</h3><p>Excel "BD Antigüedades" con la fecha de descarga, para quienes no tienen acceso. Próximamente.</p><div class="path" id="fn">BD Antigüedades</div></section>
 </div></div></div>
 <div id="gate" role="status"><div class="gbox"><b id="gt">Verificando acceso…</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
-<style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--bg);padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
+<style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
@@ -403,16 +414,22 @@ function countUp(){
   document.querySelectorAll('.k b,.pod .pf').forEach(el=>{const raw=el.textContent.trim();const m=raw.match(/^(\d+)(?:,(\d+))?$/);if(!m)return;const dec=m[2]?m[2].length:0,to=parseFloat(raw.replace(',','.')),t0=performance.now();
     const step=n=>{const p=Math.min(1,(n-t0)/800),e=1-Math.pow(1-p,3),v=to*e;el.textContent=dec?v.toFixed(dec).replace('.',','):Math.round(v);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)})
 }
+function buscar(qq){
+  const nz=x=>String(x).toUpperCase().normalize('NFD').replace(/[\u0300-\u0301\u0308]/g,'').normalize('NFC'),t=nz(qq);
+  const hit=s=>nz(s.n).includes(t)||String(s.c).includes(t)||String(s.ce).includes(t);
+  const seen=new Set(),rows=[];
+  const add=(s,sk,i)=>{const id=s.c!=null?s.c:(s.ce!=null?s.ce:s.n);if(seen.has(id))return;seen.add(id);rows.push([s,sk,i])};
+  const orden=[cur,...ORD.slice().reverse().filter(k=>k!==cur)].filter(k=>k!=='ESC'&&D.sheets[k]);
+  orden.forEach(sk=>D.sheets[sk].forEach((s,i)=>{if(hit(s))add(s,sk,i)}));
+  D.esc.forEach((s,i)=>{if(hit(s))add(s,'ESC',i)});
+  return rows;
+}
 function render(){
   chips();
   document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento 2026-1':'Antigüedades '+(window.__PER||'2026-2');
   let list,k=cur,rows;
   if(q){
-    const nz=x=>String(x).toUpperCase().normalize('NFD').replace(/[\u0300-\u0301\u0308]/g,'').normalize('NFC'),t=nz(q);
-    const hit=s=>nz(s.n).includes(t)||String(s.c).includes(t)||String(s.ce).includes(t);
-    rows=[];ORD.forEach(sk=>D.sheets[sk].forEach((s,i)=>{if(hit(s))rows.push([s,sk,i])}));
-    D.esc.forEach((s,i)=>{if(hit(s))rows.push([s,'ESC',i])});
-    rows=rows.slice(0,80);
+    rows=buscar(q).slice(0,80);
     document.getElementById('pod').innerHTML='';document.getElementById('kpi').innerHTML='';
     document.getElementById('tb').innerHTML=rows.length?rows.map(([s,sk,i])=>row(s,sk,i)).join(''):'<tr><td colspan="8" class="empty">Sin resultados</td></tr>';
     document.getElementById('apl').innerHTML='';
@@ -546,7 +563,7 @@ function radar(s,avg){
 function stuRender(){
   setTimeout(()=>{const b=document.getElementById('back');if(b)b.onclick=()=>{sel=null;selK=null;render();window.scrollTo({top:0,behavior:'smooth'})}},0);
   const el=document.getElementById('stu');
-  document.getElementById('pub').classList.toggle('one',!!sel);
+  document.getElementById('pub').classList.toggle('one',!!sel);document.getElementById('pub').classList.toggle('srch',!!q);
   if(!sel){el.hidden=true;return}
   const s=sel,list=ls(selK).filter(x=>x.f!=null&&x.e!=='Aplazado');
   const avg={};['ac','an','di','cf','f'].forEach(f=>{const v=list.filter(x=>x[f]!=null).map(x=>x[f]);avg[f]=v.length?mean(v):null});
@@ -615,7 +632,7 @@ function side(){
   ${chart(s.h)}<ul class="tl">${tl}</ul>`;
   const h2=el.querySelector('h2');let fs=17;while(h2.scrollWidth>h2.clientWidth&&fs>10){fs-=.5;h2.style.fontSize=fs+'px'}
 }
-document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim();if(!q)sel=null;render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
+document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim();sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
 render();
 /* ===== Movimiento de puestos y riesgo ===== */
@@ -690,14 +707,13 @@ function iniciar(){
       if(!esAdmin)document.querySelector('.vt').hidden=true;
       if(esAdmin){metaTxt(r.meta);admin()}
       if(!r.datos){
-        if(esAdmin){gate.hidden=true;document.getElementById('pub').hidden=true;document.getElementById('admin').hidden=false;document.getElementById('va').setAttribute('aria-pressed','true');document.getElementById('vp').setAttribute('aria-pressed','false');var nd=document.getElementById('nodata'),vp=document.getElementById('vp'),va=document.getElementById('va');
-        function vNoData(a){nd.hidden=a;document.getElementById('admin').hidden=!a;vp.setAttribute('aria-pressed',String(!a));va.setAttribute('aria-pressed',String(a))}
-        vp.onclick=function(){vNoData(false)};va.onclick=function(){vNoData(true)};
+        if(esAdmin){gate.hidden=true;document.getElementById('pub').hidden=true;var nd=document.getElementById('nodata'),va=document.getElementById('va'),ad=document.getElementById('admin');nd.hidden=false;ad.hidden=true;
+        va.onclick=function(){var a=ad.hidden;ad.hidden=!a;nd.hidden=a;va.setAttribute('aria-pressed',String(a))};
         document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
       window.__D=r.datos;window.__PER=r.meta&&r.meta.periodo;gate.hidden=true;
       document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);
-      if(esAdmin&&window.__vistaInit)window.__vistaInit();
+      if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
   }).catch(function(e){
     if(e.message==='fuera')msg('Ábrelo desde el Portal','Este módulo se abre desde el Portal ENAP (Estadística › Generación de Antigüedades) con tu sesión institucional.');
