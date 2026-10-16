@@ -542,7 +542,7 @@ function chart(h){
 function notas(h){
   if(!h||!h.length) return '';
   const c=v=>`<td class="${v!=null&&v<6?'lo':''}">${f3(v)}</td>`;
-  return `<table class="gt"><thead><tr><th>Semestre</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':b[0]}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('')+`</tbody></table>`;
+  return `<table class="gt"><thead><tr><th>Semestre</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('')+`</tbody></table>`;
 }
 function radar(s,avg){
   const ax=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
