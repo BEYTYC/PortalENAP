@@ -220,7 +220,6 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </sc-if>
 </div>
 </sc-if>
-<button class="x" onClick="{{ toAna }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;border:0;background:linear-gradient(135deg,#7C5CD6,#2F6FE0);color:#fff;font-size:12.5px;font-weight:700;cursor:pointer;order:99">Ver analítica ›</button>
 <sc-if value="{{ noChips }}" hint-placeholder-val="{{ true }}"><span style="font-size:12.5px;color:#6B7A94">Sin filtros: se muestran todos los registros</span></sc-if>
 <sc-for list="{{ chips }}" as="c" hint-placeholder-count="0"><button class="x" onClick="{{ c.go }}" style="display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1px solid #9DBBF2;background:#E6EEFC;color:#1D3F9E;font-size:12.5px;font-weight:600;cursor:pointer">{{ c.label }}<span aria-hidden="true" style="font-size:14px;line-height:1">×</span></button></sc-for>
 </div>
@@ -239,6 +238,8 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </sc-for>
 </div>
 
+<div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:4px;display:flex;flex-direction:column;gap:18px">
+<div style="flex:none;height:max(560px,calc(100vh - 330px));display:flex;flex-direction:column;min-height:0">
 <!-- ============ GENERAL ============ -->
 <sc-if value="{{ pGeneral }}" hint-placeholder-val="{{ true }}">
 <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px">
@@ -789,13 +790,14 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 
 </div>
 </sc-if>
+</div>
 <!-- ============ ANALITICA ============ -->
-<sc-if value="{{ pAnalitica }}" hint-placeholder-val="{{ false }}">
-<div style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-right:4px">
+<sc-if value="{{ pAnalitica }}" hint-placeholder-val="{{ true }}">
+<div style="flex:none">
 <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:auto;gap:14px;padding-bottom:6px">
 
 <div style="grid-column:span 12;display:flex;flex-direction:column;gap:10px">
-<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="x" onClick="{{ toData }}" style="padding:5px 12px;border-radius:999px;border:1px solid #D5DCE8;background:#fff;color:#0C2050;font-size:12px;font-weight:700;cursor:pointer">‹ Volver a los datos</button><span style="font-size:14px;font-weight:700;color:#0C2050">Analítica · {{ topicName }}</span><span style="font-size:12px;font-weight:600;color:#6B7A94">Ingresos desde:</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span><span style="font-size:11.5px;font-weight:600;color:#1D4FD8">Pasa el cursor sobre cada gráfica para ver cómo leerla y qué muestra.</span></div>
+<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="font-size:15px;font-weight:700;color:#0C2050">Analítica · {{ topicName }}</span><span style="font-size:12px;font-weight:600;color:#6B7A94">Ingresos desde:</span><sc-for list="{{ frBtns }}" as="b" hint-placeholder-count="3"><button class="x" onClick="{{ b.go }}" style="{{ b.style }}">{{ b.label }}</button></sc-for><span style="font-size:11.5px;color:#6B7A94">{{ frNote }}</span><span style="font-size:11.5px;font-weight:600;color:#1D4FD8">Pasa el cursor sobre cada gráfica para ver cómo leerla y qué muestra.</span></div>
 <div style="{{ sh.sum }};padding:14px 18px;border-radius:18px;background:linear-gradient(135deg,#0C2050,#1D4FD8);color:#fff"><div style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;opacity:.8">Lo que dicen los datos</div><div style="margin-top:8px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 28px"><sc-for list="{{ summary }}" as="x" hint-placeholder-count="5"><div style="display:flex;gap:8px;font-size:13px;line-height:1.4"><span style="flex:none;margin-top:6px;width:6px;height:6px;border-radius:50%;background:#7FC8FF"></span><span>{{ x.t }}</span></div></sc-for></div></div>
 </div>
 
@@ -1032,6 +1034,7 @@ button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
 </div>
 </div>
 </sc-if>
+</div>
 
 </main>
 </div>
@@ -1675,7 +1678,7 @@ class Component extends DCLogic {
         exs(kp('Extranjeros', '#7C5CD6', nExt, null, fr(nExt.t, allC.t), ''), ['% de los ingresos', rate(nExt.t, allC.t)], [ 'Principal país', topPais ])
       ];
       const CK = ['ing', 'esc', 'ret', 'act', 'ext'];
-      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => this.setState({ view: on ? 'datos' : 'ana', f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
+      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => this.setState({ f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
     } else if (tab === 'programas') {
       kpis = [
         kp('Estudiantes', '#0C2050', all, null, total > 0 ? 1 : 0, '10–19: ' + fmt(ia) + ' vs ' + fmt(ib)),
@@ -2463,7 +2466,7 @@ class Component extends DCLogic {
       railGen: railGen, railOther: !railGen, espOptions: espOptions, edLabel: edLabel, edSub: edSub, edBtnStyle: edBtnStyle, edOpen: this.state.ed, edToggle: () => this.setState({ rd: false, pd: false, cd: false, ed: !this.state.ed }),
       cdOptions: cdOptions, cdQuery: this.state.cq, cdSearch: (e) => this.setState({ cq: (e && e.target ? e.target.value : '') }), cdNone: cdNone, cdLabel: cdLabel, cdSub: cdSub, cdBtnStyle: cdBtnStyle, cdOpen: this.state.cd, cdToggle: () => this.setState({ rd: false, pd: false, ed: false, cd: !this.state.cd, cq: '' }), dataNote: 'En construcción · cifras preliminares',
       pdRows: pdRows, pdLabel: pdLabel, pdSub: pdSub, pdBtnStyle: pdBtnStyle, pdOpen: this.state.pd, pdToggle: () => this.setState({ rd: false, ed: false, cd: false, pd: !this.state.pd }), pdClear: () => setPeriods([]),
-      pGeneral: !AX.v.ana && tab === 'general' && f.card !== 'ret' && f.card !== 'esc', pGraduados: !AX.v.ana && (tab === 'graduados' || (tab === 'general' && f.card === 'esc')), pRetiros: !AX.v.ana && (tab === 'retiros' || (tab === 'general' && f.card === 'ret')), pConcesiones: !AX.v.ana && tab === 'concesiones', pReconoc: !AX.v.ana && tab === 'reconoc', pFormacion: !AX.v.ana && tab === 'formacion', pProgramas: !AX.v.ana && tab === 'programas', pAnalitica: AX.v.ana, showAside: !AX.v.ana, showChips: !AX.v.ana, ...AX.v,
+      pGeneral: tab === 'general' && f.card !== 'ret' && f.card !== 'esc', pGraduados: (tab === 'graduados' || (tab === 'general' && f.card === 'esc')), pRetiros: (tab === 'retiros' || (tab === 'general' && f.card === 'ret')), pConcesiones: tab === 'concesiones', pReconoc: tab === 'reconoc', pFormacion: tab === 'formacion', pProgramas: tab === 'programas', pAnalitica: true, showAside: true, showChips: true, ...AX.v,
       ddOpen: this.state.dd, ddToggle: () => this.setState({ dd: !this.state.dd }), ddOptions: ddOptions, ddLabel: progNombre, progNombre: progNombre,
       chips: chipDefs, noChips: chipDefs.length === 0,
       countTxt: fmt(total) + ' de ' + fmt(data.length),
