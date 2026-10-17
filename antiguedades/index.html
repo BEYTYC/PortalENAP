@@ -668,6 +668,10 @@ body:not(.has-gear) .back{right:6px!important}
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
+/* Mercantes que figuran también en Naval/Infante (cambiaron de programa): solo cuentan como mercantes; se renumera el puesto del resto */
+(function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
+  const out=s=>M.has(s.c)||M.has(s.ce),fix=a=>{const n=a.filter(s=>!out(s));if(n.length!==a.length)n.filter(s=>s.p!=null).sort((x,y)=>x.p-y.p).forEach((s,i)=>{s.p=i+1});return n};
+  Object.keys(D.sheets).forEach(k=>{if(k!=='MER')D.sheets[k]=fix(D.sheets[k])});if(D.esc)D.esc=fix(D.esc)})();
 /* el semestre repetido (sufijo A) va justo arriba del semestre definitivo */
 (function(){const fix=s=>{const h=s&&s.h;if(!h)return;for(let i=1;i<h.length;i++)if(h[i][0]===h[i-1][0]+'A'){const x=h[i];h[i]=h[i-1];h[i-1]=x}};
 Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEach(fix)})();
@@ -1195,18 +1199,19 @@ function armarBD(E,D,quien){
     var lista=k==='ESC'?D.esc:D.sheets[k],ix=(k==='ESC'||k==='MER')?D.order.length-1:D.order.indexOf(k),bloques=[];
     for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
       if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
+    var isM=k==='MER',nF=isM?6:7,nP=isM?1:5,wS=isM?1:4;
     var conPf=(k==='4.1'||k==='4.2'||k==='ESC')&&lista.some(function(s){return s.pf!=null});
-    var ws=wb.addWorksheet(k==='ESC'?'Escalafonamiento 4.2':lb(k),{views:[{state:'frozen',xSplit:7,ySplit:4,showGridLines:false}]});
+    var ws=wb.addWorksheet(k==='ESC'?'Escalafonamiento 4.2':lb(k),{views:[{state:'frozen',xSplit:nF,ySplit:4,showGridLines:false}]});
     var n=lista.length,last=n+4;
-    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n2026-1',13],['CÓDIGO',14],['CÉDULA',14],['GRADO',12],['APELLIDOS Y NOMBRES',44]];
+    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n2026-1',13],['CÓDIGO',14],['CÉDULA',14],['GRADO',12],['APELLIDOS Y NOMBRES',44]];if(isM)fijas.splice(5,1);
     fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
     var grupos=[]; // {c0,c1,titulo,tipo}
-    grupos.push({c0:1,c1:7,tipo:'fija'});
-    grupos.push({c0:8,c1:12,tipo:'prom'});for(var q=8;q<=12;q++)ws.getColumn(q).width=11;ws.getColumn(13).width=3.5;
-    var c=14;
-    bloques.forEach(function(cod){grupos.push({c0:c,c1:c+3,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<4;j++){ws.getColumn(c+j).width=13;ws.getColumn(c+j).outlineLevel=1}ws.getColumn(c+4).width=3.5;ws.getColumn(c+4).outlineLevel=1;c+=5});
+    grupos.push({c0:1,c1:nF,tipo:'fija'});
+    grupos.push({c0:nF+1,c1:nF+nP,tipo:'prom'});for(var q=nF+1;q<=nF+nP;q++)ws.getColumn(q).width=11;ws.getColumn(nF+nP+1).width=3.5;
+    var c=nF+nP+2;
+    bloques.forEach(function(cod){grupos.push({c0:c,c1:c+wS-1,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<wS;j++){ws.getColumn(c+j).width=13;ws.getColumn(c+j).outlineLevel=1}ws.getColumn(c+wS).width=3.5;ws.getColumn(c+wS).outlineLevel=1;c+=wS+1});
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
-    var cUlt=conPf?cPf:(bloques.length?c-2:13);
+    var cUlt=conPf?cPf:(bloques.length?c-2:nF+nP+1);
     // título y fecha
     ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2':k==='MER'?'Mercantes':'Curso '+lb(k));a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
@@ -1222,26 +1227,26 @@ function armarBD(E,D,quien){
     });
     if(cPf){var x=celda(3,cPf,'PONDERACIÓN',{b:1,fc:AZ,fill:'FFB7D1EE'});bd(x,true,true,true,false)}
     // fila 4
-    var enc=['PUESTO','ESTADO','CURSO\n2026-1','CÓDIGO','CÉDULA','GRADO','APELLIDOS Y NOMBRES'];
-    enc.forEach(function(t,i){var x=celda(4,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2,h:i===6?'left':'center'});bd(x,i===0,i===6,false,false)});
-    ['ACAD','APT. NAV','DISCIP','C.FIS','PROMEDIO FINAL'].forEach(function(t,i){var x=celda(4,8+i,t,{b:1,fc:'FFFFFFFF',fill:i===4?BL:'FF5AA2EA',w:1});bd(x,i===0,i===4,false,false)});
-    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')['ACAD','AN','DISC','C.FIS'].forEach(function(t,i){var x=celda(4,g.c0+i,t,{b:1,fc:AZ,fill:'FFDCE9F7'});bd(x,i===0,i===3,false,false)})});
+    var enc=['PUESTO','ESTADO','CURSO\n2026-1','CÓDIGO','CÉDULA','GRADO','APELLIDOS Y NOMBRES'];if(isM)enc.splice(5,1);
+    enc.forEach(function(t,i){var x=celda(4,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2,h:i===nF-1?'left':'center'});bd(x,i===0,i===nF-1,false,false)});
+    (isM?['PROMEDIO ACADÉMICO']:['ACAD','APT. NAV','DISCIP','C.FIS','PROMEDIO FINAL']).forEach(function(t,i){var x=celda(4,nF+1+i,t,{b:1,fc:'FFFFFFFF',fill:i===nP-1?BL:'FF5AA2EA',w:1});bd(x,i===0,i===nP-1,false,false)});
+    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')(isM?['ACAD']:['ACAD','AN','DISC','C.FIS']).forEach(function(t,i){var x=celda(4,g.c0+i,t,{b:1,fc:AZ,fill:'FFDCE9F7'});bd(x,i===0,i===wS-1,false,false)})});
     if(cPf){var y=celda(4,cPf,'FACTOR DE PONDERACIÓN',{b:1,fc:AZ,fill:'FFDCE9F7',w:1});bd(y,true,true,false,false)}
     // datos
     lista.forEach(function(s,i){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Reprobado':s.e,s.cu,s.c,s.ce,s.g,s.n];
-      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===6?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
-      [acp(s),s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Reprobado':s.e,s.cu,s.c,s.ce,s.g,s.n];if(isM)vals.splice(5,1);
+      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===nF-1?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
+      (isM?[acp(s)]:[acp(s),s.an,s.di,s.cf,s.f]).forEach(function(v,j){var x=celda(r,nF+1+j,r3(v),{b:j===nP-1,fc:'FF14304F',fill:j===nP-1?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===nP-1,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
         var h=s.h.filter(function(z){return z[0]===g.cod})[0];
-        for(var j=0;j<4;j++){var x=celda(r,g.c0+j,h?r3(h[1+j]):null,{nf:'0.000',fill:g.tipo==='rep'?'FFFEF3C7':null});bd(x,j===0,j===3,false,u)}});
+        for(var j=0;j<wS;j++){var x=celda(r,g.c0+j,h?r3(h[1+j]):null,{nf:'0.000',fill:g.tipo==='rep'?'FFFEF3C7':null});bd(x,j===0,j===wS-1,false,u)}});
       if(cPf){var x2=celda(r,cPf,r3(s.pf),{nf:'0.000'});bd(x2,true,true,false,u)}
     });
-    ws.autoFilter={from:{row:4,column:1},to:{row:last,column:12}};
+    ws.autoFilter={from:{row:4,column:1},to:{row:last,column:nF+nP}};
     var rojo={type:'cellIs',operator:'lessThan',formulae:[6],style:{font:{bold:true,color:{argb:'FFD32F2F'}}}};
-    var rangos=[];for(var cc=8;cc<=12;cc++)rangos.push(cc);
-    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')for(var j=0;j<4;j++)rangos.push(g.c0+j)});
+    var rangos=[];for(var cc=nF+1;cc<=nF+nP;cc++)rangos.push(cc);
+    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')for(var j=0;j<wS;j++)rangos.push(g.c0+j)});
     rangos.forEach(function(cc){ws.addConditionalFormatting({ref:col(cc)+'5:'+col(cc)+last,rules:[rojo]})});
   });
   function reconocimiento(nombre,flag,titulo){
@@ -1255,7 +1260,7 @@ function armarBD(E,D,quien){
     var r=5,nn=0;
     var lotes=D.order.map(function(k){return [k,D.sheets[k]]});lotes.push(['ESC',D.esc||[]]);if(D.sheets.MER)lotes.push(['MER',D.sheets.MER]);var vistos={};
     lotes.forEach(function(lt){var k=lt[0];lt[1].filter(function(s){return s[flag]&&!vistos[s.c]}).forEach(function(s){vistos[s.c]=1;
-      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(acp(s)),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
+      nn++;var v=[nn,s.cu||k,k==='MER'?null:s.g,s.n,s.c,s.ce,r3(acp(s)),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
       v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
