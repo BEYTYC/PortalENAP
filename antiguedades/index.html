@@ -784,11 +784,11 @@ function armarBD(E,D,quien){
     var conPf=(k==='4.1'||k==='4.2')&&lista.some(function(s){return s.pf!=null});
     var ws=wb.addWorksheet(k,{views:[{state:'frozen',xSplit:7,ySplit:4,showGridLines:false}]});
     var n=lista.length,last=n+4;
-    var fijas=[['PUESTO',11],['ESTADO',13],['CURSO\n2026-1',10],['CÓDIGO',13],['CÉDULA',13],['GRADO',11],['APELLIDOS Y NOMBRES',42]];
+    var fijas=[['PUESTO',14],['ESTADO',14],['CURSO\n2026-1',13],['CÓDIGO',14],['CÉDULA',14],['GRADO',12],['APELLIDOS Y NOMBRES',44]];
     fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
     var grupos=[]; // {c0,c1,titulo,tipo}
     grupos.push({c0:1,c1:7,tipo:'fija'});
-    grupos.push({c0:8,c1:12,tipo:'prom'});ws.getColumn(13).width=3.5;
+    grupos.push({c0:8,c1:12,tipo:'prom'});for(var q=8;q<=12;q++)ws.getColumn(q).width=q===12?17:15;ws.getColumn(13).width=3.5;
     var c=14;
     bloques.forEach(function(cod){grupos.push({c0:c,c1:c+3,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<4;j++){ws.getColumn(c+j).width=13;ws.getColumn(c+j).outlineLevel=1}ws.getColumn(c+4).width=3.5;ws.getColumn(c+4).outlineLevel=1;c+=5});
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
@@ -817,7 +817,7 @@ function armarBD(E,D,quien){
     lista.forEach(function(s,i){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
       var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e,s.cu,s.c,s.ce,s.g,s.n];
-      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===6?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
+      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
       [s.as,s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
         var h=s.h.filter(function(z){return z[0]===g.cod})[0];
@@ -841,7 +841,7 @@ function armarBD(E,D,quien){
     var r=5;
     D.order.forEach(function(k){D.sheets[k].filter(function(s){return s[flag]}).forEach(function(s){
       var v=[k,s.p,s.g,s.n,s.c,s.ce,s.cu,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
-      v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===11};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=7)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
+      v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===11};x.alignment={horizontal:'center',vertical:'middle'};if(j>=7)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
       ws.autoFilter={from:{row:4,column:1},to:{row:r-1,column:cols.length}};
