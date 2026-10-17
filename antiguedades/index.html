@@ -631,6 +631,7 @@ body:not(.has-gear) .back{right:6px!important}
 #msub .chip{font-weight:400!important}
 /* las gráficas se animan por JS (llenado y conteo) */
 .charts svg rect[rx],.charts svg line[stroke-linecap]{animation:none!important}
+.k small.dl.eq{color:#6B7D99!important;font-weight:400!important;font-size:11.5px!important;white-space:normal!important;line-height:1.25!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -893,8 +894,11 @@ function render(){
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
-      const dl=(v,g)=>{const d=v-g,up=d>=0;return `<small class="dl ${up?'up':'dn'}" title="Frente al promedio general de todos los cursos">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/g*100).toFixed(1).replace('.',',')}%) vs. gral.</small>`};
-      const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f]):''}</div>`;
+      const W=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null,IX={ac:1,an:2,di:3,cf:4};
+      const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const c=h[h.length-1],p=h[h.length-2];if(!c||!p||String(p[0]).endsWith('A'))return;PP.push({c,p})});
+      const dl=(v,g,f)=>{const fn=f==='f'?W:r=>r[IX[f]];const pr=PP.map(x=>[fn(x.c),fn(x.p)]).filter(x=>x[0]!=null&&x[1]!=null);if(!pr.length)return '';const d=mean(pr.map(x=>x[0]))-mean(pr.map(x=>x[1])),up=d>=0,t=Math.abs(d).toFixed(3).replace('.',',');
+        return Math.abs(d)<0.1?`<small class="dl eq" title="${up?'+':'−'}${t} vs. 2025-2">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Frente al periodo anterior de los mismos estudiantes">${up?'▲ +':'▼ −'}${t} vs. 2025-2</small>`};
+      const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f],f):''}</div>`;
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Prom. semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
