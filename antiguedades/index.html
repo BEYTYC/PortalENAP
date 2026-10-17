@@ -629,6 +629,8 @@ body:not(.has-gear) .back{right:6px!important}
 #fsper .pp b{font-weight:700;color:var(--navy,#1B4688);letter-spacing:.04em}
 #pub.one #fsper{display:none!important}
 #msub .chip{font-weight:400!important}
+/* las gráficas se animan por JS (llenado y conteo) */
+.charts svg rect[rx],.charts svg line[stroke-linecap]{animation:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -792,6 +794,37 @@ function svgScatter(pts,o){ // dispersión: pts [{x,y,t}] t=0 normal,1 distingui
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function hbars(items,o){ // [{l,v,n}] barras horizontales con escala o.min–o.max
   return `<div class="hb">${items.map(it=>`<div class="hr"><span>${it.l}<small>${it.n!=null?it.n+' est.':''}</small></span><i><b style="width:${Math.max(2,(it.v-o.min)/(o.max-o.min)*100)}%"></b></i><em>${o.fmt(it.v)}</em></div>`).join('')}</div>`}
+const _cv={};
+function animCharts(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const bars=[],txts=[],paths=[],fades=[];
+  document.querySelectorAll('#charts .card').forEach((card,ci)=>{
+    const svg=card.querySelector('svg');if(!svg)return;
+    const sig='s'+ci,same=_cv[sig]===svg.innerHTML;_cv[sig]=svg.innerHTML;
+    let ri=0,last=null;
+    [...svg.children].forEach(el=>{
+      const tag=el.tagName.toLowerCase();
+      if(tag==='rect'&&el.hasAttribute('rx')&&+el.getAttribute('y')<240){
+        const y=+el.getAttribute('y'),h=+el.getAttribute('height'),key=ci+':'+ri++,to={y,h},from=_cv[key]||{y:y+h,h:0};_cv[key]=to;last=null;
+        if(from.y===to.y&&from.h===to.h)return;
+        el.setAttribute('y',from.y);el.setAttribute('height',from.h);last={el,from,to};bars.push(last)}
+      else if(tag==='text'&&last&&/^\d+(,\d+)?$/.test(el.textContent.trim())&&Math.abs(+el.getAttribute('y')-last.to.y)<14){
+        const raw=el.textContent.trim(),dec=raw.includes(',')?raw.split(',')[1].length:0,tv=parseFloat(raw.replace(',','.')),off=+el.getAttribute('y')-last.to.y;
+        txts.push({el,last,off,tv,dec});el.textContent=dec?(0).toFixed(dec).replace('.',','):'0';last=last}
+      else if(!same&&tag==='path'){
+        if(el.getAttribute('fill')==='none'){el.setAttribute('pathLength','1');el.style.strokeDasharray='1';el.style.strokeDashoffset='1';paths.push(el)}
+        else{el.style.opacity='0';fades.push({el,a:.08,d:0})}}
+      else if(!same&&(tag==='circle'||tag==='line'&&el.getAttribute('stroke')==='#E8B13A')){el.style.opacity='0';fades.push({el,a:1,d:.6})}
+    })});
+  if(!bars.length&&!paths.length&&!fades.length)return;
+  const t0=performance.now(),D=900,ez=t=>1-Math.pow(1-t,3);
+  const step=n=>{const t=Math.min(1,(n-t0)/D),e=ez(t);
+    bars.forEach(b=>{const y=b.from.y+(b.to.y-b.from.y)*e,h=b.from.h+(b.to.h-b.from.h)*e;b.el.setAttribute('y',y);b.el.setAttribute('height',Math.max(0,h))});
+    txts.forEach(x=>{x.el.setAttribute('y',(+x.last.el.getAttribute('y'))+x.off);const v=x.tv*e;x.el.textContent=x.dec?v.toFixed(x.dec).replace('.',','):String(Math.round(v))});
+    paths.forEach(p=>{p.style.strokeDashoffset=String(1-e)});
+    fades.forEach(f=>{f.el.style.opacity=String(f.a*Math.max(0,(t-f.d)/(1-f.d||1)))});
+    if(t<1)requestAnimationFrame(step);else{paths.forEach(p=>{p.style.strokeDasharray='';p.style.strokeDashoffset=''});fades.forEach(f=>{f.el.style.opacity=''})}};
+  requestAnimationFrame(step)}
 function totRender(){
   const seen=new Set(),A=[];
   [...ORD,'ESC','MER'].forEach(k=>ls(k).forEach((s,i)=>{const id=s.c!=null?s.c:(s.ce!=null?s.ce:s.n);if(seen.has(id))return;seen.add(id);A.push([s,k,i])}));
@@ -837,6 +870,7 @@ function totRender(){
   const pts=A.filter(a=>a[0].ac!=null&&a[0].an!=null).map(([s])=>({x:s.ac,y:s.an,t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · AN '+f3(s.an)}));
   const c6=`<div class="card ch an"><h3>Académica frente a aptitud naval</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:'Aptitud naval'})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen aptitud naval.</p></div>`;
   document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6;
+  requestAnimationFrame(animCharts);
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
 }
