@@ -384,10 +384,13 @@ body.has-dl .bar{padding-right:44px}body.has-gear .bar{padding-right:44px}body.h
 .bar .chips{min-height:48px;box-sizing:border-box;align-items:center}
 .bar input[type=search]{height:48px;box-sizing:border-box;padding:0 18px!important}
 
-body:has(#admin:not([hidden])) .adm{max-width:720px;margin-inline:auto;grid-template-columns:minmax(0,1fr)!important}
 body:has(#admin:not([hidden])) .mtool .vt .gearb{position:fixed;top:12px;right:16px}
 body:has(#admin:not([hidden])) .dlb{position:fixed;top:12px;right:60px}
 .mtool .vt .gearb[aria-pressed="true"]{color:var(--navy)!important;border-color:var(--navy)!important}
+
+body:has(#admin:not([hidden])) .adm{max-width:1000px;margin-inline:auto;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px}
+.adm .card{min-width:0;overflow:hidden}.adm .card .row,.adm .card form{flex-wrap:wrap}.adm input[type=text],.adm input[type=email],.adm input:not([type]){min-width:0}.adm table{width:100%;table-layout:auto}.adm .card input[type=file]{max-width:100%;min-width:0}
+.adm .frm{flex-wrap:wrap}.adm .frm input{flex:1 1 160px;min-width:0}.adm .btn{white-space:normal}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
