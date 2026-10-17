@@ -844,20 +844,20 @@ function armarBD(E,D,quien){
   });
   function reconocimiento(nombre,flag,titulo){
     var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:4,showGridLines:false}]});
-    var cols=[['SEMESTRE',11],['PUESTO',9],['GRADO',9],['APELLIDOS Y NOMBRES',42],['CÓDIGO',13],['CÉDULA',13],['CURSO',10],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
+    var cols=[['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CURSO',11],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
     ws.mergeCellsWithoutStyle(1,1,1,cols.length);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(4).height=32;
-    cols.forEach(function(c,i){var x=ws.getCell(4,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:i>=7&&i<=10?'FFFFFFFF':AZ}};fill(x,i===11?BL:(i>=7&&i<=10?'FF5AA2EA':'FFDCE9F7'));x.alignment={horizontal:'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,false,false)});
+    cols.forEach(function(c,i){var x=ws.getCell(4,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:AZ}};fill(x,'FFDCE9F7');x.alignment={horizontal:i===2?'left':'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,true,false)});
     var r=5;
     D.order.forEach(function(k){D.sheets[k].filter(function(s){return s[flag]}).forEach(function(s){
-      var v=[k,s.p,s.g,s.n,s.c,s.ce,s.cu,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
-      v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===11};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=7)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
+      var v=[k,s.g,s.n,s.c,s.ce,s.cu,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
+      v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===2?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===4)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
       ws.autoFilter={from:{row:4,column:1},to:{row:r-1,column:cols.length}};
-      ws.addConditionalFormatting({ref:'H5:L'+(r-1),rules:[{type:'cellIs',operator:'lessThan',formulae:[6],style:{font:{bold:true,color:{argb:'FFD32F2F'}}}}]})}
+      ws.addConditionalFormatting({ref:'G5:K'+(r-1),rules:[{type:'cellIs',operator:'lessThan',formulae:[6],style:{font:{bold:true,color:{argb:'FFD32F2F'}}}}]})}
     else{ws.getCell(5,1).value='Sin registros.';ws.getCell(5,1).font={name:FN,size:10,italic:true}}}
   reconocimiento('Distinguidos','dis','Alumnos distinguidos');
   reconocimiento('Excelencia académica','exc','Excelencia académica');
