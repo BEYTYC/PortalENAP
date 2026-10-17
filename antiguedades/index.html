@@ -411,6 +411,12 @@ body:has(#admin:not([hidden])) .adm{max-width:1360px}
 .adm .at{font-size:12px}.adm .at th,.adm .at td{padding-left:5px;padding-right:5px;white-space:nowrap!important}
 .adm .at td:first-child{overflow:hidden;text-overflow:ellipsis;max-width:250px}
 .pd .mdw{display:block;line-height:0;margin-bottom:3px}.pd .md{width:26px;height:31px;display:inline-block}
+.credfs{display:none}
+:root:fullscreen,:root:fullscreen body,:root.fsx,:root.fsx body{background:#F9FBFE!important}
+:root:fullscreen body::before,:root.fsx body::before{content:"";position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center/min(78vh,760px) no-repeat;opacity:.022;pointer-events:none;z-index:0}
+:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .chips,:root:fullscreen .card.stu,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .chips,:root.fsx .card.stu{background:transparent!important;box-shadow:none!important}
+:root:fullscreen .credfs,:root.fsx .credfs{display:block;position:relative;z-index:1;max-width:1240px;margin:22px auto 14px;padding-right:4px;text-align:right;font-size:12px;letter-spacing:.03em;color:var(--mute)}
+:root:fullscreen .credfs b,:root.fsx .credfs b{color:var(--navy);font-weight:600}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -465,7 +471,7 @@ function pv(s){
 }
 const _mc={};
 function mp(k){if(!(k in _mc)){const v=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f);_mc[k]=v.length?Math.max(0,Math.min(100,(v.reduce((a,b)=>a+b,0)/v.length-6)/4*100)):-9}return _mc[k]}
-const MEDAL='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><g fill="none" stroke="#1B4688" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="5" r="2.6"/><path d="M14 7.6V24.5"/><path d="M8.5 12h11"/><path d="M4.5 16.5c.8 4.5 4.8 7.5 9.5 7.5s8.7-3 9.5-7.5"/><path d="M2.8 18.2l1.7-1.7 2 1.9M25.2 18.2l-1.7-1.7-2 1.9"/></g></svg>',STAR='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 1.5l3.9 8.1 8.8 1.2-6.4 6.2 1.6 8.8L14 21.5l-7.9 4.3 1.6-8.8L1.3 10.8l8.8-1.2z" fill="#3F7FCB"/><path d="M14 7.2l1.9 4 4.4.6-3.2 3.1.8 4.4-3.9-2.1-3.9 2.1.8-4.4-3.2-3.1 4.4-.6z" fill="#fff" fill-opacity=".35"/></svg>';
+const MEDAL='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><g fill="none" stroke="#1B4688" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="5" r="2.6"/><path d="M14 7.6V24.5"/><path d="M8.5 12h11"/><path d="M4.5 16.5c.8 4.5 4.8 7.5 9.5 7.5s8.7-3 9.5-7.5"/><path d="M2.8 18.2l1.7-1.7 2 1.9M25.2 18.2l-1.7-1.7-2 1.9"/></g></svg>',STAR='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 4L1.5 10.5 14 17l12.5-6.5z" fill="#3F7FCB"/><path d="M7 14.2v5.3c0 1.8 3.1 3.5 7 3.5s7-1.7 7-3.5v-5.3L14 18z" fill="#2F68B5"/><path d="M25 11.5v7" stroke="#3F7FCB" stroke-width="1.8" stroke-linecap="round"/><circle cx="25" cy="20" r="1.6" fill="#3F7FCB"/></svg>';
 const MED3=[['#E8B13A','#B9801C','#FFF3C4'],['#C5CDD8','#8392A6','#F4F7FA'],['#D79A62','#9A5A24','#F6DCC2']].map(c=>`<svg class="mi md" viewBox="0 0 28 34" aria-hidden="true"><path d="M6 0h6l3 11-5 2z" fill="#2F68B5"/><path d="M22 0h-6l-3 11 5 2z" fill="#1B4688"/><circle cx="14" cy="21" r="10.5" fill="${c[0]}" stroke="${c[1]}" stroke-width="1"/><circle cx="14" cy="21" r="7.4" fill="none" stroke="${c[2]}" stroke-opacity=".8" stroke-width="1"/><path d="M14 15.6l1.6 3.4 3.7.5-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.5z" fill="${c[2]}"/></svg>`);
 function ic(s){return (s.dis?'<span class="ic" title="Alumno distinguido">'+MEDAL+'</span>':'')+(s.exc?'<span class="ic" title="Excelencia académica">'+STAR+'</span>':'')}
 function nvb(s){return s.e&&s.e!=='Normal'?`<span class="nvb">${s.e}</span>`:''}
@@ -908,4 +914,4 @@ document.addEventListener('fullscreenchange',pinta);
 if(!document.documentElement.requestFullscreen)b.hidden=true})();
 
 </script>
-</body></html>
+<div class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</div></body></html>
