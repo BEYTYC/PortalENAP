@@ -864,13 +864,15 @@ function totRender(){
   const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
   // periodo de trabajo (2026-1) frente al periodo anterior (2025-2), con las mismas personas
   const nL='2026-1',nP='2025-2',W5=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null;
-  const PV=[];S.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PV.push(p)});
+  const PV=[];S.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PV.push({p,s})});
   const nB=PV.length,IXT={ac:1,an:2,di:3,cf:4};
   const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
-  const dlt=(key,agg)=>{const cu=L.map(s=>s[key]).filter(v=>v!=null),fn=key==='f'?W5:r=>r[IXT[key]],pv=PV.map(fn).filter(v=>v!=null);if(cu.length<3||pv.length<3)return '';
+  const dlt=(key,agg,who)=>{const cu=L.map(s=>s[key]).filter(v=>v!=null),fn=key==='f'?W5:r=>r[IXT[key]],pv=PV.map(x=>fn(x.p)).filter(v=>v!=null);if(cu.length<3||pv.length<3)return '';
     const A1=agg(cu),B1=agg(pv),d=A1-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-    return `${Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. ${nP}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
-  const cmp=f=>f==='f'?dlt('f',mA):f==='med'?dlt('f',mD):f==='max'?dlt('f',a=>Math.max(...a)):f==='min'?dlt('f',a=>Math.min(...a)):dlt(f,mA);
+    let ti=`${who?(who==='max'?'Mejor promedio':'Promedio más bajo'):'Promedio'} ${nP}: ${f3(B1)}`;if(who){const e=PV.map(x=>[fn(x.p),x.s]).filter(x=>x[0]!=null).sort((a,b)=>who==='max'?b[0]-a[0]:a[0]-b[0])[0];if(e)ti+=` · ${e[1].g?e[1].g+' ':''}${e[1].n}`}
+    ti=ti.replace(/"/g,'&quot;');
+    return `${Math.abs(d/B1)<0.02?`<small class="dl eq" title="${ti}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}" title="${ti}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
+  const cmp=f=>f==='f'?dlt('f',mA):f==='med'?dlt('f',mD):f==='max'?dlt('f',a=>Math.max(...a),'max'):f==='min'?dlt('f',a=>Math.min(...a),'min'):dlt(f,mA);
   const kp=(n,v,sub,act)=>`<div class="k${act?' clk':''}"${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
   const pcs=(n,x)=>`<small class="dl pcn">${pc(n)} del total${x?' · ver lista':''}</small>`;
   document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length,`<small class="dl pcn">${nB} con ${nP}</small>`)+kp('Promedio general',f3(G),cmp('f'))+kp('Mediana',f3(med),cmp('med'))+kp('Mejor promedio',f3(fs[fs.length-1]),cmp('max'))+kp('Promedio más bajo',f3(fs[0]),cmp('min'))+kp('Con novedad',nN,pcs(nN))+kp('Prom. académico',f3(av('ac')),cmp('ac'))+kp('Prom. apt. naval',f3(av('an')),cmp('an'))+kp('Prom. disciplina',f3(av('di')),cmp('di'))+kp('Prom. cultura física',f3(av('cf')),cmp('cf'))+kp('Alumnos distinguidos',nD,pcs(nD,1),'dis')+kp('Excelencia académica',nE,pcs(nE,1),'exc');
@@ -927,7 +929,7 @@ function render(){
       const W=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null,IX={ac:1,an:2,di:3,cf:4};
       const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PP.push(p)});
       const dl=(v,g,f)=>{const fn=f==='f'?W:r=>r[IX[f]],pv=PP.map(fn).filter(x=>x!=null);if(pv.length<3)return '';const B1=mean(pv),d=v-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. 2025-2">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Frente al periodo anterior de los estudiantes de este semestre">${up?'▲ +':'▼ −'}${t} (${pp}) vs. 2025-2</small>`)};
+        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="Promedio 2025-2: ${f3(B1)}">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Promedio 2025-2: ${f3(B1)}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. 2025-2</small>`)};
       const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f],f):''}</div>`;
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Prom. semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
