@@ -831,9 +831,10 @@ function svgScatter(pts,o){ // dispersión: pts [{x,y,t}] t=0 normal,1 distingui
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function hbars(items,o){ // [{l,v,n}] barras horizontales con escala o.min–o.max
   return `<div class="hb">${items.map(it=>`<div class="hr"><span>${it.l}<small>${it.n!=null?it.n+' est.':''}</small></span><i><b style="width:${Math.max(2,(it.v-o.min)/(o.max-o.min)*100)}%"></b></i><em>${o.fmt(it.v)}</em></div>`).join('')}</div>`}
-const _cv={};
+const _cv={};let _vk=null;
 function animCharts(){
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const vk=[cur,sel&&(sel.c||sel.n),msem,q].join('|');if(vk!==_vk){Object.keys(_cv).forEach(k=>delete _cv[k]);_vk=vk}
   const bars=[],txts=[],paths=[],fades=[];
   const wx=(el,d)=>{try{el.style.transformBox='fill-box';el.style.transformOrigin='left center';el.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:750,delay:d||0,easing:'cubic-bezier(.22,.8,.3,1)',fill:'backwards'})}catch(e){}};
   document.querySelectorAll('#charts .card,#mr .card').forEach((card,ci)=>{
