@@ -776,10 +776,10 @@ function armarBD(E,D,quien){
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:13);
     // título y fecha
-    ws.mergeCells(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Escuela Naval de Cadetes «Almirante Padilla» · Semestre '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
-    var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'center'};
+    ws.mergeCells(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Escuela Naval de Cadetes «Almirante Padilla» · Semestre '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'middle'};ws.getRow(1).height=22;
+    var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(3).height=22;ws.getRow(4).height=32;
-    function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'center',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
+    function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'middle',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
     // fila 3
     grupos.forEach(function(g){
       if(g.tipo==='fija')return;
@@ -812,8 +812,28 @@ function armarBD(E,D,quien){
     grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')for(var j=0;j<4;j++)rangos.push(g.c0+j)});
     rangos.forEach(function(cc){ws.addConditionalFormatting({ref:col(cc)+'5:'+col(cc)+last,rules:[rojo]})});
   });
+  function reconocimiento(nombre,flag,titulo){
+    var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:4,showGridLines:false}]});
+    var cols=[['SEMESTRE',11],['PUESTO',9],['GRADO',9],['APELLIDOS Y NOMBRES',42],['CÓDIGO',13],['CÉDULA',13],['CURSO',10],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
+    cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
+    ws.mergeCells(1,1,1,cols.length);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Escuela Naval de Cadetes «Almirante Padilla» · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'middle'};ws.getRow(1).height=22;
+    var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
+    ws.getRow(4).height=32;
+    cols.forEach(function(c,i){var x=ws.getCell(4,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:i>=7&&i<=10?'FFFFFFFF':AZ}};fill(x,i===11?BL:(i>=7&&i<=10?'FF5AA2EA':'FFDCE9F7'));x.alignment={horizontal:'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,false,false)});
+    var r=5;
+    D.order.forEach(function(k){D.sheets[k].filter(function(s){return s[flag]}).forEach(function(s){
+      var v=[k,s.p,s.g,s.n,s.c,s.ce,s.cu,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
+      v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===11};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=7)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
+      ws.getRow(r).height=20;r++})});
+    if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
+      ws.autoFilter={from:{row:4,column:1},to:{row:r-1,column:cols.length}};
+      ws.addConditionalFormatting({ref:'H5:L'+(r-1),rules:[{type:'cellIs',operator:'lessThan',formulae:[6],style:{font:{bold:true,color:{argb:'FFD32F2F'}}}}]})}
+    else{ws.getCell(5,1).value='Sin registros.';ws.getCell(5,1).font={name:FN,size:10,italic:true}}}
+  reconocimiento('Distinguidos','dis','Alumnos distinguidos');
+  reconocimiento('Excelencia académica','exc','Excelencia académica');
   return wb;
 }
+
 
 var MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 var yo={correo:'',puede:false};
