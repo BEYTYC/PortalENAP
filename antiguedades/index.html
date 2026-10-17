@@ -746,7 +746,7 @@ function totRender(){
   const KS=[...ORD,'ESC','MER'],mm=(k,f)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);return a.length?mean(a):null};
   const labs=KS.map(k=>k==='ESC'?'Esc. 4.2':lab(k)).map(x=>x.replace(' (Rep)','R')),pf=KS.map(k=>mm(k,'f'));
   const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,refl:'General',tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
-  const KO=ORD.filter(k=>ls(k).length),lo=KO.map(k=>lab(k).replace(' (Rep)','R'));
+  const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>k==='ESC'?'Esc. 4.2':lab(k).replace(' (Rep)','R'));
   const cp=[['Académica','ac','#1B4688'],['Apt. naval','an','#3F7FCB'],['Disciplina','di','#E8B13A'],['C. física','cf','#2E9E6B']];
   const all4=cp.flatMap(([n,f])=>KO.map(k=>mm(k,f))).filter(v=>v!=null);
   const c2=`<div class="card ch an"><h3>Componentes por semestre</h3>${svgLines(lo,cp.map(([n,f,c])=>({n,c,v:KO.map(k=>mm(k,f))})),{min:Math.floor(Math.min(...all4)*2)/2,max:10})}<p class="cn">Promedio de cada componente en cada semestre.</p></div>`;
