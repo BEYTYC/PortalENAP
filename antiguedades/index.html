@@ -838,7 +838,7 @@ function totRender(){
   const PR=[];S.forEach(s=>{const h=s.h||[];if(h.length<2||s.e==='Aplazado')return;const c=h[h.length-1],p=h[h.length-2];if(!c||!p||String(p[0]).endsWith('A'))return;PR.push({c,p})});
   const dlt=(fn,agg,dec)=>{const a=[],b=[];PR.forEach(({c,p})=>{const x=fn(c),y=fn(p);if(x!=null&&y!=null){a.push(x);b.push(y)}});if(a.length<3)return '';
     const A1=agg(a),B1=agg(b),d=A1-B1,up=d>=0;
-    return `<small class="dl pcn">${nL}: <em>${f3(A1)}</em></small><small class="dl ${up?'up':'dn'}">${d===0?'＝':up?'▲ +':'▼ −'}${d===0?'':Math.abs(d).toFixed(3).replace('.',',')} vs. ${nP}</small>`};
+    return `<small class="dl pcn">${nL}: <em>${f3(A1)}</em></small>${Math.abs(d)<0.1?`<small class="dl eq" title="${up?'+':'−'}${Math.abs(d).toFixed(3).replace('.',',')} vs. ${nP}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} vs. ${nP}</small>`}`};
   const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
   const cmp=f=>f==='f'?dlt(W5,mA):f==='med'?dlt(W5,mD):f==='max'?dlt(W5,a=>Math.max(...a)):f==='min'?dlt(W5,a=>Math.min(...a)):dlt(r=>r[{ac:1,an:2,di:3,cf:4}[f]],mA);
   const kp=(n,v,sub,act)=>`<div class="k${act?' clk':''}"${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
