@@ -600,6 +600,8 @@ body:not(.has-gear) .back{right:6px!important}
 #pub:has(.k.clk) #kpi .k{min-width:0;height:100%}
 @media(max-width:1100px){#pub:has(.k.clk) #kpi{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:560px){#pub:has(.k.clk) #kpi{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* pestañas de semestre en negrita */
+.chip,.chip.esc{font-weight:700!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -744,9 +746,9 @@ function totRender(){
   document.querySelectorAll('.k.clk').forEach(t=>{const go=()=>{totSel=totSel===t.dataset.act?null:t.dataset.act;render()};t.onclick=go;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
   // gráficas
   const KS=[...ORD,'ESC','MER'],mm=(k,f)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);return a.length?mean(a):null};
-  const labs=KS.map(k=>k==='ESC'?'Esc. 4.2':lab(k)).map(x=>x.replace(' (Rep)','R')),pf=KS.map(k=>mm(k,'f'));
+  const labs=KS.map(k=>k==='ESC'?'4.2':lab(k)).map(x=>x.replace(' (Rep)','R')),pf=KS.map(k=>mm(k,'f'));
   const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,refl:'General',tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
-  const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>k==='ESC'?'Esc. 4.2':lab(k).replace(' (Rep)','R'));
+  const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'));
   const cp=[['Académica','ac','#1B4688'],['Apt. naval','an','#3F7FCB'],['Disciplina','di','#E8B13A'],['C. física','cf','#2E9E6B']];
   const all4=cp.flatMap(([n,f])=>KO.map(k=>mm(k,f))).filter(v=>v!=null);
   const c2=`<div class="card ch an"><h3>Componentes por semestre</h3>${svgLines(lo,cp.map(([n,f,c])=>({n,c,v:KO.map(k=>mm(k,f))})),{min:Math.floor(Math.min(...all4)*2)/2,max:10})}<p class="cn">Promedio de cada componente en cada semestre.</p></div>`;
@@ -761,7 +763,7 @@ function totRender(){
   const ne={};S.forEach(s=>{const e=s.e&&s.e!=='Normal'?s.e:null;if(e)ne[e]=(ne[e]||0)+1});
   const nv=Object.entries(ne).sort((a,b)=>b[1]-a[1]),nmx=Math.max(1,...nv.map(x=>x[1]));
   const c6=`<div class="card ch an"><h3>Promedio por grado</h3>${hbars(gg,{min:6,max:10,fmt:f3})}<h3 class="h3b">Novedades</h3><div class="hb">${nv.map(([n,c])=>`<div class="hr"><span>${n}</span><i><b style="width:${c/nmx*100}%"></b></i><em>${c}</em></div>`).join('')}</div></div>`;
-  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6;
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4;
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
 }
@@ -1051,7 +1053,7 @@ document.getElementById('vp').onclick=()=>vista(false);document.getElementById('
 
 
 </script>
-<script>(function(){var ok=function(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();
+<script>(function(){var ok=function(t){return window.__adm===true||(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();
 
 (function(){
 var gate=document.getElementById('gate'),gt=document.getElementById('gt'),gm=document.getElementById('gm');
@@ -1196,7 +1198,7 @@ function iniciar(){
   api('sesion').then(function(s){
     if(!s.rol){msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Solicítalo a la Oficina de Estadística.');return}
     return api('datos').then(function(r){
-      var esAdmin=s.rol==='ADMIN';yo.correo=s.correo;
+      var esAdmin=s.rol==='ADMIN';window.__adm=esAdmin;yo.correo=s.correo;
       if(!esAdmin)document.querySelector('.vt').hidden=true;
       if(esAdmin){metaTxt(r.meta);admin()}
       if(!r.datos){
