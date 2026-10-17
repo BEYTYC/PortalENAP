@@ -439,6 +439,18 @@ body .bar{padding-right:0!important}
 #nov .nt{flex:1;grid-auto-rows:1fr;margin-bottom:0}
 #nov .nb{display:flex;flex-direction:column;justify-content:center}
 :root:fullscreen .nb:not([aria-pressed="true"]),:root.fsx .nb:not([aria-pressed="true"]){background:transparent!important;border-color:transparent!important}
+
+/* podio de 5, de izquierda a derecha */
+.podio{grid-template-columns:repeat(5,minmax(0,118px))!important;gap:6px!important;justify-content:center}
+.pd .pb,.pd .pb span{width:96px}.pd .pb span{width:auto}
+.pd .mdw{min-height:22px}
+.podc .pd.p1 .pb{height:92px!important}.podc .pd.p2 .pb{height:78px!important}.podc .pd.p3 .pb{height:66px!important}.podc .pd.p4 .pb{height:54px!important}.podc .pd.p5 .pb{height:44px!important}
+.pd.p4 .pb,.pd.p5 .pb{background:linear-gradient(180deg,var(--navy),#2F68B5)!important;color:#fff!important}
+.podc .pd .nm1{font-size:9.5px!important}
+.podc .pd.p1 .pf,.podc .pd .pf{font-size:19px!important}
+
+/* podio: color más claro */
+.pd .pb,.pd.p1 .pb,.pd.p2 .pb,.pd.p3 .pb,.pd.p4 .pb,.pd.p5 .pb{background:linear-gradient(180deg,#6AA6E6,#4B8ADB)!important;color:#fff!important;box-shadow:0 8px 20px -12px rgba(63,127,207,.5)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -537,7 +549,7 @@ function render(){
     list=ls(cur);
     const ranked=list.filter(s=>s.e!=='Aplazado').sort((a,b)=>(a.p??1e9)-(b.p??1e9));
     const apl=list.filter(s=>s.e==='Aplazado');
-    {const top=cur==='1.1'?[]:ranked.slice(0,3),ord=[1,0,2].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':cur)+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="mdw">${MED3[x]}</span><span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}${ic(s)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${['1ro','2do','3ro'][x]}</span></div></div>`}).join('')+'</div>'}
+    {const top=cur==='1.1'?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':cur)+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="mdw">${MED3[x]||""}</span><span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}${ic(s)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${['1ro','2do','3ro','4to','5to'][x]}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
@@ -936,4 +948,4 @@ document.addEventListener('fullscreenchange',pinta);
 if(!document.documentElement.requestFullscreen)b.hidden=true})();
 
 </script>
-<div class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</div></body></html>
+<div class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</div><script>(function(){function fit(){var b=document.body,fs=document.fullscreenElement||document.documentElement.classList.contains("fsx");b.style.zoom="";if(!fs)return;var h=window.innerHeight,sh=b.scrollHeight;if(sh>h){b.style.zoom=Math.max(.5,h/sh).toFixed(3)}}["fullscreenchange","resize"].forEach(function(e){document.addEventListener(e,function(){setTimeout(fit,120)});window.addEventListener(e,function(){setTimeout(fit,120)})});new MutationObserver(function(){setTimeout(fit,150)}).observe(document.body,{childList:true,subtree:true,attributes:false});window.__fit=fit})()</script></body></html>
