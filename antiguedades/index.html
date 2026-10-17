@@ -495,6 +495,10 @@ body .bar{padding-right:0!important}
 /* puesto por semestre */
 .gt .pcl b{font-weight:600}.pmv{font-weight:600;font-size:11.5px;margin-left:7px;white-space:nowrap}.pmv.up{color:var(--good)}.pmv.dn{color:var(--warn)}.pmv.eq{color:var(--mute)}
 .gt .pcl .pmv{display:block;margin:1px 0 0}.gt .pcl{line-height:1.25;white-space:nowrap}
+
+/* puesto en una sola línea, casilla más ancha */
+.gt .pcl .pmv{display:inline!important;margin:0 0 0 8px!important}.gt .pcl{white-space:nowrap;min-width:128px}.gt th:last-child{min-width:128px}
+.gt thead th:last-child{width:136px}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -740,7 +744,8 @@ function stuRender(){
   const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'];
   const puH=(b,i)=>{const e=mat[i];if(!e)return '<td>—</td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
-      if(pr){const d=pr[2]-e[2];m=d>0?`<span class="pmv up">▲ subió ${d}</span>`:d<0?`<span class="pmv dn">▼ bajó ${-d}</span>`:'<span class="pmv eq">＝ igual</span>'}}
+      if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
+        m=d>0?`<span class="pmv up" title="${same?'Mejoró '+d+' puestos':'Mejoró '+d+' puntos porcentuales en su posición relativa'}">▲ ${d}${u}</span>`:d<0?`<span class="pmv dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼ ${-d}${u}</span>`:'<span class="pmv eq">＝</span>'}}
     return `<td class="pcl"><b>${e[2]}/${e[3]}</b>${m}</td>`};
   const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
