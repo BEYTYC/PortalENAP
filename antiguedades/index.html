@@ -868,9 +868,10 @@ function totRender(){
   const c4=`<div class="card ch an"><h3>Distinguidos y excelencias por semestre</h3>${svgGroup(KS.map((k,i)=>labs[i]),KS.map(k=>ls(k).filter(s=>s.dis).length),KS.map(k=>ls(k).filter(s=>s.exc).length),{n1:'Distinguidos',n2:'Excelencia'})}<p class="cn">Total de la institución: ${nD} distinguidos (${pc(nD)}) · ${nE} excelencias (${pc(nE)}).</p></div>`;
   const rg=KS.map((k,i)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f).sort((x,y)=>x-y);if(!a.length)return null;return {l:labs[i],min:a[0],max:a[a.length-1],avg:mean(a),med:a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2}}).filter(Boolean);
   const c5=`<div class="card ch an"><h3>Rango del promedio final por semestre</h3>${svgRange(rg,{min:6,max:10})}<p class="cn">Barra: mínimo a máximo · punto azul: promedio · raya dorada: mediana.</p></div>`;
-  const pts=A.filter(a=>a[0].ac!=null&&a[0].an!=null).map(([s])=>({x:s.ac,y:s.an,t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · AN '+f3(s.an)}));
-  const c6=`<div class="card ch an"><h3>Académica frente a aptitud naval</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:'Aptitud naval'})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen aptitud naval.</p></div>`;
-  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6;
+  const sc=(f,nm,short)=>{const pts=A.filter(a=>a[0].ac!=null&&a[0][f]!=null).map(([s])=>({x:s.ac,y:s[f],t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · '+short+' '+f3(s[f])}));
+    return `<div class="card ch an"><h3>Académica frente a ${nm}</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:short})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen ${nm}.</p></div>`};
+  const c6=sc('an','aptitud naval','Aptitud naval'),c7=sc('di','disciplina','Disciplina'),c8=sc('cf','cultura física','C. física');
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6+c7+c8;
   requestAnimationFrame(animCharts);
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
