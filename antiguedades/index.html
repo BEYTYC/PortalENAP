@@ -579,7 +579,7 @@ function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 let cur='4.2',sel=null,q='';
-const lab=k=>k==='1.1'?'1.1 (Rep)':k;
+const LBM={'1.1':'1.1 (Rep)','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'};const lab=k=>LBM[k]||k;
 const ls=k=>k==='ESC'?D.esc:D.sheets[k];
 const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
@@ -589,10 +589,10 @@ function chips(){
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
-  const [sh,pu,es]=s.pv;const lab=sh==='1.1R'?'1.1 (Rep)':sh;
+  const [sh,pu,es]=s.pv;const lab_=sh==='1.1R'?'1.1 (Rep)':(LBM[sh]||sh);
   const same=(lab.replace(' (Rep)','')===cur);
   const t=same?'<span class="tag rep">Repite</span> ':'<span class="tag up">Asciende</span> ';
-  return t+`<span style="color:var(--mute)">${lab}·${pu??'—'}</span>`;
+  return t+`<span style="color:var(--mute)">${lab_}·${pu??'—'}</span>`;
 }
 const _mc={};
 function mp(k){if(!(k in _mc)){const v=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f);_mc[k]=v.length?Math.max(0,Math.min(100,(v.reduce((a,b)=>a+b,0)/v.length-6)/4*100)):-9}return _mc[k]}
@@ -640,7 +640,7 @@ function render(){
     list=ls(cur);
     const ranked=list.filter(s=>s.e!=='Aplazado').sort((a,b)=>(a.p??1e9)-(b.p??1e9));
     const apl=list.filter(s=>s.e==='Aplazado');
-    {const top=cur==='1.1'?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':cur)+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="mdw">${ic(s)}</span><span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
+    {const top=cur==='1.1'?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(cur==='ESC'?'4.2 escalafonamiento':lab(cur))+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="mdw">${ic(s)}</span><span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
@@ -791,7 +791,7 @@ function stuRender(){
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
     const W=440,lw=116,rw=58,mx=W-lw-rw,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
-    const rows=[['Estudiante',s.f,'var(--navy)'],[selK==='ESC'?'Escalafonamiento':'Semestre '+selK,sem,'var(--bar-fill)'],['General (todos)',gen,'var(--mute)']];
+    const rows=[['Estudiante',s.f,'var(--navy)'],[selK==='ESC'?'Escalafonamiento':'Semestre '+lab(selK),sem,'var(--bar-fill)'],['General (todos)',gen,'var(--mute)']];
     let g=`<svg viewBox="0 0 ${W} ${rows.length*22+8}" role="img" aria-label="Promedio final del estudiante frente al promedio general">`;
     rows.forEach(([n,v,c],i)=>{const y=12+i*22;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:11.5px">${n}</text><rect x="${lw}" y="${y-5}" width="${mx}" height="10" rx="5" fill="var(--bar)"/><rect x="${lw}" y="${y-5}" width="${Math.max(2,X(v)-lw)}" height="10" rx="5" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:12px">${f3(v)}</text>`});
     g+=`<line x1="${X(gen)}" x2="${X(gen)}" y1="2" y2="${rows.length*22}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/></svg>`;
@@ -828,7 +828,7 @@ function stuRender(){
     const sub=n<2?'':`Promedio ponderado por semestre (50 % académica, 20 % apt. naval, 20 % disciplina, 10 % C. física): ${fm(av[0])} → ${fm(av[av.length-1])} (${sg(ab)} por semestre). Componentes: ${cnt.up} mejoran, ${cnt.eq} estables, ${cnt.dn} empeoran.`;
     evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="evh ${ak}"><span class="evb">${AR[ak]}</span><div><b>${head}</b><small>${sub}</small></div></div><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los semestres (±0,05 por semestre se considera estable). La línea discontinua roja marca la nota mínima de 6.</div></div>`;
   }
-  const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+selK;
+  const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+lab(selK);
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
   <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${s.h.some(b=>b[0].endsWith('A'))?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th>Puesto</th><th>Cambio</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:8}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td><td></td>'}</tr></tfoot></table>${pfc}</div>
@@ -839,9 +839,9 @@ function side(){
   const el=document.getElementById('side');
   if(!sel){el.innerHTML='<div class="empty">Selecciona un estudiante</div>';return}
   const s=sel,h=s.h[s.h.length-1]||[];
-  const where=selK==='ESC'?'Escalafonamiento 4.2':`Semestre ${selK}`;
+  const where=selK==='ESC'?'Escalafonamiento 4.2':`Semestre ${lab(selK)}`;
   let tl='';
-  if(s.pv){const lab=s.pv[0]==='1.1R'?'1.1 (Rep)':s.pv[0];tl+=`<li><span>2025-2</span><span>${lab} · puesto ${s.pv[1]??'—'}${s.pv[2]&&s.pv[2]!=='Normal'?' · '+s.pv[2]:''}</span></li>`}
+  if(s.pv){const lab=s.pv[0]==='1.1R'?'1.1 (Rep)':(LBM[s.pv[0]]||s.pv[0]);tl+=`<li><span>2025-2</span><span>${lab} · puesto ${s.pv[1]??'—'}${s.pv[2]&&s.pv[2]!=='Normal'?' · '+s.pv[2]:''}</span></li>`}
   tl+=`<li><span>2026-1</span><span>Notas ${h[0]||''} · acad ${f3(h[1])}</span></li>`;
   tl+=`<li><span>${selK==='ESC'?'Cert.':'2026-2'}</span><span>${where} · ${s.e==='Aplazado'?'Aplazado, fuera del orden':'puesto '+s.p}${s.e&&s.e!=='Normal'&&s.e!=='Aplazado'?' · '+s.e:''}</span></li>`;
   el.innerHTML=`<h2>${s.g} ${s.n}</h2><div class="meta">Cód. ${s.c} · C.C. ${s.ce??"—"} · ${s.ct?"Contingente "+s.ct+" · ":""}${s.cu||''} ${s.sp||''}${s.ct?' · '+s.ct:''}</div>
@@ -905,12 +905,14 @@ function armarBD(E,D,quien){
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
-  D.order.forEach(function(k){
-    var lista=D.sheets[k],ix=D.order.indexOf(k),bloques=[];
+  var LBM={'1.1':'1.1 (Rep)','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'};
+  function lb(k){return k==='ESC'?'Escalafonamiento 4.2':(LBM[k]||k)}
+  D.order.concat(D.esc&&D.esc.length?['ESC']:[]).forEach(function(k){
+    var lista=k==='ESC'?D.esc:D.sheets[k],ix=k==='ESC'?D.order.length-1:D.order.indexOf(k),bloques=[];
     for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
       if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
-    var conPf=(k==='4.1'||k==='4.2')&&lista.some(function(s){return s.pf!=null});
-    var ws=wb.addWorksheet(k,{views:[{state:'frozen',xSplit:7,ySplit:4,showGridLines:false}]});
+    var conPf=(k==='4.1'||k==='4.2'||k==='ESC')&&lista.some(function(s){return s.pf!=null});
+    var ws=wb.addWorksheet(k==='ESC'?'Escalafonamiento 4.2':lb(k),{views:[{state:'frozen',xSplit:7,ySplit:4,showGridLines:false}]});
     var n=lista.length,last=n+4;
     var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n2026-1',13],['CÓDIGO',14],['CÉDULA',14],['GRADO',12],['APELLIDOS Y NOMBRES',44]];
     fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
@@ -922,7 +924,7 @@ function armarBD(E,D,quien){
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:13);
     // título y fecha
-    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · Curso '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2':'Curso '+lb(k));a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(3).height=22;ws.getRow(4).height=32;
     function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'middle',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
@@ -969,7 +971,7 @@ function armarBD(E,D,quien){
     var r=5,nn=0;
     var lotes=D.order.map(function(k){return [k,D.sheets[k]]});lotes.push(['ESC',D.esc||[]]);
     lotes.forEach(function(lt){var k=lt[0];lt[1].filter(function(s){return s[flag]}).forEach(function(s){
-      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':'Semestre '+k];
+      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':'Semestre '+lb(k)];
       v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
