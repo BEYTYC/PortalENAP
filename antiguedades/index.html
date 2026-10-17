@@ -805,7 +805,7 @@ function armarBD(E,D,quien){
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:13);
     // título y fecha
-    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes «Almirante Padilla» · Curso '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · Curso '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(3).height=22;ws.getRow(4).height=32;
     function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'middle',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
@@ -845,7 +845,7 @@ function armarBD(E,D,quien){
     var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:4,showGridLines:false}]});
     var cols=[['SEMESTRE',11],['PUESTO',9],['GRADO',9],['APELLIDOS Y NOMBRES',42],['CÓDIGO',13],['CÉDULA',13],['CURSO',10],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
-    ws.mergeCellsWithoutStyle(1,1,1,cols.length);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes «Almirante Padilla» · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    ws.mergeCellsWithoutStyle(1,1,1,cols.length);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(4).height=32;
     cols.forEach(function(c,i){var x=ws.getCell(4,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:i>=7&&i<=10?'FFFFFFFF':AZ}};fill(x,i===11?BL:(i>=7&&i<=10?'FF5AA2EA':'FFDCE9F7'));x.alignment={horizontal:'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,false,false)});
