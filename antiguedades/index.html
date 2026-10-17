@@ -499,6 +499,12 @@ body .bar{padding-right:0!important}
 /* puesto en una sola línea, casilla más ancha */
 .gt .pcl .pmv{display:inline!important;margin:0 0 0 8px!important}.gt .pcl{white-space:nowrap;min-width:128px}.gt th:last-child{min-width:128px}
 .gt thead th:last-child{width:136px}
+
+/* puesto: toda la columna alineada */
+.gt .pcl{text-align:center!important}
+.gt .pcl .pg{display:inline-grid;grid-template-columns:64px 54px;align-items:center;column-gap:4px}
+.gt .pcl .pg b{text-align:right;font-variant-numeric:tabular-nums}
+.gt .pcl .pa{text-align:left}.gt .pcl .pmv{margin:0!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -746,7 +752,7 @@ function stuRender(){
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
         m=d>0?`<span class="pmv up" title="${same?'Mejoró '+d+' puestos':'Mejoró '+d+' puntos porcentuales en su posición relativa'}">▲ ${d}${u}</span>`:d<0?`<span class="pmv dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼ ${-d}${u}</span>`:'<span class="pmv eq">＝</span>'}}
-    return `<td class="pcl"><b>${e[2]}/${e[3]}</b>${m}</td>`};
+    return `<td class="pcl"><span class="pg"><b>${e[2]}/${e[3]}</b><span class="pa">${m}</span></span></td>`};
   const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<span class="pmv up">▲ subió ${d}</span>`:d<0?`<span class="pmv dn">▼ bajó ${-d}</span>`:'<span class="pmv eq">＝ igual</span>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
