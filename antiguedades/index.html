@@ -551,6 +551,7 @@ body:not(.has-gear) .back{right:6px!important}
 /* periodo de trabajo, visible en pantalla completa */
 #fsper{display:none}
 :root:fullscreen #fsper,:root.fsx #fsper{display:block;padding:10px 4px 8px;font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink,#0F2A5C)}
+.stu .rd .cred2{text-align:right;margin-top:14px;font-size:12px;letter-spacing:.03em;color:var(--mut,#5B6F8F)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -874,7 +875,7 @@ function stuRender(){
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
   <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
-  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div></div>${evo}`;
+  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Beyty Camargo Martínez</div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
 function side(){
