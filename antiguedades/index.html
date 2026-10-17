@@ -858,7 +858,7 @@ function totRender(){
   const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
   const dlt=(key,agg)=>{const cu=L.map(s=>s[key]).filter(v=>v!=null),fn=key==='f'?W5:r=>r[IXT[key]],pv=PV.map(fn).filter(v=>v!=null);if(cu.length<3||pv.length<3)return '';
     const A1=agg(cu),B1=agg(pv),d=A1-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-    return `<small class="dl pcn">${nP}: <em>${f3(B1)}</em></small>${Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. ${nP}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
+    return `${Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. ${nP}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
   const cmp=f=>f==='f'?dlt('f',mA):f==='med'?dlt('f',mD):f==='max'?dlt('f',a=>Math.max(...a)):f==='min'?dlt('f',a=>Math.min(...a)):dlt(f,mA);
   const kp=(n,v,sub,act)=>`<div class="k${act?' clk':''}"${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
   const pcs=(n,x)=>`<small class="dl pcn">${pc(n)} del total${x?' · ver lista':''}</small>`;
@@ -916,7 +916,7 @@ function render(){
       const W=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null,IX={ac:1,an:2,di:3,cf:4};
       const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PP.push(p)});
       const dl=(v,g,f)=>{const fn=f==='f'?W:r=>r[IX[f]],pv=PP.map(fn).filter(x=>x!=null);if(pv.length<3)return '';const B1=mean(pv),d=v-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-        return `<small class="dl pcn">2025-2: <em>${f3(B1)}</em></small>`+(Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. 2025-2">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Frente al periodo anterior de los estudiantes de este semestre">${up?'▲ +':'▼ −'}${t} (${pp}) vs. 2025-2</small>`)};
+        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="${up?'+':'−'}${t} (${up?'+':'−'}${pp}) vs. 2025-2">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Frente al periodo anterior de los estudiantes de este semestre">${up?'▲ +':'▼ −'}${t} (${pp}) vs. 2025-2</small>`)};
       const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f],f):''}</div>`;
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Prom. semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
