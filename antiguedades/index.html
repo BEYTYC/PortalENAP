@@ -544,6 +544,10 @@ body:not(.has-gear) .back{right:6px!important}
 .stu .gt thead th:first-child{width:auto!important}.stu .gt.hasrep thead th:first-child{width:142px!important}.stu .gt thead th.wp{width:84px}
 #pub.mer .gt tfoot td:nth-child(n+3):nth-child(-n+5){display:none}.stu .gt thead th.wp{width:auto!important}
 .stu .gt .pcl .pg{display:grid!important;grid-template-columns:1fr 8px 1fr!important;width:100%;column-gap:0}.stu .gt .pcl .p1{text-align:right!important}.stu .gt .pcl .p2{text-align:left!important}.stu .gt .pcl .ps{text-align:center!important}
+/* pantalla completa: cuadros de vuelta, medio transparentes */
+:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .nb:not([aria-pressed="true"]),:root:fullscreen .chips,:root:fullscreen #nov,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .nb:not([aria-pressed="true"]),:root.fsx .chips,:root.fsx #nov{background:rgba(255,255,255,.55)!important;border:1px solid #D4E0F0!important;box-shadow:none!important;backdrop-filter:none!important}
+:root:fullscreen .nb[aria-pressed="true"],:root.fsx .nb[aria-pressed="true"]{background:rgba(255,255,255,.8)!important}
+:root:fullscreen .card.stu,:root.fsx .card.stu{background:rgba(255,255,255,.55)!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
