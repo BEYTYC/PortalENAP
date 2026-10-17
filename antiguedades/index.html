@@ -553,6 +553,14 @@ body:not(.has-gear) .back{right:6px!important}
 :root:fullscreen #fsper,:root.fsx #fsper{display:block;padding:10px 4px 8px;font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink,#0F2A5C)}
 .stu .rd .cred2{text-align:right;margin-top:14px;font-size:12px;letter-spacing:.03em;color:var(--mut,#5B6F8F)}
 @media (min-width:821px){.stu .rd{align-self:stretch!important;display:flex;flex-direction:column}.stu .rd .cred2{margin-top:auto;padding-top:14px;padding-bottom:4px}}
+/* hover más visible en las pestañas de semestre */
+.chip:not([aria-pressed="true"]):hover{background:#DCE8F8!important;color:var(--navy,#1B4688)!important;box-shadow:inset 0 0 0 1px #9DB9E0;transform:translateY(-1px)}
+.chip[aria-pressed="true"]:hover{filter:brightness(1.15)}
+.chip{transition:background .15s,color .15s,transform .15s,box-shadow .15s}
+/* vista total: sin tabla ni panel lateral, listas con scroll */
+#pub:has(#tb:empty) .grid{display:none}
+.totl{max-height:460px;overflow:auto}
+.totl li{cursor:pointer}.totl li:hover{background:#EAF2FD}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -605,7 +613,7 @@ const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
   const c=document.getElementById('chips');
   c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento 4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'');
-  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=b.dataset.k;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
+  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur)?null:b.dataset.k;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
@@ -647,6 +655,25 @@ function corto(n){const w=String(n).split(/\s+/);let i=0;
   const ap=()=>{while(i<w.length-1&&PART.has(w[i]))i++;i++};
   const ini=w[0];ap();const a1=w.slice(0,i).join(' ');ap();
   const nom=w[i];return nom?a1+' '+nom:a1}
+function totRender(){
+  const seen=new Set(),A=[];
+  [...ORD,'ESC','MER'].forEach(k=>ls(k).forEach((s,i)=>{const id=s.c!=null?s.c:(s.ce!=null?s.ce:s.n);if(seen.has(id))return;seen.add(id);A.push([s,k,i])}));
+  const S=A.map(a=>a[0]),L=S.filter(s=>s.f!=null&&s.e!=='Aplazado');
+  const av=f=>{const v=L.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?mean(v):null};
+  const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length;
+  const kp=(n,v,sub)=>`<div class="k"><span>${n}</span><b>${v}</b>${sub?`<small class="dl">${sub}</small>`:''}</div>`;
+  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(av('f')))+kp('Mejor promedio',f3(Math.max(...L.map(s=>s.f))))+kp('Prom. académico',f3(av('ac')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,(nD/S.length*100).toFixed(1).replace('.',',')+'%')+kp('Excelencia académica',nE,(nE/S.length*100).toFixed(1).replace('.',',')+'%');
+  const lst=(t,flag)=>{const r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));return `<h3>${t} · ${r.length}</h3><ul class="ml totl">${r.map(([s,k,i])=>`<li data-k="${k}" data-i="${i}"><span class="nx"><span class="gr">${s.g}</span> ${s.n}</span><small>${s.cu||''} · ${k==='ESC'?'Escalafonamiento':lab(k)} · ${f3(s.f)}</small></li>`).join('')||'<li class="vac">Ninguno</li>'}</ul>`};
+  const pod=document.getElementById('pod'),nov=document.getElementById('nov'),nl=document.getElementById('novl');
+  pod.innerHTML=lst('Alumnos distinguidos','dis');nov.hidden=false;nov.innerHTML=lst('Excelencia académica','exc');if(nl)nl.hidden=true;
+  [pod,nov].forEach(el=>el.querySelectorAll('li[data-i]').forEach(l=>l.onclick=()=>{sel=ls(l.dataset.k)[+l.dataset.i];selK=l.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})}));
+  const rows=[...ORD,'ESC','MER'].map(k=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado');if(!a.length)return '';const m=f=>{const v=a.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?f3(mean(v)):'—'};return `<tr><td>${k==='ESC'?'Escalafonamiento 4.2':lab(k)}</td><td class="n">${a.length}</td><td class="n">${m('f')}</td><td class="n">${m('ac')}</td><td class="n">${m('an')}</td><td class="n">${m('di')}</td><td class="n">${m('cf')}</td><td class="n">${a.filter(s=>s.dis).length}</td><td class="n">${a.filter(s=>s.exc).length}</td></tr>`}).join('');
+  document.getElementById('charts').innerHTML=`<div class="card ch an wide"><h3>Por semestre</h3><div class="tw"><table class="nl"><thead><tr><th>Semestre</th><th class="n">Est.</th><th class="n">Prom. final</th><th class="n">Acad</th><th class="n">AN</th><th class="n">Disc</th><th class="n">C.FIS</th><th class="n">Dist.</th><th class="n">Exc.</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  const BK=[['9,500 – 10,000',9.5,11],['9,000 – 9,499',9,9.5],['8,500 – 8,999',8.5,9],['8,000 – 8,499',8,8.5],['7,500 – 7,999',7.5,8],['< 7,500',-1,7.5]];
+  const cnt=BK.map(([n,a,b])=>[n,L.filter(s=>s.f>=a&&s.f<b).length]),mx=Math.max(...cnt.map(c=>c[1]),1);
+  document.getElementById('mr').innerHTML=`<div class="card ch an"><h3>Distribución del promedio final · todos</h3><div class="mbars">${cnt.map(([n,c])=>`<div class="mb"><span>${n}</span><i><b style="width:${c/mx*100}%"></b></i><em>${c}</em></div>`).join('')}</div></div>`;
+  document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
+}
 function render(){
   chips();
   document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento 2026-1':'Antigüedades '+(window.__PER||'2026-2');
@@ -656,6 +683,8 @@ function render(){
     document.getElementById('pod').innerHTML='';document.getElementById('kpi').innerHTML='';
     document.getElementById('tb').innerHTML=rows.length?rows.map(([s,sk,i])=>row(s,sk,i)).join(''):'<tr><td colspan="8" class="empty">Sin resultados</td></tr>';
     document.getElementById('apl').innerHTML='';
+  }else if(cur==null){
+    totRender();
   }else{
     list=ls(cur);
     const ranked=list.filter(s=>s.e!=='Aplazado').sort((a,b)=>(a.p??1e9)-(b.p??1e9));
@@ -700,7 +729,7 @@ function merRender(){
 }
 
 function chartsRender(){
-  const el=document.getElementById('charts');
+  const el=document.getElementById('charts');if(cur==null&&!sel&&!q)return;
   const key=sel?selK:cur, list=ls(key).filter(s=>s.f!=null&&s.e!=='Aplazado');
   if(!list.length){el.innerHTML='';return}
   const fs=list.map(s=>s.f);
@@ -760,6 +789,7 @@ const novCnt=(l,k)=>l.filter(s=>(s.e||'').startsWith(k)).length;
 function novRender(){
   const el=document.getElementById('nov');
   if(q){el.hidden=true;const _n=document.getElementById('novl');if(_n)_n.hidden=true;return}
+  if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>s.e!=='Aplazado');
   const GR=[['Repitente','Repitente'],['Aplazado','Aplazados'],['Reingresado','Reingresado'],['Retardado','Retardado'],['__dis','Alumno distinguido'],['__exc','Excelencia académica']];
@@ -900,7 +930,7 @@ render();
 /* ===== Movimiento de puestos y riesgo ===== */
 function lastB(s){return s.h[s.h.length-1]||[]}
 function mrRender(){
-  const el=document.getElementById('mr');
+  const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
   const k=sel?selK:cur,all=ls(k),list=all.filter(s=>s.f!=null&&s.e!=='Aplazado');
   if(!list.length){el.innerHTML='';return}
   const nm=s=>`<span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}`;
