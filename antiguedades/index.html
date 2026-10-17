@@ -1132,7 +1132,7 @@ function armarBD(E,D,quien){
   });
   function reconocimiento(nombre,flag,titulo){
     var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:4,showGridLines:false}]});
-    var cols=[['N°',6],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14],['LISTA',16]];
+    var cols=[['N°',6],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
     ws.mergeCellsWithoutStyle(1,1,1,cols.length);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
@@ -1141,7 +1141,7 @@ function armarBD(E,D,quien){
     var r=5,nn=0;
     var lotes=D.order.map(function(k){return [k,D.sheets[k]]});lotes.push(['ESC',D.esc||[]]);if(D.sheets.MER)lotes.push(['MER',D.sheets.MER]);var vistos={};
     lotes.forEach(function(lt){var k=lt[0];lt[1].filter(function(s){return s[flag]&&!vistos[s.c]}).forEach(function(s){vistos[s.c]=1;
-      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(acp(s)),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':k==='MER'?'Mercantes':'Semestre '+lb(k)];
+      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(acp(s)),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma)];
       v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
