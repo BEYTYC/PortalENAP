@@ -455,6 +455,13 @@ body .bar{padding-right:0!important}
 /* crédito en la misma línea de las notas */
 .foot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
 :root:fullscreen .credfs,:root.fsx .credfs{display:inline!important;margin:0!important;padding:0!important;max-width:none!important;text-align:right}
+
+/* podio: azul intermedio, sin sombras, barras más angostas */
+.pd .pb,.pd.p1 .pb,.pd.p2 .pb,.pd.p3 .pb,.pd.p4 .pb,.pd.p5 .pb{background:linear-gradient(180deg,#4A86D8,#2E68BC)!important;box-shadow:none!important;width:70px}
+.pd .pb span{width:auto}
+.pd .md{filter:none!important}
+.pd .pi{text-shadow:none}
+.podio{grid-template-columns:repeat(5,minmax(0,100px))!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
