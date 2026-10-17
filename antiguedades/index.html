@@ -792,16 +792,17 @@ function totRender(){
   const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length,G=av('f');
   const pc=n=>(n/S.length*100).toFixed(1).replace('.',',')+'%';
   const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
-  // último semestre frente al anterior
-  const SQ=[...ORD,'ESC'].filter(k=>ls(k).length),kL=SQ[SQ.length-1],kP=SQ[SQ.length-2],nL=kL==='ESC'?'4.2':lab(kL),nP=kP==='ESC'?'4.2':lab(kP);
-  const M=k=>{const a=ls(k),b=a.filter(s=>s.f!=null&&s.e!=='Aplazado'),f=b.map(s=>s.f).sort((x,y)=>x-y),m=f.length%2?f[(f.length-1)/2]:(f[f.length/2-1]+f[f.length/2])/2,av2=q=>{const v=b.filter(s=>s[q]!=null).map(s=>s[q]);return v.length?mean(v):null};
-    return {n:a.length,f:av2('f'),med:m,max:f[f.length-1],min:f[0],nov:a.filter(s=>s.e&&s.e!=='Normal').length,ac:av2('ac'),an:av2('an'),di:av2('di'),cf:av2('cf'),dis:a.filter(s=>s.dis).length,exc:a.filter(s=>s.exc).length}};
-  const mL=M(kL),mP=M(kP);
-  const cmp=(f,dec)=>{const a=mL[f],b=mP[f];if(a==null||b==null)return '';const d=a-b,up=d>=0,t=dec===0?String(Math.abs(d)):Math.abs(d).toFixed(3).replace('.',','),v=dec===0?String(a):f3(a);
-    return `<small class="dl ${dec===0?'':up?'up':'dn'}">${nL}: <em>${v}</em> · ${d===0?'＝':up?'▲ +':'▼ −'}${d===0?'':t} vs. ${nP}</small>`};
+  // periodo de trabajo (2026-1) frente al periodo anterior (2025-2), con las mismas personas
+  const nL='2026-1',nP='2025-2',W5=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null;
+  const PR=[];S.forEach(s=>{const h=s.h||[];if(h.length<2||s.e==='Aplazado')return;const c=h[h.length-1],p=h[h.length-2];if(!c||!p||String(p[0]).endsWith('A'))return;PR.push({c,p})});
+  const dlt=(fn,agg,dec)=>{const a=[],b=[];PR.forEach(({c,p})=>{const x=fn(c),y=fn(p);if(x!=null&&y!=null){a.push(x);b.push(y)}});if(a.length<3)return '';
+    const A1=agg(a),B1=agg(b),d=A1-B1,up=d>=0;
+    return `<small class="dl pcn">${nL}: <em>${f3(A1)}</em></small><small class="dl ${up?'up':'dn'}">${d===0?'＝':up?'▲ +':'▼ −'}${d===0?'':Math.abs(d).toFixed(3).replace('.',',')} vs. ${nP}</small>`};
+  const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
+  const cmp=f=>f==='f'?dlt(W5,mA):f==='med'?dlt(W5,mD):f==='max'?dlt(W5,a=>Math.max(...a)):f==='min'?dlt(W5,a=>Math.min(...a)):dlt(r=>r[{ac:1,an:2,di:3,cf:4}[f]],mA);
   const kp=(n,v,sub,act)=>`<div class="k${act?' clk':''}"${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
   const pcs=(n,x)=>`<small class="dl pcn">${pc(n)} del total${x?' · ver lista':''}</small>`;
-  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length,cmp('n',0))+kp('Promedio general',f3(G),cmp('f'))+kp('Mediana',f3(med),cmp('med'))+kp('Mejor promedio',f3(fs[fs.length-1]),cmp('max'))+kp('Promedio más bajo',f3(fs[0]),cmp('min'))+kp('Con novedad',nN,pcs(nN)+cmp('nov',0))+kp('Prom. académico',f3(av('ac')),cmp('ac'))+kp('Prom. apt. naval',f3(av('an')),cmp('an'))+kp('Prom. disciplina',f3(av('di')),cmp('di'))+kp('Prom. cultura física',f3(av('cf')),cmp('cf'))+kp('Alumnos distinguidos',nD,pcs(nD,1)+cmp('dis',0),'dis')+kp('Excelencia académica',nE,pcs(nE,1)+cmp('exc',0),'exc');
+  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length,`<small class="dl pcn">${PR.length} con ambos periodos</small>`)+kp('Promedio general',f3(G),cmp('f'))+kp('Mediana',f3(med),cmp('med'))+kp('Mejor promedio',f3(fs[fs.length-1]),cmp('max'))+kp('Promedio más bajo',f3(fs[0]),cmp('min'))+kp('Con novedad',nN,pcs(nN))+kp('Prom. académico',f3(av('ac')),cmp('ac'))+kp('Prom. apt. naval',f3(av('an')),cmp('an'))+kp('Prom. disciplina',f3(av('di')),cmp('di'))+kp('Prom. cultura física',f3(av('cf')),cmp('cf'))+kp('Alumnos distinguidos',nD,pcs(nD,1),'dis')+kp('Excelencia académica',nE,pcs(nE,1),'exc');
   const pod=document.getElementById('pod'),nov=document.getElementById('nov'),nl=document.getElementById('novl');
   nov.hidden=true;nov.innerHTML='';if(nl)nl.hidden=true;
   if(totSel){const flag=totSel,r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));
