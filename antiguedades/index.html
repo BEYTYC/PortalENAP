@@ -709,30 +709,31 @@ function corto(n){const w=String(n).split(/\s+/);let i=0;
   const nom=w[i];return nom?a1+' '+nom:a1}
 let totSel=null;
 const NS='http://www.w3.org/2000/svg';
+function xl(x,y,l){const [a,b]=String(l).split('|');return `<text x="${x}" y="${y}" text-anchor="middle" font-size="11" fill="#5B6F8F">${a}${b?`<tspan x="${x}" dy="13" font-size="10.5" font-weight="600" fill="#33466B">${b}</tspan>`:''}</text>`}
 function svgV(items,o){ // barras verticales: items [{l,v,v2?}] ; o {min,max,fmt,ref,c}
   const W=560,H=250,L=36,R=10,T=26,B=40,pw=W-L-R,ph=H-T-B,n=items.length,bw=Math.min(46,pw/n*.62);
   const y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
   let g='';const ticks=o.ticks||4;
   for(let i=0;i<=ticks;i++){const v=o.min+(o.max-o.min)*i/ticks;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${o.tf?o.tf(v):v.toFixed(o.dec??0)}</text>`}
   items.forEach((it,i)=>{const cx=L+pw/n*(i+.5);
-    g+=`<rect x="${cx-bw/2}" y="${y(it.v)}" width="${bw}" height="${T+ph-y(it.v)}" rx="4" fill="${o.c||'#3F7FCB'}"><title>${it.l}: ${o.fmt(it.v)}</title></rect><text x="${cx}" y="${y(it.v)-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1B4688">${o.fmt(it.v)}</text><text x="${cx}" y="${H-B+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${it.l}</text>`});
+    g+=`<rect x="${cx-bw/2}" y="${y(it.v)}" width="${bw}" height="${T+ph-y(it.v)}" rx="4" fill="${o.c||'#3F7FCB'}"><title>${String(it.l).replace('|',' ')}: ${o.fmt(it.v)}</title></rect><text x="${cx}" y="${y(it.v)-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1B4688">${o.fmt(it.v)}</text>${xl(cx,H-B+16,it.l)}`});
   if(o.ref!=null)g+=`<line x1="${L}" x2="${W-R}" y1="${y(o.ref)}" y2="${y(o.ref)}" stroke="#1B4688" stroke-width="1.4" stroke-dasharray="5 4"/>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function svgLines(labels,series,o){ // líneas: series [{n,c,v:[...]}]
   const W=560,H=270,L=40,R=12,T=14,B=64,pw=W-L-R,ph=H-T-B,n=labels.length;
   const x=i=>L+pw/(n-1||1)*i,y=v=>T+ph-(v-o.min)/(o.max-o.min)*ph;
   let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
-  labels.forEach((l,i)=>g+=`<text x="${x(i)}" y="${T+ph+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${l}</text>`);
+  labels.forEach((l,i)=>g+=xl(x(i),T+ph+16,l));
   series.forEach((se,k)=>{const pts=se.v.map((v,i)=>v==null?null:[x(i),y(v)]);const d=pts.map((p,i)=>p?(i&&pts[i-1]?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1):'').join(' ');
-    g+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="${se.c}"><title>${se.n} · ${labels[i]}: ${f3(se.v[i])}</title></circle>`:'').join('');
+    g+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="${se.c}"><title>${se.n} · ${String(labels[i]).replace('|',' ')}: ${f3(se.v[i])}</title></circle>`:'').join('');
     g+=`<rect x="${L+k*118}" y="${H-18}" width="12" height="4" rx="2" fill="${se.c}"/><text x="${L+k*118+18}" y="${H-13}" font-size="11" fill="#33466B">${se.n}</text>`});
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function svgGroup(labels,a,b,o){ // barras agrupadas de dos series
   const W=560,H=250,L=30,R=10,T=26,B=60,pw=W-L-R,ph=H-T-B,n=labels.length,mx=Math.max(1,...a,...b),y=v=>T+ph-v/mx*ph,gw=pw/n,bw=Math.min(24,gw*.34);
   let g='';for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${Math.round(v)}</text>`}
   labels.forEach((l,i)=>{const cx=L+gw*(i+.5);
-    [[a[i],-bw-1,o.c1,o.n1],[b[i],1,o.c2,o.n2]].forEach(([v,dx,c,nm])=>{g+=`<rect x="${cx+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="3" fill="${c}"><title>${l} · ${nm}: ${v}</title></rect>${v?`<text x="${cx+dx+bw/2}" y="${y(v)-4}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#33466B">${v}</text>`:''}`});
-    g+=`<text x="${cx}" y="${T+ph+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${l}</text>`});
+    [[a[i],-bw-1,o.c1,o.n1],[b[i],1,o.c2,o.n2]].forEach(([v,dx,c,nm])=>{g+=`<rect x="${cx+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="3" fill="${c}"><title>${String(l).replace('|',' ')} · ${nm}: ${v}</title></rect>${v?`<text x="${cx+dx+bw/2}" y="${y(v)-4}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#33466B">${v}</text>`:''}`});
+    g+=xl(cx,T+ph+16,l)});
   g+=`<rect x="${L}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c1}"/><text x="${L+18}" y="${H-10}" font-size="11" fill="#33466B">${o.n1}</text><rect x="${L+130}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c2}"/><text x="${L+148}" y="${H-10}" font-size="11" fill="#33466B">${o.n2}</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function hbars(items,o){ // [{l,v,n}] barras horizontales con escala o.min–o.max
@@ -757,9 +758,9 @@ function totRender(){
   document.querySelectorAll('.k.clk').forEach(t=>{const go=()=>{totSel=totSel===t.dataset.act?null:t.dataset.act;render()};t.onclick=go;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
   // gráficas
   const KS=[...ORD,'ESC','MER'],mm=(k,f)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);return a.length?mean(a):null};
-  const labs=KS.map(k=>k==='ESC'?'4.2':lab(k)).map(x=>x.replace(' (Rep)','R')),pf=KS.map(k=>mm(k,'f'));
+  const labs=KS.map(k=>(k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'))+'|('+ls(k).length+')'),pf=KS.map(k=>mm(k,'f'));
   const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,refl:'General',tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
-  const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'));
+  const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>(k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'))+'|('+ls(k).length+')');
   const cp=[['Académica','ac','#1B4688'],['Apt. naval','an','#3F7FCB'],['Disciplina','di','#E8B13A'],['C. física','cf','#2E9E6B']];
   const all4=cp.flatMap(([n,f])=>KO.map(k=>mm(k,f))).filter(v=>v!=null);
   const c2=`<div class="card ch an"><h3>Componentes por semestre</h3>${svgLines(lo,cp.map(([n,f,c])=>({n,c,v:KO.map(k=>mm(k,f))})),{min:Math.floor(Math.min(...all4)*2)/2,max:10})}<p class="cn">Promedio de cada componente en cada semestre.</p></div>`;
