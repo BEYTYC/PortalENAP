@@ -541,7 +541,7 @@ body:not(.has-gear) .back{right:6px!important}
 #pub.mer .evo{display:none}
 
 .stu .gt{table-layout:fixed!important}.stu .gt thead th.wp{width:78px}.stu .gt thead th.wc{width:64px}.stu .gt.hasrep thead th:first-child{width:142px}.stu .gt tbody td:first-child{white-space:nowrap}
-.stu .gt thead th:first-child{width:auto!important}.stu .gt.hasrep thead th:first-child{width:142px!important}.stu .gt thead th.wp{width:84px}
+.stu .gt thead th:first-child{width:auto!important}.stu .gt.hasrep thead th:first-child{width:158px!important}.stu .gt thead th.wp{width:84px}
 #pub.mer .gt tfoot td:nth-child(n+3):nth-child(-n+5){display:none}.stu .gt thead th.wp{width:auto!important}
 .stu .gt .pcl .pg{display:grid!important;grid-template-columns:1fr 8px 1fr!important;width:100%;column-gap:0}.stu .gt .pcl .p1{text-align:right!important}.stu .gt .pcl .p2{text-align:left!important}.stu .gt .pcl .ps{text-align:center!important}
 /* pantalla completa: cuadros de vuelta, medio transparentes */
@@ -905,7 +905,7 @@ function stuRender(){
   const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+lab(selK);
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Beyty Camargo Martínez</div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
