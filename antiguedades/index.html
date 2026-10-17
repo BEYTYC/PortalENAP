@@ -575,6 +575,7 @@ Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEa
 function motivo(b){const nm=['académica','apt. naval','disciplina','cultura física'],lo=[];for(let i=0;i<4;i++){const v=b[i+1];if(v!=null&&v<6)lo.push(nm[i]+' ('+v.toFixed(3).replace('.',',')+')')}
 return lo.length?'No alcanzó la nota mínima de 6,000 en: '+lo.join(', ')+'.':'Ninguna nota por componente quedó por debajo de 6,000; el motivo (por ejemplo una asignatura perdida) no está en los datos cargados.'}
 function rpx(b,n){return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre ${b[0].slice(0,-1)} reprobado.</b> ${motivo(b)}</td></tr>`}
+function perF(s,i){if(i===s.h.length-1)return '2026-1';const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x===1))return a+'-'+x}return perI(s.h.length,i)}
 function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
@@ -786,7 +787,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<span class="pmv up">▲ subió ${d}</span>`:d<0?`<span class="pmv dn">▼ bajó ${-d}</span>`:'<span class="pmv eq">＝ igual</span>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+sf+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perI(s.h.length,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):puC(b,i)+'<td></td>')}</tr>${r?rpx(b,np?5:8):''}`}).join('');
+  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+sf+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):puC(b,i)+'<td></td>')}</tr>${r?rpx(b,np?5:8):''}`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
