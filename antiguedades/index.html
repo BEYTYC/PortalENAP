@@ -612,6 +612,15 @@ body:not(.has-gear) .back{right:6px!important}
 #charts .card.ch.an{align-self:stretch!important;height:100%!important;display:flex!important;flex-direction:column}
 #charts .card.ch.an svg{flex:1 1 auto;min-height:0}
 #charts .card.ch.an .cn{margin-top:auto}
+/* sin animación de aparecer deslizándose; el contenido usa contador */
+.card,.k,.pod,.pd,.podc,.card.stu,.nov{animation:none!important}
+/* tarjetas del Total: líneas de comparación */
+#pub:has(.k.clk) #kpi .k small.dl{display:block;margin-top:3px;font-size:11.5px;line-height:1.3}
+#pub:has(.k.clk) #kpi .k small.dl em{font-style:normal;font-weight:700}
+#pub:has(.k.clk) #kpi .k small.dl:not(.up):not(.dn){color:var(--mute,#5B6F8F)}
+#pub:has(.k.clk) #kpi .k small.pcn{margin-top:2px}
+/* vista ampliada: la ficha del estudiante sin recuadro general ni fondo */
+:root:fullscreen .card.stu,:root.fsx .card.stu{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -692,10 +701,16 @@ function row(s,k,i){
   return `<tr class="r${sel&&sel.c===s.c?' sel':''}" tabindex="0" data-i="${i}" data-k="${k}"><td class="pu">${s.e==='Aplazado'?'':(s.p??'—')}</td><td class="nm"><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu??''}</td><td class="n${lo(h[1])}">${f3(h[1])}</td><td class="n${lo(h[2])}">${f3(h[2])}</td><td class="n${lo(h[3])}">${f3(h[3])}</td><td class="n${lo(h[4])}">${f3(h[4])}</td><td><div class="fb"><i><b style="width:${w}%"></b><u style="left:${mp(k)}%"></u></i><span>${f3(s.f)}</span></div></td></tr>`;
 }
 
+const _pv={};
 function countUp(){
-  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-  document.querySelectorAll('.k b,.pod .pf').forEach(el=>{const raw=el.textContent.trim();const m=raw.match(/^(\d+)(?:,(\d+))?$/);if(!m)return;const dec=m[2]?m[2].length:0,to=parseFloat(raw.replace(',','.')),t0=performance.now();
-    const step=n=>{const p=Math.min(1,(n-t0)/800),e=1-Math.pow(1-p,3),v=to*e;el.textContent=dec?v.toFixed(dec).replace('.',','):Math.round(v);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)})
+  const calm=matchMedia('(prefers-reduced-motion:reduce)').matches;let pi=0;
+  document.querySelectorAll('.k b,.pod .pf').forEach(el=>{
+    const raw=el.textContent.trim(),m=raw.match(/^(\d+)(?:,(\d+))?$/);if(!m)return;
+    const dec=m[2]?m[2].length:0,to=parseFloat(raw.replace(',','.')),k=el.closest('.k'),key=k?'k:'+k.querySelector('span').textContent:'p:'+(pi++);
+    const from=key in _pv?_pv[key]:0;_pv[key]=to;
+    if(from===to||calm)return; // si quedó igual, no se mueve
+    const fmt=v=>dec?v.toFixed(dec).replace('.',','):String(Math.round(v)),t0=performance.now();el.textContent=fmt(from);
+    const step=n=>{const p=Math.min(1,(n-t0)/800),e=1-Math.pow(1-p,3);el.textContent=fmt(from+(to-from)*e);if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)})
 }
 function buscar(qq){
   const nz=x=>String(x).toUpperCase().normalize('NFD').replace(/[\u0300-\u0301\u0308]/g,'').normalize('NFC'),t=nz(qq);
@@ -715,31 +730,57 @@ function corto(n){const w=String(n).split(/\s+/);let i=0;
 let totSel=null;
 const NS='http://www.w3.org/2000/svg';
 function xl(x,y,l){const [a,b]=String(l).split('|');return `<text x="${x}" y="${y}" text-anchor="middle" font-size="11" fill="#5B6F8F">${a}${b?`<tspan x="${x}" dy="13" font-size="10.5" font-weight="600" fill="#33466B">${b}</tspan>`:''}</text>`}
-function svgV(items,o){ // barras verticales: items [{l,v,v2?}] ; o {min,max,fmt,ref,c}
-  const W=560,H=270,L=36,R=10,T=26,B=44,pw=W-L-R,ph=H-T-B,n=items.length,bw=Math.min(46,pw/n*.62);
+let _gid=0;
+const GRAD=(id,c1,c2)=>`<defs><linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>`;
+function svgV(items,o){ // barras verticales con degradado; o.ref línea; o.cum línea acumulada (%)
+  const W=560,H=270,L=36,R=o.cum?34:10,T=28,B=44,pw=W-L-R,ph=H-T-B,n=items.length,bw=Math.min(46,pw/n*.62),id='gv'+(++_gid);
   const y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
-  let g='';const ticks=o.ticks||4;
+  let g=GRAD(id,o.c1||'#5B94D6',o.c2||'#2F68B5')+GRAD(id+'b','#C9DCF3','#9DB9E0');const ticks=o.ticks||4;
   for(let i=0;i<=ticks;i++){const v=o.min+(o.max-o.min)*i/ticks;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${o.tf?o.tf(v):v.toFixed(o.dec??0)}</text>`}
-  items.forEach((it,i)=>{const cx=L+pw/n*(i+.5);
-    g+=`<rect x="${cx-bw/2}" y="${y(it.v)}" width="${bw}" height="${T+ph-y(it.v)}" rx="4" fill="${o.c||'#3F7FCB'}"><title>${String(it.l).replace('|',' ')}: ${o.fmt(it.v)}</title></rect><text x="${cx}" y="${y(it.v)-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1B4688">${o.fmt(it.v)}</text>${xl(cx,H-B+16,it.l)}`});
-  if(o.ref!=null)g+=`<line x1="${L}" x2="${W-R}" y1="${y(o.ref)}" y2="${y(o.ref)}" stroke="#1B4688" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  const pts=[];
+  items.forEach((it,i)=>{const cx=L+pw/n*(i+.5),low=o.ref!=null&&it.v<o.ref;
+    g+=`<rect x="${cx-bw/2}" y="${y(it.v)}" width="${bw}" height="${Math.max(0,T+ph-y(it.v))}" rx="5" fill="url(#${id}${low?'b':''})"><title>${String(it.l).replace('|',' ')}: ${o.fmt(it.v)}${o.ref!=null?' ('+(it.v>=o.ref?'+':'−')+Math.abs(it.v-o.ref).toFixed(3).replace('.',',')+' vs. general)':''}</title></rect>`;
+    g+=`<text x="${cx}" y="${y(it.v)-7}" text-anchor="middle" font-size="11" font-weight="700" fill="${low?'#5B6F8F':'#1B4688'}">${o.fmt(it.v)}</text>`+xl(cx,H-B+16,it.l);
+    if(o.cum)pts.push([cx,T+ph-it.cum/100*ph,it.cum])});
+  if(o.ref!=null)g+=`<line x1="${L}" x2="${W-R}" y1="${y(o.ref)}" y2="${y(o.ref)}" stroke="#E8B13A" stroke-width="1.8" stroke-dasharray="6 4"/>`;
+  if(o.cum){g+=`<path d="${pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#E8B13A" stroke-width="2.2"/>`+pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.6" fill="#fff" stroke="#E8B13A" stroke-width="2"><title>Acumulado ${Math.round(p[2])}%</title></circle>`).join('');
+    [0,50,100].forEach(v=>g+=`<text x="${W-R+5}" y="${T+ph-v/100*ph+4}" font-size="10" fill="#B9801C">${v}%</text>`)}
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
-function svgLines(labels,series,o){ // líneas: series [{n,c,v:[...]}]
-  const W=560,H=270,L=40,R=12,T=14,B=64,pw=W-L-R,ph=H-T-B,n=labels.length;
+function svgLines(labels,series,o){ // líneas con área suave y valor final
+  const W=560,H=270,L=40,R=46,T=14,B=64,pw=W-L-R,ph=H-T-B,n=labels.length;
   const x=i=>L+pw/(n-1||1)*i,y=v=>T+ph-(v-o.min)/(o.max-o.min)*ph;
   let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
   labels.forEach((l,i)=>g+=xl(x(i),T+ph+16,l));
-  series.forEach((se,k)=>{const pts=se.v.map((v,i)=>v==null?null:[x(i),y(v)]);const d=pts.map((p,i)=>p?(i&&pts[i-1]?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1):'').join(' ');
-    g+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="${se.c}"><title>${se.n} · ${String(labels[i]).replace('|',' ')}: ${f3(se.v[i])}</title></circle>`:'').join('');
-    g+=`<rect x="${L+k*118}" y="${H-18}" width="12" height="4" rx="2" fill="${se.c}"/><text x="${L+k*118+18}" y="${H-13}" font-size="11" fill="#33466B">${se.n}</text>`});
+  series.forEach((se,k)=>{const pts=se.v.map((v,i)=>v==null?null:[x(i),y(v)]);const ok=pts.filter(Boolean);const d=pts.map((p,i)=>p?(i&&pts[i-1]?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1):'').join(' ');
+    if(k===0&&ok.length>1){g+=`<path d="${d} L${ok[ok.length-1][0].toFixed(1)} ${T+ph} L${ok[0][0].toFixed(1)} ${T+ph} Z" fill="${se.c}" opacity=".08"/>`}
+    g+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`+pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="3.8" fill="#fff" stroke="${se.c}" stroke-width="2"><title>${se.n} · ${String(labels[i]).replace('|',' ')}: ${f3(se.v[i])}</title></circle>`:'').join('');
+    const last=ok[ok.length-1],lv=[...se.v].reverse().find(v=>v!=null),fv=se.v.find(v=>v!=null);
+    if(last)g+=`<text x="${last[0]+8}" y="${last[1]+4}" font-size="10.5" font-weight="700" fill="${se.c}">${f3(lv)}</text>`;
+    const dl=lv-fv;g+=`<rect x="${L+k*122}" y="${H-19}" width="12" height="4" rx="2" fill="${se.c}"/><text x="${L+k*122+17}" y="${H-13}" font-size="10.5" fill="#33466B">${se.n} <tspan font-weight="700" fill="${dl>=0?'#1E8E4E':'#D13438'}">${dl>=0?'▲':'▼'}${Math.abs(dl).toFixed(2).replace('.',',')}</tspan></text>`});
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function svgGroup(labels,a,b,o){ // barras agrupadas de dos series
-  const W=560,H=270,L=30,R=10,T=26,B=64,pw=W-L-R,ph=H-T-B,n=labels.length,mx=Math.max(1,...a,...b),y=v=>T+ph-v/mx*ph,gw=pw/n,bw=Math.min(24,gw*.34);
-  let g='';for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${Math.round(v)}</text>`}
+  const W=560,H=270,L=30,R=10,T=28,B=64,pw=W-L-R,ph=H-T-B,n=labels.length,mx=Math.max(1,...a,...b),y=v=>T+ph-v/mx*ph,gw=pw/n,bw=Math.min(24,gw*.34),id='gg'+(++_gid);
+  let g=GRAD(id+'a','#F2C65C','#D9A024')+GRAD(id+'b','#5B94D6','#2F68B5');for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${Math.round(v)}</text>`}
   labels.forEach((l,i)=>{const cx=L+gw*(i+.5);
-    [[a[i],-bw-1,o.c1,o.n1],[b[i],1,o.c2,o.n2]].forEach(([v,dx,c,nm])=>{g+=`<rect x="${cx+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="3" fill="${c}"><title>${String(l).replace('|',' ')} · ${nm}: ${v}</title></rect>${v?`<text x="${cx+dx+bw/2}" y="${y(v)-4}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#33466B">${v}</text>`:''}`});
+    [[a[i],-bw-1,id+'a',o.n1],[b[i],1,id+'b',o.n2]].forEach(([v,dx,c,nm])=>{g+=`<rect x="${cx+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="4" fill="url(#${c})"><title>${String(l).replace('|',' ')} · ${nm}: ${v}</title></rect>${v?`<text x="${cx+dx+bw/2}" y="${y(v)-5}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#33466B">${v}</text>`:''}`});
     g+=xl(cx,T+ph+16,l)});
-  g+=`<rect x="${L}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c1}"/><text x="${L+18}" y="${H-10}" font-size="11" fill="#33466B">${o.n1}</text><rect x="${L+130}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c2}"/><text x="${L+148}" y="${H-10}" font-size="11" fill="#33466B">${o.n2}</text>`;
+  g+=`<rect x="${L}" y="${H-19}" width="12" height="9" rx="2" fill="#E8B13A"/><text x="${L+18}" y="${H-11}" font-size="10.5" fill="#33466B">${o.n1} <tspan font-weight="700">(${a.reduce((x,y)=>x+y,0)})</tspan></text><rect x="${L+150}" y="${H-19}" width="12" height="9" rx="2" fill="#2F68B5"/><text x="${L+168}" y="${H-11}" font-size="10.5" fill="#33466B">${o.n2} <tspan font-weight="700">(${b.reduce((x,y)=>x+y,0)})</tspan></text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function svgRange(items,o){ // rango mín–máx con promedio y mediana: items [{l,min,max,avg,med}]
+  const W=560,H=270,L=36,R=10,T=22,B=44,pw=W-L-R,ph=H-T-B,n=items.length,y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
+  let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
+  items.forEach((it,i)=>{const cx=L+pw/n*(i+.5);
+    g+=`<rect x="${cx-7}" y="${y(it.max)}" width="14" height="${Math.max(2,y(it.min)-y(it.max))}" rx="7" fill="#DCE8F8" stroke="#9DB9E0"><title>${String(it.l).replace('|',' ')}: mín ${f3(it.min)} · máx ${f3(it.max)}</title></rect>`;
+    g+=`<line x1="${cx-9}" x2="${cx+9}" y1="${y(it.med)}" y2="${y(it.med)}" stroke="#E8B13A" stroke-width="2.4"><title>Mediana ${f3(it.med)}</title></line><circle cx="${cx}" cy="${y(it.avg)}" r="5" fill="#1B4688" stroke="#fff" stroke-width="1.5"><title>Promedio ${f3(it.avg)}</title></circle>`;
+    g+=`<text x="${cx}" y="${y(it.max)-6}" text-anchor="middle" font-size="10" fill="#33466B">${f3(it.max)}</text><text x="${cx}" y="${y(it.min)+13}" text-anchor="middle" font-size="10" fill="#B03A3A">${f3(it.min)}</text>`+xl(cx,H-B+22,it.l)});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function svgScatter(pts,o){ // dispersión: pts [{x,y,t}] t=0 normal,1 distinguido,2 excelencia
+  const W=560,H=270,L=40,R=12,T=14,B=52,pw=W-L-R,ph=H-T-B,X=v=>L+(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*pw,Y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
+  let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text><text x="${X(v)}" y="${T+ph+15}" text-anchor="middle" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
+  g+=`<text x="${L+pw/2}" y="${T+ph+29}" text-anchor="middle" font-size="10.5" fill="#33466B">${o.xl}</text><text x="12" y="${T+ph/2}" transform="rotate(-90 12 ${T+ph/2})" text-anchor="middle" font-size="10.5" fill="#33466B">${o.yl}</text>`;
+  const c=['#3F7FCB','#E8B13A','#1B4688'],op=[.28,.95,.95],r=[3,4.4,4.4];
+  [0,1,2].forEach(t=>pts.filter(p=>p.t===t).forEach(p=>g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${r[t]}" fill="${c[t]}" fill-opacity="${op[t]}"${t?` stroke="#fff" stroke-width="1"`:''}><title>${p.n}</title></circle>`));
+  g+=`<circle cx="${L}" cy="${H-8}" r="4" fill="#3F7FCB" fill-opacity=".5"/><text x="${L+9}" y="${H-4}" font-size="10.5" fill="#33466B">Estudiante</text><circle cx="${L+100}" cy="${H-8}" r="4.4" fill="#E8B13A"/><text x="${L+109}" y="${H-4}" font-size="10.5" fill="#33466B">Distinguido</text><circle cx="${L+200}" cy="${H-8}" r="4.4" fill="#1B4688"/><text x="${L+209}" y="${H-4}" font-size="10.5" fill="#33466B">Excelencia</text>`;
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
 function hbars(items,o){ // [{l,v,n}] barras horizontales con escala o.min–o.max
   return `<div class="hb">${items.map(it=>`<div class="hr"><span>${it.l}<small>${it.n!=null?it.n+' est.':''}</small></span><i><b style="width:${Math.max(2,(it.v-o.min)/(o.max-o.min)*100)}%"></b></i><em>${o.fmt(it.v)}</em></div>`).join('')}</div>`}
@@ -749,10 +790,18 @@ function totRender(){
   const S=A.map(a=>a[0]),L=S.filter(s=>s.f!=null&&s.e!=='Aplazado');
   const av=f=>{const v=L.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?mean(v):null};
   const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length,G=av('f');
-  const kp=(n,v,sub,act)=>act?`<div class="k clk" role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"><span>${n}</span><b>${v}</b><small class="dl">${sub} · ver lista</small></div>`:`<div class="k"><span>${n}</span><b>${v}</b>${sub?`<small class="dl">${sub}</small>`:''}</div>`;
   const pc=n=>(n/S.length*100).toFixed(1).replace('.',',')+'%';
   const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
-  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(G))+kp('Mediana',f3(med))+kp('Mejor promedio',f3(fs[fs.length-1]))+kp('Promedio más bajo',f3(fs[0]))+kp('Con novedad',nN,pc(nN))+kp('Prom. académico',f3(av('ac')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,pc(nD),'dis')+kp('Excelencia académica',nE,pc(nE),'exc');
+  // último semestre frente al anterior
+  const SQ=[...ORD,'ESC'].filter(k=>ls(k).length),kL=SQ[SQ.length-1],kP=SQ[SQ.length-2],nL=kL==='ESC'?'4.2':lab(kL),nP=kP==='ESC'?'4.2':lab(kP);
+  const M=k=>{const a=ls(k),b=a.filter(s=>s.f!=null&&s.e!=='Aplazado'),f=b.map(s=>s.f).sort((x,y)=>x-y),m=f.length%2?f[(f.length-1)/2]:(f[f.length/2-1]+f[f.length/2])/2,av2=q=>{const v=b.filter(s=>s[q]!=null).map(s=>s[q]);return v.length?mean(v):null};
+    return {n:a.length,f:av2('f'),med:m,max:f[f.length-1],min:f[0],nov:a.filter(s=>s.e&&s.e!=='Normal').length,ac:av2('ac'),an:av2('an'),di:av2('di'),cf:av2('cf'),dis:a.filter(s=>s.dis).length,exc:a.filter(s=>s.exc).length}};
+  const mL=M(kL),mP=M(kP);
+  const cmp=(f,dec)=>{const a=mL[f],b=mP[f];if(a==null||b==null)return '';const d=a-b,up=d>=0,t=dec===0?String(Math.abs(d)):Math.abs(d).toFixed(3).replace('.',','),v=dec===0?String(a):f3(a);
+    return `<small class="dl ${dec===0?'':up?'up':'dn'}">${nL}: <em>${v}</em> · ${d===0?'＝':up?'▲ +':'▼ −'}${d===0?'':t} vs. ${nP}</small>`};
+  const kp=(n,v,sub,act)=>`<div class="k${act?' clk':''}"${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
+  const pcs=(n,x)=>`<small class="dl pcn">${pc(n)} del total${x?' · ver lista':''}</small>`;
+  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length,cmp('n',0))+kp('Promedio general',f3(G),cmp('f'))+kp('Mediana',f3(med),cmp('med'))+kp('Mejor promedio',f3(fs[fs.length-1]),cmp('max'))+kp('Promedio más bajo',f3(fs[0]),cmp('min'))+kp('Con novedad',nN,pcs(nN)+cmp('nov',0))+kp('Prom. académico',f3(av('ac')),cmp('ac'))+kp('Prom. apt. naval',f3(av('an')),cmp('an'))+kp('Prom. disciplina',f3(av('di')),cmp('di'))+kp('Prom. cultura física',f3(av('cf')),cmp('cf'))+kp('Alumnos distinguidos',nD,pcs(nD,1)+cmp('dis',0),'dis')+kp('Excelencia académica',nE,pcs(nE,1)+cmp('exc',0),'exc');
   const pod=document.getElementById('pod'),nov=document.getElementById('nov'),nl=document.getElementById('novl');
   nov.hidden=true;nov.innerHTML='';if(nl)nl.hidden=true;
   if(totSel){const flag=totSel,r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));
@@ -764,23 +813,21 @@ function totRender(){
   // gráficas
   const KS=[...ORD,'ESC','MER'],mm=(k,f)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);return a.length?mean(a):null};
   const labs=KS.map(k=>(k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'))+'|('+ls(k).length+')'),pf=KS.map(k=>mm(k,'f'));
-  const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,refl:'General',tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
+  const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
   const KO=[...ORD,'ESC'].filter(k=>ls(k).length),lo=KO.map(k=>(k==='ESC'?'4.2':lab(k).replace(' (Rep)','R'))+'|('+ls(k).length+')');
   const cp=[['Académica','ac','#1B4688'],['Apt. naval','an','#3F7FCB'],['Disciplina','di','#E8B13A'],['C. física','cf','#2E9E6B']];
   const all4=cp.flatMap(([n,f])=>KO.map(k=>mm(k,f))).filter(v=>v!=null);
   const c2=`<div class="card ch an"><h3>Componentes por semestre</h3>${svgLines(lo,cp.map(([n,f,c])=>({n,c,v:KO.map(k=>mm(k,f))})),{min:Math.floor(Math.min(...all4)*2)/2,max:10})}<p class="cn">Promedio de cada componente en cada semestre.</p></div>`;
-  const BK=[['< 7,5',-1,7.5],['7,5',7.5,8],['8,0',8,8.5],['8,5',8.5,9],['9,0',9,9.5],['9,5+',9.5,11]],cnt=BK.map(([n,a,b])=>({l:n,v:L.filter(s=>s.f>=a&&s.f<b).length}));
-  const c3=`<div class="card ch an"><h3>Distribución del promedio final</h3>${svgV(cnt,{min:0,max:Math.ceil(Math.max(...cnt.map(c=>c.v))/50)*50,fmt:v=>String(v),c:'#2F68B5',tf:v=>String(Math.round(v))})}<p class="cn">Número de estudiantes por rango de 0,5.</p></div>`;
-  const c4=`<div class="card ch an"><h3>Distinguidos y excelencias por semestre</h3>${svgGroup(KS.map((k,i)=>labs[i]),KS.map(k=>ls(k).filter(s=>s.dis).length),KS.map(k=>ls(k).filter(s=>s.exc).length),{c1:'#E8B13A',n1:'Distinguidos',c2:'#2F68B5',n2:'Excelencia'})}<p class="cn">Número de alumnos por semestre.</p></div>`;
-  const gp={};L.forEach(s=>{const k=String(s.cu||'').replace(/^\d\.\d/,'').replace(/-[AB]$/,'')||'—';(gp[k]=gp[k]||[]).push(s.f)});
-  const gi=Object.entries(gp).filter(([k,v])=>v.length>=5&&k!=='—').map(([k,v])=>({l:k,v:mean(v),n:v.length})).sort((a,b)=>b.v-a.v);
-  const c5=`<div class="card ch an"><h3>Promedio por grupo de curso</h3>${hbars(gi,{min:6,max:10,fmt:f3})}<p class="cn">Grupos con 5 o más estudiantes · escala 6–10.</p></div>`;
-  const gr={};L.forEach(s=>{(gr[s.g]=gr[s.g]||[]).push(s.f)});
-  const gg=Object.entries(gr).map(([k,v])=>({l:k,v:mean(v),n:v.length})).sort((a,b)=>b.v-a.v);
-  const ne={};S.forEach(s=>{const e=s.e&&s.e!=='Normal'?s.e:null;if(e)ne[e]=(ne[e]||0)+1});
-  const nv=Object.entries(ne).sort((a,b)=>b[1]-a[1]),nmx=Math.max(1,...nv.map(x=>x[1]));
-  const c6=`<div class="card ch an"><h3>Promedio por grado</h3>${hbars(gg,{min:6,max:10,fmt:f3})}<h3 class="h3b">Novedades</h3><div class="hb">${nv.map(([n,c])=>`<div class="hr"><span>${n}</span><i><b style="width:${c/nmx*100}%"></b></i><em>${c}</em></div>`).join('')}</div></div>`;
-  document.getElementById('charts').innerHTML=c1+c2+c3+c4;
+  const BK=[['< 7,5',-1,7.5],['7,5',7.5,8],['8,0',8,8.5],['8,5',8.5,9],['9,0',9,9.5],['9,5+',9.5,11]];let acu=0;const cnt=BK.map(([n,a,b])=>{const v=L.filter(s=>s.f>=a&&s.f<b).length;acu+=v;return {l:n,v,cum:acu/L.length*100}});
+  const mx3=Math.ceil(Math.max(...cnt.map(c=>c.v))/50)*50;
+  const c3=`<div class="card ch an"><h3>Distribución del promedio final</h3>${svgV(cnt,{min:0,max:mx3,fmt:v=>String(v),tf:v=>String(Math.round(v)),cum:1})}<p class="cn">Estudiantes por rango de 0,5 · línea dorada: porcentaje acumulado · mediana ${f3(med)}.</p></div>`;
+  const nDis=S.filter(s=>s.dis).length;
+  const c4=`<div class="card ch an"><h3>Distinguidos y excelencias por semestre</h3>${svgGroup(KS.map((k,i)=>labs[i]),KS.map(k=>ls(k).filter(s=>s.dis).length),KS.map(k=>ls(k).filter(s=>s.exc).length),{n1:'Distinguidos',n2:'Excelencia'})}<p class="cn">Total de la institución: ${nD} distinguidos (${pc(nD)}) · ${nE} excelencias (${pc(nE)}).</p></div>`;
+  const rg=KS.map((k,i)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f).sort((x,y)=>x-y);if(!a.length)return null;return {l:labs[i],min:a[0],max:a[a.length-1],avg:mean(a),med:a.length%2?a[(a.length-1)/2]:(a[a.length/2-1]+a[a.length/2])/2}}).filter(Boolean);
+  const c5=`<div class="card ch an"><h3>Rango del promedio final por semestre</h3>${svgRange(rg,{min:6,max:10})}<p class="cn">Barra: mínimo a máximo · punto azul: promedio · raya dorada: mediana.</p></div>`;
+  const pts=A.filter(a=>a[0].ac!=null&&a[0].an!=null).map(([s])=>({x:s.ac,y:s.an,t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · AN '+f3(s.an)}));
+  const c6=`<div class="card ch an"><h3>Académica frente a aptitud naval</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:'Aptitud naval'})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen aptitud naval.</p></div>`;
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6;
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
 }
