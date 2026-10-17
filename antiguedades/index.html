@@ -391,6 +391,14 @@ body:has(#admin:not([hidden])) .dlb{position:fixed;top:12px;right:60px}
 body:has(#admin:not([hidden])) .adm{max-width:1000px;margin-inline:auto;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:12px}
 .adm .card{min-width:0;overflow:hidden}.adm .card .row,.adm .card form{flex-wrap:wrap}.adm input[type=text],.adm input[type=email],.adm input:not([type]){min-width:0}.adm table{width:100%;table-layout:auto}.adm .card input[type=file]{max-width:100%;min-width:0}
 .adm .frm{flex-wrap:wrap}.adm .frm input{flex:1 1 160px;min-width:0}.adm .btn{white-space:normal}
+.gt th:first-child,.gt tbody td:first-child{text-align:center}
+#pub.srch:not(.one)>*:not(.bar):not(.grid){display:none!important}
+.pfh{align-items:baseline;gap:14px}.pfh b{font-size:34px}.pfh span{font-size:22px!important;font-weight:600;color:var(--navy)!important}
+.rd .lg{display:flex!important;flex-direction:column;align-items:flex-end;gap:4px;margin-top:8px;text-align:right}
+.card.stu{position:relative;padding-bottom:34px}
+.card.stu::after{content:"Fuente: Oficina de Estadística";position:absolute;right:18px;bottom:10px;font-size:11px;letter-spacing:.04em;color:var(--mute)}
+.chips{justify-content:center}
+.nl th:nth-child(3),.nl td:nth-child(3),.grid table th:nth-child(3),.grid table td:nth-child(3){text-align:center}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -419,7 +427,7 @@ body:has(#admin:not([hidden])) .adm{max-width:1000px;margin-inline:auto;grid-tem
 <div class="path" id="meta">Cargando…</div>
 <div class="frm"><input id="per" type="text" placeholder="Periodo (ej. 2026-2)" aria-label="Periodo" style="max-width:160px"><input id="fi" type="file" accept=".json,application/json" aria-label="Archivo de datos"></div>
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
-<section class="card ac"><h3>Descargar para compartir</h3><p>Excel "BD Antigüedades" con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div class="path" id="xm">Cargando…</div><div class="frm"><input id="fx" type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" aria-label="Archivo BD Antigüedades"></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn ghost" id="upx">Cargar este Excel</button><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
+<section class="card ac"><h3>Descargar para compartir</h3><p>El sistema arma el Excel "BD Antigüedades" con los datos cargados, con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" role="status"><div class="gbox"><b id="gt">Verificando acceso…</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
@@ -730,41 +738,86 @@ window.__api=api;
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var fh=function(iso){if(!iso)return 'Nunca';var d=new Date(iso);return isNaN(d)?'—':d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 
-var PART={DE:1,DEL:1,LA:1,LAS:1,LOS:1,SAN:1,SANTA:1,Y:1};
-function partir(n){var w=String(n).split(/\s+/),i=0;function ap(){while(i<w.length-1&&PART[w[i]])i++;i++}ap();ap();return [w.slice(0,i).join(' '),w.slice(i).join(' ')]}
-function cargaXLSX(){return new Promise(function(ok,no){if(window.XLSX)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el generador de Excel. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
-function filas(lista){var H=['Puesto','Grado','Apellidos','Nombres','Código','Cédula','Curso','Estado','Académica','Apt. naval','Disciplina','C. física','Promedio final','Distinguido','Excelencia','Observación'];
-  var r=[H];lista.forEach(function(s){var pn=partir(s.n);r.push([s.e==='Aplazado'?'':(s.p==null?'':s.p),s.g||'',pn[0],pn[1],s.c==null?'':String(s.c),s.ce==null?'':String(s.ce),s.cu||'',s.e||'',s.ac,s.an,s.di,s.cf,s.f,s.dis?'Sí':'',s.exc?'Sí':'',s.ev||''].map(function(v){return v===undefined?null:v}))});return r}
-function armarExcel(D,quien,periodo){
-  var X=window.XLSX,wb=X.utils.book_new(),ahora=new Date();
-  var f=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true});
-  var info=X.utils.aoa_to_sheet([['BD Antigüedades ENAP'],[],['Periodo',periodo||''],['Fecha y hora de descarga',f],['Descargado por',quien],[],['Escuela Naval de Cadetes "Almirante Padilla" · Oficina de Estadística'],['Documento de uso institucional.']]);
-  info['!cols']=[{wch:26},{wch:60}];X.utils.book_append_sheet(wb,info,'Información');
-  function hoja(nom,lista){var ws=X.utils.aoa_to_sheet(filas(lista));ws['!cols']=[{wch:8},{wch:7},{wch:22},{wch:22},{wch:13},{wch:13},{wch:9},{wch:12},{wch:11},{wch:11},{wch:11},{wch:11},{wch:14},{wch:12},{wch:11},{wch:40}];
-    var rg=X.utils.decode_range(ws['!ref']);for(var R=1;R<=rg.e.r;R++)for(var C=8;C<=12;C++){var c=ws[X.utils.encode_cell({r:R,c:C})];if(c&&typeof c.v==='number'){c.t='n';c.z='0.000'}}
-    ws['!autofilter']={ref:ws['!ref']};ws['!freeze']={xSplit:0,ySplit:1};X.utils.book_append_sheet(wb,ws,nom)}
-  D.order.forEach(function(k){hoja('Semestre '+k,D.sheets[k])});
-  if(D.esc&&D.esc.length)hoja('Escalafonamiento',D.esc);
-  var d=ahora.toLocaleDateString('en-CA',{timeZone:'America/Bogota'});
-  X.writeFile(wb,'BD Antigüedades '+d+'.xlsx')}
+function cargaExcelJS(){return new Promise(function(ok,no){if(window.ExcelJS)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el generador de Excel. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
+function armarBD(E,D,quien){
+  var wb=new E.Workbook(),ahora=new Date();
+  var fec=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/ /g,' ');
+  var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
+  var FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FF9DB7DA';
+  var r3=function(v){return v==null?null:Math.round(v*1000)/1000};
+  function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
+  function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:BL}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
+  function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
+  D.order.forEach(function(k){
+    var lista=D.sheets[k],ix=D.order.indexOf(k),bloques=[];
+    for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
+      if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
+    var conPf=(k==='4.1'||k==='4.2')&&lista.some(function(s){return s.pf!=null});
+    var ws=wb.addWorksheet(k,{views:[{state:'frozen',xSplit:7,ySplit:4,showGridLines:false}]});
+    var n=lista.length,last=n+4;
+    var fijas=[['PUESTO',11],['ESTADO',13],['CURSO\n2026-1',10],['CÓDIGO',13],['CÉDULA',13],['GRADO',11],['APELLIDOS Y NOMBRES',42]];
+    fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
+    var grupos=[]; // {c0,c1,titulo,tipo}
+    grupos.push({c0:1,c1:7,tipo:'fija'});
+    grupos.push({c0:8,c1:12,tipo:'prom'});ws.getColumn(13).width=3.5;
+    var c=14;
+    bloques.forEach(function(cod){grupos.push({c0:c,c1:c+3,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<4;j++){ws.getColumn(c+j).width=13;ws.getColumn(c+j).outlineLevel=1}ws.getColumn(c+4).width=3.5;ws.getColumn(c+4).outlineLevel=1;c+=5});
+    var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
+    var cUlt=conPf?cPf:(bloques.length?c-2:13);
+    // título y fecha
+    ws.mergeCells(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Escuela Naval de Cadetes «Almirante Padilla» · Semestre '+k;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'center'};
+    ws.getRow(3).height=22;ws.getRow(4).height=32;
+    function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'center',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
+    // fila 3
+    grupos.forEach(function(g){
+      if(g.tipo==='fija')return;
+      var t=g.tipo==='prom'?'PROMEDIOS':'SEMESTRE '+(g.cod.slice(-1)==='A'?g.cod.slice(0,-1)+' (REPITE)':g.cod);
+      ws.mergeCells(3,g.c0,3,g.c1);
+      var o=g.tipo==='prom'?{b:1,fc:'FFFFFFFF',fill:BL,w:1}:g.tipo==='rep'?{b:1,fc:'FF3B2A10',fill:'FFFCD9A8'}:{b:1,fc:AZ,fill:'FFB7D1EE'};
+      for(var cc=g.c0;cc<=g.c1;cc++){var x=celda(3,cc,cc===g.c0?t:undefined,o);bd(x,cc===g.c0,cc===g.c1,true,false)}
+    });
+    if(cPf){var x=celda(3,cPf,'PONDERACIÓN',{b:1,fc:AZ,fill:'FFB7D1EE'});bd(x,true,true,true,false)}
+    // fila 4
+    var enc=['PUESTO','ESTADO','CURSO\n2026-1','CÓDIGO','CÉDULA','GRADO','APELLIDOS Y NOMBRES'];
+    enc.forEach(function(t,i){var x=celda(4,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2});bd(x,i===0,i===6,false,false)});
+    ['ACAD','APT. NAV','DISCIP','C.FIS','PROMEDIO FINAL'].forEach(function(t,i){var x=celda(4,8+i,t,{b:1,fc:'FFFFFFFF',fill:i===4?BL:'FF5AA2EA',w:1});bd(x,i===0,i===4,false,false)});
+    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')['ACAD','AN','DISC','C.FIS'].forEach(function(t,i){var x=celda(4,g.c0+i,t,{b:1,fc:AZ,fill:'FFDCE9F7'});bd(x,i===0,i===3,false,false)})});
+    if(cPf){var y=celda(4,cPf,'FACTOR DE PONDERACIÓN',{b:1,fc:AZ,fill:'FFDCE9F7',w:1});bd(y,true,true,false,false)}
+    // datos
+    lista.forEach(function(s,i){
+      var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e,s.cu,s.c,s.ce,s.g,s.n];
+      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===6?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
+      [s.as,s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
+      grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
+        var h=s.h.filter(function(z){return z[0]===g.cod})[0];
+        for(var j=0;j<4;j++){var x=celda(r,g.c0+j,h?r3(h[1+j]):null,{nf:'0.000',fill:g.tipo==='rep'?'FFFEF3C7':null});bd(x,j===0,j===3,false,u)}});
+      if(cPf){var x2=celda(r,cPf,r3(s.pf),{nf:'0.000'});bd(x2,true,true,false,u)}
+    });
+    ws.autoFilter={from:{row:4,column:1},to:{row:last,column:12}};
+    var rojo={type:'cellIs',operator:'lessThan',formulae:[6],style:{font:{bold:true,color:{argb:'FFD32F2F'}}}};
+    var rangos=[];for(var cc=8;cc<=12;cc++)rangos.push(cc);
+    grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')for(var j=0;j<4;j++)rangos.push(g.c0+j)});
+    rangos.forEach(function(cc){ws.addConditionalFormatting({ref:col(cc)+'5:'+col(cc)+last,rules:[rojo]})});
+  });
+  return wb;
+}
+
+var MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 var yo={correo:'',puede:false};
+function bajarBD(quien){
+  return cargaExcelJS().then(function(){
+    var wb=armarBD(window.ExcelJS,window.__D,quien),ahora=new Date();
+    var p=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'numeric',year:'2-digit'}).formatToParts(ahora),g=function(k){return (p.filter(function(x){return x.type===k})[0]||{}).value};
+    var nombre='BD Antigüedades '+g('day')+MES[parseInt(g('month'),10)-1]+g('year')+'.xlsx';
+    return wb.xlsx.writeBuffer().then(function(buf){
+      var blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),u=URL.createObjectURL(blob),a=document.createElement('a');
+      a.href=u;a.download=nombre;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500)})})}
 function descargar(msgEl){
   var m=function(t){if(msgEl)msgEl.textContent=t};m('Preparando el Excel…');
   return api('descargar').then(function(r){
-    var fin=function(){m('Listo. La descarga quedó registrada.');if(window.__recargarAdmin)window.__recargarAdmin()};
-    if(r.xlsx)return sellarYBajar(r.xlsx,r.correo||yo.correo).then(fin);
-    return cargaXLSX().then(function(){armarExcel(window.__D,r.correo||yo.correo,window.__PER);fin()})}).catch(function(e){m(e.message)})}
-var MES=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-function cargaJSZip(){return new Promise(function(ok,no){if(window.JSZip)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el componente de descarga. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
-function sellarYBajar(b64,quien){
-  var ahora=new Date(),f=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/\u00a0/g,' ');
-  var p=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'numeric',year:'2-digit'}).formatToParts(ahora),g=function(k){return (p.filter(function(x){return x.type===k})[0]||{}).value};
-  var nombre='BD Antigüedades '+g('day')+MES[parseInt(g('month'),10)-1]+g('year')+'.xlsx';
-  var texto='Descargada el '+f.replace(',',' ·').replace(/&/g,'&amp;').replace(/</g,'&lt;')+' · por '+String(quien).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-  return cargaJSZip().then(function(){return window.JSZip.loadAsync(b64,{base64:true})}).then(function(zip){
-    var tareas=[];zip.file(/^xl\/worksheets\/sheet\d+\.xml$/).forEach(function(fl){tareas.push(fl.async('string').then(function(x){zip.file(fl.name,x.replace(/Descargada el [^<]*/g,texto))}))});
-    return Promise.all(tareas).then(function(){return zip.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})})
-  }).then(function(blob){var u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=nombre;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500)})}
+    return bajarBD(r.correo||yo.correo).then(function(){m('Listo. La descarga quedó registrada.');if(window.__recargarAdmin)window.__recargarAdmin()})}).catch(function(e){m(e.message)})}
 document.getElementById('dl').onclick=function(){descargar(null).then(function(){})};
 document.getElementById('dl2').onclick=function(){descargar(document.getElementById('dm'))};
 function mostrarDl(puede,admin){yo.puede=puede;var b=document.getElementById('dl');b.hidden=!puede||!window.__D;document.body.classList.toggle('has-dl',!b.hidden);document.body.classList.toggle('has-gear',!!admin)}
@@ -772,7 +825,7 @@ function arrancar(app){var s=document.createElement('script');s.textContent=app;
 function admin(){
   var er=document.getElementById('er');
   function cargar(){api('accesos').then(function(a){
-    document.getElementById('ab').innerHTML=a.admins.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Administrador</td><td>'+fh(x.ultimo)+'</td><td>Sí</td><td></td></tr>'}).join('')+a.consulta.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Consulta</td><td>'+fh(x.ultimo)+'</td><td><input type="checkbox" data-x="'+esc(x.correo)+'" '+(x.descarga?'checked':'')+' aria-label="Puede descargar el Excel"></td><td><button class="btn ghost" data-q="'+esc(x.correo)+'">Quitar</button></td></tr>'}).join('');document.getElementById('xm').textContent=a.excel?('Excel cargado: '+a.excel.nombre+' · '+fh(a.excel.actualizado)+' · '+a.excel.por):'Todavía no se ha cargado el Excel BD Antigüedades; se usará uno generado con los datos.';document.getElementById('dls').innerHTML=(a.descargas&&a.descargas.length)?a.descargas.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+fh(x.fecha)+'</td></tr>'}).join(''):'<tr><td colspan="2" class="empty">Todavía nadie lo ha descargado.</td></tr>';document.querySelectorAll('[data-x]').forEach(function(c){c.onchange=function(){api('descarga-permiso',{correo:c.dataset.x,valor:c.checked}).catch(function(e){er.textContent=e.message;c.checked=!c.checked})}});
+    document.getElementById('ab').innerHTML=a.admins.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Administrador</td><td>'+fh(x.ultimo)+'</td><td>Sí</td><td></td></tr>'}).join('')+a.consulta.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>Consulta</td><td>'+fh(x.ultimo)+'</td><td><input type="checkbox" data-x="'+esc(x.correo)+'" '+(x.descarga?'checked':'')+' aria-label="Puede descargar el Excel"></td><td><button class="btn ghost" data-q="'+esc(x.correo)+'">Quitar</button></td></tr>'}).join('');document.getElementById('dls').innerHTML=(a.descargas&&a.descargas.length)?a.descargas.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+fh(x.fecha)+'</td></tr>'}).join(''):'<tr><td colspan="2" class="empty">Todavía nadie lo ha descargado.</td></tr>';document.querySelectorAll('[data-x]').forEach(function(c){c.onchange=function(){api('descarga-permiso',{correo:c.dataset.x,valor:c.checked}).catch(function(e){er.textContent=e.message;c.checked=!c.checked})}});
     document.getElementById('db').innerHTML=a.intentos.length?a.intentos.map(function(x){return '<tr><td>'+esc(x.correo)+'</td><td>'+x.intentos+'</td><td>'+fh(x.ultimo)+'</td><td style="white-space:nowrap"><button class="btn ghost" data-g="'+esc(x.correo)+'">Dar acceso</button> <button class="btn ghost" data-d="'+esc(x.correo)+'">Descartar</button></td></tr>'}).join(''):'<tr><td colspan="4" class="empty">Nadie ha intentado entrar sin permiso.</td></tr>';
     document.querySelectorAll('[data-q]').forEach(function(b){b.onclick=function(){api('acceso-quitar',{correo:b.dataset.q}).then(cargar).catch(function(e){er.textContent=e.message})}});
     document.querySelectorAll('[data-g]').forEach(function(b){b.onclick=function(){api('acceso-agregar',{correo:b.dataset.g}).then(cargar).catch(function(e){er.textContent=e.message})}});
@@ -787,13 +840,6 @@ function admin(){
     f.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){throw new Error('El archivo no es un JSON válido.')}
       um.textContent='Guardando en SharePoint…';
       return api('guardar-datos',{datos:d,periodo:document.getElementById('per').value})}).then(function(r){um.textContent='Listo. Se guardó correctamente; recarga la página para verlo.';metaTxt(r.meta)}).catch(function(e){um.textContent=e.message})};
-  document.getElementById('upx').onclick=function(){
-    var f=document.getElementById('fx').files[0],dm=document.getElementById('dm');
-    if(!f){dm.textContent='Elige primero el archivo BD Antigüedades (.xlsx).';return}
-    dm.textContent='Subiendo…';
-    var rd=new FileReader();rd.onload=function(){var b64=String(rd.result).split(',')[1]||'';
-      api('guardar-excel',{xlsx:b64,nombre:f.name}).then(function(){dm.textContent='Listo. Este Excel es el que se descargará.';cargar()}).catch(function(e){dm.textContent=e.message})};
-    rd.onerror=function(){dm.textContent='No se pudo leer el archivo.'};rd.readAsDataURL(f)};
   window.__recargarAdmin=cargar;cargar();
 }
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
