@@ -520,6 +520,11 @@ body .bar{padding-right:0!important}
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
+/* el semestre repetido (sufijo A) va justo arriba del semestre definitivo */
+(function(){const fix=s=>{const h=s&&s.h;if(!h)return;for(let i=1;i<h.length;i++)if(h[i][0]===h[i-1][0]+'A'){const x=h[i];h[i]=h[i-1];h[i-1]=x}};
+Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEach(fix)})();
+/* periodo de cada semestre: el último es 2026-1 y se retrocede un semestre por fila */
+function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 let cur='4.2',sel=null,q='';
@@ -690,7 +695,7 @@ function chart(h){
 function notas(h){
   if(!h||!h.length) return '';
   const c=v=>`<td class="${v!=null&&v<6?'lo':''}">${f3(v)}</td>`;
-  return `<table class="gt"><thead><tr><th>Curso</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':b[0]}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('')+`</tbody></table>`;
+  return `<table class="gt"><thead><tr><th>Curso</th><th>Periodo</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':b[0]}</td><td>${perI(h.length,i)}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('')+`</tbody></table>`;
 }
 function radar(s,avg){
   const ax=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
@@ -717,7 +722,7 @@ function stuRender(){
   const s=sel,list=ls(selK).filter(x=>x.f!=null&&x.e!=='Aplazado');
   const avg={};['ac','an','di','cf','f'].forEach(f=>{const v=list.filter(x=>x[f]!=null).map(x=>x[f]);avg[f]=v.length?mean(v):null});
   const c=v=>`<td class="${v!=null&&v<6?'lo':''}">${f3(v)}</td>`;
-  const body=s.h.map(b=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('');
+  const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"><td>${r?b[0].slice(0,-1)+' · repite':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td><td>${perI(s.h.length,i)}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
@@ -762,7 +767,7 @@ function stuRender(){
   const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+selK;
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt"><thead><tr><th>Curso</th><th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th></tr></thead><tbody>${body||'<tr><td colspan="5">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td>Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt"><thead><tr><th>Curso</th><th>Periodo</th><th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th></tr></thead><tbody>${body||'<tr><td colspan="6">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="2">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}</tr></tfoot></table>${pfc}</div>
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }

@@ -992,6 +992,51 @@
   .sac-stat__foot{margin-top:8px; font-size:.76rem; color:#8FA3C4;}
 </style>
 
+<style id="adminPulido">
+/* Administración de usuarios: presentación sobria y elegante */
+#vistaAdmin{background:linear-gradient(180deg,#EEF4FC 0%,#E6EFFA 100%);}
+#vistaAdmin .panel-app__inner{max-width:1280px;padding:40px 32px 72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}
+#vistaAdmin .panel-app__header{grid-column:1/-1;margin:0;padding:0 0 18px;border-bottom:1px solid #D3E0F1;position:relative}
+#vistaAdmin .panel-app__header::after{content:"";position:absolute;left:0;bottom:-1px;width:84px;height:3px;border-radius:3px;background:linear-gradient(90deg,#B8902F,#E3C767)}
+#vistaAdmin .panel-app__header h2{font-size:1.7rem;font-weight:700;letter-spacing:-.015em;color:#0B2A5B}
+#vistaAdmin .panel-app__header h2::before{content:"PORTAL ENAP";display:block;font-size:.68rem;font-weight:600;letter-spacing:.2em;color:#6C86AD;margin-bottom:4px}
+#vistaAdmin .panel-app__card{margin:0;padding:24px 26px;background:#fff;border:1px solid #DCE7F5;border-radius:16px;box-shadow:0 1px 2px rgba(11,42,91,.04),0 14px 34px -18px rgba(31,78,150,.28)}
+#vistaAdmin .panel-app__card:first-of-type,#vistaAdmin .panel-app__header + .panel-app__card{grid-column:1/-1}
+#vistaAdmin .panel-app__card h3{font-size:1.05rem!important;font-weight:700;letter-spacing:-.005em;color:#0B2A5B!important}
+#vistaAdmin .panel-app__card p{color:#5E7794!important;line-height:1.5}
+#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,.9fr);gap:16px;align-items:end;margin-top:14px}
+#vistaAdmin .panel-app__form label{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:#5E7794;font-weight:600;margin-bottom:7px}
+#vistaAdmin .panel-app__form input,#vistaAdmin .panel-app__form select{height:44px;padding:0 14px;border:1px solid #CBD9EC;border-radius:10px;background:#F8FBFF;color:#0B2A5B;font-size:.92rem;transition:border-color .15s,box-shadow .15s,background .15s}
+#vistaAdmin .panel-app__form input:focus,#vistaAdmin .panel-app__form select:focus{outline:none;background:#fff;border-color:#3F7FCB;box-shadow:0 0 0 4px rgba(63,127,203,.16)}
+#vistaAdmin .panel-app__toggle{height:44px;border:1px solid #CBD9EC;border-radius:10px;background:#F8FBFF;padding:3px;gap:3px}
+#vistaAdmin .panel-app__toggle-btn{border-radius:8px;background:transparent;color:#5E7794;font-size:.84rem;transition:background .15s,color .15s}
+#vistaAdmin .panel-app__toggle-btn.is-active[data-estado="Activo"]{background:#1E7F5C;box-shadow:0 4px 10px -4px rgba(30,127,92,.6)}
+#vistaAdmin .panel-app__toggle-btn.is-active[data-estado="Inactivo"]{background:#B3261E;box-shadow:0 4px 10px -4px rgba(179,38,30,.55)}
+#vistaAdmin .panel-app__btn{height:44px;border-radius:10px;padding:0 22px;font-weight:600;letter-spacing:.01em;background:linear-gradient(180deg,#1F4E96,#163C78);box-shadow:0 8px 18px -10px rgba(22,60,120,.7);transition:transform .12s,box-shadow .15s,filter .15s}
+#vistaAdmin .panel-app__btn:hover{background:linear-gradient(180deg,#245BAA,#1A4488);transform:translateY(-1px)}
+#vistaAdmin .panel-app__btn--ghost{height:38px;padding:0 16px;background:#fff;color:#1F4E96;border:1px solid #C9D9EE;box-shadow:none}
+#vistaAdmin .panel-app__btn--ghost:hover{background:#F1F7FE;transform:none}
+#vistaAdmin #ingresosFiltroBtn,#vistaAdmin #ingresosRecargarBtn{height:34px!important;padding:0 14px!important;font-size:.78rem!important}
+#vistaAdmin #ingresosFiltroBtn[aria-pressed="true"],#vistaAdmin #ingresosFiltroBtn.is-active{background:#1F4E96;color:#fff}
+#vistaAdmin table{border-collapse:separate;border-spacing:0;font-size:.88rem}
+#vistaAdmin th{position:sticky;top:0;background:#fff;color:#6C86AD;font-size:.68rem;font-weight:600;letter-spacing:.12em;padding:10px 12px;border-bottom:1px solid #DCE7F5}
+#vistaAdmin td{padding:12px;border-bottom:1px solid #EEF3FA;color:#14304F}
+#vistaAdmin tbody tr{transition:background .12s}
+#vistaAdmin tbody tr:hover{background:#F4F8FE}
+#vistaAdmin tbody tr:last-child td{border-bottom:none}
+#vistaAdmin .panel-app__pill{padding:3px 11px;font-size:.7rem;letter-spacing:.02em}
+#vistaAdmin .panel-app__pill--activo{background:#E3F4EC;color:#1E7F5C}
+#vistaAdmin .panel-app__pill--inactivo{background:#FCE9E7;color:#B3261E}
+#vistaAdmin #ingresosCard>div:nth-of-type(2){max-height:460px!important;border-radius:10px}
+#vistaAdmin ::-webkit-scrollbar{width:8px;height:8px}#vistaAdmin ::-webkit-scrollbar-thumb{background:#C5D5EA;border-radius:8px}#vistaAdmin ::-webkit-scrollbar-thumb:hover{background:#A9C0E2}
+#vistaAdmin #ingresosCard,#vistaAdmin #ingresosCard + .panel-app__card{grid-column:1/-1}
+#vistaAdmin .panel-app__card p{margin:4px 0 0!important}
+#vistaAdmin #ingresosCard p{margin:6px 0 12px!important}
+#vistaAdmin .panel-app__toggle-btn.is-active{color:#fff}
+#vistaAdmin td{white-space:nowrap}
+@media (max-width:1000px){#vistaAdmin .panel-app__inner{grid-template-columns:minmax(0,1fr);padding:24px 16px 56px}#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:560px){#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr)}}
+</style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
   <div class="panel-app__header">
