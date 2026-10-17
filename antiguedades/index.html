@@ -563,17 +563,17 @@ function chartsRender(){
   const first=use.findIndex(u=>u.n>0),lastI=use.length-1-[...use].reverse().findIndex(u=>u.n>0);
   use=use.filter(u=>u.i>=first&&u.i<=lastI);
   const sbI=sel&&sel.f!=null?lim.findIndex(l=>sel.f>=l[0]&&sel.f<l[1]):-1;
-  const W=580,H=215,pl=8,pr=8,pt=36,pb=36,mx=Math.max(...use.map(u=>u.n)),nb=use.length,bw=(W-pl-pr)/nb;
+  const W=580,H=215,pl=8,pr=8,pt=36,pb=36,mx=Math.max(...use.map(u=>u.n)),nb=use.length,bw=(W-pl-pr)/nb,BW=Math.min(bw-6,56);
   let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Distribución del promedio final por rangos">`;
   const tx=[];
   use.forEach((u,i)=>{const bh=(H-pt-pb)*u.n/mx,x=pl+i*bw,cx=x+bw/2,bd=bands[u.i];
     const low=u.i===0;
-    h+=`<rect x="${x+3}" y="${H-pb-bh}" width="${bw-6}" height="${bh}" rx="3" fill="${u.i===sbI?'var(--hi)':(low?'var(--warn)':'var(--bar-fill)')}"/>`;
+    h+=`<rect x="${cx-BW/2}" y="${H-pb-bh}" width="${BW}" height="${bh}" rx="3" fill="${u.i===sbI?'var(--hi)':(low?'var(--warn)':'var(--bar-fill)')}"/>`;
     if(u.n)tx.push(`<text class="cnt" x="${cx}" y="${H-pb-bh-4}" text-anchor="middle" style="paint-order:stroke;stroke:var(--card);stroke-width:3px">${u.n} · ${Math.round(100*u.n/fs.length)}%</text>`);
     if(low)h+=`<text x="${cx}" y="${H-18}" text-anchor="middle">${bd[0]}</text>`;
     else h+=`<text x="${cx}" y="${H-14}" text-anchor="middle">${bd[0]}</text>`});
   {const mu=fs.reduce((a,b)=>a+b,0)/fs.length,ui=use.findIndex(u=>mu>=lim[u.i][0]&&mu<lim[u.i][1]);
-   if(ui>=0){const bhMu=(H-pt-pb)*use[ui].n/mx;const lo_=lim[use[ui].i][0],hi_=lim[use[ui].i][1],fr=(lo_<-1e8||hi_>1e8)?.5:(mu-lo_)/(hi_-lo_),mx_=pl+(ui+fr)*bw,right=mx_>W-90;
+   if(ui>=0){const bhMu=(H-pt-pb)*use[ui].n/mx;const lo_=lim[use[ui].i][0],hi_=lim[use[ui].i][1],fr=(lo_<-1e8||hi_>1e8)?.5:(mu-lo_)/(hi_-lo_),mx_=pl+(ui+.5)*bw+(fr-.5)*BW,right=mx_>W-90;
     h+=`<line x1="${mx_}" x2="${mx_}" y1="${pt-18}" y2="${H-pb}" stroke="var(--ink)" stroke-width="1.6" stroke-dasharray="3 3" opacity=".75"/><text transform="translate(${fr<.5?mx_+13:mx_-4},${H-pb-Math.max(bhMu,62)/2}) rotate(-90)" text-anchor="middle" class="cnt" style="fill:${bhMu>62?'#C4D0E2':'var(--mute)'};font-style:italic;font-weight:400">Prom: ${c3(mu)}</text>`}}
   h+=tx.join('')+`<line class="ax" x1="${pl}" x2="${W-pr}" y1="${H-pb}" y2="${H-pb}"/></svg>`;
   const c1=`<div class="card ch"><h3>Distribución del promedio final por rangos</h3>${h}</div>`;
