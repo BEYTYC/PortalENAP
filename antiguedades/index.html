@@ -491,6 +491,9 @@ body .bar{padding-right:0!important}
 .gt tr.rp{cursor:pointer}.gt tr.rp:hover td{background:rgba(217,119,6,.2)}
 .gt tr.rpx td{background:#FFF7EA!important;color:#7A4A06;font-size:12.5px;text-align:left!important;padding:9px 12px}
 .gt tr.rpx[hidden]{display:none}
+
+/* puesto por semestre */
+.gt .pcl b{font-weight:600}.pmv{font-weight:600;font-size:11.5px;margin-left:7px;white-space:nowrap}.pmv.up{color:var(--good)}.pmv.dn{color:var(--warn)}.pmv.eq{color:var(--mute)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -731,7 +734,11 @@ function stuRender(){
   const avg={};['ac','an','di','cf','f'].forEach(f=>{const v=list.filter(x=>x[f]!=null).map(x=>x[f]);avg[f]=v.length?mean(v):null});
   const c=v=>`<td class="${v!=null&&v<6?'lo':''}">${f3(v)}</td>`;
   const np=s.e==='Aplazado'||s.e==='Retardado';
-  const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${np?'':`<td>${perI(s.h.length,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}</tr>${r?rpx(b,np?5:6):''}`}).join('');
+  const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
+  const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
+    if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<span class="pmv up">▲ ${d}</span>`:d<0?`<span class="pmv dn">▼ ${-d}</span>`:'<span class="pmv eq">＝</span>'}return `<td class="pcl"><b>${s.p}</b>${m}</td>`}
+    if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}</td>`;return '<td>—</td>'};
+  const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${np?'':`<td>${perI(s.h.length,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':puC(b,i)}</tr>${r?rpx(b,np?5:7):''}`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
@@ -776,7 +783,7 @@ function stuRender(){
   const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+selK;
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th></tr></thead><tbody>${body||'<tr><td colspan="${np?5:6}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th>Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
