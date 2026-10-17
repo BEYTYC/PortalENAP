@@ -3,7 +3,7 @@
 <title>Antigüedades ENAP</title>
 <style>
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
-:root{--bg:#EAF2FC;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
+:root{--bg:#F4F8FD;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
 --font:"Aptos","Aptos Display","Figtree","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,sans-serif}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 36px}
@@ -633,6 +633,18 @@ body:not(.has-gear) .back{right:6px!important}
 .charts svg rect[rx],.charts svg line[stroke-linecap]{animation:none!important}
 .k small.dl.eq{color:#6B7D99!important;font-weight:400!important;font-size:11.5px!important;white-space:normal!important;line-height:1.25!important}
 .k small.dl em{font-style:normal!important;font-weight:700}
+th.srt{cursor:pointer;user-select:none}
+th.srt:hover{color:var(--navy,#1F4E96)}
+th.srt::after{content:'↕';margin-left:5px;opacity:.28;font-size:10px}
+th.srt[aria-sort=ascending]::after{content:'▲';opacity:.9}
+th.srt[aria-sort=descending]::after{content:'▼';opacity:.9}
+.stu .gt tbody td.pcl{padding-inline:28px!important}.stu .gt .pa2{right:10px!important}
+#pub.one>#stu{margin-top:0!important}
+#pub.one{padding-top:0!important}
+.stu .tt{background:rgba(255,255,255,.5)!important}
+.stu .evh{background:rgba(228,239,253,.45)!important}
+.stu .evh.dn{background:rgba(192,57,43,.05)!important}
+.stu .evh .evb{background:rgba(255,255,255,.6)!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -910,9 +922,24 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();countUp();
+  stuRender();side();chartsRender();mrRender();novRender();merRender();countUp();mkSort();
 }
 
+
+/* listas ordenables por columna (clic en el encabezado; segundo clic invierte) */
+function mkSort(){
+  const num=t=>{const m=String(t).replace(/\s/g,'').replace(',','.').match(/^-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
+  document.querySelectorAll('#tb,.totl table,#nov table.nl,#novl table.nl,#charts table.nl').forEach(tb=>{
+    const table=tb.tagName==='TABLE'?tb:tb.closest('table'),body=table.tBodies[0];if(!body||!table.tHead)return;
+    [...table.tHead.rows[0].cells].forEach((th,ci)=>{th.classList.add('srt');th.tabIndex=0;th.setAttribute('role','columnheader');
+      const go=()=>{const dir=th.getAttribute('aria-sort')==='ascending'?'descending':'ascending';
+        table.querySelectorAll('th').forEach(x=>x.removeAttribute('aria-sort'));th.setAttribute('aria-sort',dir);
+        const rows=[...body.children].filter(r=>r.tagName==='TR'&&r.cells[ci]&&!r.classList.contains('rpx'));
+        const keys=rows.map(r=>r.cells[ci].textContent.trim()),ns=keys.map(num),allN=ns.every((v,i)=>v!=null||keys[i]===''||keys[i]==='—');
+        const k=i=>allN?ns[i]:keys[i].toLowerCase(),sg=dir==='ascending'?1:-1;
+        const idx=rows.map((r,i)=>i).sort((x,y)=>{const a=k(x),b=k(y),ea=a==null||a==='—'||a==='',eb=b==null||b==='—'||b==='';if(ea||eb)return ea&&eb?0:ea?1:-1;return (allN?a-b:String(a).localeCompare(String(b),'es'))*sg});
+        idx.forEach(i=>body.appendChild(rows[i]))};
+      th.onclick=go;th.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}})})}
 const mean=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const c2=v=>v==null?'—':v.toFixed(3).replace('.',',');
 function merRender(){
@@ -1071,7 +1098,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:''}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':(HAS?puH(b,i):puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('');
+  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
