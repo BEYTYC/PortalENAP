@@ -885,7 +885,8 @@ document.getElementById('vp').onclick=()=>vista(false);document.getElementById('
 
 
 </script>
-<script>
+<script>(function(){var ok=function(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();
+
 (function(){
 var gate=document.getElementById('gate'),gt=document.getElementById('gt'),gm=document.getElementById('gm');
 function msg(t,m){gate.hidden=false;gt.textContent=t;gm.textContent=m}
