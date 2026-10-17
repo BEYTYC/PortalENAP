@@ -3,7 +3,7 @@
 <title>Antigüedades ENAP</title>
 <style>
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
-:root{--bg:#F4F8FD;--card:#FFFFFF;--ink:#14304F;--mute:#5E7794;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
+:root{--bg:#F4F8FD;--card:#FFFFFF;--ink:#14304F;--mute:#3F5A7D;--line:#DCE8F7;--navy:#1F4E96;--navy-ink:#FFFFFF;--navy-mute:#C9DCF5;--bar-fill:#3F7FCB;--bar:#D6E4F6;--hi:#173F80;--soft:#E4EFFD;--hover:#F1F7FE;--good:#1E7F5C;--warn:#D32F2F;--shadow:0 1px 2px rgba(47,111,214,.06),0 12px 32px -12px rgba(47,111,214,.25);
 --font:"Aptos","Aptos Display","Figtree","Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,sans-serif}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.4;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:0 36px}
@@ -664,6 +664,19 @@ th.srt[aria-sort=descending]::after{content:'▼';opacity:.9}
 [data-tip]{cursor:default}.k.clk[data-tip],.chip[data-tip],tr[data-tip]{cursor:pointer}
 @media(hover:none){#tip{display:none}}
 .pd .pnv{display:inline-block;margin:0 0 3px;padding:1px 8px;border-radius:99px;font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.5;color:#7A4B00;background:rgba(232,177,58,.2);border:1px solid rgba(232,177,58,.55)}
+/* textos más contrastados */
+@media(prefers-color-scheme:light){:root:not([data-theme="dark"]){
+  --mut:#3F5A7D}
+:root:not([data-theme="dark"]) svg text[fill="#5B6F8F"]{fill:#3F5A7D}
+:root:not([data-theme="dark"]) svg text[fill="#33466B"]{fill:#1F3556}
+:root:not([data-theme="dark"]) .cn,:root:not([data-theme="dark"]) .lg2{color:#3F5A7D}}
+.ch h3,.podc h3,.nov h3,.card.ch.an h3,#charts .card.ch.an h3,#pod h3{color:var(--ink,#14304F)!important;font-weight:700!important;letter-spacing:.1em}
+.k span,.nb span{font-weight:600}
+svg text{font-weight:500}
+svg .lab{font-weight:600}
+svg .cnt{font-weight:700}
+.pd .nm1,.pd .pn{color:var(--ink,#14304F)}
+.pd small,.pd .cu{color:#3F5A7D}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
