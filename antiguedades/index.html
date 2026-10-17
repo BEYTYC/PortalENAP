@@ -573,6 +573,28 @@ body:not(.has-gear) .back{right:6px!important}
   .stu .gt th,.stu .gt td{white-space:nowrap!important;padding-inline:6px}
   .stu .gt thead th{font-size:10px}
 }
+/* vista Total: gráficas */
+#charts .card.ch.an{padding:16px 18px 12px}
+#charts .card.ch.an h3{margin:0 0 8px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute,#5B6F8F);font-weight:500}
+#charts .card.ch.an h3.h3b{margin-top:18px}
+#charts .cn{margin:6px 0 2px;font-size:11.5px;color:var(--mute,#5B6F8F)}
+.hb{display:grid;gap:9px;margin-top:6px}.hr{display:grid;grid-template-columns:96px 1fr 52px;align-items:center;gap:10px;font-size:12.5px;color:var(--ink,#0F2A5C)}
+.hr span small{display:block;font-size:10.5px;color:var(--mute,#5B6F8F)}
+.hr i{display:block;height:10px;border-radius:99px;background:#dde9f7;overflow:hidden}.hr i b{display:block;height:100%;background:#3F7FCB;border-radius:99px}
+.hr em{font-style:normal;font-weight:600;color:var(--navy,#1B4688);text-align:right}
+.k.clk{cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}
+.k.clk:hover{transform:translateY(-2px);border-color:#7FA6DB!important;box-shadow:0 4px 14px rgba(27,70,136,.14)!important}
+.k.clk[aria-pressed="true"]{border-color:#1B4688!important;box-shadow:0 0 0 2px rgba(27,70,136,.25)!important}
+.xcl{float:right;font:inherit;font-size:11px;border:1px solid #9DB9E0;background:#fff;color:#1B4688;border-radius:99px;padding:3px 12px;cursor:pointer;letter-spacing:.04em}
+/* tarjetas menos transparentes */
+.card,.k,.nb,.chips,input[type=search],.mtool .vt .gearb,.fsb{background:rgba(255,255,255,.9)!important}
+:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .nb:not([aria-pressed="true"]),:root:fullscreen .chips,:root:fullscreen #nov,:root:fullscreen .card.stu,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .nb:not([aria-pressed="true"]),:root.fsx .chips,:root.fsx #nov,:root.fsx .card.stu{background:rgba(255,255,255,.9)!important}
+#charts{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:start}
+@media(max-width:820px){#charts{grid-template-columns:minmax(0,1fr)!important}}
+#charts .card.ch.an{display:block!important;align-self:start;height:auto!important;min-height:0!important}
+.duo:has(#nov[hidden]){grid-template-columns:minmax(0,1fr)!important}
+.totl{columns:2;column-gap:28px}.totl li{break-inside:avoid}
+@media(max-width:820px){.totl{columns:1}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -625,7 +647,7 @@ const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
   const c=document.getElementById('chips');
   c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento 4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'');
-  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur)?null:b.dataset.k;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
+  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur)?null:b.dataset.k;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
@@ -667,23 +689,73 @@ function corto(n){const w=String(n).split(/\s+/);let i=0;
   const ap=()=>{while(i<w.length-1&&PART.has(w[i]))i++;i++};
   const ini=w[0];ap();const a1=w.slice(0,i).join(' ');ap();
   const nom=w[i];return nom?a1+' '+nom:a1}
+let totSel=null;
+const NS='http://www.w3.org/2000/svg';
+function svgV(items,o){ // barras verticales: items [{l,v,v2?}] ; o {min,max,fmt,ref,c}
+  const W=560,H=250,L=36,R=10,T=26,B=40,pw=W-L-R,ph=H-T-B,n=items.length,bw=Math.min(46,pw/n*.62);
+  const y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
+  let g='';const ticks=o.ticks||4;
+  for(let i=0;i<=ticks;i++){const v=o.min+(o.max-o.min)*i/ticks;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0" stroke-width="1"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${o.tf?o.tf(v):v.toFixed(o.dec??0)}</text>`}
+  items.forEach((it,i)=>{const cx=L+pw/n*(i+.5);
+    g+=`<rect x="${cx-bw/2}" y="${y(it.v)}" width="${bw}" height="${T+ph-y(it.v)}" rx="4" fill="${o.c||'#3F7FCB'}"><title>${it.l}: ${o.fmt(it.v)}</title></rect><text x="${cx}" y="${y(it.v)-6}" text-anchor="middle" font-size="11" font-weight="600" fill="#1B4688">${o.fmt(it.v)}</text><text x="${cx}" y="${H-B+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${it.l}</text>`});
+  if(o.ref!=null)g+=`<line x1="${L}" x2="${W-R}" y1="${y(o.ref)}" y2="${y(o.ref)}" stroke="#1B4688" stroke-width="1.4" stroke-dasharray="5 4"/>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function svgLines(labels,series,o){ // líneas: series [{n,c,v:[...]}]
+  const W=560,H=270,L=40,R=12,T=14,B=64,pw=W-L-R,ph=H-T-B,n=labels.length;
+  const x=i=>L+pw/(n-1||1)*i,y=v=>T+ph-(v-o.min)/(o.max-o.min)*ph;
+  let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
+  labels.forEach((l,i)=>g+=`<text x="${x(i)}" y="${T+ph+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${l}</text>`);
+  series.forEach((se,k)=>{const pts=se.v.map((v,i)=>v==null?null:[x(i),y(v)]);const d=pts.map((p,i)=>p?(i&&pts[i-1]?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1):'').join(' ');
+    g+=`<path d="${d}" fill="none" stroke="${se.c}" stroke-width="2.2" stroke-linejoin="round"/>`+pts.map((p,i)=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="3.4" fill="${se.c}"><title>${se.n} · ${labels[i]}: ${f3(se.v[i])}</title></circle>`:'').join('');
+    g+=`<rect x="${L+k*118}" y="${H-18}" width="12" height="4" rx="2" fill="${se.c}"/><text x="${L+k*118+18}" y="${H-13}" font-size="11" fill="#33466B">${se.n}</text>`});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function svgGroup(labels,a,b,o){ // barras agrupadas de dos series
+  const W=560,H=250,L=30,R=10,T=26,B=60,pw=W-L-R,ph=H-T-B,n=labels.length,mx=Math.max(1,...a,...b),y=v=>T+ph-v/mx*ph,gw=pw/n,bw=Math.min(24,gw*.34);
+  let g='';for(let i=0;i<=4;i++){const v=mx*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${Math.round(v)}</text>`}
+  labels.forEach((l,i)=>{const cx=L+gw*(i+.5);
+    [[a[i],-bw-1,o.c1,o.n1],[b[i],1,o.c2,o.n2]].forEach(([v,dx,c,nm])=>{g+=`<rect x="${cx+dx}" y="${y(v)}" width="${bw}" height="${T+ph-y(v)}" rx="3" fill="${c}"><title>${l} · ${nm}: ${v}</title></rect>${v?`<text x="${cx+dx+bw/2}" y="${y(v)-4}" text-anchor="middle" font-size="10.5" font-weight="600" fill="#33466B">${v}</text>`:''}`});
+    g+=`<text x="${cx}" y="${T+ph+16}" text-anchor="middle" font-size="11" fill="#5B6F8F">${l}</text>`});
+  g+=`<rect x="${L}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c1}"/><text x="${L+18}" y="${H-10}" font-size="11" fill="#33466B">${o.n1}</text><rect x="${L+130}" y="${H-18}" width="12" height="8" rx="2" fill="${o.c2}"/><text x="${L+148}" y="${H-10}" font-size="11" fill="#33466B">${o.n2}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function hbars(items,o){ // [{l,v,n}] barras horizontales con escala o.min–o.max
+  return `<div class="hb">${items.map(it=>`<div class="hr"><span>${it.l}<small>${it.n!=null?it.n+' est.':''}</small></span><i><b style="width:${Math.max(2,(it.v-o.min)/(o.max-o.min)*100)}%"></b></i><em>${o.fmt(it.v)}</em></div>`).join('')}</div>`}
 function totRender(){
   const seen=new Set(),A=[];
   [...ORD,'ESC','MER'].forEach(k=>ls(k).forEach((s,i)=>{const id=s.c!=null?s.c:(s.ce!=null?s.ce:s.n);if(seen.has(id))return;seen.add(id);A.push([s,k,i])}));
   const S=A.map(a=>a[0]),L=S.filter(s=>s.f!=null&&s.e!=='Aplazado');
   const av=f=>{const v=L.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?mean(v):null};
-  const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length;
-  const kp=(n,v,sub)=>`<div class="k"><span>${n}</span><b>${v}</b>${sub?`<small class="dl">${sub}</small>`:''}</div>`;
-  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(av('f')))+kp('Mejor promedio',f3(Math.max(...L.map(s=>s.f))))+kp('Prom. académico',f3(av('ac')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,(nD/S.length*100).toFixed(1).replace('.',',')+'%')+kp('Excelencia académica',nE,(nE/S.length*100).toFixed(1).replace('.',',')+'%');
-  const lst=(t,flag)=>{const r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));return `<h3>${t} · ${r.length}</h3><ul class="ml totl">${r.map(([s,k,i])=>`<li data-k="${k}" data-i="${i}"><span class="nx"><span class="gr">${s.g}</span> ${s.n}</span><small>${s.cu||''} · ${k==='ESC'?'Escalafonamiento':lab(k)} · ${f3(s.f)}</small></li>`).join('')||'<li class="vac">Ninguno</li>'}</ul>`};
+  const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length,G=av('f');
+  const kp=(n,v,sub,act)=>act?`<div class="k clk" role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"><span>${n}</span><b>${v}</b><small class="dl">${sub} · ver lista</small></div>`:`<div class="k"><span>${n}</span><b>${v}</b>${sub?`<small class="dl">${sub}</small>`:''}</div>`;
+  const pc=n=>(n/S.length*100).toFixed(1).replace('.',',')+'%';
+  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(G))+kp('Mejor promedio',f3(Math.max(...L.map(s=>s.f))))+kp('Prom. académico',f3(av('ac')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,pc(nD),'dis')+kp('Excelencia académica',nE,pc(nE),'exc');
   const pod=document.getElementById('pod'),nov=document.getElementById('nov'),nl=document.getElementById('novl');
-  pod.innerHTML=lst('Alumnos distinguidos','dis');nov.hidden=false;nov.innerHTML=lst('Excelencia académica','exc');if(nl)nl.hidden=true;
-  [pod,nov].forEach(el=>el.querySelectorAll('li[data-i]').forEach(l=>l.onclick=()=>{sel=ls(l.dataset.k)[+l.dataset.i];selK=l.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})}));
-  const rows=[...ORD,'ESC','MER'].map(k=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado');if(!a.length)return '';const m=f=>{const v=a.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?f3(mean(v)):'—'};return `<tr><td>${k==='ESC'?'Escalafonamiento 4.2':lab(k)}</td><td class="n">${a.length}</td><td class="n">${m('f')}</td><td class="n">${m('ac')}</td><td class="n">${m('an')}</td><td class="n">${m('di')}</td><td class="n">${m('cf')}</td><td class="n">${a.filter(s=>s.dis).length}</td><td class="n">${a.filter(s=>s.exc).length}</td></tr>`}).join('');
-  document.getElementById('charts').innerHTML=`<div class="card ch an wide"><h3>Por semestre</h3><div class="tw"><table class="nl"><thead><tr><th>Semestre</th><th class="n">Est.</th><th class="n">Prom. final</th><th class="n">Acad</th><th class="n">AN</th><th class="n">Disc</th><th class="n">C.FIS</th><th class="n">Dist.</th><th class="n">Exc.</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
-  const BK=[['9,500 – 10,000',9.5,11],['9,000 – 9,499',9,9.5],['8,500 – 8,999',8.5,9],['8,000 – 8,499',8,8.5],['7,500 – 7,999',7.5,8],['< 7,500',-1,7.5]];
-  const cnt=BK.map(([n,a,b])=>[n,L.filter(s=>s.f>=a&&s.f<b).length]),mx=Math.max(...cnt.map(c=>c[1]),1);
-  document.getElementById('mr').innerHTML=`<div class="card ch an"><h3>Distribución del promedio final · todos</h3><div class="mbars">${cnt.map(([n,c])=>`<div class="mb"><span>${n}</span><i><b style="width:${c/mx*100}%"></b></i><em>${c}</em></div>`).join('')}</div></div>`;
+  nov.hidden=true;nov.innerHTML='';if(nl)nl.hidden=true;
+  if(totSel){const flag=totSel,r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));
+    pod.innerHTML=`<h3>${flag==='dis'?'Alumnos distinguidos':'Excelencia académica'} · ${r.length} <button class="xcl" type="button" id="xcl">Cerrar</button></h3><ul class="ml totl">${r.map(([s,k,i])=>`<li data-k="${k}" data-i="${i}"><span class="nx"><span class="gr">${s.g}</span> ${s.n}</span><small>${s.cu||''} · ${k==='ESC'?'Escalafonamiento':lab(k)} · ${f3(s.f)}</small></li>`).join('')||'<li class="vac">Ninguno</li>'}</ul>`;
+    pod.querySelectorAll('li[data-i]').forEach(l=>l.onclick=()=>{sel=ls(l.dataset.k)[+l.dataset.i];selK=l.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})});
+    document.getElementById('xcl').onclick=()=>{totSel=null;render()}}else pod.innerHTML='';
+  document.querySelectorAll('.k.clk').forEach(t=>{const go=()=>{totSel=totSel===t.dataset.act?null:t.dataset.act;render()};t.onclick=go;t.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();go()}}});
+  // gráficas
+  const KS=[...ORD,'ESC','MER'],mm=(k,f)=>{const a=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado'&&s[f]!=null).map(s=>s[f]);return a.length?mean(a):null};
+  const labs=KS.map(k=>k==='ESC'?'Esc. 4.2':lab(k)).map(x=>x.replace(' (Rep)','R')),pf=KS.map(k=>mm(k,'f'));
+  const c1=`<div class="card ch an"><h3>Promedio final por semestre</h3>${svgV(KS.map((k,i)=>({l:labs[i],v:pf[i]})).filter(x=>x.v!=null),{min:6,max:10,dec:1,fmt:f3,ref:G,refl:'General',tf:v=>v.toFixed(0)})}<p class="cn">Escala 6–10 · línea punteada: promedio general ${f3(G)}.</p></div>`;
+  const KO=ORD.filter(k=>ls(k).length),lo=KO.map(k=>lab(k).replace(' (Rep)','R'));
+  const cp=[['Académica','ac','#1B4688'],['Apt. naval','an','#3F7FCB'],['Disciplina','di','#E8B13A'],['C. física','cf','#2E9E6B']];
+  const all4=cp.flatMap(([n,f])=>KO.map(k=>mm(k,f))).filter(v=>v!=null);
+  const c2=`<div class="card ch an"><h3>Componentes por semestre</h3>${svgLines(lo,cp.map(([n,f,c])=>({n,c,v:KO.map(k=>mm(k,f))})),{min:Math.floor(Math.min(...all4)*2)/2,max:10})}<p class="cn">Promedio de cada componente en cada semestre.</p></div>`;
+  const BK=[['< 7,5',-1,7.5],['7,5',7.5,8],['8,0',8,8.5],['8,5',8.5,9],['9,0',9,9.5],['9,5+',9.5,11]],cnt=BK.map(([n,a,b])=>({l:n,v:L.filter(s=>s.f>=a&&s.f<b).length}));
+  const c3=`<div class="card ch an"><h3>Distribución del promedio final</h3>${svgV(cnt,{min:0,max:Math.ceil(Math.max(...cnt.map(c=>c.v))/50)*50,fmt:v=>String(v),c:'#2F68B5',tf:v=>String(Math.round(v))})}<p class="cn">Número de estudiantes por rango de 0,5.</p></div>`;
+  const c4=`<div class="card ch an"><h3>Distinguidos y excelencias por semestre</h3>${svgGroup(KS.map((k,i)=>labs[i]),KS.map(k=>ls(k).filter(s=>s.dis).length),KS.map(k=>ls(k).filter(s=>s.exc).length),{c1:'#E8B13A',n1:'Distinguidos',c2:'#2F68B5',n2:'Excelencia'})}</div>`;
+  const gp={};L.forEach(s=>{const k=String(s.cu||'').replace(/^\d\.\d/,'').replace(/-[AB]$/,'')||'—';(gp[k]=gp[k]||[]).push(s.f)});
+  const gi=Object.entries(gp).filter(([k,v])=>v.length>=5&&k!=='—').map(([k,v])=>({l:k,v:mean(v),n:v.length})).sort((a,b)=>b.v-a.v);
+  const c5=`<div class="card ch an"><h3>Promedio por grupo de curso</h3>${hbars(gi,{min:6,max:10,fmt:f3})}<p class="cn">Grupos con 5 o más estudiantes · escala 6–10.</p></div>`;
+  const gr={};L.forEach(s=>{(gr[s.g]=gr[s.g]||[]).push(s.f)});
+  const gg=Object.entries(gr).map(([k,v])=>({l:k,v:mean(v),n:v.length})).sort((a,b)=>b.v-a.v);
+  const ne={};S.forEach(s=>{const e=s.e&&s.e!=='Normal'?s.e:null;if(e)ne[e]=(ne[e]||0)+1});
+  const nv=Object.entries(ne).sort((a,b)=>b[1]-a[1]),nmx=Math.max(1,...nv.map(x=>x[1]));
+  const c6=`<div class="card ch an"><h3>Promedio por grado</h3>${hbars(gg,{min:6,max:10,fmt:f3})}<h3 class="h3b">Novedades</h3><div class="hb">${nv.map(([n,c])=>`<div class="hr"><span>${n}</span><i><b style="width:${c/nmx*100}%"></b></i><em>${c}</em></div>`).join('')}</div></div>`;
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6;
+  document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
 }
 function render(){
