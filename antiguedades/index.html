@@ -655,6 +655,14 @@ th.srt[aria-sort=descending]::after{content:'▼';opacity:.9}
 .chips .cpe b{font-weight:700;color:var(--navy,#1B4688)}
 @media(min-width:821px){.bar input[type=search]{width:285px!important}.chips{flex-wrap:nowrap!important}.chips .cpe{padding-left:10px}}
 .cn,#charts .cn,.card.ch .cn{text-align:center!important}
+/* misma altura de tarjetas al cambiar de curso */
+@media(min-width:901px){.duo>.card{min-height:318px}}
+.charts>.card.ch:not(.an){min-height:410px}
+.charts{align-items:stretch}
+#tip{position:fixed;left:0;top:0;z-index:99999;pointer-events:none;max-width:290px;padding:7px 11px;border-radius:9px;background:var(--card,#fff);color:var(--ink,#14304F);border:1px solid var(--line,#DCE8F7);box-shadow:0 8px 22px -10px rgba(20,48,79,.38);font:500 12px/1.4 var(--font,system-ui,sans-serif);opacity:0;transition:opacity .12s}
+#tip.on{opacity:1}
+[data-tip]{cursor:default}.k.clk[data-tip],.chip[data-tip],tr[data-tip]{cursor:pointer}
+@media(hover:none){#tip{display:none}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -827,19 +835,25 @@ const _cv={};
 function animCharts(){
   if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   const bars=[],txts=[],paths=[],fades=[];
-  document.querySelectorAll('#charts .card').forEach((card,ci)=>{
+  const wx=(el,d)=>{try{el.style.transformBox='fill-box';el.style.transformOrigin='left center';el.animate([{transform:'scaleX(0)'},{transform:'scaleX(1)'}],{duration:750,delay:d||0,easing:'cubic-bezier(.22,.8,.3,1)',fill:'backwards'})}catch(e){}};
+  document.querySelectorAll('#charts .card,#mr .card').forEach((card,ci)=>{
+    const hsig='h'+ci+card.parentElement.id,hsame=_cv[hsig]===card.innerHTML;_cv[hsig]=card.innerHTML;
+    if(!hsame)card.querySelectorAll('.hb i b,.mbars i b').forEach((b,i)=>wx(b,i*45));
     const svg=card.querySelector('svg');if(!svg)return;
     const sig='s'+ci,same=_cv[sig]===svg.innerHTML;_cv[sig]=svg.innerHTML;
     let ri=0,last=null;
     [...svg.children].forEach(el=>{
       const tag=el.tagName.toLowerCase();
-      if(tag==='rect'&&el.hasAttribute('rx')&&+el.getAttribute('y')<240){
+      if(tag==='rect'&&el.classList.contains('hz')){if(!same)wx(el,[...svg.querySelectorAll('rect.hz')].indexOf(el)*80)}
+      else if(tag==='line'&&el.hasAttribute('stroke-linecap')){if(!same)wx(el,[...svg.querySelectorAll('line[stroke-linecap]')].indexOf(el)*60)}
+      else if(tag==='rect'&&el.hasAttribute('rx')&&+el.getAttribute('y')<240){
         const y=+el.getAttribute('y'),h=+el.getAttribute('height'),key=ci+':'+ri++,to={y,h},from=_cv[key]||{y:y+h,h:0};_cv[key]=to;last=null;
         if(from.y===to.y&&from.h===to.h)return;
         el.setAttribute('y',from.y);el.setAttribute('height',from.h);last={el,from,to};bars.push(last)}
       else if(tag==='text'&&last&&/^\d+(,\d+)?$/.test(el.textContent.trim())&&Math.abs(+el.getAttribute('y')-last.to.y)<14){
         const raw=el.textContent.trim(),dec=raw.includes(',')?raw.split(',')[1].length:0,tv=parseFloat(raw.replace(',','.')),off=+el.getAttribute('y')-last.to.y;
         txts.push({el,last,off,tv,dec});el.textContent=dec?(0).toFixed(dec).replace('.',','):'0';last=last}
+      else if(!same&&tag==='text'&&el.classList.contains('cnt')){el.style.opacity='0';fades.push({el,a:1,d:.7})}
       else if(!same&&tag==='path'){
         if(el.getAttribute('fill')==='none'){el.setAttribute('pathLength','1');el.style.strokeDasharray='1';el.style.strokeDashoffset='1';paths.push(el)}
         else{el.style.opacity='0';fades.push({el,a:.08,d:0})}}
@@ -940,6 +954,21 @@ function render(){
 
 
 /* listas ordenables por columna (clic en el encabezado; segundo clic invierte) */
+
+/* hover con el diseño del módulo: reemplaza los textos emergentes nativos (title y <title> de SVG) */
+(function(){
+  const t=document.createElement('div');t.id='tip';t.setAttribute('role','tooltip');document.documentElement.appendChild(t);
+  let on=null;
+  const pos=e=>{const w=t.offsetWidth,h=t.offsetHeight;let x=e.clientX+14,y=e.clientY+16;if(x+w>innerWidth-8)x=e.clientX-w-12;if(y+h>innerHeight-8)y=e.clientY-h-12;t.style.transform=`translate(${Math.max(6,x)}px,${Math.max(6,y)}px)`};
+  const find=el=>{while(el&&el!==document.documentElement){if(el.nodeType===1){
+      if(el.hasAttribute&&el.hasAttribute('title')&&el.getAttribute('title').trim()){el.setAttribute('data-tip',el.getAttribute('title'));el.removeAttribute('title')}
+      const c=el.querySelector&&el.querySelector(':scope>title');if(c&&c.textContent.trim()){el.setAttribute('data-tip',c.textContent);c.remove()}
+      if(el.getAttribute&&el.getAttribute('data-tip'))return el}el=el.parentNode}return null};
+  document.addEventListener('mouseover',e=>{const el=find(e.target);if(el!==on){on=el;if(el){t.textContent=el.getAttribute('data-tip');t.classList.add('on');pos(e)}else t.classList.remove('on')}},true);
+  document.addEventListener('mousemove',e=>{if(on)pos(e)},true);
+  document.addEventListener('mouseleave',()=>{on=null;t.classList.remove('on')},true);
+  document.addEventListener('scroll',()=>{on=null;t.classList.remove('on')},true);
+})();
 function centerLg(){document.querySelectorAll('svg g.lg').forEach(g=>{try{const b=g.getBBox(),vb=g.ownerSVGElement.viewBox.baseVal,W=vb&&vb.width?vb.width:560;if(b.width)g.setAttribute('transform','translate('+(W/2-(b.x+b.width/2)).toFixed(1)+' 0)')}catch(e){}})}
 function mkSort(){
   const num=t=>{const m=String(t).replace(/\s/g,'').replace(',','.').match(/^-?\d+(\.\d+)?/);return m?parseFloat(m[0]):null};
@@ -976,7 +1005,7 @@ function merRender(){
   const risk=L.filter(s=>s.ma!=null&&s.ma<6).sort((a,b)=>a.ma-b.ma).slice(0,8).map(s=>li(s,'Materia más baja '+c2(s.ma)+' · promedio '+c2(s.f))).join('');
   const nearC=`<div class="card ch an"><h3>A un paso de la excelencia</h3><ul class="ml">${near||'<li class="vac">Ninguno</li>'}</ul></div>`;
   const riskC=`<div class="card ch an"><h3>Materias por debajo de 6,0 · ${nR}</h3><ul class="ml">${risk||'<li class="vac">Ninguno</li>'}</ul></div>`;
-  const mr=document.getElementById('mr');mr.innerHTML=hist+porc+nearC+riskC;
+  const mr=document.getElementById('mr');mr.innerHTML=hist+porc+nearC+riskC;requestAnimationFrame(animCharts);
   mr.querySelectorAll('li[data-i]').forEach(l=>l.onclick=()=>{sel=all[+l.dataset.i];selK='MER';render2();window.scrollTo({top:0,behavior:'smooth'})});
 }
 
@@ -1027,11 +1056,12 @@ function chartsRender(){
   let m=`<svg viewBox="0 0 ${W} ${H3}" role="img" aria-label="Promedios por componente">`;
   [6,8,10].forEach(v=>{m+=`<line class="ax" x1="${X3(v)}" x2="${X3(v)}" y1="2" y2="${H3-20}"/><text x="${X3(v)}" y="${H3-6}" text-anchor="middle">${v}</text>`});
   comps.forEach(([nm,f],i)=>{const y=16+i*34,avg=mean(list.filter(s=>s[f]!=null).map(s=>s[f]));
-    m+=`<text class="lab" x="0" y="${y+4}">${nm}</text><rect x="${lw3}" y="${y-6}" width="${Math.max(0,X3(avg)-lw3)}" height="12" rx="3" fill="var(--bar-fill)"/><text class="cnt" x="${W}" y="${y+4}" text-anchor="end">${c3(avg)}</text>`;
+    m+=`<text class="lab" x="0" y="${y+4}">${nm}</text><rect class="hz" x="${lw3}" y="${y-6}" width="${Math.max(0,X3(avg)-lw3)}" height="12" rx="3" fill="var(--bar-fill)"/><text class="cnt" x="${W}" y="${y+4}" text-anchor="end">${c3(avg)}</text>`;
     if(sel&&sel[f]!=null)m+=`<circle cx="${X3(Math.max(6,sel[f]))}" cy="${y}" r="6" fill="var(--hi)" stroke="var(--card)" stroke-width="2"/>`});
   m+='</svg>';
   const c3h=`<div class="card ch"><h3>Componentes · ${sel?'estudiante frente al semestre':'promedio del semestre'}</h3>${m}</div>`;
   el.innerHTML=c1+c2h+(sel?c3h:'');
+  requestAnimationFrame(animCharts);
 }
 const c3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 
