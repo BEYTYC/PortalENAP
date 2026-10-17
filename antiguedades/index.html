@@ -595,6 +595,11 @@ body:not(.has-gear) .back{right:6px!important}
 .duo:has(#nov[hidden]){grid-template-columns:minmax(0,1fr)!important}
 .totl{columns:2;column-gap:28px}.totl li{break-inside:avoid}
 @media(max-width:820px){.totl{columns:1}}
+/* vista Total: 12 tarjetas en 2 filas de 6, simétricas */
+#pub:has(.k.clk) #kpi{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px}
+#pub:has(.k.clk) #kpi .k{min-width:0;height:100%}
+@media(max-width:1100px){#pub:has(.k.clk) #kpi{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:560px){#pub:has(.k.clk) #kpi{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -727,7 +732,8 @@ function totRender(){
   const nD=S.filter(s=>s.dis).length,nE=S.filter(s=>s.exc).length,G=av('f');
   const kp=(n,v,sub,act)=>act?`<div class="k clk" role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"><span>${n}</span><b>${v}</b><small class="dl">${sub} · ver lista</small></div>`:`<div class="k"><span>${n}</span><b>${v}</b>${sub?`<small class="dl">${sub}</small>`:''}</div>`;
   const pc=n=>(n/S.length*100).toFixed(1).replace('.',',')+'%';
-  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(G))+kp('Mejor promedio',f3(Math.max(...L.map(s=>s.f))))+kp('Prom. académico',f3(av('ac')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,pc(nD),'dis')+kp('Excelencia académica',nE,pc(nE),'exc');
+  const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
+  document.getElementById('kpi').innerHTML=kp('Total de estudiantes',S.length)+kp('Promedio general',f3(G))+kp('Mediana',f3(med))+kp('Mejor promedio',f3(fs[fs.length-1]))+kp('Promedio más bajo',f3(fs[0]))+kp('Con novedad',nN,pc(nN))+kp('Prom. académico',f3(av('ac')))+kp('Prom. apt. naval',f3(av('an')))+kp('Prom. disciplina',f3(av('di')))+kp('Prom. cultura física',f3(av('cf')))+kp('Alumnos distinguidos',nD,pc(nD),'dis')+kp('Excelencia académica',nE,pc(nE),'exc');
   const pod=document.getElementById('pod'),nov=document.getElementById('nov'),nl=document.getElementById('novl');
   nov.hidden=true;nov.innerHTML='';if(nl)nl.hidden=true;
   if(totSel){const flag=totSel,r=A.filter(a=>a[0][flag]).sort((x,y)=>(y[0].f??0)-(x[0].f??0));
