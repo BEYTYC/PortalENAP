@@ -451,6 +451,10 @@ body .bar{padding-right:0!important}
 
 /* podio: color más claro */
 .pd .pb,.pd.p1 .pb,.pd.p2 .pb,.pd.p3 .pb,.pd.p4 .pb,.pd.p5 .pb{background:linear-gradient(180deg,#6AA6E6,#4B8ADB)!important;color:#fff!important;box-shadow:0 8px 20px -12px rgba(63,127,207,.5)}
+
+/* crédito en la misma línea de las notas */
+.foot{display:flex;justify-content:space-between;align-items:baseline;gap:16px;flex-wrap:wrap}
+:root:fullscreen .credfs,:root.fsx .credfs{display:inline!important;margin:0!important;padding:0!important;max-width:none!important;text-align:right}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -465,7 +469,7 @@ body .bar{padding-right:0!important}
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<div class="foot">Notas del semestre 2026-1 y promedio final acumulado. Aplazados fuera del orden.</div></div>
+<div class="foot">Notas del semestre 2026-1 y promedio final acumulado. Aplazados fuera del orden.<span class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
@@ -948,4 +952,4 @@ document.addEventListener('fullscreenchange',pinta);
 if(!document.documentElement.requestFullscreen)b.hidden=true})();
 
 </script>
-<div class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</div><script>(function(){function fit(){var b=document.body,fs=document.fullscreenElement||document.documentElement.classList.contains("fsx");b.style.zoom="";if(!fs)return;var h=window.innerHeight,sh=b.scrollHeight;if(sh>h){b.style.zoom=Math.max(.5,h/sh).toFixed(3)}}["fullscreenchange","resize"].forEach(function(e){document.addEventListener(e,function(){setTimeout(fit,120)});window.addEventListener(e,function(){setTimeout(fit,120)})});new MutationObserver(function(){setTimeout(fit,150)}).observe(document.body,{childList:true,subtree:true,attributes:false});window.__fit=fit})()</script></body></html>
+<script>(function(){function fit(){var b=document.body,fs=document.fullscreenElement||document.documentElement.classList.contains("fsx");b.style.zoom="";if(!fs)return;var h=window.innerHeight,sh=b.scrollHeight;if(sh>h){b.style.zoom=Math.max(.5,h/sh).toFixed(3)}}["fullscreenchange","resize"].forEach(function(e){document.addEventListener(e,function(){setTimeout(fit,120)});window.addEventListener(e,function(){setTimeout(fit,120)})});new MutationObserver(function(){setTimeout(fit,150)}).observe(document.body,{childList:true,subtree:true,attributes:false});window.__fit=fit})()</script></body></html>
