@@ -905,6 +905,7 @@ function armarBD(E,D,quien){
   var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
   var FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
   var r3=function(v){return v==null?null:Math.round(v*1000)/1000};
+  function acp(s){return (s.ac!=null&&s.ac>0)?s.ac:s.as}
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
@@ -951,7 +952,7 @@ function armarBD(E,D,quien){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
       var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Reprobado':s.e,s.cu,s.c,s.ce,s.g,s.n];
       vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===6?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
-      [s.as,s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
+      [acp(s),s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
         var h=s.h.filter(function(z){return z[0]===g.cod})[0];
         for(var j=0;j<4;j++){var x=celda(r,g.c0+j,h?r3(h[1+j]):null,{nf:'0.000',fill:g.tipo==='rep'?'FFFEF3C7':null});bd(x,j===0,j===3,false,u)}});
@@ -974,7 +975,7 @@ function armarBD(E,D,quien){
     var r=5,nn=0;
     var lotes=D.order.map(function(k){return [k,D.sheets[k]]});lotes.push(['ESC',D.esc||[]]);
     lotes.forEach(function(lt){var k=lt[0];lt[1].filter(function(s){return s[flag]}).forEach(function(s){
-      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':'Semestre '+lb(k)];
+      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(acp(s)),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':'Semestre '+lb(k)];
       v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
