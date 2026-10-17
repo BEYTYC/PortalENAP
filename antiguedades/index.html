@@ -497,14 +497,31 @@ body .bar{padding-right:0!important}
 .gt .pcl .pmv{display:block;margin:1px 0 0}.gt .pcl{line-height:1.25;white-space:nowrap}
 
 /* puesto en una sola línea, casilla más ancha */
-.gt .pcl .pmv{display:inline!important;margin:0 0 0 8px!important}.gt .pcl{white-space:nowrap;min-width:128px}.gt th:last-child{min-width:128px}
-.gt thead th:last-child{width:136px}
+.gt .pcl .pmv{display:inline!important;margin:0 0 0 8px!important}.gt .pcl{white-space:nowrap}
 
 /* puesto: toda la columna alineada */
 .gt .pcl{text-align:center!important}
-.gt .pcl .pg{display:inline-grid;grid-template-columns:64px 54px;align-items:center;column-gap:4px}
+.gt .pcl .pg{display:inline-grid;grid-template-columns:44px 34px;align-items:center;column-gap:3px;font-size:12px}.gt tbody td.pcl{padding-inline:4px}
 .gt .pcl .pg b{text-align:right;font-variant-numeric:tabular-nums}
 .gt .pcl .pa{text-align:left}.gt .pcl .pmv{margin:0!important}
+.gt .pcl .pmv{font-size:10.5px!important}
+
+/* puesto: la barra / siempre alineada */
+.gt .pcl .pg{grid-template-columns:21px 6px 24px 33px;column-gap:0;font-size:11.5px}
+.gt .pcl .pg b{text-align:left}.gt .pcl .p1{text-align:right!important}.gt .pcl .ps{text-align:center!important;font-weight:500}
+.gt .pcl .pa{padding-left:3px}.gt .pcl .pmv{font-size:10px!important;letter-spacing:-.2px}
+.gt .pcl .pg{grid-template-columns:18px 5px 22px 30px}
+.gt tbody td.pcl{padding-inline:3px!important}
+
+/* puesto en dos columnas: puesto y cambio; curso angosto salvo con semestre reprobado */
+.gt .pcl .pg{grid-template-columns:20px 6px 28px;column-gap:0;font-size:12px}
+.gt tbody td.pcl{padding-inline:3px!important}
+.gt .pdl .pmv{font-size:11px!important;letter-spacing:0}
+.gt thead th:first-child{width:62px}.gt.hasrep thead th:first-child{width:112px}
+.gt thead th:nth-last-child(2){width:72px}.gt thead th:last-child{width:64px}
+.gt tfoot td:first-child{text-align:center!important}
+.gt:not(.hasrep) thead th:first-child,.gt:not(.hasrep) thead th:nth-child(2){width:72px}
+.gt.hasrep thead th:nth-child(2){width:72px}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -748,16 +765,16 @@ function stuRender(){
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
   const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'];
-  const puH=(b,i)=>{const e=mat[i];if(!e)return '<td>—</td>';let m='';
+  const puH=(b,i)=>{const e=mat[i];if(!e)return '<td>—</td><td></td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
         m=d>0?`<span class="pmv up" title="${same?'Mejoró '+d+' puestos':'Mejoró '+d+' puntos porcentuales en su posición relativa'}">▲ ${d}${u}</span>`:d<0?`<span class="pmv dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼ ${-d}${u}</span>`:'<span class="pmv eq">＝</span>'}}
-    return `<td class="pcl"><span class="pg"><b>${e[2]}/${e[3]}</b><span class="pa">${m}</span></span></td>`};
+    return `<td class="pcl"><span class="pg"><b class="p1">${e[2]}</b><b class="ps">/</b><b class="p2">${e[3]}</b></span></td><td class="pcl pdl">${m}</td>`};
   const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<span class="pmv up">▲ subió ${d}</span>`:d<0?`<span class="pmv dn">▼ bajó ${-d}</span>`:'<span class="pmv eq">＝ igual</span>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perI(s.h.length,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):puC(b,i))}</tr>${r?rpx(b,np?5:7):''}`}).join('');
+  const body=s.h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+' (Refuerzo)':b[0])}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perI(s.h.length,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):puC(b,i)+'<td></td>')}</tr>${r?rpx(b,np?5:8):''}`}).join('');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
@@ -802,7 +819,7 @@ function stuRender(){
   const where=selK==='ESC'?'Escalafonamiento 4.2':'Semestre '+selK;
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th>Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${s.h.some(b=>b[0].endsWith('A'))?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th>Puesto</th><th>Cambio</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:8}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td><td></td>'}</tr></tfoot></table>${pfc}</div>
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
