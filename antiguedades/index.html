@@ -946,7 +946,7 @@ function armarBD(E,D,quien){
     // datos
     lista.forEach(function(s,i){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e,s.cu,s.c,s.ce,s.g,s.n];
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Reprobado':s.e,s.cu,s.c,s.ce,s.g,s.n];
       vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===6?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===6,false,u)});
       [s.as,s.an,s.di,s.cf,s.f].forEach(function(v,j){var x=celda(r,8+j,r3(v),{b:j===4,fc:'FF14304F',fill:j===4?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===4,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
