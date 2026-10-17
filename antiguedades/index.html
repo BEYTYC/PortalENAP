@@ -967,8 +967,9 @@ function armarBD(E,D,quien){
     ws.getRow(4).height=32;
     cols.forEach(function(c,i){var x=ws.getCell(4,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:AZ}};fill(x,'FFDCE9F7');x.alignment={horizontal:i===3?'left':'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,true,false)});
     var r=5,nn=0;
-    D.order.forEach(function(k){D.sheets[k].filter(function(s){return s[flag]}).forEach(function(s){
-      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='4.2'?'4.2 Escalafonamiento':'Semestre '+k];
+    var lotes=D.order.map(function(k){return [k,D.sheets[k]]});lotes.push(['ESC',D.esc||[]]);
+    lotes.forEach(function(lt){var k=lt[0];lt[1].filter(function(s){return s[flag]}).forEach(function(s){
+      nn++;var v=[nn,s.cu||k,s.g,s.n,s.c,s.ce,r3(s.as),r3(s.an),r3(s.di),r3(s.cf),r3(s.f),r3(s.ma),k==='ESC'?'Escalafonamiento 4.2':'Semestre '+k];
       v.forEach(function(val,j){var x=ws.getCell(r,j+1);x.value=val==null?null:val;x.font={name:FN,size:10,bold:j===10};x.alignment={horizontal:j===3?'left':'center',vertical:'middle'};if(j>=6)x.numFmt='0.000';if(j===5)x.numFmt='0';bd(x,j===0,j===cols.length-1,false,false)});
       ws.getRow(r).height=20;r++})});
     if(r>5){for(var j=1;j<=cols.length;j++)ws.getCell(r-1,j).border=Object.assign({},ws.getCell(r-1,j).border,{bottom:{style:'medium',color:{argb:'FFA7B4C6'}}});
