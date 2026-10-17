@@ -566,6 +566,13 @@ body:not(.has-gear) .back{right:6px!important}
 .stu .gt .pa2{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-style:normal;font-size:12px;line-height:1}
 .stu .gt .pa2.up{color:#1E8E4E}.stu .gt .pa2.dn{color:#D13438}
 .stu .gt tbody td.pcl{padding-inline:16px!important}.stu .gt .pa2{right:5px}
+/* móvil: la tabla del estudiante se desplaza en horizontal en vez de apretarse */
+@media (max-width:640px){
+  .stu .tw2{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .stu .gt{min-width:600px;font-size:12.5px}
+  .stu .gt th,.stu .gt td{white-space:nowrap!important;padding-inline:6px}
+  .stu .gt thead th{font-size:10px}
+}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">

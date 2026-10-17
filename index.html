@@ -1037,6 +1037,15 @@
 #vistaAdmin td{white-space:nowrap}
 @media (max-width:1000px){#vistaAdmin .panel-app__inner{grid-template-columns:minmax(0,1fr);padding:24px 16px 56px}#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:560px){#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr)}}
+
+/* móvil: sin "Protocolos Académicos" y los tres menús en una sola línea */
+@media (max-width:760px){
+  .navcat[data-key="protocolos"]{display:none!important}
+  .navcats{flex-wrap:nowrap!important;width:100%}
+  .navcat{flex:1 1 auto;min-width:0}
+  .navcat > .nav-btn{width:100%;justify-content:center;gap:4px;padding:11px 4px!important;font-size:11.5px!important;white-space:nowrap}
+  .navcat > .nav-btn .icon{display:none}
+}
 </style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
