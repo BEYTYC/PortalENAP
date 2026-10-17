@@ -772,10 +772,10 @@ function armarBD(E,D,quien){
   var wb=new E.Workbook(),ahora=new Date();
   var fec=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/ /g,' ');
   var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
-  var FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FF9DB7DA';
+  var FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
   var r3=function(v){return v==null?null:Math.round(v*1000)/1000};
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
-  function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:BL}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
+  function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
   D.order.forEach(function(k){
     var lista=D.sheets[k],ix=D.order.indexOf(k),bloques=[];
