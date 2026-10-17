@@ -475,6 +475,10 @@ body .bar{padding-right:0!important}
 
 /* Novedades: sin el cuadro grande (en pantalla completa), quedan solo las tarjetas */
 :root:fullscreen #nov,:root.fsx #nov{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+
+/* pantalla completa: sin cuadros, solo el contenido sobre el fondo */
+:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb:not([aria-pressed="true"]),:root:fullscreen .chips,:root:fullscreen .mov li,
+:root.fsx .card,:root.fsx .k,:root.fsx .nb:not([aria-pressed="true"]),:root.fsx .chips{background:transparent!important;border-color:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
