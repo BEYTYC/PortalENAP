@@ -412,7 +412,8 @@ body:has(#admin:not([hidden])) .adm{max-width:1360px}
 .credfs{display:none}
 :root:fullscreen,:root:fullscreen body,:root.fsx,:root.fsx body{background:#F9FBFE!important}
 :root:fullscreen body::before,:root.fsx body::before{content:"";position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center/min(78vh,760px) no-repeat;opacity:.022;pointer-events:none;z-index:0}
-:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .chips,:root:fullscreen .card.stu,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .chips,:root.fsx .card.stu{background:transparent!important;box-shadow:none!important}
+:root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .chips,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .chips{background:rgba(255,255,255,.72)!important;box-shadow:none!important}
+:root:fullscreen .card.stu,:root.fsx .card.stu{background:transparent!important}
 :root:fullscreen .credfs,:root.fsx .credfs{display:block;position:relative;z-index:1;max-width:1240px;margin:22px auto 14px;padding-right:4px;text-align:right;font-size:12px;letter-spacing:.03em;color:var(--mute)}
 :root:fullscreen .credfs b,:root.fsx .credfs b{color:var(--navy);font-weight:600}
 .podio{gap:10px!important}
