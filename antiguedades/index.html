@@ -859,10 +859,19 @@ function svgRange(items,o){ // rango mín–máx con promedio y mediana: items [
     g+=`<line x1="${cx-9}" x2="${cx+9}" y1="${y(it.med)}" y2="${y(it.med)}" stroke="#E8B13A" stroke-width="2.4"><title>Mediana ${f3(it.med)}</title></line><circle cx="${cx}" cy="${y(it.avg)}" r="5" fill="#1B4688" stroke="#fff" stroke-width="1.5"><title>Promedio ${f3(it.avg)}</title></circle>`;
     g+=`<text x="${cx}" y="${y(it.max)-6}" text-anchor="middle" font-size="10" fill="#33466B">${f3(it.max)}</text><text x="${cx}" y="${y(it.min)+13}" text-anchor="middle" font-size="10" fill="#B03A3A">${f3(it.min)}</text>`+xl(cx,H-B+22,it.l)});
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img">${g}</svg>`}
+function quadCard(L){
+  const mil=s=>(s.an!=null&&s.di!=null&&s.cf!=null)?(s.an*.2+s.di*.2+s.cf*.1)/.5:null;
+  const P=L.filter(s=>s.ac!=null&&mil(s)!=null&&s.e!=='Aplazado');if(P.length<3)return '';
+  const cx=mean(P.map(s=>s.ac)),cy=mean(P.map(mil)),f=v=>f3(v);
+  const pts=P.map(s=>({x:s.ac,y:mil(s),t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f(s.ac)+' · militar '+f(mil(s))+' (AN '+f(s.an)+' · disc '+f(s.di)+' · C.FIS '+f(s.cf)+')'}));
+  const n=(a,b)=>P.filter(s=>(s.ac>=cx)===a&&(mil(s)>=cy)===b).length;
+  return `<div class="card ch an"><h3>Cuadrante: académica frente a formación militar</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:'Promedio militar (AN, disciplina y C.FIS)',cut:{x:cx,y:cy}})}<p class="cn">Cortes en el promedio del grupo · alto en ambos: ${n(true,true)} · solo militar: ${n(false,true)} · solo académico: ${n(true,false)} · por mejorar: ${n(false,false)}. Militar = AN 20 %, disciplina 20 %, C.FIS 10 %, reescalado a 10.</p></div>`}
 function svgScatter(pts,o){ // dispersión: pts [{x,y,t}] t=0 normal,1 distinguido,2 excelencia
   const W=560,H=270,L=40,R=12,T=14,B=52,pw=W-L-R,ph=H-T-B,X=v=>L+(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*pw,Y=v=>T+ph-(Math.max(o.min,Math.min(o.max,v))-o.min)/(o.max-o.min)*ph;
   let g='';for(let i=0;i<=4;i++){const v=o.min+(o.max-o.min)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${Y(v)}" y2="${Y(v)}" stroke="#D4E0F0"/><text x="${L-6}" y="${Y(v)+4}" text-anchor="end" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text><text x="${X(v)}" y="${T+ph+15}" text-anchor="middle" font-size="10.5" fill="#5B6F8F">${v.toFixed(1).replace('.',',')}</text>`}
   g+=`<text x="${L+pw/2}" y="${T+ph+29}" text-anchor="middle" font-size="10.5" fill="#33466B">${o.xl}</text><text x="12" y="${T+ph/2}" transform="rotate(-90 12 ${T+ph/2})" text-anchor="middle" font-size="10.5" fill="#33466B">${o.yl}</text>`;
+  if(o.cut){const cx=X(o.cut.x),cy=Y(o.cut.y),f=v=>v.toFixed(3).replace('.',','),lb=(x,y,an,tx,cl)=>`<text x="${x}" y="${y}" text-anchor="${an}" font-size="10" font-weight="700" fill="${cl}" opacity=".85">${tx}</text>`;
+    g+=`<rect x="${cx}" y="${T}" width="${L+pw-cx}" height="${cy-T}" fill="#1B4688" fill-opacity=".05"/><line x1="${cx}" x2="${cx}" y1="${T}" y2="${T+ph}" stroke="#7C93B8" stroke-dasharray="4 3"/><line x1="${L}" x2="${L+pw}" y1="${cy}" y2="${cy}" stroke="#7C93B8" stroke-dasharray="4 3"/>`+lb(L+pw-4,T+11,'end','ALTO EN AMBOS','#1B4688')+lb(L+4,T+11,'start','SOLO MILITAR','#3F5A7D')+lb(L+pw-4,T+ph-5,'end','SOLO ACADÉMICO','#3F5A7D')+lb(L+4,T+ph-5,'start','POR MEJORAR','#B03A3A')+lb(cx+4,T+ph-18,'start','prom. '+f(o.cut.x),'#5B6F8F')}
   const c=['#3F7FCB','#E8B13A','#1B4688'],op=[.28,.95,.95],r=[3,4.4,4.4];
   [0,1,2].forEach(t=>pts.filter(p=>p.t===t).forEach(p=>g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${r[t]}" fill="${c[t]}" fill-opacity="${op[t]}"${t?` stroke="#fff" stroke-width="1"`:''}><title>${p.n}</title></circle>`));
   g+=`<g class="lg"><circle cx="${L}" cy="${H-8}" r="4" fill="#3F7FCB" fill-opacity=".5"/><text x="${L+9}" y="${H-4}" font-size="10.5" fill="#33466B">Estudiante</text><circle cx="${L+100}" cy="${H-8}" r="4.4" fill="#E8B13A"/><text x="${L+109}" y="${H-4}" font-size="10.5" fill="#33466B">Distinguido</text><circle cx="${L+200}" cy="${H-8}" r="4.4" fill="#1B4688"/><text x="${L+209}" y="${H-4}" font-size="10.5" fill="#33466B">Excelencia</text></g>`;
@@ -956,7 +965,7 @@ function totRender(){
   const sc=(f,nm,short)=>{const pts=A.filter(a=>a[0].ac!=null&&a[0][f]!=null).map(([s])=>({x:s.ac,y:s[f],t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · '+short+' '+f3(s[f])}));
     return `<div class="card ch an"><h3>Académica frente a ${nm}</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:short})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen ${nm}.</p></div>`};
   const c6=sc('an','aptitud naval','Aptitud naval'),c7=sc('di','disciplina','Disciplina'),c8=sc('cf','cultura física','C. física');
-  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6+c7+c8;
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+quadCard(A.map(a=>a[0]))+c6+c7+c8;
   requestAnimationFrame(animCharts);
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
@@ -1100,7 +1109,7 @@ function chartsRender(){
     if(sel&&sel[f]!=null)m+=`<circle cx="${X3(Math.max(6,sel[f]))}" cy="${y}" r="6" fill="var(--hi)" stroke="var(--card)" stroke-width="2"/>`});
   m+='</svg>';
   const c3h=`<div class="card ch"><h3>Componentes · ${sel?'estudiante frente al semestre':'promedio del semestre'}</h3>${m}</div>`;
-  el.innerHTML=c1+c2h+(sel?c3h:'');
+  el.innerHTML=c1+c2h+(sel?c3h:'')+(sel?'':quadCard(list));
   requestAnimationFrame(animCharts);
 }
 const c3=v=>v==null?'—':v.toFixed(3).replace('.',',');
