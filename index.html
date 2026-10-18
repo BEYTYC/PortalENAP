@@ -572,6 +572,12 @@
     .cde-copy{ max-width:none; }
     .cde-preview{ max-width:none; }
     main{ display:block; padding:18px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
+       desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
+       el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
+    main:has(> :is(#viewTitulacion,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE):not([hidden])){
+      padding:0 !important; overflow:hidden !important;
+    }
   }
 
   @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
