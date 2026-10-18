@@ -740,6 +740,12 @@ const D=window.__D;
 (function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
   const out=s=>M.has(s.c)||M.has(s.ce),fix=a=>{const n=a.filter(s=>!out(s));if(n.length!==a.length)n.filter(s=>s.p!=null).sort((x,y)=>x.p-y.p).forEach((s,i)=>{s.p=i+1});return n};
   Object.keys(D.sheets).forEach(k=>{if(k!=='MER')D.sheets[k]=fix(D.sheets[k])});if(D.esc)D.esc=fix(D.esc)})();
+/* Quienes repiten 1.1 ya no tienen pestaña aparte: entran a 1.1 con novedad "Repitente" y se renumera el puesto */
+(function(){const R=D.sheets['1.1'],T=D.sheets['1.2'];if(!R||!T||!R.length)return;
+  const all=T.concat(R),rk=all.filter(s=>s.e!=='Aplazado'&&s.f!=null).sort((a,b)=>b.f-a.f),n=rk.length;
+  rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[1]==='1.1'){h[2]=s.p;h[3]=n}});
+  all.filter(s=>s.e==='Aplazado'||s.f==null).forEach(s=>{const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[1]==='1.1')h[3]=n});
+  D.sheets['1.2']=rk.concat(all.filter(s=>s.e==='Aplazado'||s.f==null));delete D.sheets['1.1'];D.order=D.order.filter(k=>k!=='1.1')})();
 /* el semestre repetido (sufijo A) va justo arriba del semestre definitivo */
 (function(){const fix=s=>{const h=s&&s.h;if(!h)return;for(let i=1;i<h.length;i++)if(h[i][0]===h[i-1][0]+'A'){const x=h[i];h[i]=h[i-1];h[i-1]=x}};
 Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEach(fix)})();
@@ -752,7 +758,7 @@ function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 let cur=null,sel=null,q='';
-const LBM={'1.1':'1.1 (Rep)','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>LBM[k]||k;
+const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>LBM[k]||k;
 let msem=null;
 const semOf=s=>{const m=String(s.cu||'').match(/^(\d)\.(\d)/);return m?(+m[1]-1)*2+(+m[2]):null};
 const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[]).filter(s=>semOf(s)===msem):D.sheets[k]||[];
@@ -1324,7 +1330,7 @@ function armarBD(E,D,quien){
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
-  var LBM={'MER':'Mercantes','1.1':'1.1 (Rep)','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'};
+  var LBM={'MER':'Mercantes','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'};
   function lb(k){return k==='ESC'?'Escalafonamiento 4.2':(LBM[k]||k)}
   D.order.concat(D.esc&&D.esc.length?['ESC']:[]).concat(D.sheets.MER?['MER']:[]).forEach(function(k){
     var lista=k==='ESC'?D.esc:D.sheets[k],ix=(k==='ESC'||k==='MER')?D.order.length-1:D.order.indexOf(k),bloques=[];
