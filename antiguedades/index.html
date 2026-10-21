@@ -752,6 +752,8 @@ svg .cnt{font-weight:700}
 #charts>.card.ch:not(.an){display:flex!important;flex-direction:column!important;justify-content:center!important}
 #nov .nt{align-content:center!important;gap:10px!important}
 #nov .nb:disabled{opacity:.55}.chip.off{pointer-events:none}
+.chip.esc.off{margin-left:6px}.chip.esc.off+.chip{border-left:0;margin-left:0;padding-left:12px}
+.chip.esc.off{opacity:.65}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -827,7 +829,7 @@ const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[])
 const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
   const c=document.getElementById('chips');
-  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento</button><button class="chip off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
+  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
