@@ -969,6 +969,17 @@ svg .cnt{font-weight:700}
 :root:fullscreen #kpi .k b,:root.fsx #kpi .k b{font-size:24px!important}
 :root:fullscreen #nov .nb b,:root.fsx #nov .nb b{font-size:22px!important}
 :root:fullscreen #nov .nb span,:root.fsx #nov .nb span{font-size:12px!important}
+:root:fullscreen #kpi .k span,:root.fsx #kpi .k span{font-size:11px!important;white-space:nowrap!important;overflow:hidden}
+:root:fullscreen #kpi .k small.dl,:root.fsx #kpi .k small.dl{white-space:nowrap!important;overflow:hidden;display:block!important;margin-top:3px}
+:root:fullscreen #kpi .k:first-child b,:root.fsx #kpi .k:first-child b{font-size:38px!important}
+:root:fullscreen #kpi .k:first-child span,:root.fsx #kpi .k:first-child span{font-size:12px!important}
+:root:fullscreen .chips .cpe,:root.fsx .chips .cpe{font-size:15px!important}
+:root:fullscreen .chips .cpe select,:root.fsx .chips .cpe select{font-size:15px!important;padding:4px 8px!important}
+:root:fullscreen #novl .tw,:root.fsx #novl .tw{background:#fff!important;border-radius:14px!important;overflow:hidden;max-height:none}
+:root:fullscreen #novl table.nl th:nth-child(n+3):nth-child(-n+8),:root:fullscreen #novl table.nl td:nth-child(n+3):nth-child(-n+8),:root.fsx #novl table.nl th:nth-child(n+3):nth-child(-n+8),:root.fsx #novl table.nl td:nth-child(n+3):nth-child(-n+8){text-align:center!important}
+:root:fullscreen .podc,:root.fsx .podc,:root:fullscreen #pub>.duo>.podc,:root.fsx #pub>.duo>.podc{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+:root:fullscreen:not(:has(#novl:not([hidden]))):not(:has(.pst)),:root.fsx:not(:has(#novl:not([hidden]))):not(:has(.pst)){scrollbar-width:none}
+:root:fullscreen:not(:has(#novl:not([hidden]))):not(:has(.pst))::-webkit-scrollbar,:root.fsx:not(:has(#novl:not([hidden]))):not(:has(.pst))::-webkit-scrollbar{display:none}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1296,7 +1307,7 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Fuera del orden · aplazados, en comisión y retirados</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();
+  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();fitK();
 }
 
 
@@ -1439,6 +1450,8 @@ function novRender(){
   {const nt=el.querySelector('.nt'),N=el.querySelectorAll('.nb[data-k]').length;const mob=matchMedia('(max-width:700px)').matches;if(nt&&N===4&&!mob)nt.style.setProperty('grid-template-columns','repeat(2,minmax(0,1fr))','important');if(nt&&N===6&&!mob)nt.style.setProperty('grid-template-columns','repeat(3,minmax(0,1fr))','important');if(nt&&N===5&&!mob){nt.style.setProperty('grid-template-columns','repeat(6,minmax(0,1fr))','important');nt.querySelectorAll('.nb').forEach((x,i)=>x.style.setProperty('grid-column','span '+(i<3?2:3),'important'))}}
   el.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})});
 }
+function fitK(){document.querySelectorAll('#kpi .k small.dl,#kpi .k span').forEach(e=>{e.style.removeProperty('font-size');if(!e.clientWidth)return;let z=parseFloat(getComputedStyle(e).fontSize),n=0;while(e.scrollWidth>e.clientWidth+1&&z>8&&n++<30){z-=.5;e.style.setProperty('font-size',z+'px','important')}})}
+addEventListener('resize',()=>fitK());document.addEventListener('fullscreenchange',()=>setTimeout(fitK,120));
 let selK=null;
 function render2(){render()}
 function chart(h){
