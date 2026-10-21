@@ -2529,6 +2529,18 @@
       // se salta la animacion la primera vez que carga la pagina).
       requestAnimationFrame(() => requestAnimationFrame(() => home.classList.add('entrada-lista')));
     }
+    avisarEntradaCentroDatos();
+  }
+  // Avisa a la pantalla de inicio del Centro de Datos (iframe) que la persona
+  // ya entró, para que arranque su animación de aparición.
+  function avisarEntradaCentroDatos() {
+    const fr = document.getElementById('cdiHomeFrame');
+    if (!fr) return;
+    const enviar = () => { try { fr.contentWindow.postMessage({ type: 'centrodatos:entrada' }, '*'); } catch (e) {} };
+    enviar();
+    // Si el iframe aún estaba cargando, reintenta cuando termine de cargar.
+    fr.addEventListener('load', enviar, { once: true });
+    setTimeout(enviar, 600);
   }
   function clonarEscudo() {
     const original = document.querySelector('.header-logo');
