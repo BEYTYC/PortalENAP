@@ -782,6 +782,11 @@ svg .cnt{font-weight:700}
 /* novedades: las tarjetas reparten toda la altura */
 #nov .nt{grid-auto-rows:1fr!important;align-content:stretch!important;flex:1 1 auto!important;min-height:0}
 #nov .nb{height:auto!important;min-height:0}
+.cct{margin-top:14px;overflow-x:auto}.cct table{width:100%;border-collapse:collapse;font-size:12px}
+.cct th{background:#2F6BB8;color:#fff;font-weight:600;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;padding:7px 8px;text-align:left;white-space:nowrap}
+.cct th.n,.cct td.n{text-align:center;font-variant-numeric:tabular-nums}
+.cct td{padding:7px 8px;border-bottom:1px solid var(--line,#D6E2F0);white-space:nowrap}
+.cct tbody tr:nth-child(even){background:rgba(31,78,150,.035)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -793,9 +798,9 @@ svg .cnt{font-weight:700}
 <div class="duo"><div class="card podc" id="pod"></div>
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
+<div class="charts" id="charts"></div>
 <div class="card prem" id="prem" hidden></div>
 <div class="card salv" id="salv" hidden></div>
-<div class="charts" id="charts"></div>
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
@@ -1204,7 +1209,10 @@ function chartsRender(){
        `<text class="cnt" x="${WW-rw+8}" y="${y+4}" style="font-size:12px">${c2(o.m)}<tspan style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}" dx="7">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</tspan></text>`});
   k+=`<line x1="${X(mu)}" x2="${X(mu)}" y1="0" y2="${H2-22}" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 3" opacity=".6"/></svg>`;
   const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Con factor de ponderación</span><span><i class="d" style="background:#E8B13A;border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Sin factor de ponderación</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
-  const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
+  const cm=(a,f)=>{const v=a.map(s=>s[f]).filter(x=>x!=null);return v.length?mean(v):null};
+  const tbr=gs.map(o=>{const a=list.filter(s=>(s.cu||'—')===o.k&&s.f!=null&&s.e!=='Aplazado').sort((x,y)=>y.f-x.f),b=a[0];return `<tr><td><b>${o.k}</b></td><td class="n">${o.n}</td><td class="n"><b>${f3(o.m)}</b></td><td class="n">${o.u!=null?f3(o.u):'—'}</td><td class="n">${f3(cm(a,'ac')??NaN)}</td><td class="n">${f3(cm(a,'an')??NaN)}</td><td class="n">${f3(cm(a,'di')??NaN)}</td><td class="n">${f3(cm(a,'cf')??NaN)}</td><td class="n">${f3(o.lo)} – ${f3(o.hi)}</td><td>${b?`<span class="gr">${b.g||''}</span> ${corto(b.n)} · ${f3(b.f)}`:'—'}</td></tr>`}).join('');
+  const tb2=`<div class="tw cct"><table><thead><tr><th>Curso</th><th class="n">Est.</th><th class="n" title="Promedio final con factor de ponderación">Final con factor</th><th class="n" title="Promedio final sin factor de ponderación">Final sin factor</th><th class="n">Acad.</th><th class="n">Apt. naval</th><th class="n">Disc.</th><th class="n">C. fís.</th><th class="n">Rango</th><th>Mejor del curso</th></tr></thead><tbody>${tbr}</tbody></table></div>`;
+  const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}${tb2}</div>`;
   // comparación componentes
   const comps=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
   const H3=comps.length*34+26,lw3=70;const X3=v=>lw3+(W-lw3-52)*(v-6)/4;
@@ -1380,7 +1388,7 @@ const pcat=t=>/^placa/i.test(t)?'Placas':/espad/i.test(t)?'Espadas':/medalla|est
 function salvRender(){
   const el=document.getElementById('salv');if(!el)return;
   const S=D.salv;
-  if(cur!=='ESC'||q||sel||!S||!S.length){el.hidden=true;el.innerHTML='';return}
+  el.hidden=true;el.innerHTML='';return;
   el.hidden=false;
   el.innerHTML='<h3>Salvedades</h3><p class="sv0">Casos que no entran en el cálculo normal o que conviene revisar. Quienes aparecen aquí no se dejan por fuera: están en la lista, con su estado, o se explican acá.</p><div class="svg">'+S.map(g=>`<section class="sv"><h4>${g.t}</h4>${g.d?`<p>${g.d}</p>`:''}${g.i.length>8?`<details><summary>Ver los ${g.i.length} casos</summary><ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul></details>`:`<ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul>`}</section>`).join('')+'</div>';
 }
