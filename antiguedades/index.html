@@ -1037,6 +1037,12 @@ svg .cnt{font-weight:700}
 @media(min-height:1000px){:root:fullscreen body,:root.fsx body{box-sizing:border-box!important;padding-top:56px!important}:root:fullscreen .wrap,:root.fsx .wrap{min-height:calc(100vh - 62px)!important}}
 .pst h6.pcat,.pst .pcat{background:#E9EDF3!important;border:1px solid #D9DFE8;border-radius:8px;padding:8px 14px!important;margin:16px 0 6px!important;color:#1B4688}
 .pst .pcat:first-of-type{margin-top:6px!important}
+.pst li{display:flex!important;align-items:center;gap:0;flex-wrap:nowrap;padding-top:9px!important;padding-bottom:3px}
+.pst li b{order:1;display:inline-flex;align-items:center;white-space:nowrap;flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
+.pst li span{order:2;grid-column:auto!important;flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:inherit!important;color:#5B6F8F}
+.pst li span::before{content:"·";margin:0 10px;color:#9AA9BE}
+.pst li em{order:3;grid-area:auto!important;margin-left:auto;padding-left:14px;white-space:nowrap;flex:none}
+.pst li .fl{margin:0 10px 0 0!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1741,7 +1747,7 @@ function premRender(){
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
-  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}${flag(z.a.o)}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
+  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${flag(z.a.o)}${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
   el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pbars" role="list">'+rowsH+'</div><div class="pleg">'+leg+'</div>'+det;
   {const g=el.querySelector('.pbfn'),l=el.querySelector('.pleg');if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
