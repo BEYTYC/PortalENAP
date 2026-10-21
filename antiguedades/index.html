@@ -719,6 +719,14 @@ svg .cnt{font-weight:700}
 #nov .nb[data-k="__pasan"][aria-pressed="true"] b{color:var(--navy)!important}
 @media(max-width:700px){#nov .nt{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 #nov .nb span{white-space:normal!important;line-height:1.25;display:block}#nov .nb .mi{display:inline-block}
+/* podio + novedades: sin espacio en blanco, tarjetas repartidas en todo el alto */
+@media(min-width:901px){.duo>.card{min-height:0!important}}
+.duo{align-items:stretch}
+#nov .nt{flex:1 1 auto!important;grid-auto-rows:1fr!important}
+#nov .nb{display:flex!important;flex-direction:column!important;justify-content:center!important}
+#nov .nb b{font-size:22px!important}
+#nov .nb span{font-size:11px!important}
+.podc .podio{margin-top:0!important;margin-bottom:0!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
