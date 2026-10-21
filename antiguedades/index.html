@@ -1243,7 +1243,7 @@ function chartsRender(){
   const cm=(a,f)=>{const v=a.map(s=>s[f]).filter(x=>x!=null);return v.length?mean(v):null};
   const tbr=gs.map(o=>{const a=list.filter(s=>(s.cu||'—')===o.k&&s.f!=null&&!OUT(s)).sort((x,y)=>y.f-x.f),b=a[0];return `<tr><td><b>${o.k}</b></td><td class="n">${o.n}</td><td class="n"><b>${f3(o.m)}</b></td><td class="n">${o.u!=null?f3(o.u):'—'}</td><td class="n">${f3(cm(a,'ac')??NaN)}</td><td class="n">${f3(cm(a,'an')??NaN)}</td><td class="n">${f3(cm(a,'di')??NaN)}</td><td class="n">${f3(cm(a,'cf')??NaN)}</td><td class="n">${f3(o.lo)} – ${f3(o.hi)}</td><td>${b?`<span class="gr">${b.g||''}</span> ${corto(b.n)} · ${f3(b.f)}`:'—'}</td></tr>`}).join('');
   const tb2=`<div class="tw cct"><table><thead><tr><th>Curso</th><th class="n">Est.</th><th class="n" title="Promedio final con factor de ponderación">Final con factor</th><th class="n" title="Promedio final sin factor de ponderación">Final sin factor</th><th class="n">Acad.</th><th class="n">Apt. naval</th><th class="n">Disc.</th><th class="n">C. fís.</th><th class="n">Rango</th><th>Mejor del curso</th></tr></thead><tbody>${tbr}</tbody></table></div>`;
-  const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}${tb2}</div>`;
+  const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
   // comparación componentes
   const comps=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
   const H3=comps.length*34+26,lw3=70;const X3=v=>lw3+(W-lw3-52)*(v-6)/4;
