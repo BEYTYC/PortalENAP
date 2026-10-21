@@ -713,8 +713,6 @@ svg .cnt{font-weight:700}
 #nov .nb{padding:7px 10px!important;display:block!important}
 #nov .nb b{font-size:18px!important;line-height:1.15}
 #nov .nb span{font-size:10px!important;letter-spacing:.05em!important}
-#nov .nb[data-k="__pasan"]{border-color:#BFE0CC!important;background:rgba(232,246,238,.8)!important}
-#nov .nb[data-k="__pasan"] b{color:#1B6B3A!important}
 #nov .nb[data-k="__pasan"][aria-pressed="true"]{border-color:var(--bar-fill)!important;background:rgba(31,78,150,.08)!important}
 #nov .nb[data-k="__pasan"][aria-pressed="true"] b{color:var(--navy)!important}
 @media(max-width:700px){#nov .nt{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
@@ -803,6 +801,7 @@ svg .cnt{font-weight:700}
 .edb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .edb button{border:0;border-radius:6px;padding:8px 12px;background:var(--navy,#12305a);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .edn{font-size:11px;opacity:.7;margin:8px 0 0}
+.podio .trf{display:block;margin:0 auto 2px}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -873,6 +872,8 @@ function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 
+const TRC=['#E0A800','#9AA5B1','#B8733A'];
+const trofeo=x=>`<svg class="trf" viewBox="0 0 24 24" width="30" height="30" role="img" aria-label="${['Oro','Plata','Bronce'][x]}"><path d="M7 3h10v5a5 5 0 0 1-10 0V3z" fill="${TRC[x]}"/><path d="M7 5H4v2a3 3 0 0 0 3 3M17 5h3v2a3 3 0 0 1-3 3" fill="none" stroke="${TRC[x]}" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13v4M8 21h8M9.5 17h5v4h-5z" stroke="${TRC[x]}" stroke-width="1.8" fill="${TRC[x]}" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
 const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado';
 let EDIT=false;
 let cur=null,sel=null,q='';
@@ -1113,7 +1114,7 @@ function render(){
     list=ls(cur);
     const ranked=list.filter(s=>!OUT(s)).sort((a,b)=>(a.p??1e9)-(b.p??1e9));
     const apl=list.filter(s=>OUT(s));
-    {const top=(cur==='1.1'||(cur==='MER'&&msem==null))?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);const f1=top.length?top[0].f:0,fl=top.length?top[top.length-1].f:0,pbh=s=>f1>fl?Math.round(52+(s.f-fl)/(f1-fl)*52):104;document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(eLab(cur)||lab(cur))+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi"><span class="mdw">${ic(s)}</span>${s.e&&s.e!=='Normal'?`<span class="pnv">${s.e}</span>`:''}<span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb" style="height:${pbh(s)}px!important"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
+    {const top=(cur==='1.1'||(cur==='MER'&&msem==null))?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);const f1=top.length?top[0].f:0,fl=top.length?top[top.length-1].f:0,pbh=s=>f1>fl?Math.round(52+(s.f-fl)/(f1-fl)*52):104;document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(eLab(cur)||lab(cur))+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi">${isE(cur)&&x<3?trofeo(x):''}<span class="mdw">${ic(s)}</span>${s.e&&s.e!=='Normal'?`<span class="pnv">${s.e}</span>`:''}<span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb" style="height:${pbh(s)}px!important"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>!OUT(s)&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
@@ -1255,7 +1256,7 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>!OUT(s));
-  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?['Comisión','Retirado'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Retirado'?'Salieron':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?['Comisión','Retirado'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Retirado'?'Retirados':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(!OUT(s)&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):k==='__fin'?!!s.fin:(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
@@ -1324,7 +1325,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:''}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · Reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
+  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania')return `<tr><td>${b[0]+sf}</td>${np?'':`<td>${b[7]||'—'}</td>`}<td colspan="4" class="enc">Comisión Alemania</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · Reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
