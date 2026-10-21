@@ -1820,6 +1820,25 @@
         + `Revisa en SharePoint: Configuración de la lista → Columnas → abre esa columna → el nombre interno sale en la URL como "Field=...". `
         + `Ajusta ese nombre en el código y vuelve a intentar.`;
     }
+    // Errores de inicio de sesion de Microsoft (MSAL): se explican en claro
+    // en vez de mostrar el codigo tecnico ("timed_out: See https://aka.ms/...").
+    const cod = String((error && error.errorCode) || '') + ' ' + bruto;
+    if (/timed_out|monitor_window_timeout|iframe_closed_timeout/i.test(cod)) {
+      return 'No se pudo completar el inicio de sesión porque la ventana de Microsoft tardó demasiado en responder '
+        + '(puede ser que no hayas terminado de iniciar sesión, que el navegador haya bloqueado la ventana emergente o que la conexión esté lenta). '
+        + 'Vuelve a pulsar «Iniciar sesión con cuenta institucional» y termina el proceso en la ventana que se abre. '
+        + 'Si se repite, permite las ventanas emergentes de este sitio o cierra otras sesiones de Microsoft abiertas.';
+    }
+    if (/user_cancelled|popup_window_error|empty_window_error|window_closed/i.test(cod)) {
+      return 'La ventana de inicio de sesión se cerró antes de terminar. Vuelve a pulsar «Iniciar sesión con cuenta institucional» '
+        + 'y completa el proceso; si no se abre la ventana, permite las ventanas emergentes de este sitio.';
+    }
+    if (/interaction_in_progress/i.test(cod)) {
+      return 'Ya hay un inicio de sesión en curso. Termínalo en la ventana de Microsoft o espera unos segundos y vuelve a intentarlo.';
+    }
+    if (/network|failed to fetch|NetworkError/i.test(cod)) {
+      return 'No se pudo conectar con Microsoft. Revisa tu conexión a internet e inténtalo de nuevo.';
+    }
     return bruto;
   }
 
