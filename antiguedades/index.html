@@ -789,7 +789,7 @@ svg .cnt{font-weight:700}
 #kpi .k:first-child{display:flex!important;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 #kpi .k:first-child b{font-size:40px!important;line-height:1.1;margin-top:4px}
 
-#edtb{position:fixed;left:16px;bottom:16px;z-index:70;border:1px solid var(--navy,#12305a);background:#fff;color:var(--navy,#12305a);border-radius:999px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+#edtb{margin:4px 0 6px;border:1px solid var(--navy,#12305a);background:#fff;color:var(--navy,#12305a);border-radius:999px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15)}
 #edtb.on{background:var(--navy,#12305a);color:#fff}
 .edt{margin-top:14px;border:1px dashed var(--navy,#12305a);border-radius:10px;padding:12px;background:rgba(255,255,255,.7)}
 .edt h4{margin:0 0 8px;font-size:13px}
@@ -1411,7 +1411,7 @@ function side(){
   <div class="kv"><div><span>Académico</span>${f3(s.ac)}</div><div><span>Apt. naval</span>${f3(s.an)}</div><div><span>Disciplina</span>${f3(s.di)}</div><div><span>C. física</span>${f3(s.cf)}</div></div>
   ${chart(s.h)}<ul class="tl">${tl}</ul>`;
   const h2=el.querySelector('h2');let fs=17;while(h2.scrollWidth>h2.clientWidth&&fs>10){fs-=.5;h2.style.fontSize=fs+'px'}
-  if(EDIT&&window.__adm&&D.solo)editor(el,s);
+  if(window.__adm&&D.solo){const hb=document.createElement('button');hb.type='button';hb.id='edtb';hb.className=EDIT?'on':'';hb.textContent=EDIT?'✓ Salir de edición':'✎ Editar';hb.onclick=()=>{EDIT=!EDIT;render()};h2.insertAdjacentElement('afterend',hb);if(EDIT)editor(el,s)}
 }
 const ESTS=['Normal','Retardado','Aplazado','Reingresado','Comisión','Retirado'];
 const num=v=>{v=String(v).trim().replace(',','.');if(v==='')return null;const x=parseFloat(v);return isNaN(x)?undefined:x};
@@ -1458,7 +1458,7 @@ function editor(el,s){
     m('Guardando…');
     window.__api('guardar-datos',{datos:D,periodo:PER}).then(()=>{if(c)render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x)x.textContent='Guardado en el servidor.'},30)}).catch(e=>m(e.message))};
 }
-(function(){if(!window.__adm||!D.solo)return;const b=document.createElement('button');b.type='button';b.id='edtb';b.textContent='✎ Editar';b.onclick=()=>{EDIT=!EDIT;b.classList.toggle('on',EDIT);b.textContent=EDIT?'✓ Salir de edición':'✎ Editar';document.body.classList.toggle('editando',EDIT);render()};document.body.appendChild(b)})();
+
 document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim();sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
 {const th=document.getElementById('thc');if(th)th.textContent='Curso '+PER}
