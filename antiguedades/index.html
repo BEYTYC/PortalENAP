@@ -980,6 +980,10 @@ svg .cnt{font-weight:700}
 :root:fullscreen .podc,:root.fsx .podc,:root:fullscreen #pub>.duo>.podc,:root.fsx #pub>.duo>.podc{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
 :root:fullscreen:not(:has(#novl:not([hidden]))):not(:has(.pst)),:root.fsx:not(:has(#novl:not([hidden]))):not(:has(.pst)){scrollbar-width:none}
 :root:fullscreen:not(:has(#novl:not([hidden]))):not(:has(.pst))::-webkit-scrollbar,:root.fsx:not(:has(#novl:not([hidden]))):not(:has(.pst))::-webkit-scrollbar{display:none}
+.pst li b{font-size:15px!important}
+.pst li span,.pst li em{font-size:12.5px!important}
+.pst .pn{font-size:16px!important}.pst .pc{font-size:12px!important}
+.pst .pcat{font-size:11.5px!important}.pst li{font-size:14px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1663,6 +1667,7 @@ function premRender(){
   const M=new Map();
   PA.forEach(a=>a.w.forEach(([c,m])=>{if(!M.has(c))M.set(c,[]);M.get(c).push({a,m})}));
   const L=[...M.entries()].map(([c,x])=>({s:POOL.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>(a.s.p??1e9)-(b.s.p??1e9)||b.x.length-a.x.length);
+  if(cur==='PR'&&L.length===1)premSel=L[0].s.c;
   el.hidden=false;
   const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
   const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
