@@ -2529,6 +2529,59 @@
       // se salta la animacion la primera vez que carga la pagina).
       requestAnimationFrame(() => requestAnimationFrame(() => home.classList.add('entrada-lista')));
     }
+    avisarEntradaCentroDatos();
+  }
+  // Sonido de inicio de sesión, sintetizado con Web Audio (sin archivos):
+  // un "whoosh" suave, un golpe grave cuando aparece la esfera, un arpegio
+  // brillante sincronizado con la salida de los módulos y un acorde final.
+  // Si el navegador bloquea el audio (sin interacción previa), se omite en silencio.
+  function sonidoInicioSesion() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = new AC();
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const t0 = ctx.currentTime + 0.05;
+      const master = ctx.createGain(); master.gain.value = 0.22; master.connect(ctx.destination);
+      const tono = (f, ini, dur, tipo, vol) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = tipo; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t0 + ini);
+        g.gain.exponentialRampToValueAtTime(vol, t0 + ini + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + ini + dur);
+        o.connect(g); g.connect(master); o.start(t0 + ini); o.stop(t0 + ini + dur + 0.05);
+      };
+      // whoosh: ruido filtrado que sube de frecuencia
+      const len = ctx.sampleRate * 2.6, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const ns = ctx.createBufferSource(); ns.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9;
+      bp.frequency.setValueAtTime(250, t0); bp.frequency.exponentialRampToValueAtTime(3800, t0 + 2.2);
+      const ng = ctx.createGain();
+      ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.35, t0 + 1.2); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+      ns.connect(bp); bp.connect(ng); ng.connect(master); ns.start(t0);
+      // golpe grave cuando aparece la esfera
+      tono(70, 0.45, 1.6, 'sine', 0.9); tono(140, 0.45, 1.0, 'sine', 0.25);
+      // arpegio (pentatónica) al ritmo de los módulos: 1,7 s + i * 0,32 s
+      [523.25, 659.25, 783.99, 987.77, 1174.66].forEach((f, i) => {
+        tono(f, 1.7 + i * 0.32, 1.4, 'sine', 0.32); tono(f * 2, 1.7 + i * 0.32, 0.8, 'triangle', 0.08);
+      });
+      // acorde final amplio
+      [261.63, 392.0, 523.25, 783.99].forEach((f) => tono(f, 3.5, 2.6, 'sine', 0.22));
+      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 7000);
+    } catch (e) {}
+  }
+  // Avisa a la pantalla de inicio del Centro de Datos (iframe) que la persona
+  // ya entró, para que arranque su animación de aparición.
+  function avisarEntradaCentroDatos() {
+    const fr = document.getElementById('cdiHomeFrame');
+    if (!fr) return;
+    const enviar = () => { try { fr.contentWindow.postMessage({ type: 'centrodatos:entrada' }, '*'); } catch (e) {} };
+    sonidoInicioSesion();
+    enviar();
+    // Si el iframe aún estaba cargando, reintenta cuando termine de cargar.
+    fr.addEventListener('load', enviar, { once: true });
+    setTimeout(enviar, 600);
   }
   function clonarEscudo() {
     const original = document.querySelector('.header-logo');

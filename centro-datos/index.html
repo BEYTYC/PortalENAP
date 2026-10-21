@@ -4,6 +4,20 @@
 <meta charset="utf-8">
 <title>Centro de Datos ENAP (en construcción)</title>
 <script src="./dc-runtime.js"></script>
+<script>
+/* Entrada cinematográfica: cuando esta pantalla va incrustada en el Portal (modo=inicio),
+   queda en pausa y oculta hasta que el Portal avisa que la persona inició sesión
+   ("centrodatos:entrada"). Entonces arranca toda la secuencia de aparición. */
+(function(){try{
+  var q=new URLSearchParams(location.search), root=document.documentElement;
+  if(q.get('modo')==='inicio' && window.parent!==window){
+    root.classList.add('cdi-pre');
+    var go=function(){ if(!root.classList.contains('cdi-pre'))return; root.classList.remove('cdi-pre'); root.classList.add('cdi-go'); };
+    window.addEventListener('message',function(e){ if(e.data && e.data.type==='centrodatos:entrada') go(); });
+    setTimeout(go,25000);
+  }
+}catch(e){}})();
+</script>
 </head>
 <body>
 <x-dc>
@@ -60,7 +74,33 @@ body{margin:0}
 .hov:hover{background:rgba(12,32,80,.06)}
 button{font-family:inherit;color:inherit}
 button:focus-visible{outline:2px solid #B8841F;outline-offset:2px}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---- entrada cinematográfica (solo incrustado en el Portal, tras el login) ---- */
+html.cdi-pre .fup,html.cdi-pre .node,html.cdi-pre .bbar,html.cdi-pre .hbar,html.cdi-pre .draw,html.cdi-pre .sheen,html.cdi-pre .halo{animation-play-state:paused!important}
+html.cdi-pre .core,html.cdi-pre .spin,html.cdi-pre .spinr,html.cdi-pre path.flow,html.cdi-pre .aur{opacity:0}
+@keyframes titlein{from{opacity:0;filter:blur(16px);transform:translateY(30px) scale(.96);letter-spacing:.03em}to{opacity:1;filter:blur(0);transform:none;letter-spacing:-.035em}}
+@keyframes corein{0%{opacity:0;transform:scale(.15);filter:blur(10px)}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:scale(1);filter:blur(0)}}
+@keyframes ringin{from{opacity:0;clip-path:circle(0% at 50% 50%)}to{opacity:1;clip-path:circle(75% at 50% 50%)}}
+@keyframes aurin{from{opacity:0}to{opacity:1}}
+@keyframes shock{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(3.4)}}
+@keyframes nodepop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}70%{opacity:1}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes flowin{from{opacity:0}to{opacity:1}}
+html.cdi-go .fup{animation-duration:1.9s}
+html.cdi-go h1.fup{animation-name:titlein;animation-duration:2.4s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
+html.cdi-go .core{animation:corein 2.4s cubic-bezier(.34,1.35,.5,1) .35s both}
+html.cdi-go .core::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(91,147,240,.8);pointer-events:none;animation:shock 2.8s 1.1s cubic-bezier(.2,.7,.3,1) both}
+html.cdi-go .core::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(29,79,216,.55);pointer-events:none;animation:shock 3.2s 1.9s cubic-bezier(.2,.7,.3,1) both}
+html.cdi-go .spin{animation:spin 70s linear infinite,ringin 3.2s cubic-bezier(.22,.8,.24,1) .6s both}
+html.cdi-go .spinr{animation:spinr 48s linear infinite,ringin 3.2s cubic-bezier(.22,.8,.24,1) 1.1s both}
+html.cdi-go path.flow{animation:flowd 4s linear infinite,flowin 2.2s ease 1.8s both}
+html.cdi-go .a1{animation:aurin 3.6s ease both,drift1 16s ease-in-out infinite}
+html.cdi-go .a2{animation:aurin 3.6s .5s ease both,drift2 19s ease-in-out infinite}
+html.cdi-go .a3{animation:aurin 3.6s 1s ease both,drift1 22s ease-in-out infinite}
+html.cdi-go .node{animation-name:nodepop,floaty;animation-duration:1.7s,6s;animation-timing-function:cubic-bezier(.34,1.5,.5,1),ease-in-out;animation-iteration-count:1,infinite;animation-fill-mode:both,none}
+@keyframes sweep{from{transform:translateX(-110%)}to{transform:translateX(110%)}}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -7px}}
+html.cdi-go body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.65) 50%,transparent 62%);animation:sweep 3s .2s cubic-bezier(.4,0,.2,1) both}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html.cdi-pre .core,html.cdi-pre .spin,html.cdi-pre .spinr,html.cdi-pre path.flow,html.cdi-pre .aur{opacity:1}}
 
 .mob .appin{position:relative !important;inset:auto !important;flex-direction:column !important}
 .xp{position:relative}.xpt{position:absolute;left:12px;right:12px;bottom:12px;z-index:40;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.97);border:1px solid #C9D8F3;box-shadow:0 14px 40px rgba(12,32,80,.22);font-size:12px;line-height:1.5;color:#3D4D69;opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease;pointer-events:none}.xp:hover .xpt{opacity:1;transform:none}.xp:after{content:"ⓘ Pasa el cursor";position:absolute;bottom:10px;right:14px;font-size:10px;font-weight:600;color:#8A97AD;pointer-events:none;opacity:.9}.xp:hover:after{opacity:0}.xq:after{display:none}
@@ -1126,7 +1166,7 @@ class Component extends DCLogic {
     const areaStyle = fsOn ? 'flex:1;position:relative;overflow-x:hidden;overflow-y:auto;min-height:0' : mobIni ? 'position:absolute;inset:0;overflow-x:hidden;overflow-y:auto' : scr ? 'position:absolute;inset:0;overflow-x:hidden;overflow-y:auto' : 'position:absolute;inset:0';
     const stageStyle = (scr && mobq) ? "position:relative;width:480px;zoom:" + fsk + ";min-height:" + (ah / fsk) + "px;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;color:#14233F;background:linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)" : "position:absolute;width:" + stW + "px;height:" + stH + "px;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;color:#14233F;background:" + (isIni ? 'transparent' : 'linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)') + ";overflow:hidden;transform-origin:0 0;" + (fsOn || fitMode ? 'left:' + Math.max(0, (aw - stW * fsk) / 2) + 'px;top:' + Math.max(0, (ah - stH * fsk) / 2) + 'px;transform:scale(' + fsk + ')' : 'left:0;top:0');
     const welBox = mobIni ? 'position:absolute;left:0;top:0;width:480px;height:1000px' : 'position:absolute;left:' + (isIni ? Math.round((stW - 1280) / 2) : 80) + 'px;top:' + (isIni ? Math.round((stH - 760) / 2) : 70) + 'px;width:1280px;height:760px';
-    const txtBox = mobIni ? 'position:absolute;left:30px;top:26px;width:600px;transform:scale(.7);transform-origin:0 0' : 'position:absolute;left:60px;top:150px;width:600px;transform:scale(.78);transform-origin:0 0';
+    const txtBox = mobIni ? 'position:absolute;left:30px;top:26px;width:600px;transform:scale(.7);transform-origin:0 0' : 'position:absolute;left:50px;top:80px;width:600px;transform:scale(.97);transform-origin:0 0';
     const orbBox = mobIni ? 'position:absolute;left:-50px;top:385px;width:580px;height:580px;transform:scale(.8);transform-origin:50% 50%' : 'position:absolute;left:640px;top:90px;width:580px;height:580px;transform:scale(1.07);transform-origin:50% 50%';
     const data = this._data;
     const f = this.state.f;
@@ -2289,7 +2329,7 @@ class Component extends DCLogic {
       const ang = -Math.PI / 2 + i * 2 * Math.PI / modDefs.length;
       const x = ncx + nr * Math.cos(ang), y = ncy + nr * Math.sin(ang);
       linesD += 'M' + ncx + ',' + ncy + ' L' + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter(m[0]), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (0.5 + i * 0.09).toFixed(2) + 's' };
+      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter(m[0]), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (1.7 + i * 0.32).toFixed(2) + 's' };
     });
 
     // ---------- comparaciones "vs"
