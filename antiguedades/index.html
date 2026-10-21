@@ -1321,6 +1321,7 @@ function totRender(){
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
 }
 function render(){
+  if(window.__lc!==undefined&&window.__lc!==cur){try{const _p=document.getElementById('pub');if(_p&&!matchMedia('(prefers-reduced-motion:reduce)').matches)_p.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})}catch(e){}}window.__lc=cur;
   chips();
   document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento '+PER:isE(cur)?lab(cur)+' '+PER:'Antigüedades '+PER;
   let list,k=cur,rows;
