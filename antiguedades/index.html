@@ -802,6 +802,18 @@ svg .cnt{font-weight:700}
 .edb button{border:0;border-radius:6px;padding:8px 12px;background:var(--navy,#12305a);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .edn{font-size:11px;opacity:.7;margin:8px 0 0}
 .podio .trf{display:block;margin:0 auto 2px}
+
+.pleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.pleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.pbars{display:flex;flex-direction:column;gap:3px}
+.pbr{position:relative;display:grid;grid-template-columns:28px minmax(120px,210px) 1fr 24px;align-items:center;gap:8px;border:0;background:transparent;padding:3px 6px;border-radius:8px;cursor:pointer;font:inherit;text-align:left;color:inherit}
+.pbr:hover,.pbr.on{background:rgba(31,78,150,.09)}
+.pbp{font-size:11px;opacity:.65;text-align:right}.pbn{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pbt{height:12px;background:rgba(31,78,150,.07);border-radius:6px;overflow:hidden}.pbf{display:flex;height:100%;width:100%}.pbf i{display:block;height:100%}
+.pbc{font-size:13px;text-align:right}
+.pbr[data-pt]:hover::after{content:attr(data-pt);white-space:pre-line;position:absolute;left:40px;top:100%;z-index:30;max-width:min(460px,90vw);background:#12305a;color:#fff;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none}
+.pdt{margin-top:14px;border-top:1px solid rgba(31,78,150,.2);padding-top:12px}
+.pgh{font-size:12px;opacity:.65;margin:10px 0 0}
+.pone{grid-template-columns:1fr!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1458,6 +1470,7 @@ function salvRender(){
   el.hidden=false;
   el.innerHTML='<h3>Salvedades</h3><p class="sv0">Casos que no entran en el cálculo normal o que conviene revisar. Quienes aparecen aquí no se dejan por fuera: están en la lista, con su estado, o se explican acá.</p><div class="svg">'+S.map(g=>`<section class="sv"><h4>${g.t}</h4>${g.d?`<p>${g.d}</p>`:''}${g.i.length>8?`<details><summary>Ver los ${g.i.length} casos</summary><ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul></details>`:`<ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul>`}</section>`).join('')+'</div>';
 }
+let premSel=null;
 function premRender(){
   const el=document.getElementById('prem');if(!el)return;
   const P=D.premios;
@@ -1469,7 +1482,15 @@ function premRender(){
   const L=[...M.entries()].map(([c,x])=>({s:POOL.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>b.x.length-a.x.length||(a.s.p??1e9)-(b.s.p??1e9));
   el.hidden=false;
   const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
-  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn} (${xs.length})</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>';
+  const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
+  const catOf=o=>PCAT.map(([cn],k)=>({cn,k,xs:o.x.filter(z=>pcat(z.a.t)===cn)})).filter(c=>c.xs.length);
+  const tip=o=>o.x.length+(o.x.length===1?' premio':' premios')+'\n'+catOf(o).map(c=>c.cn+' ('+c.xs.length+'): '+c.xs.map(z=>z.a.t).join('; ')).join('\n');
+  const rowsH=L.map((o,i)=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" data-pt="${tip(o).replace(/"/g,'&quot;')}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn">${corto(o.s.n)}</span><span class="pbt"><span class="pbf">${catOf(o).map(c=>`<i style="width:${c.xs.length/mx*100}%;background:${PCOL[c.k]}"></i>`).join('')}</span></span><b class="pbc">${o.x.length}</b></button>`).join('');
+  const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
+  const so=L.find(o=>o.s.c===premSel);
+  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'<p class="pgh">Pasa el mouse sobre una barra para ver sus premios; haz clic para ver el detalle.</p>';
+  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pleg">'+leg+'</div><div class="pbars" role="list">'+rowsH+'</div>'+det;
+  el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
 }
 function mrRender(){
   const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
