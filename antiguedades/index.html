@@ -873,7 +873,7 @@ function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 
-const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Salió';
+const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado';
 let EDIT=false;
 let cur=null,sel=null,q='';
 const isE=k=>k==='ESC'||k==='PR'||k==='CDP'||k==='CDPRIM',eLab=k=>k==='ESC'?'4.2 escalafonamiento':k==='PR'?'4.2 adaptación profesional (PR)':k==='CDP'?'4.2 CDPRON':k==='CDPRIM'?'4.2 CDPRIM':null;const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>eLab(k)||LBM[k]||k;
@@ -1255,7 +1255,7 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>!OUT(s));
-  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?['Comisión','Salió'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Salió'?'Salieron':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?['Comisión','Retirado'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Retirado'?'Salieron':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(!OUT(s)&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):k==='__fin'?!!s.fin:(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
@@ -1389,7 +1389,7 @@ function side(){
   const h2=el.querySelector('h2');let fs=17;while(h2.scrollWidth>h2.clientWidth&&fs>10){fs-=.5;h2.style.fontSize=fs+'px'}
   if(EDIT&&window.__adm&&D.solo)editor(el,s);
 }
-const ESTS=['Normal','Retardado','Aplazado','Reingresado','Comisión','Salió'];
+const ESTS=['Normal','Retardado','Aplazado','Reingresado','Comisión','Retirado'];
 const num=v=>{v=String(v).trim().replace(',','.');if(v==='')return null;const x=parseFloat(v);return isNaN(x)?undefined:x};
 const mn=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null};
 function recalc(s){
