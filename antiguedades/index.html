@@ -826,6 +826,31 @@ svg .cnt{font-weight:700}
 .pbr{grid-template-columns:34px minmax(260px,380px) 1fr 76px!important}.pbfn{white-space:nowrap}.pbn small{font-weight:600!important;opacity:.75!important;font-size:12px!important}
 :root:fullscreen .card,:root:fullscreen .k,:root:fullscreen .nb,:root:fullscreen .nb:not([aria-pressed="true"]),:root:fullscreen .chips,:root:fullscreen #nov,:root:fullscreen .card.stu,:root.fsx .card,:root.fsx .k,:root.fsx .nb,:root.fsx .nb:not([aria-pressed="true"]),:root.fsx .chips,:root.fsx #nov,:root.fsx .card.stu{background:rgba(255,255,255,.4)!important}
 :root:fullscreen .nb[aria-pressed="true"],:root.fsx .nb[aria-pressed="true"]{background:rgba(255,255,255,.55)!important}
+:root:fullscreen .credfs,:root.fsx .credfs{display:block!important;text-align:right!important;margin:6px 0 0!important}
+:root:fullscreen .pbr,:root.fsx .pbr{padding:2px 10px!important}
+:root:fullscreen .pbars,:root.fsx .pbars{gap:0}
+:root:fullscreen .pbn em,:root.fsx .pbn em{display:none}
+:root:fullscreen .pbc small,:root.fsx .pbc small{display:none}
+:root:fullscreen .pbc,:root.fsx .pbc{font-size:17px!important}
+.ptk{width:26px!important;height:26px!important}
+:root:fullscreen .podio .pb,:root.fsx .podio .pb{zoom:.6}
+:root:fullscreen .podio,:root.fsx .podio{min-height:0!important}
+:root:fullscreen #nov .nt,:root.fsx #nov .nt{grid-auto-rows:auto!important}
+:root:fullscreen #nov .nb,:root.fsx #nov .nb{min-height:0!important;height:auto!important;padding:8px 12px!important}
+:root:fullscreen #nov .nb b,:root.fsx #nov .nb b{font-size:20px!important}
+#tip{background:#0F2742!important;color:#fff!important;border:1px solid #0F2742!important;box-shadow:0 12px 30px -8px rgba(5,20,40,.65)!important;font:600 14px/1.45 var(--font,system-ui,sans-serif)!important;padding:10px 14px!important;border-radius:11px!important}
+.ptk.v-icon{background:none!important;box-shadow:none!important;width:28px!important;height:28px!important}
+.ptk.v-icon svg{width:24px;height:24px}
+.ptk.v-icon svg [fill="#fff"]{fill:var(--c)}
+.ptk.v-icon svg [stroke="#fff"]{stroke:var(--c)}
+.ptk.v-icon svg path[style]{stroke:#fff!important}
+.ptk.v-line{background:none!important;box-shadow:none!important;border:2px solid var(--c)}
+.ptk.v-line svg{width:15px;height:15px}
+.ptk.v-line svg [fill="#fff"]{fill:var(--c)}
+.ptk.v-line svg [stroke="#fff"]{stroke:var(--c)}
+.ptk.v-line svg path[style]{stroke:#fff!important}
+.ptk.v-icon svg{width:26px!important;height:26px!important}
+.ptk.v-icon{width:30px!important;height:30px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1138,7 +1163,7 @@ function render(){
   }else{
     list=ls(cur);
     const ranked=list.filter(s=>!OUT(s)).sort((a,b)=>(a.p??1e9)-(b.p??1e9));
-    const apl=list.filter(s=>OUT(s));
+    const apl=list.filter(s=>OUT(s)&&!(isE(cur)&&s.e==='Retirado'));
     {const top=(cur==='1.1'||(cur==='MER'&&msem==null))?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);const f1=top.length?top[0].f:0,fl=top.length?top[top.length-1].f:0,pbh=s=>f1>fl?Math.round(52+(s.f-fl)/(f1-fl)*52):104;document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(eLab(cur)||lab(cur))+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi">${isE(cur)&&x<3?trofeo(x):''}<span class="mdw">${ic(s)}</span>${s.e&&s.e!=='Normal'?`<span class="pnv">${s.e}</span>`:''}<span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb" style="height:${pbh(s)}px!important"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>!OUT(s)&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
@@ -1280,7 +1305,7 @@ function novRender(){
   if(q){el.hidden=true;const _n=document.getElementById('novl');if(_n)_n.hidden=true;return}
   if(cur==null&&!sel)return;
   el.hidden=false;
-  const key=cur,l=ls(key),rk=l.filter(s=>!OUT(s));
+  const key=cur,l=ls(key).filter(s=>!(isE(cur)&&s.e==='Retirado')),rk=l.filter(s=>!OUT(s));
   const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresados'],...(isE(key)&&l.some(s=>/^Refuerzo/.test(s.ev||''))?[['__ref','En programa de refuerzo']]:[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(!OUT(s)&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):k==='__fin'?!!s.fin:k==='__ref'?/^Refuerzo/.test(s.ev||''):(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
@@ -1289,7 +1314,7 @@ function novRender(){
   const det=s=>nk==='__fin'?s.fin:nk==='__rk'?(s.rk||[]).map(r=>r[0]+' '+f3(r[1])).join(' · '):(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
   el.innerHTML=`<h3>Novedades · semestre ${eLab(key)||lab(key)} · ${l.length} estudiantes</h3><div class="nt">${gs.map(([k,n,c])=>`<button class="nb" data-k="${k}" aria-pressed="${k===nk}" aria-expanded="${k===nk}" ${c?'':'disabled'}><b>${c}${k==='__dis'||k==='__exc'?'<small class="de"> de '+ORD.reduce((n,x)=>n+D.sheets[x].filter(s=>k==='__dis'?s.dis:s.exc).length,0)+'</small>':''}</b><span>${k==='__dis'?MEDAL:k==='__exc'?STAR:''}${n}</span></button>`).join('')}</div>`;
   const nl=document.getElementById('novl');
-  if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(eLab(key)||lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso ${PER}</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${OUT(s)?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
+  if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(eLab(key)||lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso ${PER}</th><th class="n">Acad.</th><th class="n">Apt. naval</th><th class="n">Disc.</th><th class="n">C. FÍS.</th><th class="n">Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${OUT(s)?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td>${[s.ac,s.an,s.di,s.cf].map(v=>`<td class="n${v!=null&&v<6?' lo':''}">${f3(v)}</td>`).join('')}<td class="n"><b>${f3(s.f)}</b></td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
     nl.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})})}
   el.querySelectorAll('.nb[data-k]').forEach(b=>b.onclick=()=>{nk=nk===b.dataset.k?null:b.dataset.k;novRender()});
   {const nt=el.querySelector('.nt'),N=el.querySelectorAll('.nb[data-k]').length;const mob=matchMedia('(max-width:700px)').matches;if(nt&&N===4&&!mob)nt.style.setProperty('grid-template-columns','repeat(2,minmax(0,1fr))','important');if(nt&&N===6&&!mob)nt.style.setProperty('grid-template-columns','repeat(3,minmax(0,1fr))','important');if(nt&&N===5&&!mob){nt.style.setProperty('grid-template-columns','repeat(6,minmax(0,1fr))','important');nt.querySelectorAll('.nb').forEach((x,i)=>x.style.setProperty('grid-column','span '+(i<3?2:3),'important'))}}
@@ -1415,6 +1440,19 @@ function side(){
   const h2=el.querySelector('h2');let fs=17;while(h2.scrollWidth>h2.clientWidth&&fs>10){fs-=.5;h2.style.fontSize=fs+'px'}
   if(window.__adm&&D.solo){const hb=document.createElement('button');hb.type='button';hb.id='edtb';hb.className=EDIT?'on':'';hb.textContent=EDIT?'✓ Salir de edición':'✎ Editar';hb.onclick=()=>{EDIT=!EDIT;render()};h2.insertAdjacentElement('afterend',hb);if(EDIT)editor(el,s)}
 }
+
+function fitFS(){
+  const root=document.documentElement,b=document.body,fs=!!document.fullscreenElement||root.classList.contains('fsx');
+  if(!fs){b.style.zoom='';return}
+  const H=innerHeight-4,W=innerWidth;
+  const hh=()=>{const w=document.querySelector('.wrap');if(!w)return 0;let m=w.getBoundingClientRect().bottom+scrollY;const c=document.querySelector('.credfs');if(c&&c.offsetParent)m=Math.max(m,c.getBoundingClientRect().bottom+scrollY);return m+6};
+  let z=Math.min(1.6,Math.max(.5,innerWidth/1500));b.style.zoom=z;
+  for(let i=0;i<9;i++){let h=hh();if(!h)break;const sh=root.scrollHeight;if(sh>innerHeight+2)h=Math.max(h,sh);const k=H/h;if(Math.abs(k-1)<.015&&k<=1.0)break;z=Math.max(.45,Math.min(2.2,z*k));b.style.zoom=z}
+  for(let i=0;i<12&&root.scrollHeight>innerHeight+1&&z>.45;i++){z*=.985;b.style.zoom=z}
+  window.__fz=z;
+}
+window.addEventListener('resize',()=>fitFS());document.addEventListener('fullscreenchange',()=>setTimeout(fitFS,120));
+const __r0=render;render=function(){__r0.apply(this,arguments);requestAnimationFrame(fitFS)};
 const ESTS=['Normal','Retardado','Aplazado','Reingresado','Comisión','Retirado'];
 const num=v=>{v=String(v).trim().replace(',','.');if(v==='')return null;const x=parseFloat(v);return isNaN(x)?undefined:x};
 const mn=a=>{a=a.filter(x=>x!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null};
@@ -1492,7 +1530,7 @@ function premRender(){
   if(!PA.length){el.hidden=true;el.innerHTML='';return}
   const M=new Map();
   PA.forEach(a=>a.w.forEach(([c,m])=>{if(!M.has(c))M.set(c,[]);M.get(c).push({a,m})}));
-  const L=[...M.entries()].map(([c,x])=>({s:POOL.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>b.x.length-a.x.length||(a.s.p??1e9)-(b.s.p??1e9));
+  const L=[...M.entries()].map(([c,x])=>({s:POOL.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>(a.s.p??1e9)-(b.s.p??1e9)||b.x.length-a.x.length);
   el.hidden=false;
   const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
   const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
@@ -1500,11 +1538,17 @@ function premRender(){
   const tip=o=>o.x.length+(o.x.length===1?' premio':' premios')+'\n'+catOf(o).map(c=>c.cn+' ('+c.xs.length+'): '+c.xs.map(z=>z.a.t).join('; ')).join('\n');
   const rz=z=>{const r=(z.a.r||z.a.o||'').trim();return r?r.charAt(0).toLowerCase()+r.slice(1):'mérito'};
   const ki=z=>PCAT.findIndex(([cn])=>cn===pcat(z.a.t));
-  const tk=z=>`<span class="ptk" data-tip="${(z.a.t+'\nPor '+rz(z)+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3.2l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16l-5.1 2.9L8 13.2l-4.3-4 5.8-.7z" fill="#fff"/></svg></span>`;
+  const GL=[
+   '<path d="M7 1.5h4l1 7.5-3 0z" fill="#fff"/><path d="M17 1.5h-4l-1 7.5 3 0z" fill="#fff" opacity=".7"/><circle cx="12" cy="15.5" r="7.2" fill="#fff"/><circle cx="12" cy="15.5" r="5.3" fill="none" stroke="#FFFFFF" stroke-opacity=".0"/><circle cx="12" cy="15.5" r="5.4" style="fill:var(--c)"/><path d="M12 11.6l1.15 2.35 2.6.35-1.9 1.8.5 2.6L12 17.4l-2.35 1.3.5-2.6-1.9-1.8 2.6-.35z" fill="#FFFFFF"/>',
+   '<path d="M12 2l2.2 3.2V14h-4.4V5.2z" fill="#fff"/><rect x="6.5" y="14" width="11" height="2.6" rx="1.2" fill="#fff"/><rect x="10.8" y="16.6" width="2.4" height="4" fill="#fff"/><circle cx="12" cy="21.4" r="1.4" fill="#fff"/>',
+   '<circle cx="12" cy="12" r="8.2" fill="none" stroke="#fff" stroke-width="1.9"/><ellipse cx="12" cy="12" rx="3.6" ry="8.2" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M3.8 12h16.4" stroke="#fff" stroke-width="1.6"/>',
+   '<path d="M6 3v18" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M7.4 4.2h11.2l-2.8 4 2.8 4H7.4z" fill="#fff"/>',
+   '<circle cx="12" cy="4.6" r="2.4" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 7v13.5M7.5 10.8h9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M3.8 14.5c.6 4 3.6 6 8.2 6s7.6-2 8.2-6M3.8 14.5l-1.6 2.6M20.2 14.5l1.6 2.6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'];
+  const tk=z=>`<span class="ptk v-icon" data-tip="${(z.a.t+'\nPor '+rz(z)+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="16" height="16">${GL[ki(z)]||GL[0]}</svg></span>`;
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
-  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'<p class="pgh">Pasa el mouse sobre una ficha para ver el premio; haz clic en el estudiante para ver el detalle.</p>';
+  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
   el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pleg">'+leg+'</div><div class="pbars" role="list">'+rowsH+'</div>'+det;
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
 }
