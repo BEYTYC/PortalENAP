@@ -1591,13 +1591,16 @@ function selPer(l,act){var a=document.getElementById('pv'),b=document.getElement
   if(a){a.innerHTML=h;a.onchange=ch;document.getElementById('pvw').hidden=!(window.__adm&&l.length>0)}
   if(b){b.innerHTML=h;b.onchange=ch}}
 window.selPer=selPer;
-function cambiarPer(v){var pub=document.getElementById('pub');pub.style.opacity='.45';pub.style.pointerEvents='none';
+function cargando(on,v){var l=document.getElementById('ld');
+  if(!l){l=document.createElement('div');l.id='ld';l.setAttribute('role','status');l.innerHTML='<div class="gbox"><i class="gsp" aria-hidden="true"></i><b id="ldt"></b><span>Un momento…</span></div>';l.style.cssText='position:fixed;inset:0;z-index:60;display:none;place-items:center;background:rgba(255,255,255,.55);padding:24px';document.body.appendChild(l)}
+  if(on)document.getElementById('ldt').textContent='Cargando periodo '+v;l.style.display=on?'grid':'none'}
+function cambiarPer(v){var pub=document.getElementById('pub');pub.style.opacity='.45';pub.style.pointerEvents='none';cargando(true,v);
   api('datos',{periodo:v}).then(function(r){if(!r.datos)throw new Error('Ese periodo no tiene datos.');
     ['q','em'].forEach(function(id){var o=document.getElementById(id);if(o){var n=o.cloneNode(true);n.value='';o.parentNode.replaceChild(n,o)}});
     window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo)||v;window.__PERS=r.periodos||window.__PERS;
     if(window.__adm)metaTxt(r.meta);
     arrancar(document.getElementById('app-src').textContent);window.scrollTo(0,0)
-  }).catch(function(e){alert&&0;var m=document.getElementById('um');if(m)m.textContent=e.message}).then(function(){pub.style.opacity='';pub.style.pointerEvents=''})}
+  }).catch(function(e){var m=document.getElementById('um');if(m)m.textContent=e.message}).then(function(){pub.style.opacity='';pub.style.pointerEvents='';cargando(false)})}
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 function iniciar(){
