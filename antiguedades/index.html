@@ -700,6 +700,13 @@ svg .cnt{font-weight:700}
 .pst li em{grid-column:2;grid-row:1/3;align-self:center;font-style:normal;font-size:11px;color:#3F5A7D;text-align:right;font-variant-numeric:tabular-nums}
 .ppend{margin-top:12px;font-size:12px;color:var(--mute);line-height:1.5}
 @media(max-width:700px){.pgrid{grid-template-columns:1fr}}
+
+.sumy{padding:14px 18px;margin-bottom:10px}.sumy h3{margin:0 0 10px}
+.smr{display:flex;flex-wrap:wrap;gap:10px}
+.sm{flex:1 1 150px;min-width:0;border:1px solid #D6E2F0;border-radius:12px;padding:10px 14px;background:rgba(255,255,255,.7);display:flex;align-items:baseline;gap:8px}
+.sm b{font-size:24px;font-weight:800;color:#0B2A4A}.sm span{font-size:12px;font-weight:700;color:#3F5A7D;text-transform:uppercase;letter-spacing:.06em}
+.sm.rp b{color:#B03A3A}.sm.ap b{color:#8A6A00}.sm.ok b{color:#1B6B3A}
+.gt tr.cur td{background:#EEF5FE;color:#3F5A7D;font-weight:600}.gt tr.cur td.enc{text-align:center;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11px;color:#1B4688}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -708,6 +715,7 @@ svg .cnt{font-weight:700}
 <div class="chips msub" id="msub" hidden></div>
 <div class="card stu" id="stu" hidden></div>
 <div class="kpi" id="kpi"></div>
+<div class="card sumy" id="sumy" hidden></div>
 <div class="duo"><div class="card podc" id="pod"></div>
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
@@ -740,12 +748,21 @@ const D=window.__D;
 (function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
   const out=s=>M.has(s.c)||M.has(s.ce),fix=a=>{const n=a.filter(s=>!out(s));if(n.length!==a.length)n.filter(s=>s.p!=null).sort((x,y)=>x.p-y.p).forEach((s,i)=>{s.p=i+1});return n};
   Object.keys(D.sheets).forEach(k=>{if(k!=='MER')D.sheets[k]=fix(D.sheets[k])});if(D.esc)D.esc=fix(D.esc)})();
-/* Quienes repiten 1.1 ya no tienen pestaña aparte: entran a 1.1 con novedad "Repitente" y se renumera el puesto */
-(function(){const R=D.sheets['1.1'],T=D.sheets['1.2'];if(!R||!T||!R.length)return;
-  const all=T.concat(R),rk=all.filter(s=>s.e!=='Aplazado'&&s.f!=null).sort((a,b)=>b.f-a.f),n=rk.length;
-  rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[1]==='1.1'){h[2]=s.p;h[3]=n}});
-  all.filter(s=>s.e==='Aplazado'||s.f==null).forEach(s=>{const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[1]==='1.1')h[3]=n});
-  D.sheets['1.2']=rk.concat(all.filter(s=>s.e==='Aplazado'||s.f==null));delete D.sheets['1.1'];D.order=D.order.filter(k=>k!=='1.1')})();
+/* Vista por curso cursado: cada estudiante figura en el curso que cursó en 2026-1 (aprobado o reprobado) y el puesto se recalcula por promedio final.
+   La descarga conserva la organización por programa a cursar (D.dl). */
+(function(){
+  const LM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'},INV={};Object.keys(LM).forEach(k=>INV[LM[k]]=k);
+  const keys=D.order.filter(k=>k!=='1.1'),G={},dl={order:D.order.slice(),sheets:{}};keys.forEach(k=>G[k]=[]);
+  D.order.forEach(k=>{const L=D.sheets[k]||[];dl.sheets[k]=L.slice();L.forEach(s=>{s.pk=k;const m=(s.cu||'').match(/^\d\.\d/),tk=m&&INV[m[0]]?INV[m[0]]:(k==='1.1'?'1.2':k);s.tk=tk;G[tk].push(s)})});
+  if(D.sheets.MER)dl.sheets.MER=D.sheets.MER;
+  keys.forEach(k=>{
+    const L=G[k],rk=L.filter(s=>s.e!=='Aplazado'&&s.f!=null).sort((a,b)=>b.f-a.f||(a.p??1e9)-(b.p??1e9)||String(a.n).localeCompare(String(b.n))),n=rk.length,ru=new Set(rk),rs=L.filter(s=>!ru.has(s));
+    rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]==='2026-1'){h[2]=s.p;h[3]=n}});
+    rs.forEach(s=>{s.p=null;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]==='2026-1'){h[2]=null;h[3]=n}});
+    D.sheets[k]=rk.concat(rs)});
+  delete D.sheets['1.1'];D.order=keys;D.dl=dl;
+  /* un puesto mayor que el total (p. ej. 68/51) no existe: se descarta */
+  [].concat(...Object.values(D.sheets),D.esc||[]).forEach(s=>(s.hp||[]).forEach(r=>{if(r[2]!=null&&r[3]!=null&&r[2]>r[3])r[2]=null}))})();
 /* el semestre repetido (sufijo A) va justo arriba del semestre definitivo */
 (function(){const fix=s=>{const h=s&&s.h;if(!h)return;for(let i=1;i<h.length;i++)if(h[i][0]===h[i-1][0]+'A'){const x=h[i];h[i]=h[i-1];h[i-1]=x}};
 Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEach(fix)})();
@@ -1004,7 +1021,7 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();countUp();mkSort();centerLg();
+  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();sumyRender();countUp();mkSort();centerLg();
 }
 
 
@@ -1188,7 +1205,7 @@ function stuRender(){
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
   const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'];
-  const puH=(b,i)=>{const e=mat[i];if(!e)return '<td>—</td>';let m='';
+  const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
         m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:''}}
@@ -1197,7 +1214,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:''}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('');
+  const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · Reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('')+(s.pk&&selK!=='ESC'&&selK!=='MER'&&s.e!=='Aplazado'?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
   let pfc='';
   if(s.f!=null){
     const gv=ORD.flatMap(k=>D.sheets[k]).filter(x=>x.f!=null&&x.e!=='Aplazado').map(x=>x.f),gen=mean(gv),sem=avg.f;
@@ -1230,7 +1247,7 @@ function stuRender(){
       g+='</svg>';
       const dp=prev!=null?last-prev:null;
       return `<div class="tt ${kd}"><h5>${nm}<span class="tk">${AR[kd]} ${TXT[kd]}</span></h5><div class="tv">${f3(last)}<small>último</small></div>${g}<div class="tf">${b!=null?`<span><b>${sg(b)}</b> por semestre</span>`:'<span>Un solo semestre</span>'}${dp!=null?`<span>vs. anterior <b class="${dp<0?'dn':dp>0?'up':''}">${sg(dp)}</b></span>`:''}</div></div>`};
-    const labs=s.h.map(h=>h[0].replace(/A$/,' (reprobado)'));
+    const labs=s.h.map(h=>h[0].replace(/A$/,' (Reprobado)'));
     const tiles=S.map(([nm,k])=>tile(nm,s.h.map(h=>h[k]),labs)).join('');
     const WT=[.5,.2,.2,.1],avg=s.h.map(h=>{let sw=0,sv=0;WT.forEach((w,i)=>{const x=h[i+1];if(x!=null){sw+=w;sv+=w*x}});return sw?sv/sw:null});
     const av=avg.filter(x=>x!=null),ab=slope(av),ak=kind(ab);
@@ -1266,6 +1283,13 @@ sel=null;selK=null;
 render();
 /* ===== Movimiento de puestos y riesgo ===== */
 function lastB(s){return s.h[s.h.length-1]||[]}
+function sumyRender(){
+  const el=document.getElementById('sumy');if(!el)return;
+  if(cur==null||cur==='ESC'||cur==='MER'||q||sel){el.hidden=true;el.innerHTML='';return}
+  const L=ls(cur),P=L.filter(s=>s.e!=='Aplazado'&&s.pk===cur),R=L.filter(s=>s.e!=='Aplazado'&&s.pk&&s.pk!==cur),A=L.filter(s=>s.e==='Aplazado');
+  const nm=a=>[...new Set(a.map(s=>s.pk))].join(' / '),tl=(n,tx,c)=>`<div class="sm ${c}"><b>${n}</b><span>${tx}</span></div>`;
+  el.hidden=false;
+  el.innerHTML=`<h3>Cómo quedó el curso ${lab(cur)} · ${L.length} estudiantes</h3><div class="smr">`+tl(P.length,'pasan a '+cur,'ok')+(R.length?tl(R.length,'repiten '+nm(R),'rp'):'')+(A.length?tl(A.length,A.length===1?'aplazado':'aplazados','ap'):'')+'</div>'}
 function premRender(){
   const el=document.getElementById('prem');if(!el)return;
   const P=D.premios;
@@ -1320,7 +1344,8 @@ var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){re
 var fh=function(iso){if(!iso)return 'Nunca';var d=new Date(iso);return isNaN(d)?'—':d.toLocaleString('es-CO',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})};
 
 function cargaExcelJS(){return new Promise(function(ok,no){if(window.ExcelJS)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el generador de Excel. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
-function armarBD(E,D,quien){
+function armarBD(E,D0,quien){
+  var D=D0.dl?{order:D0.dl.order,sheets:D0.dl.sheets,esc:D0.esc}:D0; // por programa a cursar
   var wb=new E.Workbook(),ahora=new Date();
   var fec=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/ /g,' ');
   var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
@@ -1330,10 +1355,11 @@ function armarBD(E,D,quien){
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
-  var LBM={'MER':'Mercantes','1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'};
+  var LBM={'MER':'Mercantes'};
   function lb(k){return k==='ESC'?'Escalafonamiento 4.2':(LBM[k]||k)}
   D.order.concat(D.esc&&D.esc.length?['ESC']:[]).concat(D.sheets.MER?['MER']:[]).forEach(function(k){
     var lista=k==='ESC'?D.esc:D.sheets[k],ix=(k==='ESC'||k==='MER')?D.order.length-1:D.order.indexOf(k),bloques=[];
+    if(k!=='ESC'&&k!=='MER'&&D0.dl){var oT=function(s){var x=D.order.indexOf(s.tk);return x<0?99:x};lista=lista.slice().sort(function(a,c){return ((a.p==null)-(c.p==null))||(oT(a)-oT(c))||((a.p||0)-(c.p||0))})}
     for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
       if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
     var isM=k==='MER',nF=isM?6:7,nP=isM?1:5,wS=isM?1:4;
@@ -1350,7 +1376,7 @@ function armarBD(E,D,quien){
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:nF+nP+1);
     // título y fecha
-    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2':k==='MER'?'Mercantes':'Curso '+lb(k));a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    ws.mergeCellsWithoutStyle(1,1,1,cUlt);var a1=ws.getCell(1,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2':k==='MER'?'Mercantes':'Programa a cursar '+lb(k)+' · puesto en el curso cursado');a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(2,1);a2.value=texto;a2.font={name:FN,size:10,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};
     ws.getRow(3).height=22;ws.getRow(4).height=32;
     function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'middle',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
