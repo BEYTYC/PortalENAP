@@ -85,16 +85,21 @@ html.cdi-pre .core,html.cdi-pre .spin,html.cdi-pre .spinr,html.cdi-pre path.flow
 @keyframes shock{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(3.4)}}
 @keyframes nodepop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}70%{opacity:1}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 @keyframes flowin{from{opacity:0}to{opacity:1}}
-html.cdi-go h1.fup{animation-name:titlein;animation-duration:1.15s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
-html.cdi-go .core{animation:corein 1.15s cubic-bezier(.34,1.4,.5,1) .1s both}
-html.cdi-go .core::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(91,147,240,.75);pointer-events:none;animation:shock 1.7s .55s cubic-bezier(.2,.7,.3,1) both}
-html.cdi-go .spin{animation:spin 70s linear infinite,ringin 1.5s cubic-bezier(.22,.8,.24,1) .25s both}
-html.cdi-go .spinr{animation:spinr 48s linear infinite,ringin 1.5s cubic-bezier(.22,.8,.24,1) .4s both}
-html.cdi-go path.flow{animation:flowd 4s linear infinite,flowin 1s ease .9s both}
-html.cdi-go .a1{animation:aurin 2.2s ease both,drift1 16s ease-in-out infinite}
-html.cdi-go .a2{animation:aurin 2.2s .2s ease both,drift2 19s ease-in-out infinite}
-html.cdi-go .a3{animation:aurin 2.2s .4s ease both,drift1 22s ease-in-out infinite}
-html.cdi-go .node{animation-name:nodepop;animation-duration:.95s;animation-timing-function:cubic-bezier(.34,1.5,.5,1)}
+html.cdi-go .fup{animation-duration:1.9s}
+html.cdi-go h1.fup{animation-name:titlein;animation-duration:2.4s;animation-timing-function:cubic-bezier(.16,1,.3,1)}
+html.cdi-go .core{animation:corein 2.4s cubic-bezier(.34,1.35,.5,1) .35s both}
+html.cdi-go .core::after{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(91,147,240,.8);pointer-events:none;animation:shock 2.8s 1.1s cubic-bezier(.2,.7,.3,1) both}
+html.cdi-go .core::before{content:"";position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(29,79,216,.55);pointer-events:none;animation:shock 3.2s 1.9s cubic-bezier(.2,.7,.3,1) both}
+html.cdi-go .spin{animation:spin 70s linear infinite,ringin 3.2s cubic-bezier(.22,.8,.24,1) .6s both}
+html.cdi-go .spinr{animation:spinr 48s linear infinite,ringin 3.2s cubic-bezier(.22,.8,.24,1) 1.1s both}
+html.cdi-go path.flow{animation:flowd 4s linear infinite,flowin 2.2s ease 1.8s both}
+html.cdi-go .a1{animation:aurin 3.6s ease both,drift1 16s ease-in-out infinite}
+html.cdi-go .a2{animation:aurin 3.6s .5s ease both,drift2 19s ease-in-out infinite}
+html.cdi-go .a3{animation:aurin 3.6s 1s ease both,drift1 22s ease-in-out infinite}
+html.cdi-go .node{animation-name:nodepop,floaty;animation-duration:1.7s,6s;animation-timing-function:cubic-bezier(.34,1.5,.5,1),ease-in-out;animation-iteration-count:1,infinite;animation-fill-mode:both,none}
+@keyframes sweep{from{transform:translateX(-110%)}to{transform:translateX(110%)}}
+@keyframes floaty{0%,100%{translate:0 0}50%{translate:0 -7px}}
+html.cdi-go body::after{content:"";position:fixed;inset:0;z-index:99;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.65) 50%,transparent 62%);animation:sweep 3s .2s cubic-bezier(.4,0,.2,1) both}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html.cdi-pre .core,html.cdi-pre .spin,html.cdi-pre .spinr,html.cdi-pre path.flow,html.cdi-pre .aur{opacity:1}}
 
 .mob .appin{position:relative !important;inset:auto !important;flex-direction:column !important}
@@ -2324,7 +2329,7 @@ class Component extends DCLogic {
       const ang = -Math.PI / 2 + i * 2 * Math.PI / modDefs.length;
       const x = ncx + nr * Math.cos(ang), y = ncy + nr * Math.sin(ang);
       linesD += 'M' + ncx + ',' + ncy + ' L' + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter(m[0]), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (0.75 + i * 0.13).toFixed(2) + 's' };
+      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter(m[0]), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (1.7 + i * 0.32).toFixed(2) + 's' };
     });
 
     // ---------- comparaciones "vs"
