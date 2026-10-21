@@ -735,6 +735,15 @@ svg .cnt{font-weight:700}
 .podc .podio{flex:1;width:100%;max-width:none!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;align-items:end;justify-content:stretch!important;padding:0 6px}
 .podc .pd .nm1{font-size:11px!important}
 .podc .pd.p1 .pb{height:104px!important}.podc .pd.p2 .pb{height:88px!important}.podc .pd.p3 .pb{height:74px!important}.podc .pd.p4 .pb{height:62px!important}.podc .pd.p5 .pb{height:52px!important}
+/* novedades: mismo ancho y alto en todos los semestres (4 por fila, alto fijo) */
+#nov .nt{grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-rows:84px!important;align-content:space-around!important;flex:1 1 auto!important}
+#nov .nb,#nov .nb[style]{grid-column:auto!important}
+@media(max-width:700px){#nov .nt{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+/* gráficas por curso/distribución: sin alto mínimo ni espacio en blanco */
+.charts>.card.ch:not(.an){min-height:0!important;justify-content:flex-start!important}
+.charts>.card.ch:not(.an) h3{margin-bottom:10px}
+#charts>.card.ch:not(.an){display:block!important;height:auto!important;align-self:stretch!important}
+#charts>.card.ch:not(.an) svg{height:auto!important;flex:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
