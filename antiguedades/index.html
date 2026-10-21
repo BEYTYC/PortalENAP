@@ -727,6 +727,14 @@ svg .cnt{font-weight:700}
 #nov .nb b{font-size:22px!important}
 #nov .nb span{font-size:11px!important}
 .podc .podio{margin-top:0!important;margin-bottom:0!important}
+/* novedades: misma fila = mismo tamaño; filas pueden diferir */
+#nov .nt{grid-template-columns:repeat(12,minmax(0,1fr))!important}
+@media(max-width:700px){#nov .nt{grid-template-columns:repeat(2,minmax(0,1fr))!important}#nov .nb{grid-column:auto!important}}
+/* podio ajustado al ancho de la tarjeta */
+.podc{display:flex;flex-direction:column}
+.podc .podio{flex:1;width:100%;max-width:none!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;align-items:end;justify-content:stretch!important;padding:0 6px}
+.podc .pd .nm1{font-size:11px!important}
+.podc .pd.p1 .pb{height:104px!important}.podc .pd.p2 .pb{height:88px!important}.podc .pd.p3 .pb{height:74px!important}.podc .pd.p4 .pb{height:62px!important}.podc .pd.p5 .pb{height:52px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1176,6 +1184,7 @@ function novRender(){
   if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(key==='ESC'?'4.2 escalafonamiento':lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${s.e==='Aplazado'?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
     nl.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})})}
   el.querySelectorAll('.nb[data-k]').forEach(b=>b.onclick=()=>{nk=nk===b.dataset.k?null:b.dataset.k;novRender()});
+  {const bs=[...el.querySelectorAll('.nb[data-k]')],N=bs.length,r1=N>4?Math.ceil(N/2):N,r2=N-r1;bs.forEach((x,i)=>x.style.gridColumn='span '+(i<r1?12/r1:(r2?12/r2:12)))}
   el.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})});
 }
 let selK=null;
