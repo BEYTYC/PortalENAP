@@ -1279,7 +1279,7 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>!OUT(s));
-  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresados'],...(isE(key)&&l.some(s=>/^Refuerzo/.test(s.ev||''))?[['__ref','En programa de refuerzo']]:[]),...(isE(key)?['Retirado'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Retirado'?'Retirados':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresados'],...(isE(key)&&l.some(s=>/^Refuerzo/.test(s.ev||''))?[['__ref','En programa de refuerzo']]:[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(!OUT(s)&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):k==='__fin'?!!s.fin:k==='__ref'?/^Refuerzo/.test(s.ev||''):(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
