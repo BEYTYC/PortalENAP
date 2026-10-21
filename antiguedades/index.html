@@ -895,6 +895,8 @@ svg .cnt{font-weight:700}
 
 .crn{font-style:italic;font-weight:400;opacity:.7}
 :root:fullscreen .credfs b,:root.fsx .credfs b{font-weight:400}
+.cred2,.credfs,.cred{font-size:11px!important;line-height:1.15!important;letter-spacing:.01em!important}
+.cred2 em,.credfs em,.cred em{display:block;margin-top:0}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -912,7 +914,7 @@ svg .cnt{font-weight:700}
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD 02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
+<div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
@@ -1413,7 +1415,7 @@ function stuRender(){
   const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
-        m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:''<i class="pa2 eq" title="Mismo puesto">≈</i>'}}
+        m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:'<i class="pa2 eq" title="Mismo puesto">≈</i>'}}
     return `<td class="pcl"><span class="pg"><b class="p1">${e[2]}</b><b class="ps">/</b><b class="p2">${e[3]}</b></span>${m}</td>`};
   const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
@@ -1465,7 +1467,7 @@ function stuRender(){
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
   <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
-  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Oficina de Estadística<br><em class="crn">PD 02 Beyty Camargo Martínez · Jefe de Estadística</em></div></div>${evo}`;
+  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
 function side(){
