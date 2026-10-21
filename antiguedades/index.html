@@ -744,10 +744,17 @@ svg .cnt{font-weight:700}
 .charts>.card.ch:not(.an) h3{margin-bottom:10px}
 #charts>.card.ch:not(.an){display:block!important;height:auto!important;align-self:stretch!important}
 #charts>.card.ch:not(.an) svg{height:auto!important;flex:none!important}
+/* Notas cargadas: selector de periodo */
+.chips .cpe select{font:inherit;font-size:13px;font-weight:700;color:var(--navy,#1B4688);border:1px solid var(--line,#DCE8F7);border-radius:8px;background:rgba(255,255,255,.9);padding:3px 6px;margin-left:2px;cursor:pointer}
+.chips .cpe select:disabled{appearance:none;-webkit-appearance:none;border-color:transparent;background:transparent;padding:3px 0;cursor:default;opacity:1}
+/* alturas fijas entre semestres */
+@media(min-width:901px){.duo>.card{height:292px!important;min-height:292px!important;overflow:hidden}}
+#charts>.card.ch:not(.an){display:flex!important;flex-direction:column!important;justify-content:center!important}
+#nov .nt{align-content:center!important;gap:10px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
-<div class="mtool"><select id="pv2" aria-label="Periodo" hidden style="font:inherit;font-size:13px;font-weight:700;padding:6px 10px;border-radius:10px;border:1px solid var(--line,#DCE8F7);background:rgba(255,255,255,.9);color:var(--navy,#1B4688)"></select><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
+<div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
 <div id="pub"><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="chips msub" id="msub" hidden></div>
 <div class="card stu" id="stu" hidden></div>
@@ -819,7 +826,8 @@ const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[])
 const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
   const c=document.getElementById('chips');
-  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <b>2026-1</b></span>';
+  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
+  try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
     ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{msem=b.dataset.s===''?null:+b.dataset.s;sel=null;q='';nk=null;document.getElementById('q').value='';render()})}}
@@ -1514,11 +1522,13 @@ function admin(){
   window.__recargarAdmin=cargar;cargar();
 }
 function perElegido(){try{return sessionStorage.getItem('antPer')||localStorage.getItem('antPer')||undefined}catch(e){return undefined}}
-function selPer(l,act){var a=document.getElementById('pv'),b=document.getElementById('pv2');if(!a||!b)return;
-  var h=(l||[]).map(function(x){return '<option value="'+x+'"'+(x===act?' selected':'')+'>'+x+'</option>'}).join('');a.innerHTML=b.innerHTML=h;
-  document.getElementById('pvw').hidden=!(window.__adm&&l.length>0);b.hidden=l.length<2;
+function selPer(l,act){var a=document.getElementById('pv'),b=document.getElementById('pv2');
+  l=(l&&l.length)?l:(act?[act]:[]);
+  var h=l.map(function(x){return '<option value="'+x+'"'+(x===act?' selected':'')+'>'+x+'</option>'}).join('');
   function ch(e){try{sessionStorage.setItem('antPer',e.target.value);localStorage.setItem('antPer',e.target.value)}catch(x){}location.reload()}
-  a.onchange=b.onchange=ch}
+  if(a){a.innerHTML=h;a.onchange=ch;document.getElementById('pvw').hidden=!(window.__adm&&l.length>0)}
+  if(b){b.innerHTML=h;b.onchange=ch;b.disabled=l.length<2}}
+window.selPer=selPer;
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 function iniciar(){
@@ -1533,7 +1543,7 @@ function iniciar(){
         va.onclick=function(){var a=ad.hidden;ad.hidden=!a;nd.hidden=a;va.setAttribute('aria-pressed',String(a))};
         document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
-      window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);selPer(r.periodos||[],window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
+      window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);window.__PERS=r.periodos||[];selPer(window.__PERS,window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
       document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
