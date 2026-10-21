@@ -810,10 +810,10 @@ svg .cnt{font-weight:700}
 .pbp{font-size:11px;opacity:.65;text-align:right}.pbn{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pbt{height:12px;background:rgba(31,78,150,.07);border-radius:6px;overflow:hidden}.pbf{display:flex;height:100%;width:100%}.pbf i{display:block;height:100%}
 .pbc{font-size:13px;text-align:right}
-.pbr[data-pt]:hover::after{content:attr(data-pt);white-space:pre-line;position:absolute;left:40px;top:100%;z-index:30;max-width:min(460px,90vw);background:#12305a;color:#fff;font-size:12px;line-height:1.35;padding:8px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25);pointer-events:none}
 .pdt{margin-top:14px;border-top:1px solid rgba(31,78,150,.2);padding-top:12px}
 .pgh{font-size:12px;opacity:.65;margin:10px 0 0}
 .pone{grid-template-columns:1fr!important}
+#tip{white-space:pre-line;max-width:min(460px,90vw)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -852,6 +852,7 @@ svg .cnt{font-weight:700}
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gsp{display:none;width:34px;height:34px;margin:0 auto 14px;border:3px solid var(--line);border-top-color:var(--bar-fill);border-radius:50%;animation:gspin .9s linear infinite}#gate.wait .gsp{display:block}#gate.wait .gbox b::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:gdots 1.4s steps(4,end) infinite}@keyframes gspin{to{transform:rotate(360deg)}}@keyframes gdots{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}@media(prefers-reduced-motion:reduce){.gsp,#gate.wait .gbox b::after{animation:none}}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
+[...(D.esc||[]),...Object.values(D.sheets||{}).flat()].forEach(s=>{if(s.e==='Salió')s.e='Retirado'});
 const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
 /* Mercantes que figuran también en Naval/Infante (cambiaron de programa): solo cuentan como mercantes; se renumera el puesto del resto */
 (function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
@@ -1149,14 +1150,14 @@ function render(){
 (function(){if(window.__ttOn)return;window.__ttOn=1;
   const t=document.createElement('div');t.id='tip';t.setAttribute('role','tooltip');document.documentElement.appendChild(t);
   let on=null;
-  const pos=e=>{const w=t.offsetWidth,h=t.offsetHeight;let x=e.clientX+14,y=e.clientY+16;if(x+w>innerWidth-8)x=e.clientX-w-12;if(y+h>innerHeight-8)y=e.clientY-h-12;t.style.transform=`translate(${Math.max(6,x)}px,${Math.max(6,y)}px)`};
+  const pos=e=>{const z=parseFloat(getComputedStyle(document.body).zoom)||1;if(t.__z!==z){t.style.zoom=z;t.__z=z}const w=t.getBoundingClientRect().width,h=t.getBoundingClientRect().height;let x=e.clientX+14*z,y=e.clientY+16*z;if(x+w>innerWidth-8)x=e.clientX-w-12*z;if(y+h>innerHeight-8)y=e.clientY-h-12*z;x=Math.max(6,x);y=Math.max(6,y);t.style.transform=`translate(${x/z}px,${y/z}px)`};
   const find=el=>{while(el&&el!==document.documentElement){if(el.nodeType===1){
       if(el.hasAttribute&&el.hasAttribute('title')&&el.getAttribute('title').trim()){el.setAttribute('data-tip',el.getAttribute('title'));el.removeAttribute('title')}
       const c=el.querySelector&&el.querySelector(':scope>title');if(c&&c.textContent.trim()){el.setAttribute('data-tip',c.textContent);c.remove()}
       if(el.getAttribute&&el.getAttribute('data-tip'))return el}el=el.parentNode}return null};
   document.addEventListener('mouseover',e=>{const el=find(e.target);if(el!==on){on=el;if(el){t.textContent=el.getAttribute('data-tip');t.classList.add('on');pos(e)}else t.classList.remove('on')}},true);
   document.addEventListener('mousemove',e=>{if(on)pos(e)},true);
-  document.addEventListener('mouseleave',()=>{on=null;t.classList.remove('on')},true);
+  document.addEventListener('mouseout',e=>{if(!e.relatedTarget){on=null;t.classList.remove('on')}},true);
   document.addEventListener('scroll',()=>{on=null;t.classList.remove('on')},true);
 })();
 function centerLg(){document.querySelectorAll('svg g.lg').forEach(g=>{try{const b=g.getBBox(),vb=g.ownerSVGElement.viewBox.baseVal,W=vb&&vb.width?vb.width:560;if(b.width)g.setAttribute('transform','translate('+(W/2-(b.x+b.width/2)).toFixed(1)+' 0)')}catch(e){}})}
@@ -1485,7 +1486,7 @@ function premRender(){
   const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
   const catOf=o=>PCAT.map(([cn],k)=>({cn,k,xs:o.x.filter(z=>pcat(z.a.t)===cn)})).filter(c=>c.xs.length);
   const tip=o=>o.x.length+(o.x.length===1?' premio':' premios')+'\n'+catOf(o).map(c=>c.cn+' ('+c.xs.length+'): '+c.xs.map(z=>z.a.t).join('; ')).join('\n');
-  const rowsH=L.map((o,i)=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" data-pt="${tip(o).replace(/"/g,'&quot;')}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn">${corto(o.s.n)}</span><span class="pbt"><span class="pbf">${catOf(o).map(c=>`<i style="width:${c.xs.length/mx*100}%;background:${PCOL[c.k]}"></i>`).join('')}</span></span><b class="pbc">${o.x.length}</b></button>`).join('');
+  const rowsH=L.map((o,i)=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" data-tip="${tip(o).replace(/"/g,'&quot;')}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn">${corto(o.s.n)}</span><span class="pbt"><span class="pbf">${catOf(o).map(c=>`<i style="width:${c.xs.length/mx*100}%;background:${PCOL[c.k]}"></i>`).join('')}</span></span><b class="pbc">${o.x.length}</b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
   const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'<p class="pgh">Pasa el mouse sobre una barra para ver sus premios; haz clic para ver el detalle.</p>';
