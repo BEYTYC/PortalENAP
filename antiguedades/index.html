@@ -751,6 +751,7 @@ svg .cnt{font-weight:700}
 @media(min-width:901px){.duo>.card{height:292px!important;min-height:292px!important;overflow:hidden}}
 #charts>.card.ch:not(.an){display:flex!important;flex-direction:column!important;justify-content:center!important}
 #nov .nt{align-content:center!important;gap:10px!important}
+#nov .nb:disabled{opacity:.55}.chip.off{pointer-events:none}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -826,7 +827,7 @@ const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[])
 const title={ESC:'Escalafonamiento 2026-1'};
 function chips(){
   const c=document.getElementById('chips');
-  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
+  c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento</button><button class="chip off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
@@ -844,7 +845,7 @@ const _mc={};
 function mp(k){if(!(k in _mc)){const v=ls(k).filter(s=>s.f!=null&&s.e!=='Aplazado').map(s=>s.f);_mc[k]=v.length?Math.max(0,Math.min(100,(v.reduce((a,b)=>a+b,0)/v.length-6)/4*100)):-9}return _mc[k]}
 const MEDAL='<svg class="mi" viewBox="0 0 28 34" aria-hidden="true"><path d="M6 0h6l3 11-5 2z" fill="#2F68B5"/><path d="M22 0h-6l-3 11 5 2z" fill="#1B4688"/><circle cx="14" cy="21" r="10.5" fill="#E8B13A" stroke="#B9801C" stroke-width="1"/><circle cx="14" cy="21" r="7.4" fill="none" stroke="#FFF3C4" stroke-opacity=".8" stroke-width="1"/><path d="M14 15.6l1.6 3.4 3.7.5-2.7 2.6.7 3.7-3.3-1.8-3.3 1.8.7-3.7-2.7-2.6 3.7-.5z" fill="#FFF3C4"/></svg>',STAR='<svg class="mi" viewBox="0 0 28 28" aria-hidden="true"><path d="M14 4L1.5 10.5 14 17l12.5-6.5z" fill="#3F7FCB"/><path d="M7 14.2v5.3c0 1.8 3.1 3.5 7 3.5s7-1.7 7-3.5v-5.3L14 18z" fill="#2F68B5"/><path d="M25 11.5v7" stroke="#3F7FCB" stroke-width="1.8" stroke-linecap="round"/><circle cx="25" cy="20" r="1.6" fill="#3F7FCB"/></svg>';
 const MED3=[['#E8B13A','#B9801C'],['#C5CDD8','#8392A6'],['#D79A62','#9A5A24']].map(c=>`<svg class="mi md" viewBox="0 0 28 28" aria-hidden="true"><path d="M8 3h12v7a6 6 0 0 1-12 0z" fill="${c[0]}" stroke="${c[1]}" stroke-width="1.1"/><path d="M8 5H4v2.5C4 10 6 11.5 8.5 11.8M20 5h4v2.5c0 2.5-2 4-4.5 4.3" fill="none" stroke="${c[1]}" stroke-width="1.6" stroke-linecap="round"/><path d="M12.4 15.5h3.2V20h-3.2z" fill="${c[0]}" stroke="${c[1]}" stroke-width="1"/><rect x="8.5" y="20" width="11" height="4" rx="1" fill="${c[0]}" stroke="${c[1]}" stroke-width="1"/><path d="M11 5.5v3.5" stroke="#fff" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/></svg>`);
-function ic(s){return (s.dis?'<span class="ic" title="Alumno distinguido">'+MEDAL+'</span>':'')+(s.exc?'<span class="ic" title="Excelencia académica">'+STAR+'</span>':'')}
+function ic(s){if(cur==='ESC')return '';return (s.dis?'<span class="ic" title="Alumno distinguido">'+MEDAL+'</span>':'')+(s.exc?'<span class="ic" title="Excelencia académica">'+STAR+'</span>':'')}
 function nvb(s,p){return s.e&&s.e!=='Normal'?`<span class="nvb">${s.e}${p?' · 2026-2':''}</span>`:''}
 function row(s,k,i){
   const h=s.h[s.h.length-1]||[];
@@ -1191,12 +1192,12 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>s.e!=='Aplazado');
-  const GR=[...(key==='MER'?[]:[['__pasan',key==='ESC'?'Escalafonan':'Pasan a '+key]]),['Repitente','Repiten'],['Aplazado','Aplazados'],['Reingresado','Reingresado'],['Retardado','Retardados'],['__dis','Alumno distinguido'],['__exc','Excelencia académica']];
-  const mt=(s,k)=>k==='__pasan'?(s.e!=='Aplazado'&&(key==='ESC'||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:(s.e||'').startsWith(k);
+  const GR=[...(key==='MER'?[]:[['__pasan',key==='ESC'?'Escalafonan':'Pasan a '+key]]),['Repitente','Repiten'],['Aplazado','Aplazados'],['Reingresado','Reingresado'],['Retardado','Retardados'],...(key==='ESC'?(D.esc.some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const mt=(s,k)=>k==='__pasan'?(s.e!=='Aplazado'&&(key==='ESC'||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
   const items=nk&&gs.some(x=>x[0]===nk)?pick(nk).slice().sort((x,y)=>(x.p??1e9)-(y.p??1e9)):[];
-  const det=s=>(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
+  const det=s=>nk==='__rk'?(s.rk||[]).map(r=>r[0]+' '+f3(r[1])).join(' · '):(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
   el.innerHTML=`<h3>Novedades · semestre ${key==='ESC'?'4.2 escalafonamiento':lab(key)} · ${l.length} estudiantes</h3><div class="nt">${gs.map(([k,n,c])=>`<button class="nb" data-k="${k}" aria-pressed="${k===nk}" aria-expanded="${k===nk}" ${c?'':'disabled'}><b>${c}${k==='__dis'||k==='__exc'?'<small class="de"> de '+ORD.reduce((n,x)=>n+D.sheets[x].filter(s=>k==='__dis'?s.dis:s.exc).length,0)+'</small>':''}</b><span>${k==='__dis'?MEDAL:k==='__exc'?STAR:''}${n}</span></button>`).join('')}</div>`;
   const nl=document.getElementById('novl');
   if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(key==='ESC'?'4.2 escalafonamiento':lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${s.e==='Aplazado'?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
