@@ -754,6 +754,13 @@ svg .cnt{font-weight:700}
 #nov .nb:disabled{opacity:.55}.chip.off{pointer-events:none}
 .chip.esc.off{margin-left:6px}.chip.esc.off+.chip{border-left:0;margin-left:0;padding-left:12px}
 .chip.esc.off{opacity:.65}
+/* premios: 2 columnas, nombre + criterio */
+.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(max-width:820px){.pgrid{grid-template-columns:minmax(0,1fr)!important}}
+.pst li b{font-weight:700}.pst li span{grid-column:1/-1;color:var(--mute,#5B6F8F);font-size:11px}
+.pst .pcat{margin:10px 0 4px;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--navy,#1B4688);font-weight:800}
+.pst .pcat:first-of-type{margin-top:0}
+.pgrid{align-items:start}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -765,11 +772,11 @@ svg .cnt{font-weight:700}
 <div class="duo"><div class="card podc" id="pod"></div>
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
+<div class="card prem" id="prem" hidden></div>
 <div class="charts" id="charts"></div>
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<div class="card prem" id="prem" hidden></div>
 <div class="foot"><span class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
@@ -1036,7 +1043,7 @@ function totRender(){
   const sc=(f,nm,short)=>{const pts=A.filter(a=>a[0].ac!=null&&a[0][f]!=null).map(([s])=>({x:s.ac,y:s[f],t:s.exc?2:s.dis?1:0,n:s.n+' · acad '+f3(s.ac)+' · '+short+' '+f3(s[f])}));
     return `<div class="card ch an"><h3>Académica frente a ${nm}</h3>${svgScatter(pts,{min:6,max:10,xl:'Promedio académico',yl:short})}<p class="cn">Cada punto es un estudiante (${pts.length}) · los mercantes no tienen ${nm}.</p></div>`};
   const c6=sc('an','aptitud naval','Aptitud naval'),c7=sc('di','disciplina','Disciplina'),c8=sc('cf','cultura física','C. física');
-  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+quadCard(A.map(a=>a[0]))+c6+c7+c8;
+  document.getElementById('charts').innerHTML=c1+c2+c3+c4+c5+c6+c7+c8;
   requestAnimationFrame(animCharts);
   document.getElementById('mr').innerHTML='';
   document.getElementById('tb').innerHTML='';document.getElementById('apl').innerHTML='';
@@ -1180,7 +1187,7 @@ function chartsRender(){
     if(sel&&sel[f]!=null)m+=`<circle cx="${X3(Math.max(6,sel[f]))}" cy="${y}" r="6" fill="var(--hi)" stroke="var(--card)" stroke-width="2"/>`});
   m+='</svg>';
   const c3h=`<div class="card ch"><h3>Componentes · ${sel?'estudiante frente al semestre':'promedio del semestre'}</h3>${m}</div>`;
-  el.innerHTML=c1+c2h+(sel?c3h:'')+(sel?'':quadCard(list));
+  el.innerHTML=c2h+(sel?c3h:'');
   requestAnimationFrame(animCharts);
 }
 const c3=v=>v==null?'—':v.toFixed(3).replace('.',',');
@@ -1339,6 +1346,8 @@ function sumyRender(){
   const nm=a=>[...new Set(a.map(s=>s.pk))].join(' / '),tl=(n,tx,c)=>`<div class="sm ${c}"><b>${n}</b><span>${tx}</span></div>`;
   el.hidden=false;
   el.innerHTML=`<h3>Cómo quedó el curso ${lab(cur)} · ${L.length} estudiantes</h3><div class="smr">`+tl(P.length,'pasan a '+cur,'ok')+(R.length?tl(R.length,'repiten '+nm(R),'rp'):'')+(A.length?tl(A.length,A.length===1?'aplazado':'aplazados','ap'):'')+'</div>'}
+const PCAT=[['Medallas y condecoraciones'],['Espadas'],['Premios extranjeros'],['Premios nacionales'],['Placas']];
+const pcat=t=>/^placa/i.test(t)?'Placas':/espad/i.test(t)?'Espadas':/medalla|estrella|m[eé]rito|orden|honor/i.test(t)?'Medallas y condecoraciones':/estados unidos|armada espa|francia/i.test(t)?'Premios extranjeros':'Premios nacionales';
 function premRender(){
   const el=document.getElementById('prem');if(!el)return;
   const P=D.premios;
@@ -1347,11 +1356,12 @@ function premRender(){
   P.a.forEach(a=>a.w.forEach(([c,m])=>{if(!M.has(c))M.set(c,[]);M.get(c).push({a,m})}));
   const L=[...M.entries()].map(([c,x])=>({s:D.esc.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>b.x.length-a.x.length||(a.s.p??1e9)-(b.s.p??1e9));
   el.hidden=false;
-  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div><ul>${o.x.map(z=>`<li><b>${z.a.t}</b><span>${z.a.o}</span><em>${z.m}</em></li>`).join('')}</ul></div>`).join('')+'</div>'+
+  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn}</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>'+
   (P.pend&&P.pend.length?'<div class="ppend"><b>Por designar</b> (sin datos para calcular): '+P.pend.map(p=>p[0]+(p[1]?' ('+p[1]+')':'')).join(' · ')+'</div>':'');
 }
 function mrRender(){
   const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
+  el.innerHTML='';return;
   const k=sel?selK:cur,all=ls(k),list=all.filter(s=>s.f!=null&&s.e!=='Aplazado');
   if(!list.length){el.innerHTML='';return}
   const nm=s=>`<span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}`;
