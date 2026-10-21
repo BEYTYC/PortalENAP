@@ -789,7 +789,7 @@ svg .cnt{font-weight:700}
 #kpi .k:first-child{display:flex!important;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 #kpi .k:first-child b{font-size:40px!important;line-height:1.1;margin-top:4px}
 
-#edtb{position:fixed;left:16px;bottom:16px;z-index:70;border:1px solid var(--navy,#12305a);background:#fff;color:var(--navy,#12305a);border-radius:999px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+#edtb{margin:4px 0 6px;border:1px solid var(--navy,#12305a);background:#fff;color:var(--navy,#12305a);border-radius:999px;padding:9px 16px;font:600 13px/1 inherit;font-family:inherit;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,.15)}
 #edtb.on{background:var(--navy,#12305a);color:#fff}
 .edt{margin-top:14px;border:1px dashed var(--navy,#12305a);border-radius:10px;padding:12px;background:rgba(255,255,255,.7)}
 .edt h4{margin:0 0 8px;font-size:13px}
@@ -801,7 +801,7 @@ svg .cnt{font-weight:700}
 .edb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .edb button{border:0;border-radius:6px;padding:8px 12px;background:var(--navy,#12305a);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .edn{font-size:11px;opacity:.7;margin:8px 0 0}
-.podio .trf{display:block;margin:0 auto -4px;position:relative;top:10px;}
+.podio .trf{display:block;margin:0 auto -4px;position:relative;top:7px;}
 
 .pleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.pleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
 .pbars{display:flex;flex-direction:column;gap:3px}
@@ -896,7 +896,7 @@ const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
 
 const TRC=[['#FFD23F','#F2A900','#FFF1A8'],['#D5DDE6','#98A5B5','#FFFFFF'],['#F0A06A','#C96F2E','#FFD9B8']];
-const trofeo=x=>{const[m,d,l]=TRC[x],K='#1B2A49',n=x+1,hd='M10 11H4c-1 8 2 14 9 15M38 11h6c1 8-2 14-9 15';return `<svg class="trf" viewBox="0 0 48 54" width="34" height="38" role="img" aria-label="${['Oro','Plata','Bronce'][x]}"><path d="${hd}" fill="none" stroke="${K}" stroke-width="6.5" stroke-linecap="round"/><path d="${hd}" fill="none" stroke="${d}" stroke-width="3" stroke-linecap="round"/><rect x="19.5" y="34" width="9" height="9" fill="${d}" stroke="${K}" stroke-width="1.8"/><rect x="11" y="43" width="26" height="8" rx="2.5" fill="${m}" stroke="${K}" stroke-width="1.8"/><path d="M9 5h30v15c0 10-7 16-15 16S9 30 9 20z" fill="${m}" stroke="${K}" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 5h30v5H9z" fill="${l}" stroke="${K}" stroke-width="1.8"/><path d="M13 15v6c0 4 2 8 5 10" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="2.4" stroke-linecap="round"/><text x="24" y="28" text-anchor="middle" font-family="Fredoka,Baloo 2,Arial Rounded MT Bold,Arial Black,sans-serif" font-weight="800" style="font-size:19px" fill="#fff" stroke="${K}" stroke-width="2.2" paint-order="stroke" stroke-linejoin="round">${n}</text></svg>`};
+const trofeo=x=>{const[m,d,l]=TRC[x],K='#7E8FAA',n=x+1,hd='M10 11H4c-1 8 2 14 9 15M38 11h6c1 8-2 14-9 15';return `<svg class="trf" viewBox="0 0 48 54" width="25" height="28" role="img" aria-label="${['Oro','Plata','Bronce'][x]}"><path d="${hd}" fill="none" stroke="${K}" stroke-width="4.8" stroke-linecap="round"/><path d="${hd}" fill="none" stroke="${d}" stroke-width="2.8" stroke-linecap="round"/><rect x="19.5" y="34" width="9" height="9" fill="${d}" stroke="${K}" stroke-width="1"/><rect x="11" y="43" width="26" height="8" rx="2.5" fill="${m}" stroke="${K}" stroke-width="1"/><path d="M9 5h30v15c0 10-7 16-15 16S9 30 9 20z" fill="${m}" stroke="${K}" stroke-width="1" stroke-linejoin="round"/><path d="M9 5h30v5H9z" fill="${l}" stroke="${K}" stroke-width="1"/><path d="M13 15v6c0 4 2 8 5 10" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="2.4" stroke-linecap="round"/><text x="24" y="28" text-anchor="middle" font-family="Fredoka,Baloo 2,Arial Rounded MT Bold,Arial Black,sans-serif" font-weight="800" style="font-size:17px" fill="#fff" stroke="${K}" stroke-width="1.5" paint-order="stroke" stroke-linejoin="round">${n}</text></svg>`};
 const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado';
 let EDIT=false;
 let cur=null,sel=null,q='';
@@ -1279,7 +1279,7 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>!OUT(s));
-  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresados'],...(isE(key)&&l.some(s=>/^Refuerzo/.test(s.ev||''))?[['__ref','En programa de refuerzo']]:[]),...(isE(key)?['Retirado'].filter(e=>l.some(s=>s.e===e)).map(e=>[e,e==='Retirado'?'Retirados':e]):[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresados'],...(isE(key)&&l.some(s=>/^Refuerzo/.test(s.ev||''))?[['__ref','En programa de refuerzo']]:[]),...(isE(key)?(l.some(s=>s.fin)?[['__fin','Novedad financiera']]:[]):[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(!OUT(s)&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):k==='__fin'?!!s.fin:k==='__ref'?/^Refuerzo/.test(s.ev||''):(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
@@ -1411,7 +1411,7 @@ function side(){
   <div class="kv"><div><span>Académico</span>${f3(s.ac)}</div><div><span>Apt. naval</span>${f3(s.an)}</div><div><span>Disciplina</span>${f3(s.di)}</div><div><span>C. física</span>${f3(s.cf)}</div></div>
   ${chart(s.h)}<ul class="tl">${tl}</ul>`;
   const h2=el.querySelector('h2');let fs=17;while(h2.scrollWidth>h2.clientWidth&&fs>10){fs-=.5;h2.style.fontSize=fs+'px'}
-  if(EDIT&&window.__adm&&D.solo)editor(el,s);
+  if(window.__adm&&D.solo){const hb=document.createElement('button');hb.type='button';hb.id='edtb';hb.className=EDIT?'on':'';hb.textContent=EDIT?'✓ Salir de edición':'✎ Editar';hb.onclick=()=>{EDIT=!EDIT;render()};h2.insertAdjacentElement('afterend',hb);if(EDIT)editor(el,s)}
 }
 const ESTS=['Normal','Retardado','Aplazado','Reingresado','Comisión','Retirado'];
 const num=v=>{v=String(v).trim().replace(',','.');if(v==='')return null;const x=parseFloat(v);return isNaN(x)?undefined:x};
@@ -1458,7 +1458,7 @@ function editor(el,s){
     m('Guardando…');
     window.__api('guardar-datos',{datos:D,periodo:PER}).then(()=>{if(c)render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x)x.textContent='Guardado en el servidor.'},30)}).catch(e=>m(e.message))};
 }
-(function(){if(!window.__adm||!D.solo)return;const b=document.createElement('button');b.type='button';b.id='edtb';b.textContent='✎ Editar';b.onclick=()=>{EDIT=!EDIT;b.classList.toggle('on',EDIT);b.textContent=EDIT?'✓ Salir de edición':'✎ Editar';document.body.classList.toggle('editando',EDIT);render()};document.body.appendChild(b)})();
+
 document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim();sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
 {const th=document.getElementById('thc');if(th)th.textContent='Curso '+PER}
