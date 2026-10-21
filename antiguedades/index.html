@@ -870,6 +870,28 @@ svg .cnt{font-weight:700}
 :root:fullscreen .pbc small,:root.fsx .pbc small{display:flex!important}
 :root:fullscreen .pbn em,:root.fsx .pbn em{display:block!important}
 :root:fullscreen .pbc small,:root.fsx .pbc small{display:none!important}
+:root:fullscreen #fs,:root.fsx #fs{display:none!important}
+:root:fullscreen body,:root.fsx body{padding-bottom:6px!important}
+:root:fullscreen #nov,:root.fsx #nov,:root:fullscreen .card.nov,:root.fsx .card.nov{border:0!important;background:transparent!important;box-shadow:none!important;padding-top:0!important}
+:root:fullscreen #nov h3,:root.fsx #nov h3{margin:0 0 10px!important;padding-left:0!important}
+:root:fullscreen #nov .nt,:root.fsx #nov .nt{gap:12px!important}
+:root:fullscreen #nov .nb,:root.fsx #nov .nb{min-height:118px!important;padding:16px 18px!important;border:1px solid var(--line,#D6E2F0)!important;background:rgba(255,255,255,.6)!important}
+:root:fullscreen #kpi .k,:root.fsx #kpi .k{min-height:116px!important;padding:16px 18px!important;border:1px solid var(--line,#D6E2F0)!important;background:rgba(255,255,255,.6)!important}
+:root:fullscreen .pbn,:root.fsx .pbn{flex-direction:row!important;align-items:baseline!important;gap:14px!important;white-space:nowrap!important}
+:root:fullscreen .pbn em,:root.fsx .pbn em{font-size:12px!important}
+:root:fullscreen .pbr,:root.fsx .pbr{grid-template-columns:34px minmax(420px,520px) 1fr 76px!important}
+.pst li b{font-size:19px!important}
+#tip{font-size:15px!important}
+:root:fullscreen .wrap,:root.fsx .wrap{display:flex!important;flex-direction:column;min-height:calc(100vh - 14px)}
+:root:fullscreen #pub,:root.fsx #pub{flex:1;display:flex;flex-direction:column}
+:root:fullscreen #prem:not([hidden]),:root.fsx #prem:not([hidden]){flex:1;display:flex;flex-direction:column}
+:root:fullscreen #prem .pbars,:root.fsx #prem .pbars{flex:1;justify-content:space-evenly}
+:root:fullscreen .duo,:root.fsx .duo{align-items:stretch}
+:root:fullscreen #nov,:root.fsx #nov{display:flex;flex-direction:column}
+:root:fullscreen #nov .nt,:root.fsx #nov .nt{flex:1;grid-template-rows:1fr 1fr!important}
+.pa2.eq{color:var(--mute,#5B6F8F)!important;font-style:normal;font-weight:700}
+:root:fullscreen #kpi .k,:root:fullscreen #nov .nb,:root.fsx #kpi .k,:root.fsx #nov .nb{box-shadow:none!important}
+:root:fullscreen #kpi .k,:root:fullscreen #nov .nb,:root:fullscreen .podc,:root:fullscreen #prem,:root.fsx #kpi .k,:root.fsx #nov .nb,:root.fsx .podc,:root.fsx #prem{box-shadow:0 1px 4px rgba(20,48,79,.045)!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1388,11 +1410,11 @@ function stuRender(){
   const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
-        m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:''}}
+        m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:''<i class="pa2 eq" title="Mismo puesto">≈</i>'}}
     return `<td class="pcl"><span class="pg"><b class="p1">${e[2]}</b><b class="ps">/</b><b class="p2">${e[3]}</b></span>${m}</td>`};
   const pvOk=s.pv&&typeof s.pv[1]==='number'&&!String(s.pv[0]).endsWith('R');
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
-    if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:''}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
+    if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:'<i class="pa2 eq" title="Mismo puesto">≈</i>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
   const sf=(s.cu||'').replace(/^\d\.\d/,'');const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania')return `<tr><td>${b[0]+sf}</td>${np?'':`<td>${b[7]||'—'}</td>`}<td colspan="4" class="enc">Comisión Alemania</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · Reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':b[0]+sf)}</td>${np?'':`<td>${HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`}${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4])}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
   let pfc='';
@@ -1434,7 +1456,7 @@ function stuRender(){
     const cnt={up:0,dn:0,eq:0};S.forEach(([nm,k])=>{const vs=s.h.map(h=>h[k]).filter(x=>x!=null),b=slope(vs),kd=kind(b);if(cnt[kd]!=null)cnt[kd]++});
     const head=n<2?'Solo hay un semestre registrado: aún no se puede medir una tendencia.':ak==='dn'?'El estudiante viene a la baja':ak==='up'?'El estudiante viene mejorando':'El estudiante se mantiene estable';
     const sub=n<2?'':`Promedio ponderado por semestre (50 % académica, 20 % apt. naval, 20 % disciplina, 10 % C. física): ${fm(av[0])} → ${fm(av[av.length-1])} (${sg(ab)} por semestre). Componentes: ${cnt.up} mejoran, ${cnt.eq} estables, ${cnt.dn} empeoran.`;
-    evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="evh ${ak}"><span class="evb">${AR[ak]}</span><div><b>${head}</b><small>${sub}</small></div></div><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los semestres (±0,05 por semestre se considera estable). La línea discontinua roja marca la nota mínima de 6.</div></div>`;
+    evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los semestres (±0,05 por semestre se considera estable). La línea discontinua roja marca la nota mínima de 6.</div></div>`;
   }
   const where=isE(selK)?(selK==='ESC'?'Escalafonamiento 4.2':eLab(selK)):'Semestre '+lab(selK);
   el.hidden=false;
@@ -1460,7 +1482,7 @@ function side(){
   if(window.__adm&&D.solo){const hb=document.createElement('button');hb.type='button';hb.id='edtb';hb.className=EDIT?'on':'';hb.textContent=EDIT?'✓ Salir de edición':'✎ Editar';hb.onclick=()=>{EDIT=!EDIT;render()};h2.insertAdjacentElement('afterend',hb);if(EDIT)editor(el,s)}
 }
 
-function fitFS(){
+function fitFS(){document.body.style.zoom='';window.__fz=1;return;
   const root=document.documentElement,b=document.body,fs=!!document.fullscreenElement||root.classList.contains('fsx');
   if(!fs){b.style.zoom='';return}
   const H=innerHeight-4,W=innerWidth;
