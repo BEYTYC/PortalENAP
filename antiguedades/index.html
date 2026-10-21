@@ -1381,7 +1381,7 @@ function side(){
   let tl='';
   if(s.pv){const lab=s.pv[0]==='1.1R'?'1.1 (Rep)':(LBM[s.pv[0]]||s.pv[0]);tl+=`<li><span>2025-2</span><span>${lab} · puesto ${s.pv[1]??'—'}${s.pv[2]&&s.pv[2]!=='Normal'?' · '+s.pv[2]:''}</span></li>`}
   tl+=`<li><span>${PER}</span><span>Notas ${h[0]||''} · acad ${f3(h[1])}</span></li>`;
-  tl+=`<li><span>${isE(selK)?'Cert.':'2026-2'}</span><span>${where} · ${OUT(s)?'Aplazado, fuera del orden':'puesto '+s.p}${s.e&&s.e!=='Normal'&&!OUT(s)?' · '+s.e:''}</span></li>`;
+  tl+=`<li><span>${isE(selK)?'Cert.':'2026-2'}</span><span>${where} · ${OUT(s)?(s.e||'Aplazado')+', fuera del orden':'puesto '+s.p}${s.e&&s.e!=='Normal'&&!OUT(s)?' · '+s.e:''}</span></li>`;
   el.innerHTML=`<h2>${s.g} ${s.n}</h2><div class="meta">Cód. ${s.c} · C.C. ${s.ce??"—"} · ${s.ct?"Contingente "+s.ct+" · ":""}${s.cu||''} ${s.sp||''}${s.ct?' · '+s.ct:''}</div>
   <div class="big"><div><b>${s.p??'—'}</b><span>Puesto</span></div><div><b>${f3(s.f)}</b><span>Promedio final</span></div></div>
   <div class="kv"><div><span>Académico</span>${f3(s.ac)}</div><div><span>Apt. naval</span>${f3(s.an)}</div><div><span>Disciplina</span>${f3(s.di)}</div><div><span>C. física</span>${f3(s.cf)}</div></div>
