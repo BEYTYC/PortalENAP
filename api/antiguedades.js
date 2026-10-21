@@ -102,6 +102,7 @@ async function escribirBinario(nombre, buffer) {
 
 /* --------------------------------- Reglas --------------------------------- */
 
+const REGEX_PERIODO = /^\d{4}-[12]$/;
 const ahora = () => new Date().toISOString();
 const esCorreoValido = (c) => /^[^\s@]+@enap\.edu\.co$/i.test(c);
 
@@ -167,8 +168,21 @@ module.exports = async function handler(req, res) {
     if (!rol) throw error('No tiene permiso para ver las antigüedades.', 403);
 
     if (accion === 'datos') {
-      const d = await leerJson('datos.json');
-      res.status(200).json(d || { meta: null, datos: null });
+      // Cada periodo vive en su archivo (datos-AAAA-N.json); periodos.json los lista.
+      const idx = (await leerJson('periodos.json')) || { lista: [] };
+      let lista = idx.lista.slice();
+      let d = null;
+      const pedido = typeof body.periodo === 'string' && REGEX_PERIODO.test(body.periodo) ? body.periodo : null;
+      if (lista.length) {
+        const per = pedido && lista.includes(pedido) ? pedido : lista.slice().sort().pop();
+        d = await leerJson(`datos-${per}.json`);
+      }
+      if (!d) {
+        d = await leerJson('datos.json'); // datos anteriores a la carga por periodo
+        if (d && d.meta && d.meta.periodo && !lista.includes(d.meta.periodo)) lista.push(d.meta.periodo);
+      }
+      lista.sort();
+      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista } : { meta: null, datos: null, periodos: lista });
       return;
     }
 
@@ -192,9 +206,21 @@ module.exports = async function handler(req, res) {
         throw error('El archivo no tiene el formato esperado (faltan "sheets" y "order").', 400);
       }
       if (JSON.stringify(datos).length > MAX_BYTES_DATOS) throw error('El archivo es demasiado grande.', 413);
-      const meta = { actualizado: ahora(), por: yo.correo, periodo: String(body.periodo || '').slice(0, 40) };
-      await escribirJson('datos.json', { meta, datos });
-      res.status(200).json({ ok: true, meta });
+      const periodo = String(body.periodo || '').trim();
+      if (!REGEX_PERIODO.test(periodo)) throw error('Indica el periodo con el formato 2026-2.', 400);
+      const meta = { actualizado: ahora(), por: yo.correo, periodo };
+      await escribirJson(`datos-${periodo}.json`, { meta, datos });
+      const idx = (await leerJson('periodos.json')) || { lista: [] };
+      if (!idx.lista.length) {
+        const previo = await leerJson('datos.json'); // conserva los datos que ya estaban cargados
+        const pp = previo && previo.meta && previo.meta.periodo;
+        if (pp && REGEX_PERIODO.test(pp) && pp !== periodo) { await escribirJson(`datos-${pp}.json`, previo); idx.lista.push(pp); }
+      }
+      if (!idx.lista.includes(periodo)) idx.lista.push(periodo);
+      idx.lista.sort();
+      await escribirJson('periodos.json', idx);
+      await escribirJson('datos.json', { meta, datos }); // el último cargado queda como respaldo
+      res.status(200).json({ ok: true, meta, periodos: idx.lista });
       return;
     }
 
