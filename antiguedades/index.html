@@ -1203,7 +1203,7 @@ function novRender(){
   if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(key==='ESC'?'4.2 escalafonamiento':lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${s.e==='Aplazado'?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
     nl.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})})}
   el.querySelectorAll('.nb[data-k]').forEach(b=>b.onclick=()=>{nk=nk===b.dataset.k?null:b.dataset.k;novRender()});
-  {const bs=[...el.querySelectorAll('.nb[data-k]')],N=bs.length,r1=N>4?Math.ceil(N/2):N,r2=N-r1;bs.forEach((x,i)=>x.style.gridColumn='span '+(i<r1?12/r1:(r2?12/r2:12)))}
+  {const nt=el.querySelector('.nt'),N=el.querySelectorAll('.nb[data-k]').length;if(nt&&N===6&&!matchMedia('(max-width:700px)').matches)nt.style.setProperty('grid-template-columns','repeat(3,minmax(0,1fr))','important')}
   el.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})});
 }
 let selK=null;
