@@ -984,6 +984,7 @@ svg .cnt{font-weight:700}
 .pst li span,.pst li em{font-size:12.5px!important}
 .pst .pn{font-size:16px!important}.pst .pc{font-size:12px!important}
 .pst .pcat{font-size:11.5px!important}.pst li{font-size:14px!important}
+#pod.pr .pd.p1 .pb{height:200px!important}#pod.pr .pd.p2 .pb{height:184px!important}#pod.pr .pd.p3 .pb{height:168px!important}#pod.pr .pd.p4 .pb{height:152px!important}#pod.pr .pd.p5 .pb{height:138px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1311,7 +1312,7 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Fuera del orden · aplazados, en comisión y retirados</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();fitK();
+  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();fitK();{const _p=document.getElementById('pod');if(_p)_p.classList.toggle('pr',cur==='PR')}
 }
 
 
