@@ -763,6 +763,12 @@ svg .cnt{font-weight:700}
 .pgrid{align-items:start}
 .pcnt{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:-4px 0 12px;font-size:13px;color:var(--mute,#5B6F8F)}
 .pcnt>b{color:var(--navy,#1B4688);font-size:15px}.pcnt span b{color:var(--navy,#1B4688);font-size:15px}
+/* salvedades */
+.salv{padding:16px 18px;margin-top:16px}.salv h3{margin:0 0 6px}.salv .sv0{margin:0 0 12px;font-size:12.5px;color:var(--mute,#5B6F8F)}
+.salv .svg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}@media(max-width:820px){.salv .svg{grid-template-columns:minmax(0,1fr)}}
+.salv .sv{border:1px solid var(--line,#D6E2F0);border-radius:12px;padding:12px 14px;background:rgba(255,255,255,.7);min-width:0}
+.salv .sv h4{margin:0 0 4px;font-size:13px;color:var(--navy,#1B4688)}.salv .sv p{margin:0 0 6px;font-size:12px;color:var(--mute,#5B6F8F)}
+.salv .sv ul{margin:0;padding-left:16px;display:grid;gap:3px;font-size:12px;line-height:1.35}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -775,9 +781,10 @@ svg .cnt{font-weight:700}
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
 <div class="card prem" id="prem" hidden></div>
+<div class="card salv" id="salv" hidden></div>
 <div class="charts" id="charts"></div>
 <div class="ana-grid" id="mr"></div>
-<div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
+<div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
 <div class="foot"><span class="credfs">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</span></div></div>
 </div>
@@ -813,8 +820,8 @@ const D=window.__D;
   if(D.sheets.MER)dl.sheets.MER=D.sheets.MER;
   keys.forEach(k=>{
     const L=G[k],rk=L.filter(s=>s.e!=='Aplazado'&&s.f!=null).sort((a,b)=>b.f-a.f||(a.p??1e9)-(b.p??1e9)||String(a.n).localeCompare(String(b.n))),n=rk.length,ru=new Set(rk),rs=L.filter(s=>!ru.has(s));
-    rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]==='2026-1'){h[2]=s.p;h[3]=n}});
-    rs.forEach(s=>{s.p=null;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]==='2026-1'){h[2]=null;h[3]=n}});
+    rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]===PER){h[2]=s.p;h[3]=n}});
+    rs.forEach(s=>{s.p=null;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]===PER){h[2]=null;h[3]=n}});
     D.sheets[k]=rk.concat(rs)});
   delete D.sheets['1.1'];D.order=keys;D.dl=dl;
   /* un puesto mayor que el total (p. ej. 68/51) no existe: se descarta */
@@ -826,16 +833,17 @@ Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEa
 function motivo(b){const nm=['académica','apt. naval','disciplina','cultura física'],lo=[];for(let i=0;i<4;i++){const v=b[i+1];if(v!=null&&v<6)lo.push(nm[i]+' ('+v.toFixed(3).replace('.',',')+')')}
 return lo.length?'No alcanzó la nota mínima de 6,000 en: '+lo.join(', ')+'.':'Ninguna nota por componente quedó por debajo de 6,000; el motivo (por ejemplo una asignatura perdida) no está en los datos cargados.'}
 function rpx(b,n){return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre ${b[0].replace(/A$/,'')} reprobado.</b> ${motivo(b)}</td></tr>`}
-function perF(s,i){if(i===s.h.length-1)return '2026-1';const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x===1))return a+'-'+x}return perI(s.h.length,i)}
+function perF(s,i){if(i===s.h.length-1)return PER;const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x<=(PER==='2026-2'?2:1)))return a+'-'+x}return perI(s.h.length,i)}
 function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
 const ORD=D.order, ESC='ESC';
+const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
 let cur=null,sel=null,q='';
 const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>LBM[k]||k;
 let msem=null;
 const semOf=s=>{const m=String(s.cu||'').match(/^(\d)\.(\d)/);return m?(+m[1]-1)*2+(+m[2]):null};
 const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[]).filter(s=>semOf(s)===msem):D.sheets[k]||[];
-const title={ESC:'Escalafonamiento 2026-1'};
+const title={ESC:'Escalafonamiento '+PER};
 function chips(){
   const c=document.getElementById('chips');
   c.innerHTML=ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join('')+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${cur==='ESC'}" data-k="ESC">Escalafonamiento</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Notas cargadas <select id="pv2" aria-label="Periodo de las notas cargadas"></select></span>';
@@ -843,7 +851,7 @@ function chips(){
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
     ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{msem=b.dataset.s===''?null:+b.dataset.s;sel=null;q='';nk=null;document.getElementById('q').value='';render()})}}
-  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur)?null:b.dataset.k;msem=null;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
+  c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur&&!D.solo)?null:b.dataset.k;msem=null;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
@@ -1005,7 +1013,7 @@ function totRender(){
   const pc=n=>(n/S.length*100).toFixed(1).replace('.',',')+'%';
   const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
   // periodo de trabajo (2026-1) frente al periodo anterior (2025-2), con las mismas personas
-  const nL='2026-1',nP='2025-2',W5=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null;
+  const nL=PER,nP=PREV,W5=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null;
   const PV=[];S.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PV.push({p,s})});
   const nB=PV.length,IXT={ac:1,an:2,di:3,cf:4};
   const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
@@ -1052,7 +1060,7 @@ function totRender(){
 }
 function render(){
   chips();
-  document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento 2026-1':'Antigüedades '+(window.__PER||'2026-2');
+  document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento '+PER:'Antigüedades '+PER;
   let list,k=cur,rows;
   if(q){
     rows=buscar(q).slice(0,80);
@@ -1078,7 +1086,7 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();countUp();mkSort();centerLg();
+  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();
 }
 
 
@@ -1211,7 +1219,7 @@ function novRender(){
   const det=s=>nk==='__rk'?(s.rk||[]).map(r=>r[0]+' '+f3(r[1])).join(' · '):(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
   el.innerHTML=`<h3>Novedades · semestre ${key==='ESC'?'4.2 escalafonamiento':lab(key)} · ${l.length} estudiantes</h3><div class="nt">${gs.map(([k,n,c])=>`<button class="nb" data-k="${k}" aria-pressed="${k===nk}" aria-expanded="${k===nk}" ${c?'':'disabled'}><b>${c}${k==='__dis'||k==='__exc'?'<small class="de"> de '+ORD.reduce((n,x)=>n+D.sheets[x].filter(s=>k==='__dis'?s.dis:s.exc).length,0)+'</small>':''}</b><span>${k==='__dis'?MEDAL:k==='__exc'?STAR:''}${n}</span></button>`).join('')}</div>`;
   const nl=document.getElementById('novl');
-  if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(key==='ESC'?'4.2 escalafonamiento':lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso 2026-1</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${s.e==='Aplazado'?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
+  if(nl){const nm=gs.find(x=>x[0]===nk);nl.hidden=!items.length;nl.innerHTML=items.length?'<h3>'+(nm?nm[1]:'')+' · semestre '+(key==='ESC'?'4.2 escalafonamiento':lab(key))+' · '+items.length+'</h3>'+(items.length?`<div class="tw"><table class="nl"><thead><tr><th>Puesto</th><th>Estudiante</th><th>Curso ${PER}</th><th>Promedio final</th><th>Detalle</th></tr></thead><tbody>${items.map(s=>`<tr class="r2" data-i="${l.indexOf(s)}"><td>${s.e==='Aplazado'?'—':(s.p??'—')}</td><td><span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}</td><td>${s.cu||''}</td><td>${f3(s.f)}</td><td class="mo">${det(s)}</td></tr>`).join('')}</tbody></table></div>`:''):'';
     nl.querySelectorAll('tr.r2').forEach(r=>r.onclick=()=>{sel=l[+r.dataset.i];selK=key;render2();window.scrollTo({top:0,behavior:'smooth'})})}
   el.querySelectorAll('.nb[data-k]').forEach(b=>b.onclick=()=>{nk=nk===b.dataset.k?null:b.dataset.k;novRender()});
   {const nt=el.querySelector('.nt'),N=el.querySelectorAll('.nb[data-k]').length;const mob=matchMedia('(max-width:700px)').matches;if(nt&&N===6&&!mob)nt.style.setProperty('grid-template-columns','repeat(3,minmax(0,1fr))','important');if(nt&&N===5&&!mob){nt.style.setProperty('grid-template-columns','repeat(6,minmax(0,1fr))','important');nt.querySelectorAll('.nb').forEach((x,i)=>x.style.setProperty('grid-column','span '+(i<3?2:3),'important'))}}
@@ -1262,7 +1270,7 @@ function stuRender(){
   const np=s.e==='Aplazado'||s.e==='Retardado';
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
-  const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'];
+  const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'].concat(PER==='2026-2'?['2026-2']:[]);
   const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
     if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
@@ -1328,7 +1336,7 @@ function side(){
   const where=selK==='ESC'?'Escalafonamiento 4.2':`Semestre ${lab(selK)}`;
   let tl='';
   if(s.pv){const lab=s.pv[0]==='1.1R'?'1.1 (Rep)':(LBM[s.pv[0]]||s.pv[0]);tl+=`<li><span>2025-2</span><span>${lab} · puesto ${s.pv[1]??'—'}${s.pv[2]&&s.pv[2]!=='Normal'?' · '+s.pv[2]:''}</span></li>`}
-  tl+=`<li><span>2026-1</span><span>Notas ${h[0]||''} · acad ${f3(h[1])}</span></li>`;
+  tl+=`<li><span>${PER}</span><span>Notas ${h[0]||''} · acad ${f3(h[1])}</span></li>`;
   tl+=`<li><span>${selK==='ESC'?'Cert.':'2026-2'}</span><span>${where} · ${s.e==='Aplazado'?'Aplazado, fuera del orden':'puesto '+s.p}${s.e&&s.e!=='Normal'&&s.e!=='Aplazado'?' · '+s.e:''}</span></li>`;
   el.innerHTML=`<h2>${s.g} ${s.n}</h2><div class="meta">Cód. ${s.c} · C.C. ${s.ce??"—"} · ${s.ct?"Contingente "+s.ct+" · ":""}${s.cu||''} ${s.sp||''}${s.ct?' · '+s.ct:''}</div>
   <div class="big"><div><b>${s.p??'—'}</b><span>Puesto</span></div><div><b>${f3(s.f)}</b><span>Promedio final</span></div></div>
@@ -1338,7 +1346,8 @@ function side(){
 }
 document.getElementById('q').addEventListener('input',e=>{q=e.target.value.trim();sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
-render();
+{const th=document.getElementById('thc');if(th)th.textContent='Curso '+PER}
+if(D.solo){cur='ESC';window.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>render(),0)}else render();
 /* ===== Movimiento de puestos y riesgo ===== */
 function lastB(s){return s.h[s.h.length-1]||[]}
 function sumyRender(){
@@ -1350,6 +1359,13 @@ function sumyRender(){
   el.innerHTML=`<h3>Cómo quedó el curso ${lab(cur)} · ${L.length} estudiantes</h3><div class="smr">`+tl(P.length,'pasan a '+cur,'ok')+(R.length?tl(R.length,'repiten '+nm(R),'rp'):'')+(A.length?tl(A.length,A.length===1?'aplazado':'aplazados','ap'):'')+'</div>'}
 const PCAT=[['Medallas y condecoraciones'],['Espadas'],['Premios extranjeros'],['Premios nacionales'],['Placas']];
 const pcat=t=>/^placa/i.test(t)?'Placas':/espad/i.test(t)?'Espadas':/medalla|estrella|m[eé]rito|orden|honor/i.test(t)?'Medallas y condecoraciones':/estados unidos|armada espa|francia/i.test(t)?'Premios extranjeros':'Premios nacionales';
+function salvRender(){
+  const el=document.getElementById('salv');if(!el)return;
+  const S=D.salv;
+  if(cur!=='ESC'||q||sel||!S||!S.length){el.hidden=true;el.innerHTML='';return}
+  el.hidden=false;
+  el.innerHTML='<h3>Salvedades</h3><p class="sv0">Casos que no entran en el cálculo normal o que conviene revisar. Quienes aparecen aquí no se dejan por fuera: están en la lista, con su estado, o se explican acá.</p><div class="svg">'+S.map(g=>`<section class="sv"><h4>${g.t}</h4>${g.d?`<p>${g.d}</p>`:''}<ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul></section>`).join('')+'</div>';
+}
 function premRender(){
   const el=document.getElementById('prem');if(!el)return;
   const P=D.premios;
@@ -1369,7 +1385,7 @@ function mrRender(){
   if(!list.length){el.innerHTML='';return}
   const nm=s=>`<span class="gr">${s.g}</span> ${s.n}${ic(s)}${nvb(s)}`;
   // movimiento
-  const PO2=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'];
+  const PO2=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'].concat(PER==='2026-2'?['2026-2']:[]);
   const mv=list.map(s=>{if(s.p==null||k==='ESC'||!(s.hp&&s.hp.length))return null;const cu=s.hp[s.hp.length-1];const pr=s.hp.slice(0,-1).filter(e=>e[4]===''&&typeof e[2]==='number'&&PO2.indexOf(e[0])<PO2.indexOf(cu[0])).pop();if(!pr||String(s.e)==='Repitente'&&false)return null;const nNow=list.filter(x=>typeof x.p==='number').length,rel=(q,n)=>n>1?(q-1)/(n-1):0;return{s,d:Math.round((rel(pr[2],pr[3])-rel(s.p,nNow))*100),pp:pr[2],pn:pr[3],nn:nNow,pl:pr[1]}}).filter(Boolean);
   const ups=mv.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,5),dns=mv.filter(x=>x.d<0).sort((a,b)=>a.d-b.d).slice(0,5);
   const li=(x,c,ar)=>`<li data-k="${k}" data-i="${all.indexOf(x.s)}"><b class="${c}">${ar} ${Math.abs(x.d)}%</b><span class="nx">${nm(x.s)}</span><small>${(()=>{const r=x.pp-x.s.p;return r===0?'igual puesto':(r>0?'sube ':'baja ')+Math.abs(r)+(Math.abs(r)===1?' puesto':' puestos')})()} · puesto ${x.s.p}/${x.nn} · antes ${x.pp}/${x.pn} (${String(x.pl).replace(/A$/,' reprobado')})</small></li>`;
