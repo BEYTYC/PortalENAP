@@ -1498,8 +1498,9 @@ function premRender(){
   const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
   const catOf=o=>PCAT.map(([cn],k)=>({cn,k,xs:o.x.filter(z=>pcat(z.a.t)===cn)})).filter(c=>c.xs.length);
   const tip=o=>o.x.length+(o.x.length===1?' premio':' premios')+'\n'+catOf(o).map(c=>c.cn+' ('+c.xs.length+'): '+c.xs.map(z=>z.a.t).join('; ')).join('\n');
+  const rz=z=>{const r=(z.a.r||z.a.o||'').trim();return r?r.charAt(0).toLowerCase()+r.slice(1):'mérito'};
   const ki=z=>PCAT.findIndex(([cn])=>cn===pcat(z.a.t));
-  const tk=z=>`<span class="ptk" data-tip="${(z.a.t+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3.2l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16l-5.1 2.9L8 13.2l-4.3-4 5.8-.7z" fill="#fff"/></svg></span>`;
+  const tk=z=>`<span class="ptk" data-tip="${(z.a.t+'\nPor '+rz(z)+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 3.2l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16l-5.1 2.9L8 13.2l-4.3-4 5.8-.7z" fill="#fff"/></svg></span>`;
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
