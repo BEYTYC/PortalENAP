@@ -924,6 +924,14 @@ svg .cnt{font-weight:700}
 :root:fullscreen #prem .pbars,:root.fsx #prem .pbars{justify-content:flex-start!important;gap:14px!important}
 :root:fullscreen #kpi .k,:root:fullscreen #nov .nb,:root:fullscreen .podc,:root:fullscreen #prem,:root:fullscreen .chips,:root:fullscreen .card.stu,:root.fsx #kpi .k,:root.fsx #nov .nb,:root.fsx .podc,:root.fsx #prem,:root.fsx .chips,:root.fsx .card.stu{background:rgba(255,255,255,.62)!important;background-image:none!important;backdrop-filter:none!important}
 :root:fullscreen #nov .nb:not([aria-pressed="true"]),:root.fsx #nov .nb:not([aria-pressed="true"]){background:rgba(255,255,255,.62)!important}
+.chip.sub{background:#E3F3F1!important;color:#0F6B63!important;border-color:#BFE3DE!important;margin-left:0}
+.chip.sub[aria-pressed="true"]{background:#0F766E!important;color:#fff!important;border-color:#0F766E!important}
+.chip.sub:first-of-type{margin-left:10px}
+:root:fullscreen #prem .pbars,:root.fsx #prem .pbars{gap:3px!important}
+:root:fullscreen .pbr,:root.fsx .pbr{padding:0 10px!important}
+.chips .chip.sub{align-self:center;min-height:34px;padding:6px 14px!important;font-size:14px!important;font-weight:600!important;letter-spacing:0!important;border-radius:10px;line-height:1.2;transform:none!important}
+.chips .chip.sub{position:relative;top:2px}
+.chips [data-k="ESC"]+.chip.sub{margin-left:12px}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1007,15 +1015,16 @@ const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[])
 const title={ESC:'Escalafonamiento '+PER};
 function chips(){
   const c=document.getElementById('chips');
-  c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESC">Escalafonamiento</button>`+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
+  const GSUB=isE(cur)?[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length):[];
+  const SUBH=GSUB.length>1?GSUB.map(g=>`<button class="chip sub" aria-pressed="${cur===g[0]}" data-g="${g[0]}">${g[1]}</button>`).join(''):'';
+  c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESC">Escalafonamiento</button>`+SUBH+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
     ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{msem=b.dataset.s===''?null:+b.dataset.s;sel=null;q='';nk=null;document.getElementById('q').value='';render()})}}
-  if(ms&&isE(cur)){const G=[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length);
-    if(G.length>1){ms.hidden=false;ms.innerHTML=G.map(g=>`<button class="chip" aria-pressed="${cur===g[0]}" data-g="${g[0]}">${g[1]}</button>`).join('');
-      ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=b.dataset.g;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';render()})}}
+  if(ms&&isE(cur)){ms.hidden=true;ms.innerHTML=''}
   c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur&&!D.solo)?null:b.dataset.k;msem=null;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
+  c.querySelectorAll('button[data-g]').forEach(b=>b.onclick=()=>{cur=b.dataset.g;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
