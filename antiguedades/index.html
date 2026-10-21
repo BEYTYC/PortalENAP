@@ -1021,6 +1021,8 @@ svg .cnt{font-weight:700}
 :root:fullscreen .podc .pd:hover .pb,:root.fsx .podc .pd:hover .pb{filter:brightness(1.12);box-shadow:0 6px 14px rgba(27,70,136,.35)}
 :root:fullscreen,:root.fsx,:root:fullscreen body,:root.fsx body{background:#FAFCFF!important}
 :root:fullscreen #kpi .k,:root:fullscreen #nov .nb:not([aria-pressed="true"]):not(:hover),:root:fullscreen .chips,:root:fullscreen #prem,:root:fullscreen #novl:not([hidden]),:root.fsx #kpi .k,:root.fsx #nov .nb:not([aria-pressed="true"]):not(:hover),:root.fsx .chips,:root.fsx #prem,:root.fsx #novl:not([hidden]){background:#fff!important}
+.chips .chip.sub{padding:6px 11px!important;text-transform:none!important;letter-spacing:0!important}
+.chips .cpe{padding-left:22px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1097,14 +1099,14 @@ const TRC=[['#FFD23F','#F2A900','#FFF1A8'],['#D5DDE6','#98A5B5','#FFFFFF'],['#F0
 const trofeo=x=>{const[m,d,l]=TRC[x],K='#62748F',n=x+1,hd='M10 11H4c-1 8 2 14 9 15M38 11h6c1 8-2 14-9 15';return `<svg class="trf" viewBox="0 0 48 54" width="25" height="28" role="img" aria-label="${['Oro','Plata','Bronce'][x]}"><path d="${hd}" fill="none" stroke="${K}" stroke-width="4.8" stroke-linecap="round"/><path d="${hd}" fill="none" stroke="${d}" stroke-width="2.8" stroke-linecap="round"/><rect x="19.5" y="34" width="9" height="9" fill="${d}" stroke="${K}" stroke-width="1"/><rect x="11" y="43" width="26" height="8" rx="2.5" fill="${m}" stroke="${K}" stroke-width="1"/><path d="M9 5h30v15c0 10-7 16-15 16S9 30 9 20z" fill="${m}" stroke="${K}" stroke-width="1" stroke-linejoin="round"/><path d="M9 5h30v5H9z" fill="${l}" stroke="${K}" stroke-width="1"/><path d="M13 15v6c0 4 2 8 5 10" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="2.4" stroke-linecap="round"/><text x="24" y="28" text-anchor="middle" font-family="Fredoka,Baloo 2,Arial Rounded MT Bold,Arial Black,sans-serif" font-weight="800" style="font-size:17px" fill="#fff" stroke="${K}" stroke-width="1.5" paint-order="stroke" stroke-linejoin="round">${n}</text></svg>`};
 let EDIT=false;
 let cur=null,sel=null,q='';
-const isE=k=>k==='ESC'||k==='PR'||k==='CDP'||k==='CDPRIM',eLab=k=>k==='ESC'?'4.2 escalafonamiento':k==='PR'?'4.2 adaptación profesional (PR)':k==='CDP'?'4.2 CDPRON':k==='CDPRIM'?'4.2 CDPRIM':null;const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>eLab(k)||LBM[k]||k;
+const isE=k=>k==='ESC'||k==='PR'||k==='CDP'||k==='CDPRIM'||k==='MRE',eLab=k=>k==='ESC'?'4.2 escalafonamiento':k==='PR'?'4.2 adaptación profesional (PR)':k==='CDP'?'4.2 CDPRON':k==='CDPRIM'?'4.2 CDPRIM':k==='MRE'?'4.2 mercantes':null;const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>eLab(k)||LBM[k]||k;
 let msem=null;
 const semOf=s=>{const m=String(s.cu||'').match(/^(\d)\.(\d)/);return m?(+m[1]-1)*2+(+m[2]):null};
 const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[]).filter(s=>semOf(s)===msem):D.sheets[k]||[];
 const title={ESC:'Escalafonamiento '+PER};
 function chips(){
   const c=document.getElementById('chips');
-  const GSUB=isE(cur)?[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length):[];
+  const GSUB=isE(cur)?[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON'],['MRE','Mercantes']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length):[];
   const SUBH=GSUB.length>1?GSUB.map(g=>`<button class="chip sub" aria-pressed="${cur===g[0]}" data-g="${g[0]}">${g[1]}</button>`).join(''):'';
   c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESC">Escalafonamiento</button>`+SUBH+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
@@ -1151,7 +1153,7 @@ function buscar(qq){
   const hit=s=>nz(s.n).includes(t)||String(s.c).includes(t)||String(s.ce).includes(t);
   const seen=new Set(),rows=[];
   const add=(s,sk,i)=>{const id=s.c!=null?s.c:(s.ce!=null?s.ce:s.n);if(seen.has(id))return;seen.add(id);rows.push([s,sk,i])};
-  const orden=['MER',cur,'PR','CDPRIM','CDP',...ORD.slice().reverse().filter(k=>k!==cur)].filter(k=>k!=='ESC'&&D.sheets[k]);
+  const orden=['MER',cur,'PR','MRE','CDPRIM','CDP',...ORD.slice().reverse().filter(k=>k!==cur)].filter(k=>k!=='ESC'&&D.sheets[k]);
   orden.forEach(sk=>D.sheets[sk].forEach((s,i)=>{if(hit(s))add(s,sk,i)}));
   D.esc.forEach((s,i)=>{if(hit(s))add(s,'ESC',i)});
   return rows;
@@ -1642,7 +1644,7 @@ function recalc(s){
   if(!OUT(s))[[MIL[0],u[2]],[MIL[1],u[3]],[MIL[2],u[4]]].forEach(([n,v])=>{if(v!=null&&v<6)s.rk.push([n,Math.round(v*1000)/1000])});
 }
 function rerank(){
-  [D.esc||[],(D.sheets||{}).PR||[],(D.sheets||{}).CDP||[]].forEach(arr=>{
+  [D.esc||[],(D.sheets||{}).PR||[],(D.sheets||{}).CDP||[],(D.sheets||{}).MRE||[]].forEach(arr=>{
     const R=arr.filter(s=>!OUT(s)&&s.f!=null).map((s,i)=>[s,i]).sort((a,b)=>b[0].f-a[0].f||(a[0].p??1e9)-(b[0].p??1e9)||a[1]-b[1]).map(x=>x[0]);
     arr.forEach(s=>{if(OUT(s)||s.f==null)s.p=null});R.forEach((s,i)=>s.p=i+1);
     arr.forEach(s=>(s.hp||[]).forEach(e=>{if(e[0]===PER){e[2]=s.p;e[3]=R.length}}))});
