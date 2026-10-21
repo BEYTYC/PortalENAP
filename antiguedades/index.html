@@ -1832,7 +1832,7 @@ function armarBD(E,D0,quien){
     // datos
     lista.forEach(function(s,i){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Reprobado':s.e,s.cu,s.c,s.ce,s.g,s.n];if(isM)vals.splice(5,1);
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':s.e,s.cu,s.c,s.ce,s.g,s.n];if(isM)vals.splice(5,1);
       vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===nF-1?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
       (isM?[acp(s)]:[acp(s),s.an,s.di,s.cf,s.f]).forEach(function(v,j){var x=celda(r,nF+1+j,r3(v),{b:j===nP-1,fc:'FF14304F',fill:j===nP-1?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===nP-1,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
