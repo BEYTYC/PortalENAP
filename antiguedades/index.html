@@ -1086,7 +1086,7 @@ function render(){
       const W=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null,IX={ac:1,an:2,di:3,cf:4};
       const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PP.push(p)});
       const dl=(v,g,f)=>{const fn=f==='f'?W:r=>r[IX[f]],pv=PP.map(fn).filter(x=>x!=null);if(pv.length<3)return '';const B1=mean(pv),d=v-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="Promedio 2025-2: ${f3(B1)}">≈ Más o menos igual vs. 2025-2</small>`:`<small class="dl ${up?'up':'dn'}" title="Promedio 2025-2: ${f3(B1)}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. 2025-2</small>`)};
+        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="Promedio ${PREV}: ${f3(B1)}">≈ Más o menos igual vs. ${PREV}</small>`:`<small class="dl ${up?'up':'dn'}" title="Promedio ${PREV}: ${f3(B1)}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${PREV}</small>`)};
       const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f],f):''}</div>`;
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Prom. semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Aplazados · fuera del orden</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
