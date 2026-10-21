@@ -1265,7 +1265,7 @@ function chartsRender(){
     if(sel&&sel[f]!=null)m+=`<circle cx="${X3(Math.max(6,sel[f]))}" cy="${y}" r="6" fill="var(--hi)" stroke="var(--card)" stroke-width="2"/>`});
   m+='</svg>';
   const c3h=`<div class="card ch"><h3>Componentes · ${sel?'estudiante frente al semestre':'promedio del semestre'}</h3>${m}</div>`;
-  el.innerHTML=(gs.length>1?c2h:'')+(sel?c3h:'');
+  el.innerHTML=(gs.length>1&&!isE(cur)?c2h:'')+(sel?c3h:'');
   requestAnimationFrame(animCharts);
 }
 const c3=v=>v==null?'—':v.toFixed(3).replace('.',',');
@@ -1501,7 +1501,7 @@ function premRender(){
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
-  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'<p class="pgh">Pasa el mouse sobre una barra para ver sus premios; haz clic para ver el detalle.</p>';
+  const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'<p class="pgh">Pasa el mouse sobre una ficha para ver el premio; haz clic en el estudiante para ver el detalle.</p>';
   el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pleg">'+leg+'</div><div class="pbars" role="list">'+rowsH+'</div>'+det;
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
 }
