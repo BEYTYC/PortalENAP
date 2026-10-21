@@ -483,9 +483,6 @@ body .bar{padding-right:0!important}
 /* pantalla completa: todo más grande y a lo ancho */
 :root:fullscreen .wrap,:root.fsx .wrap{max-width:none!important;margin-inline:0!important}
 :root:fullscreen body,:root.fsx body{padding-inline:28px 56px!important}
-@media (min-width:1700px){:root:fullscreen body,:root.fsx body{zoom:1.3}}
-@media (min-width:2200px){:root:fullscreen body,:root.fsx body{zoom:1.65}}
-@media (min-width:2900px){:root:fullscreen body,:root.fsx body{zoom:2.2}}
 
 /* semestre perdido: clic para ver el motivo */
 .gt tr.rp{cursor:pointer}.gt tr.rp:hover td{background:rgba(217,119,6,.2)}
@@ -833,7 +830,6 @@ svg .cnt{font-weight:700}
 :root:fullscreen .pbc small,:root.fsx .pbc small{display:none}
 :root:fullscreen .pbc,:root.fsx .pbc{font-size:17px!important}
 .ptk{width:26px!important;height:26px!important}
-:root:fullscreen .podio .pb,:root.fsx .podio .pb{zoom:.6}
 :root:fullscreen .podio,:root.fsx .podio{min-height:0!important}
 :root:fullscreen #nov .nt,:root.fsx #nov .nt{grid-auto-rows:auto!important}
 :root:fullscreen #nov .nb,:root.fsx #nov .nb{min-height:0!important;height:auto!important;padding:8px 12px!important}
@@ -851,6 +847,29 @@ svg .cnt{font-weight:700}
 .ptk.v-line svg path[style]{stroke:#fff!important}
 .ptk.v-icon svg{width:26px!important;height:26px!important}
 .ptk.v-icon{width:30px!important;height:30px!important}
+
+.pleg{order:9;margin:12px 0 0!important;font-size:13px!important;gap:6px 18px!important}.pleg i{width:11px!important;height:11px!important}
+:root:fullscreen .foot,:root.fsx .foot{display:flex!important;justify-content:flex-end!important}
+:root:fullscreen .credfs,:root.fsx .credfs{display:block!important;margin-left:auto!important;text-align:right!important;width:auto!important}
+.k span,.k small,.k .dl{white-space:nowrap!important}
+.k small,.k .dl{font-size:11.5px!important;letter-spacing:0!important}
+:root:fullscreen .pbr,:root.fsx .pbr{padding:0 10px!important}
+:root:fullscreen .pbars,:root.fsx .pbars{gap:0!important}
+:root:fullscreen .pbn,:root.fsx .pbn{line-height:1.05!important}
+.pleg span{display:inline-flex;align-items:center;gap:6px}
+.pleg .ptk{width:24px!important;height:24px!important;cursor:default}.pleg .ptk svg{width:22px!important;height:22px!important}
+:root:fullscreen .pbn,:root.fsx .pbn{line-height:1.3!important;overflow:visible!important}
+:root:fullscreen .pbr,:root.fsx .pbr{padding:0 10px!important;min-height:0!important}
+.pst .pn{font-size:19px!important}.pst .pp{min-width:36px;height:36px;font-size:15px}.pst .pc{font-size:15px!important;padding:5px 14px}
+.pst li{font-size:17px!important;padding-top:8px}.pst li span{font-size:15px!important}.pst li em{font-size:15px!important}
+.pst .pcat{font-size:14px!important;margin:14px 0 6px}
+
+@media(min-width:1px){:root:fullscreen body,:root.fsx body{zoom:1}}
+:root:fullscreen .pbn,:root.fsx .pbn{font-size:13px!important}
+:root:fullscreen .pbc,:root.fsx .pbc{font-size:20px!important}
+:root:fullscreen .pbc small,:root.fsx .pbc small{display:flex!important}
+:root:fullscreen .pbn em,:root.fsx .pbn em{display:block!important}
+:root:fullscreen .pbc small,:root.fsx .pbc small{display:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1446,8 +1465,8 @@ function fitFS(){
   if(!fs){b.style.zoom='';return}
   const H=innerHeight-4,W=innerWidth;
   const hh=()=>{const w=document.querySelector('.wrap');if(!w)return 0;let m=w.getBoundingClientRect().bottom+scrollY;const c=document.querySelector('.credfs');if(c&&c.offsetParent)m=Math.max(m,c.getBoundingClientRect().bottom+scrollY);return m+6};
-  let z=Math.min(1.6,Math.max(.5,innerWidth/1500));b.style.zoom=z;
-  for(let i=0;i<9;i++){let h=hh();if(!h)break;const sh=root.scrollHeight;if(sh>innerHeight+2)h=Math.max(h,sh);const k=H/h;if(Math.abs(k-1)<.015&&k<=1.0)break;z=Math.max(.45,Math.min(2.2,z*k));b.style.zoom=z}
+  let z=1;b.style.zoom=z;
+  for(let i=0;i<9;i++){let h=hh();if(!h)break;const sh=root.scrollHeight;if(sh>innerHeight+2)h=Math.max(h,sh);const k=H/h;if(Math.abs(k-1)<.015&&k<=1.0)break;z=Math.max(.45,Math.min(1,z*k));b.style.zoom=z}
   for(let i=0;i<12&&root.scrollHeight>innerHeight+1&&z>.45;i++){z*=.985;b.style.zoom=z}
   window.__fz=z;
 }
@@ -1539,17 +1558,18 @@ function premRender(){
   const rz=z=>{const r=(z.a.r||z.a.o||'').trim();return r?r.charAt(0).toLowerCase()+r.slice(1):'mérito'};
   const ki=z=>PCAT.findIndex(([cn])=>cn===pcat(z.a.t));
   const GL=[
-   '<path d="M7 1.5h4l1 7.5-3 0z" fill="#fff"/><path d="M17 1.5h-4l-1 7.5 3 0z" fill="#fff" opacity=".7"/><circle cx="12" cy="15.5" r="7.2" fill="#fff"/><circle cx="12" cy="15.5" r="5.3" fill="none" stroke="#FFFFFF" stroke-opacity=".0"/><circle cx="12" cy="15.5" r="5.4" style="fill:var(--c)"/><path d="M12 11.6l1.15 2.35 2.6.35-1.9 1.8.5 2.6L12 17.4l-2.35 1.3.5-2.6-1.9-1.8 2.6-.35z" fill="#FFFFFF"/>',
-   '<path d="M12 2l2.2 3.2V14h-4.4V5.2z" fill="#fff"/><rect x="6.5" y="14" width="11" height="2.6" rx="1.2" fill="#fff"/><rect x="10.8" y="16.6" width="2.4" height="4" fill="#fff"/><circle cx="12" cy="21.4" r="1.4" fill="#fff"/>',
+   '<path d="M5.5 1.2h5l2.6 8-3 .6z" fill="#2F5BB7"/><path d="M18.5 1.2h-5l-2.6 8 3 .6z" fill="#2F5BB7"/><path d="M8 1.2h1.8l2.5 8-1.3.3z" fill="#F5C242"/><path d="M16 1.2h-1.8l-2.5 8 1.3.3z" fill="#F5C242"/><circle cx="12" cy="9.4" r="1.2" fill="none" stroke="#C98A12" stroke-width="1"/><circle cx="12" cy="16" r="7" fill="#F2B632" stroke="#B87A0C" stroke-width="1"/><circle cx="12" cy="16" r="5.4" fill="#F8CC55" stroke="#D9A021" stroke-width=".8"/><path d="M12 11.7l.7 1.4 1.5.2-1.1 1 .3 1.5-1.4-.8-1.4.8.3-1.5-1.1-1 1.5-.2z" fill="#B87A0C"/><path d="M8.8 15.6c1.2-.5 2.2-.4 3.2.3 1-.7 2-.8 3.2-.3v3.2c-1.2-.5-2.2-.4-3.2.3-1-.7-2-.8-3.2-.3z" fill="#fff6d6" stroke="#B87A0C" stroke-width=".8" stroke-linejoin="round"/>',
+   '<g transform="translate(12 12) rotate(45) scale(.95) translate(-12 -12)"><path d="M12 1.2l2.4 3.6V14h-4.8V4.8z" fill="#fff"/><rect x="5.5" y="14" width="13" height="2.6" rx="1.2" fill="#fff"/><rect x="10.8" y="16.6" width="2.4" height="3.6" fill="#fff"/><circle cx="12" cy="21.4" r="1.4" fill="#fff"/></g>',
    '<circle cx="12" cy="12" r="8.2" fill="none" stroke="#fff" stroke-width="1.9"/><ellipse cx="12" cy="12" rx="3.6" ry="8.2" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M3.8 12h16.4" stroke="#fff" stroke-width="1.6"/>',
    '<path d="M6 3v18" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M7.4 4.2h11.2l-2.8 4 2.8 4H7.4z" fill="#fff"/>',
-   '<circle cx="12" cy="4.6" r="2.4" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 7v13.5M7.5 10.8h9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" fill="none"/><path d="M3.8 14.5c.6 4 3.6 6 8.2 6s7.6-2 8.2-6M3.8 14.5l-1.6 2.6M20.2 14.5l1.6 2.6" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>'];
+   '<path d="M12 7v13" stroke="#2F66B3" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="4.4" r="2.5" fill="none" stroke="#2F66B3" stroke-width="2"/><path d="M6.5 9.8h11" stroke="#2F66B3" stroke-width="2.2" stroke-linecap="round"/><circle cx="6" cy="9.8" r="1.2" fill="#2F66B3"/><circle cx="18" cy="9.8" r="1.2" fill="#2F66B3"/><path d="M3.2 14.5c.7 4.2 3.7 6.3 8.8 6.3s8.1-2.1 8.8-6.3l-3 1.2M3.2 14.5l3.2 1.2" stroke="#2F66B3" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M12 8.5c3-.2 3 2.4 0 3.2s-3 3.3 0 4" stroke="#4CC9D9" stroke-width="1.3" fill="none" stroke-linecap="round"/>'];
   const tk=z=>`<span class="ptk v-icon" data-tip="${(z.a.t+'\nPor '+rz(z)+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="16" height="16">${GL[ki(z)]||GL[0]}</svg></span>`;
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
-  const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><i style="background:${PCOL[k]}"></i>${cn}</span>`:'').join('');
+  const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
   const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
-  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pleg">'+leg+'</div><div class="pbars" role="list">'+rowsH+'</div>'+det;
+  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pbars" role="list">'+rowsH+'</div><div class="pleg">'+leg+'</div>'+det;
+  {const g=el.querySelector('.pbfn'),l=el.querySelector('.pleg');if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
 }
 function mrRender(){
