@@ -897,6 +897,30 @@ svg .cnt{font-weight:700}
 :root:fullscreen .credfs b,:root.fsx .credfs b{font-weight:400}
 .cred2,.credfs,.cred{font-size:11px!important;line-height:1.15!important;letter-spacing:.01em!important}
 .cred2 em,.credfs em,.cred em{display:block;margin-top:0}
+:root:fullscreen body,:root.fsx body{background:#EAF0F8!important}
+:root:fullscreen #pub,:root.fsx #pub{gap:12px}
+:root:fullscreen #pub>*,:root.fsx #pub>*{margin-top:0!important;margin-bottom:0!important}
+:root:fullscreen .duo,:root.fsx .duo{gap:12px!important;margin:0!important}
+:root:fullscreen #nov,:root.fsx #nov{padding:14px 0 0 0!important;margin:0!important}
+:root:fullscreen #nov h3,:root.fsx #nov h3{margin:0 0 12px!important;padding:0!important}
+:root:fullscreen #kpi .k,:root:fullscreen #nov .nb,:root:fullscreen .podc,:root:fullscreen #prem,:root.fsx #kpi .k,:root.fsx #nov .nb,:root.fsx .podc,:root.fsx #prem{box-shadow:0 2px 6px rgba(20,48,79,.11)!important}
+:root:fullscreen #pub>:empty,:root.fsx #pub>:empty,:root:fullscreen #pub>[hidden],:root.fsx #pub>[hidden]{display:none!important}
+:root:fullscreen #msub,:root.fsx #msub{height:max-content!important;min-height:0!important;align-self:flex-start!important}
+:root:fullscreen .stu .tt svg,:root.fsx .stu .tt svg{height:62px!important;width:100%}
+:root:fullscreen .stu .tt,:root.fsx .stu .tt{padding:8px 12px!important}
+:root:fullscreen .stu .tt .tv,:root.fsx .stu .tt .tv{margin-top:0!important}
+.pfc svg{max-width:700px!important}
+.stu .hd h2{font-size:27px!important;font-weight:600!important}
+.foot{margin-top:2px!important}
+:root:fullscreen #msub,:root.fsx #msub{height:44px!important;max-height:44px!important}
+:root:fullscreen #msub .chip,:root.fsx #msub .chip{height:34px!important;align-self:center}
+:root:fullscreen .foot,:root.fsx .foot{margin-top:2px!important}
+:root:fullscreen .rd svg,:root.fsx .rd svg{max-height:430px!important;margin-top:26px}
+:root:fullscreen .stu .tt svg,:root.fsx .stu .tt svg{height:96px!important}
+.pst li b{font-size:16px!important;font-weight:600!important}
+.pst li span{font-size:13.5px!important}.pst li em{font-size:13.5px!important}
+.pst .pn{font-size:17px!important;font-weight:600!important}.pst .pc{font-size:13px!important}
+.pst .pcat{font-size:12.5px!important}.pst li{font-size:15px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1425,13 +1449,13 @@ function stuRender(){
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
-    const W=440,lw=116,rw=58,mx=W-lw-rw,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
+    const W=700,lw=116,rw=58,mx=266,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
     const rows=[['Estudiante',s.f,'var(--navy)'],[isE(selK)?'Escalafonamiento':'Semestre '+lab(selK),sem,'var(--bar-fill)'],['General (todos)',gen,'var(--mute)']];
     let g=`<svg viewBox="0 0 ${W} ${rows.length*22+8}" role="img" aria-label="Promedio final del estudiante frente al promedio general">`;
-    rows.forEach(([n,v,c],i)=>{const y=12+i*22;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:11.5px">${n}</text><rect x="${lw}" y="${y-5}" width="${mx}" height="10" rx="5" fill="var(--bar)"/><rect x="${lw}" y="${y-5}" width="${Math.max(2,X(v)-lw)}" height="10" rx="5" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:12px">${f3(v)}</text>`});
+    rows.forEach(([n,v,c],i)=>{const y=12+i*22;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:11.5px">${n}</text><rect x="${lw}" y="${y-5}" width="${mx}" height="10" rx="5" fill="var(--bar)"/><rect x="${lw}" y="${y-5}" width="${Math.max(2,X(v)-lw)}" height="10" rx="5" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:12px">${f3(v)}</text>${i>0?(()=>{const r=i===1?sem:gen,d=s.f-r,up=d>=0;return `<text x="${X(v)+66}" y="${y+4}" style="font-size:12px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${i===1?'semestre':'general'}</text>`})():''}`});
     g+=`<line x1="${X(gen)}" x2="${X(gen)}" y1="2" y2="${rows.length*22}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/></svg>`;
     const dl=(v,r,l)=>{const d=v-r,up=d>=0;return `<span class="dl2 ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${l}</span>`};
-    pfc=`<div class="pfc"><h4>Promedio final frente al promedio general</h4><div class="pfh"><b>${f3(s.f)}</b><span>${OUT(s)?'Fuera del orden':'Puesto '+(s.p??'—')+' de '+list.length}</span></div>${g}<div class="pfd">${dl(s.f,sem,'semestre')}${dl(s.f,gen,'general')}</div></div>`;
+    pfc=`<div class="pfc"><h4>Promedio final frente al promedio general</h4><div class="pfh"><b>${f3(s.f)}</b><span>${OUT(s)?'Fuera del orden':'Puesto '+(s.p??'—')+' de '+list.length}</span></div>${g}</div>`;
   }
   let evo='';
   if(s.h&&s.h.length){
@@ -1590,7 +1614,7 @@ function premRender(){
    '<circle cx="12" cy="12" r="8.2" fill="none" stroke="#fff" stroke-width="1.9"/><ellipse cx="12" cy="12" rx="3.6" ry="8.2" fill="none" stroke="#fff" stroke-width="1.6"/><path d="M3.8 12h16.4" stroke="#fff" stroke-width="1.6"/>',
    '<path d="M6 3v18" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><path d="M7.4 4.2h11.2l-2.8 4 2.8 4H7.4z" fill="#fff"/>',
    '<path d="M12 7v13" stroke="#2F66B3" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="4.4" r="2.5" fill="none" stroke="#2F66B3" stroke-width="2"/><path d="M6.5 9.8h11" stroke="#2F66B3" stroke-width="2.2" stroke-linecap="round"/><circle cx="6" cy="9.8" r="1.2" fill="#2F66B3"/><circle cx="18" cy="9.8" r="1.2" fill="#2F66B3"/><path d="M3.2 14.5c.7 4.2 3.7 6.3 8.8 6.3s8.1-2.1 8.8-6.3l-3 1.2M3.2 14.5l3.2 1.2" stroke="#2F66B3" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M12 8.5c3-.2 3 2.4 0 3.2s-3 3.3 0 4" stroke="#4CC9D9" stroke-width="1.3" fill="none" stroke-linecap="round"/>'];
-  const tk=z=>`<span class="ptk v-icon" data-tip="${(z.a.t+'\nPor '+rz(z)+'\n'+z.m).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="16" height="16">${GL[ki(z)]||GL[0]}</svg></span>`;
+  const SG=['Medalla','Espada','Premio extranjero','Premio nacional','Placa'],tk=z=>`<span class="ptk v-icon" data-tip="${((SG[ki(z)]||'Premio')+': '+z.a.t+'\nPor '+rz(z)).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="16" height="16">${GL[ki(z)]||GL[0]}</svg></span>`;
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
