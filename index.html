@@ -2555,33 +2555,49 @@
       audioInicio = null;
       if (ctx.state === 'suspended') ctx.resume().catch(() => {});
       const t0 = ctx.currentTime + 0.01;
-      const master = ctx.createGain(); master.gain.value = 0.22; master.connect(ctx.destination);
-      const tono = (f, ini, dur, tipo, vol) => {
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = tipo; o.frequency.value = f;
-        g.gain.setValueAtTime(0.0001, t0 + ini);
-        g.gain.exponentialRampToValueAtTime(vol, t0 + ini + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.0001, t0 + ini + dur);
-        o.connect(g); g.connect(master); o.start(t0 + ini); o.stop(t0 + ini + dur + 0.05);
-      };
-      // whoosh: ruido filtrado que sube de frecuencia
-      const len = ctx.sampleRate * 2.6, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      // "Entrando a otra dimensión": vacío grave que se abre, barrido de aire
+      // resonante, tonos de cristal que rebotan en eco, golpe sordo y acorde final.
+      const master = ctx.createGain(); master.gain.value = 0.5;
+      const eco = ctx.createDelay(1); eco.delayTime.value = 0.28;
+      const ecoG = ctx.createGain(); ecoG.gain.value = 0.33;
+      master.connect(ctx.destination); master.connect(eco); eco.connect(ecoG); ecoG.connect(eco); ecoG.connect(ctx.destination);
+      const env = (g, pts) => { g.gain.setValueAtTime(0.0001, t0); pts.forEach(([t, v]) => g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0001), t0 + t)); };
+      const pan = (p) => { const n = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (n) n.pan.value = p; return n; };
+      const salida = (nodo, p) => { const n = pan(p); if (n) { nodo.connect(n); n.connect(master); } else nodo.connect(master); };
+      // 1) vacío grave
+      [[55, 0.1], [55.7, -0.1], [82.4, 0]].forEach(([f, p]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        env(g, [[1.2, 0.2], [2.6, 0.2], [4.2, 0.02]]); o.connect(g); salida(g, p); o.start(t0); o.stop(t0 + 4.4);
+      });
+      // 2) barrido de aire resonante
+      const len = ctx.sampleRate * 3.2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       const ns = ctx.createBufferSource(); ns.buffer = buf;
-      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9;
-      bp.frequency.setValueAtTime(250, t0); bp.frequency.exponentialRampToValueAtTime(3800, t0 + 1.6);
-      const ng = ctx.createGain();
-      ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.35, t0 + 0.5); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
-      ns.connect(bp); bp.connect(ng); ng.connect(master); ns.start(t0);
-      // golpe grave cuando aparece la esfera
-      tono(70, 0.15, 1.6, 'sine', 0.9); tono(140, 0.15, 1.0, 'sine', 0.25);
-      // arpegio (pentatónica) al ritmo de los módulos: 1,7 s + i * 0,32 s
-      [523.25, 659.25, 783.99, 987.77, 1174.66].forEach((f, i) => {
-        tono(f, 1.7 + i * 0.32, 1.4, 'sine', 0.32); tono(f * 2, 1.7 + i * 0.32, 0.8, 'triangle', 0.08);
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 14;
+      bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(7000, t0 + 2.8);
+      const ng = ctx.createGain(); env(ng, [[0.4, 0.5], [1.3, 0.5], [3.2, 0.05]]);
+      ns.connect(bp); bp.connect(ng); salida(ng, 0); ns.start(t0);
+      // 3) tonos de cristal (FM) que rebotan de lado a lado
+      [[1.2, 880, -0.6], [1.45, 1318.5, 0.6], [1.7, 1760, -0.6], [2.0, 2637, 0.6]].forEach(([ini, f, p]) => {
+        const c = ctx.createOscillator(), m = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+        c.frequency.value = f; m.frequency.value = f * 1.5;
+        mg.gain.setValueAtTime(f * 4.5, t0 + ini); mg.gain.exponentialRampToValueAtTime(1, t0 + ini + 1.8);
+        m.connect(mg); mg.connect(c.frequency);
+        g.gain.setValueAtTime(0.0001, t0 + ini); g.gain.exponentialRampToValueAtTime(0.2, t0 + ini + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + ini + 2.2);
+        c.connect(g); salida(g, p); c.start(t0 + ini); m.start(t0 + ini); c.stop(t0 + ini + 2.3); m.stop(t0 + ini + 2.3);
       });
-      // acorde final amplio
-      [261.63, 392.0, 523.25, 783.99].forEach((f) => tono(f, 3.5, 2.6, 'sine', 0.22));
-      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 7000);
+      // 4) acorde etéreo de llegada
+      [196, 293.66, 392, 493.88, 587.33].forEach((f) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t0 + 1.6); g.gain.exponentialRampToValueAtTime(0.07, t0 + 2.4); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 4.2);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.6); o.stop(t0 + 4.3);
+      });
+      // 5) golpe sordo de entrada
+      { const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.setValueAtTime(75, t0 + 1.2); o.frequency.exponentialRampToValueAtTime(30, t0 + 2.2);
+        g.gain.setValueAtTime(0.0001, t0 + 1.2); g.gain.exponentialRampToValueAtTime(0.5, t0 + 1.23); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.4);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.2); o.stop(t0 + 2.5); }
+      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 9000);
     } catch (e) {}
   }
   // Avisa a la pantalla de inicio del Centro de Datos (iframe) que la persona
