@@ -1034,6 +1034,7 @@ svg .cnt{font-weight:700}
 #stu table td:first-child,#stu table th:first-child{white-space:nowrap;padding-left:12px!important;padding-right:14px!important}
 :root:fullscreen .wrap,:root.fsx .wrap{min-height:calc(100vh - 36px)!important}
 .fl{display:inline-block;width:21px;height:14px;margin-left:8px;vertical-align:-1px;border-radius:2px;box-shadow:0 0 0 1px rgba(20,48,79,.22);flex:none}
+@media(min-height:1000px){:root:fullscreen body,:root.fsx body{box-sizing:border-box!important;padding-top:56px!important}:root:fullscreen .wrap,:root.fsx .wrap{min-height:calc(100vh - 62px)!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1118,7 +1119,7 @@ const title={ESC:'Escalafonamiento '+PER};
 function chips(){
   const c=document.getElementById('chips');
   const GSUB=(isE(cur)||D.solo)?[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON'],['MRE','Mercantes']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length):[];
-  const SUBH=GSUB.length>1?GSUB.map(g=>`<button class="chip sub" aria-pressed="${cur===g[0]}" data-g="${g[0]}">${g[1]}</button>`).join(''):'';
+  const SUBH=GSUB.length>1?GSUB.map(g=>`<button class="chip sub" aria-pressed="${cur===g[0]}" data-sg="${g[0]}">${g[1]}</button>`).join(''):'';
   c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESC">Escalafonamiento</button>`+SUBH+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
@@ -1126,7 +1127,7 @@ function chips(){
     ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{msem=b.dataset.s===''?null:+b.dataset.s;sel=null;q='';nk=null;document.getElementById('q').value='';render()})}}
   if(ms&&isE(cur)){ms.hidden=true;ms.innerHTML=''}
   c.querySelectorAll('button').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur&&!D.solo)?null:b.dataset.k;msem=null;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
-  c.querySelectorAll('button[data-g]').forEach(b=>b.onclick=()=>{cur=b.dataset.g;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';render()});
+  c.querySelectorAll('button[data-sg]').forEach(b=>b.onclick=()=>{cur=b.dataset.sg;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
