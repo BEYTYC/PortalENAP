@@ -1199,11 +1199,11 @@ function chartsRender(){
   sh.forEach((o,i)=>{const y=16+i*rowH,on=sel&&sel.cu===o.k,d=o.m-mu,up=d>=0,c=on?'var(--hi)':'var(--bar-fill)';
     k+=`<text class="lab" x="0" y="${y+4}">${o.k}<tspan style="fill:var(--mute);font-size:9.5px" dx="5">${o.n} est.</tspan></text>`;
     if(o.n>1)k+=`<line x1="${X(o.lo)}" x2="${X(o.hi)}" y1="${y}" y2="${y}" stroke="${c}" stroke-width="9" stroke-linecap="round" opacity=".22"/>`;
-    if(o.u!=null)k+=`<path d="M${X(o.u)} ${y-6}L${X(o.u)+6} ${y}L${X(o.u)} ${y+6}L${X(o.u)-6} ${y}Z" fill="#E8B13A" stroke="var(--card)" stroke-width="1.5"><title>Promedio sin ponderar (sin factor): ${c2(o.u)}</title></path>`;
-    k+=`<circle cx="${X(o.m)}" cy="${y}" r="5.5" fill="${c}" stroke="var(--card)" stroke-width="1.5"><title>Promedio ponderado (con factor): ${c2(o.m)}</title></circle>`+
+    if(o.u!=null)k+=`<path d="M${X(o.u)} ${y-6}L${X(o.u)+6} ${y}L${X(o.u)} ${y+6}L${X(o.u)-6} ${y}Z" fill="#E8B13A" stroke="var(--card)" stroke-width="1.5"><title>Sin factor de ponderación: ${c2(o.u)}</title></path>`;
+    k+=`<circle cx="${X(o.m)}" cy="${y}" r="5.5" fill="${c}" stroke="var(--card)" stroke-width="1.5"><title>Con factor de ponderación: ${c2(o.m)}</title></circle>`+
        `<text class="cnt" x="${WW-rw+8}" y="${y+4}" style="font-size:12px">${c2(o.m)}<tspan style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}" dx="7">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</tspan></text>`});
   k+=`<line x1="${X(mu)}" x2="${X(mu)}" y1="0" y2="${H2-22}" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 3" opacity=".6"/></svg>`;
-  const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Promedio ponderado (con factor)</span><span><i class="d" style="background:#E8B13A;border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Promedio sin ponderar</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
+  const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Con factor de ponderación</span><span><i class="d" style="background:#E8B13A;border-radius:1px;transform:rotate(45deg) scale(.85)"></i>Sin factor de ponderación</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
   const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
   // comparación componentes
   const comps=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
