@@ -1540,7 +1540,7 @@ function selPer(l,act){var a=document.getElementById('pv'),b=document.getElement
   var h=l.map(function(x){return '<option value="'+x+'"'+(x===act?' selected':'')+'>'+x+'</option>'}).join('');
   function ch(e){try{sessionStorage.setItem('antPer',e.target.value);localStorage.setItem('antPer',e.target.value)}catch(x){}location.reload()}
   if(a){a.innerHTML=h;a.onchange=ch;document.getElementById('pvw').hidden=!(window.__adm&&l.length>0)}
-  if(b){b.innerHTML=h;b.onchange=ch;b.disabled=l.length<2}}
+  if(b){b.innerHTML=h;b.onchange=ch}}
 window.selPer=selPer;
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
