@@ -761,6 +761,8 @@ svg .cnt{font-weight:700}
 .pst .pcat{margin:10px 0 4px;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--navy,#1B4688);font-weight:800}
 .pst .pcat:first-of-type{margin-top:0}
 .pgrid{align-items:start}
+.pcnt{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;margin:-4px 0 12px;font-size:13px;color:var(--mute,#5B6F8F)}
+.pcnt>b{color:var(--navy,#1B4688);font-size:15px}.pcnt span b{color:var(--navy,#1B4688);font-size:15px}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1356,8 +1358,9 @@ function premRender(){
   P.a.forEach(a=>a.w.forEach(([c,m])=>{if(!M.has(c))M.set(c,[]);M.get(c).push({a,m})}));
   const L=[...M.entries()].map(([c,x])=>({s:D.esc.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>b.x.length-a.x.length||(a.s.p??1e9)-(b.s.p??1e9));
   el.hidden=false;
-  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn}</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>'+
-  (P.pend&&P.pend.length?'<div class="ppend"><b>Por designar</b> (sin datos para calcular o los decide la autoridad que lo concede): '+P.pend.map(p=>p[0]+(p[1]?' ('+p[1]+')':'')).join(' · ')+'</div>':'');
+  const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
+  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pcnt"><b>'+P.a.length+'</b> premios asignados: '+CT.map(([cn,n])=>'<span><b>'+n+'</b> '+cn.toLowerCase()+'</span>').join('')+(P.pend&&P.pend.length?'<span><b>'+P.pend.length+'</b> por designar</span>':'')+'</div><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn}</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>'+
+  (P.pend&&P.pend.length?'<div class="ppend"><b>Por designar</b> (sin datos para calcular o los decide la autoridad que lo concede): '+P.pend.map(p=>p[0]+(p[1]?' ('+p[1]+')':'')+(p[2]?' — '+p[2]:'')).join(' · ')+'</div>':'');
 }
 function mrRender(){
   const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
