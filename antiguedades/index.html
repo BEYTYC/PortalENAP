@@ -1240,7 +1240,7 @@ function novRender(){
   if(cur==null&&!sel)return;
   el.hidden=false;
   const key=cur,l=ls(key),rk=l.filter(s=>s.e!=='Aplazado');
-  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?[]:[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
+  const GR=[...(key==='MER'?[]:[['__pasan',isE(key)?'Se escalafonan':'Pasan a '+key]]),...(isE(key)?[]:[['Repitente','Repiten']]),['Aplazado','Aplazados'],['Reingresado','Reingresado'],...(isE(key)?[]:[['Retardado','Retardados']]),...(isE(key)?(ls(key).some(s=>s.rk!==undefined)?[['__rk','En riesgo']]:[]):[['__dis','Alumno distinguido'],['__exc','Excelencia académica']])];
   const mt=(s,k)=>k==='__pasan'?(s.e!=='Aplazado'&&(isE(key)||s.pk===key)):k==='__dis'?!!s.dis:k==='__exc'?!!s.exc:k==='__rk'?!!(s.rk&&s.rk.length):(s.e||'').startsWith(k);
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
