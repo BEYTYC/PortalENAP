@@ -774,6 +774,8 @@ svg .cnt{font-weight:700}
 .stu .gt tbody td.pcl{position:relative;text-align:center!important;padding-inline:26px!important;white-space:nowrap}
 .stu .gt tbody td.pcl .pg{display:inline-block}
 .stu .gt tbody td.pcl .pa2{position:absolute!important;right:8px!important;top:50%;transform:translateY(-50%)}
+/* gráfica única: ocupa todo el ancho */
+#charts>.card:first-child:last-child{grid-column:1/-1!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1182,14 +1184,14 @@ function chartsRender(){
   const gs=Object.entries(g).map(([k,v])=>({k,m:mean(v),n:v.length,lo:Math.min(...v),hi:Math.max(...v)})).sort((a,b)=>b.m-a.m);
   const mu=mean(fs),sh=gs.slice(0,8);
   const smin=Math.floor(Math.min(...sh.map(x=>x.lo))*2)/2,smax=Math.max(smin+1,Math.ceil(Math.max(...sh.map(x=>x.hi))*2)/2);
-  const rowH=24,H2=sh.length*rowH+34,lw=88,rw=118,X=v=>lw+(W-lw-rw)*(v-smin)/(smax-smin);
-  let k=`<svg viewBox="0 0 ${W} ${H2}" role="img" aria-label="Promedio final por curso, con el rango de notas de cada curso">`;
+  const WW=sel?W:1180,rowH=sel?24:30,H2=sh.length*rowH+34,lw=sel?88:100,rw=sel?118:140,X=v=>lw+(WW-lw-rw)*(v-smin)/(smax-smin);
+  let k=`<svg viewBox="0 0 ${WW} ${H2}" role="img" aria-label="Promedio final por curso, con el rango de notas de cada curso">`;
   [smin,(smin+smax)/2,smax].forEach(v=>{k+=`<line class="ax" x1="${X(v)}" x2="${X(v)}" y1="2" y2="${H2-22}"/><text x="${X(v)}" y="${H2-8}" text-anchor="middle">${c2(v)}</text>`});
   sh.forEach((o,i)=>{const y=16+i*rowH,on=sel&&sel.cu===o.k,d=o.m-mu,up=d>=0,c=on?'var(--hi)':'var(--bar-fill)';
     k+=`<text class="lab" x="0" y="${y+4}">${o.k}<tspan style="fill:var(--mute);font-size:9.5px" dx="5">${o.n} est.</tspan></text>`;
     if(o.n>1)k+=`<line x1="${X(o.lo)}" x2="${X(o.hi)}" y1="${y}" y2="${y}" stroke="${c}" stroke-width="9" stroke-linecap="round" opacity=".22"/>`;
     k+=`<circle cx="${X(o.m)}" cy="${y}" r="5.5" fill="${c}" stroke="var(--card)" stroke-width="1.5"/>`+
-       `<text class="cnt" x="${W-rw+8}" y="${y+4}" style="font-size:12px">${c2(o.m)}<tspan style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}" dx="7">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</tspan></text>`});
+       `<text class="cnt" x="${WW-rw+8}" y="${y+4}" style="font-size:12px">${c2(o.m)}<tspan style="font-size:10.5px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}" dx="7">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')}</tspan></text>`});
   k+=`<line x1="${X(mu)}" x2="${X(mu)}" y1="0" y2="${H2-22}" stroke="var(--ink)" stroke-width="1.3" stroke-dasharray="3 3" opacity=".6"/></svg>`;
   const leg=`<div class="lg2"><span><i class="r"></i>Rango (mín.–máx.)</span><span><i class="d"></i>Promedio del curso</span><span><i class="m"></i>Promedio del semestre ${c2(mu)}</span></div>`;
   const c2h=`<div class="card ch cc"><h3>Promedio por curso${gs.length>8?' (8 más altos)':''}</h3>${k}${leg}</div>`;
@@ -1381,7 +1383,7 @@ function premRender(){
   const L=[...M.entries()].map(([c,x])=>({s:D.esc.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>b.x.length-a.x.length||(a.s.p??1e9)-(b.s.p??1e9));
   el.hidden=false;
   const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
-  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pcnt"><b>'+P.a.length+'</b> premios asignados: '+CT.map(([cn,n])=>'<span><b>'+n+'</b> '+cn.toLowerCase()+'</span>').join('')+''+'</div><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn} (${xs.length})</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>';
+  el.innerHTML='<h3>Premios · escalafonamiento 4.2 · '+L.length+' estudiantes</h3><div class="pgrid">'+L.map(o=>`<div class="pst"><div class="ph"><span class="pp">${o.s.p??'—'}</span><span class="pn"><span class="gr">${o.s.g||''}</span> ${o.s.n}${ic(o.s)}</span><span class="pc">${o.x.length} ${o.x.length===1?'premio':'premios'}</span></div>${PCAT.map(([cn,re])=>{const xs=o.x.filter(z=>pcat(z.a.t)===cn);return xs.length?`<h6 class="pcat">${cn} (${xs.length})</h6><ul>${xs.map(z=>`<li><b>${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`:''}).join('')}</div>`).join('')+'</div>';
 }
 function mrRender(){
   const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
