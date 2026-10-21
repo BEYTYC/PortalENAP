@@ -2535,13 +2535,26 @@
   // un "whoosh" suave, un golpe grave cuando aparece la esfera, un arpegio
   // brillante sincronizado con la salida de los módulos y un acorde final.
   // Si el navegador bloquea el audio (sin interacción previa), se omite en silencio.
+  // El audio se "despierta" al hacer clic en el botón de login (gesto de la
+  // persona), así el navegador no lo deja suspendido y suena al instante.
+  let audioInicio = null;
+  function prepararAudioInicio() {
+    try {
+      if (audioInicio) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioInicio = new AC();
+      audioInicio.resume().catch(() => {});
+    } catch (e) {}
+  }
   function sonidoInicioSesion() {
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
-      const ctx = new AC();
+      const ctx = audioInicio || new AC();
+      audioInicio = null;
       if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-      const t0 = ctx.currentTime + 0.05;
+      const t0 = ctx.currentTime + 0.01;
       const master = ctx.createGain(); master.gain.value = 0.22; master.connect(ctx.destination);
       const tono = (f, ini, dur, tipo, vol) => {
         const o = ctx.createOscillator(), g = ctx.createGain();
@@ -2556,12 +2569,12 @@
       for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
       const ns = ctx.createBufferSource(); ns.buffer = buf;
       const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 0.9;
-      bp.frequency.setValueAtTime(250, t0); bp.frequency.exponentialRampToValueAtTime(3800, t0 + 2.2);
+      bp.frequency.setValueAtTime(250, t0); bp.frequency.exponentialRampToValueAtTime(3800, t0 + 1.6);
       const ng = ctx.createGain();
-      ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.35, t0 + 1.2); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+      ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(0.35, t0 + 0.5); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
       ns.connect(bp); bp.connect(ng); ng.connect(master); ns.start(t0);
       // golpe grave cuando aparece la esfera
-      tono(70, 0.45, 1.6, 'sine', 0.9); tono(140, 0.45, 1.0, 'sine', 0.25);
+      tono(70, 0.15, 1.6, 'sine', 0.9); tono(140, 0.15, 1.0, 'sine', 0.25);
       // arpegio (pentatónica) al ritmo de los módulos: 1,7 s + i * 0,32 s
       [523.25, 659.25, 783.99, 987.77, 1174.66].forEach((f, i) => {
         tono(f, 1.7 + i * 0.32, 1.4, 'sine', 0.32); tono(f * 2, 1.7 + i * 0.32, 0.8, 'triangle', 0.08);
@@ -2644,6 +2657,7 @@
   // detecta el resultado del login, y la sesion sigue en esta misma
   // pestana sin recargar a pantalla completa.
   async function manejarLogin() {
+    prepararAudioInicio();
     ocultarError();
     loginEnCurso = true;
     mostrarCargando(true);
