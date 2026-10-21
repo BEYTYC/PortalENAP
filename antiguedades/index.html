@@ -852,6 +852,7 @@ svg .cnt{font-weight:700}
 <style>#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:transparent;padding:24px}#gate[hidden]{display:none}.gbox{max-width:460px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px rgba(31,78,150,.4)}.gbox b{display:block;font-size:17px;color:var(--ink);margin-bottom:8px}.gsp{display:none;width:34px;height:34px;margin:0 auto 14px;border:3px solid var(--line);border-top-color:var(--bar-fill);border-radius:50%;animation:gspin .9s linear infinite}#gate.wait .gsp{display:block}#gate.wait .gbox b::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:gdots 1.4s steps(4,end) infinite}@keyframes gspin{to{transform:rotate(360deg)}}@keyframes gdots{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}@media(prefers-reduced-motion:reduce){.gsp,#gate.wait .gbox b::after{animation:none}}.gbox span{color:var(--mute);font-size:13.5px;line-height:1.5}</style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
+[...(D.esc||[]),...Object.values(D.sheets||{}).flat()].forEach(s=>{if(s.e==='Salió')s.e='Retirado'});
 const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
 /* Mercantes que figuran también en Naval/Infante (cambiaron de programa): solo cuentan como mercantes; se renumera el puesto del resto */
 (function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
