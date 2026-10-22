@@ -2038,6 +2038,7 @@ function armarBD(E,D0,quien){
   (SOLO?['ESC'].concat(['PR','CDPRIM','CDP'].filter(function(x){return D.sheets[x]&&D.sheets[x].length})):D.order.concat(D.esc&&D.esc.length?['ESC']:[]).concat(D.sheets.MER?['MER']:[])).forEach(function(k){
     var lista=k==='ESC'?D.esc:D.sheets[k],ix=(k==='ESC'||k==='MER')?D.order.length-1:D.order.indexOf(k),bloques=[];
     if(k!=='ESC'&&k!=='MER'&&D0.dl){var oT=function(s){var x=D.order.indexOf(s.tk);return x<0?99:x};lista=lista.slice().sort(function(a,c){return ((a.p==null)-(c.p==null))||(oT(a)-oT(c))||((a.p||0)-(c.p||0))})}
+    if(SOLO)lista=lista.filter(function(s){return s.e!=='Aplazado'&&s.e!=='Retirado'&&s.e!=='Comisión'}); // solo quienes se escalafonan
     if(SOLO){var cs={};lista.forEach(function(s){s.h.forEach(function(h){cs[h[0]]=1})});
       var po=function(c){var b=c.replace(/[AN]$/,''),x=CAN.indexOf(b);return (x<0?99:x)*10+(/A$/.test(c)?1:/N$/.test(c)?2:0)};
       bloques=Object.keys(cs).sort(function(a,c){return po(a)-po(c)})}
@@ -2079,7 +2080,7 @@ function armarBD(E,D0,quien){
     // datos
     lista.forEach(function(s,i){
       var r=5+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':s.e,s.cu,s.c,s.ce,s.g,s.n];if(isM)vals.splice(5,1);
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':(s.e==='Normal'&&/^Refuerzo/.test(s.ev||''))?'En refuerzo':s.e,s.cu,s.c,s.ce,s.g,s.n];if(isM)vals.splice(5,1);
       vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:j===nF-1?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
       (isM?[acp(s)]:[acp(s),s.an,s.di,s.cf,s.f]).forEach(function(v,j){var x=celda(r,nF+1+j,r3(v),{b:j===nP-1,fc:'FF14304F',fill:j===nP-1?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===nP-1,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
