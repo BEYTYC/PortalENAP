@@ -142,6 +142,8 @@
   }
   .nav-subsistema .dz-back{ flex-shrink:0; }
   .navcat{ position:relative; }
+  .navcats--der{ margin-left:auto; padding-left:6px; }
+  @media (min-width:861px){ .navcat--der .dropdown{ left:auto; right:0; border-radius:0 0 12px 12px; } }
   .navcat > .nav-btn{
     height:100%; display:flex; align-items:center; gap:6px; padding:8px 16px; cursor:pointer;
     border:none; background:transparent; font-size:13.5px; font-weight:600; color:var(--navy-800);
@@ -358,7 +360,7 @@
   .cde-note{ margin-top:9px; font-size:11.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE{
+  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -375,7 +377,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloConc[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -721,6 +723,7 @@
 
     nav.topnav{ padding:0 6px; }
     .nav-subsistema{ padding:6px 8px 8px; border-top:1px solid var(--border); }
+    .navcats--der{ flex:1 1 100%; margin-left:0; padding-left:0; }
     .navcats{ flex:1 1 100%; flex-wrap:wrap; min-width:0; gap:0; align-items:flex-start; align-content:flex-start; }
     .navcat{ position:static; }
     .navcat > .nav-btn{ height:auto; padding:11px 10px; font-size:13px; }
@@ -1227,6 +1230,8 @@
     <span class="tag">Módulo:</span>
     <span class="name" id="navSubsistemaNombre"></span>
   </div>
+  <!-- "Protocolos Académicos": pegado a la derecha, al lado de "Módulo". -->
+  <div class="navcats navcats--der" id="navcatsDer"></div>
 </nav>
 
 <main id="main">
@@ -1283,6 +1288,16 @@
       id="concesionesFrame"
       class="registro-iframe"
       title="Concesiones Especiales"
+    ></iframe>
+  </div>
+
+  <div id="viewProtocoloConc" hidden>
+    <!-- Protocolo de Concesiones Especiales: guía interactiva para quien administre la herramienta
+         (protocolos/concesiones-especiales.html, mismo origen). Se carga la primera vez que se abre. -->
+    <iframe
+      id="protocoloConcFrame"
+      class="registro-iframe"
+      title="Protocolo Solicitud Concesiones Especiales"
     ></iframe>
   </div>
 
@@ -2729,7 +2744,7 @@
       key: 'protocolos', nombre: 'Protocolos Académicos', icon: 'protocolos',
       items: [
         { nombre: 'Protocolo Solicitud de Grado', status: 'soon' },
-        { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'soon' },
+        { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'ok' },
       ],
     },
   ];
@@ -2737,11 +2752,16 @@
   const STATUS_LABEL = { ok: 'Disponible', soon: '' };
 
   function renderNav() {
-    const nav = document.getElementById('navcats');
-    nav.innerHTML = '';
+    const navIzq = document.getElementById('navcats');
+    const navDer = document.getElementById('navcatsDer');
+    navIzq.innerHTML = '';
+    if (navDer) navDer.innerHTML = '';
     for (const cat of MENU) {
+      // "Protocolos Académicos" va pegado a la derecha (al lado de "Módulo").
+      const aLaDerecha = cat.key === 'protocolos' && !!navDer;
+      const nav = aLaDerecha ? navDer : navIzq;
       const wrap = document.createElement('div');
-      wrap.className = 'navcat';
+      wrap.className = 'navcat' + (aLaDerecha ? ' navcat--der' : '');
       wrap.dataset.key = cat.key;
       wrap.innerHTML = `
         <button class="nav-btn" type="button" aria-expanded="false">
@@ -2828,6 +2848,7 @@
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
+          else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
@@ -2940,6 +2961,14 @@
     const f = document.getElementById('antiguedadesFrame');
     if (f.dataset.cargado) return;
     f.src = 'antiguedades/index.html?embedded=1';
+    f.dataset.cargado = '1';
+  }
+
+  // Protocolo de Concesiones Especiales (página propia, mismo origen).
+  function cargarProtocoloConc() {
+    const f = document.getElementById('protocoloConcFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'protocolos/concesiones-especiales.html';
     f.dataset.cargado = '1';
   }
 
