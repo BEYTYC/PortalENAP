@@ -1185,7 +1185,7 @@ svg .cnt{font-weight:700}
 /* vista normal: premios más compactos */
 #prem .pbars{gap:0!important}#prem .pbr{height:29px!important;padding-block:0!important}#prem .pbk .ptk{width:17px!important;height:17px!important}#prem .pbk .ptk svg{width:16px!important;height:16px!important}
 /* móvil: nada se desplaza a los lados */
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{overflow-x:clip}}
 @media (max-width:700px){.chips .cpe{white-space:normal!important;max-width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.chips .cpe select{max-width:100%;min-width:0}.chips{max-width:100%;box-sizing:border-box}}
 @media (max-width:700px){
 #prem .pbr{grid-template-columns:28px minmax(0,1fr) auto!important;height:auto!important;padding:6px 6px!important;row-gap:3px;min-width:0}

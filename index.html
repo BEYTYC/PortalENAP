@@ -789,7 +789,13 @@
   main{ background:var(--bg); }
   .sac-view{ background:transparent; }
   .login-gate{ background:#FDFEFF; }
+</style><style id="sin-desplazamiento-lateral">
+/* Móvil: la página nunca se desplaza hacia los lados */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,svg,video,canvas,iframe{max-width:100%}
 </style>
+
 
 <!--
   MODO DE PRUEBAS -- solo se activa visitando la pagina con

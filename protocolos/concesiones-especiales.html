@@ -154,6 +154,12 @@
   }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 </style>
+<style id="sin-desplazamiento-lateral">
+/* Móvil: la página nunca se desplaza hacia los lados */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,svg,video,canvas,iframe{max-width:100%}
+</style>
 </head>
 <body>
 
