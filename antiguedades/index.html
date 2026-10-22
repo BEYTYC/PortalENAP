@@ -1256,6 +1256,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 <div class="frm" id="pvw" hidden><label for="pv" style="font-size:13px;color:var(--mute);align-self:center">Ver periodo</label><select id="pv" aria-label="Periodo a ver" style="max-width:160px"></select></div>
 <div class="frm"><input id="per" type="text" placeholder="Periodo (ej. 2026-2)" aria-label="Periodo" style="max-width:160px"><input id="fi" type="file" accept=".json,application/json" aria-label="Archivo de datos"></div>
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
+<section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
 <section class="card ac"><h3>Descargar para compartir</h3><p>El sistema arma el Excel "BD Antigüedades" con los datos cargados, con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" class="wait" role="status"><div class="gbox"><i class="gsp" aria-hidden="true"></i><b id="gt">Verificando acceso</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
@@ -2152,6 +2153,189 @@ function descargar(msgEl){
   return api('descargar').then(function(r){
     return bajarBD(r.correo||yo.correo).then(function(){m('Listo. La descarga quedó registrada.');if(window.__recargarAdmin)window.__recargarAdmin()})}).catch(function(e){m(e.message)})}
 document.getElementById('dl').onclick=function(){var btn=this,t=document.getElementById('dlt');if(!t){t=document.createElement('div');t.id='dlt';t.setAttribute('role','status');document.body.appendChild(t)}if(btn.classList.contains('busy'))return;btn.classList.add('busy');t.className='on';t.textContent='Descargando…';var fin=function(x){btn.classList.remove('busy');t.textContent=x;setTimeout(function(){t.className=''},2200)};descargar({set textContent(v){if(/^Preparando/.test(v))return;t.textContent=v;if(/^Listo/.test(v))fin('Descarga lista')}}).then(function(){if(t.textContent==='Descargando…')fin('Descarga lista');else if(!/^Descarga lista/.test(t.textContent)){btn.classList.remove('busy');setTimeout(function(){t.className=''},3500)}})};
+function cargaJSZip(){return new Promise(function(ok,no){if(window.JSZip)return ok();var s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';s.onload=ok;s.onerror=function(){no(new Error('No se pudo cargar el generador de Word. Revisa tu conexión e intenta de nuevo.'))};document.head.appendChild(s)})}
+/* Certificados de escalafonamiento (NAV-IM y PR) a partir de las plantillas .docx de la Escuela.
+   Se edita el XML de la plantilla (mismo formato, encabezados, pies y firmas); lo que la persona debe
+   revisar o cambiar sale resaltado en amarillo. */
+function armarCert(JSZip, bytes, tipo, D, cfg) {
+  var HLC = '<w:highlight w:val="yellow"/>';
+  function xe(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function xd(s) { return String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&amp;/g, '&'); }
+  function conHl(rpr, hl) {
+    rpr = (rpr || '').replace(/<w:highlight [^>]*\/>/g, '');
+    if (!hl) return rpr;
+    if (/<w:szCs [^>]*\/>/.test(rpr)) return rpr.replace(/(<w:szCs [^>]*\/>)/, '$1' + HLC);
+    if (/<w:sz [^>]*\/>/.test(rpr)) return rpr.replace(/(<w:sz [^>]*\/>)/, '$1' + HLC);
+    return rpr + HLC;
+  }
+  function run(rpr, t, hl) { return '<w:r><w:rPr>' + conHl(rpr, hl) + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>'; }
+  function runsDe(p) {
+    var out = [], re = /<w:r(?: [^>]*)?>([\s\S]*?)<\/w:r>/g, m;
+    while ((m = re.exec(p))) {
+      var rp = /<w:rPr>([\s\S]*?)<\/w:rPr>/.exec(m[1]);
+      var ts = m[1].match(/<w:t(?: [^>]*)?>[^<]*<\/w:t>/g) || [];
+      out.push({ rpr: rp ? rp[1] : '', t: xd(ts.map(function (x) { return x.replace(/<[^>]+>/g, ''); }).join('')) });
+    }
+    return out;
+  }
+  function textoDe(p) { return runsDe(p).map(function (r) { return r.t; }).join(''); }
+  // reconstruye el párrafo: conserva pPr y reemplaza las corridas por las nuevas
+  function reconstruir(p, runs) {
+    var ini = /^<w:p(?: [^>]*)?>/.exec(p)[0], ppr = (/<w:pPr>[\s\S]*?<\/w:pPr>/.exec(p) || [''])[0];
+    return ini + ppr + runs.join('') + '</w:p>';
+  }
+  function editarParrafo(xml, clave, fn) {
+    var hecho = false;
+    var out = xml.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
+      if (hecho || textoDe(p).indexOf(clave) < 0) return p;
+      hecho = true;
+      return reconstruir(p, fn(runsDe(p)));
+    });
+    if (!hecho) throw new Error('Plantilla distinta a la esperada (no se encontró: ' + clave + ')');
+    return out;
+  }
+  function sinTildes(s) {
+    return String(s || '').toUpperCase().replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'Ñ').replace(/\s+/g, ' ').trim();
+  }
+  function cedula(c) { var s = String(c == null ? '' : c).replace(/\D/g, ''); return s.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+  function f3(v) { return v == null ? '' : (Math.round(v * 1000) / 1000).toFixed(3).replace('.', ','); }
+  var UNI = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós', 'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete', 'veintiocho', 'veintinueve', 'treinta', 'treinta y uno'];
+  var MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  function anioLetras(y) { return y === 2026 ? 'dos mil veintiséis' : y === 2027 ? 'dos mil veintisiete' : y === 2028 ? 'dos mil veintiocho' : y === 2025 ? 'dos mil veinticinco' : String(y); }
+  function fechaExp(d) {
+    var p = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'numeric', year: 'numeric' }).formatToParts(d), g = function (k) { return +(p.filter(function (x) { return x.type === k; })[0] || {}).value; };
+    var dd = g('day'), mm = g('month'), yy = g('year');
+    return UNI[dd] + ' (' + dd + ') del mes de ' + MESES[mm - 1] + ' del año ' + anioLetras(yy) + ' (' + yy + ')';
+  }
+  var per = cfg.periodo || '2026-2', anio = per.split('-')[0], sem = per.split('-')[1];
+  var fAsc = cfg.fechaAscenso || 'diciembre de ' + anio;
+  var fExp = cfg.fechaExpedicion || fechaExp(new Date());
+  var esNav = tipo === 'NAV-IM';
+  var fuera = function (s) { return s.e === 'Aplazado' || s.e === 'Retirado' || s.e === 'Comisión' || s.nv === 'CDPRON'; };
+  var lista = esNav
+    ? (D.esc || []).filter(function (s) { return !fuera(s) && s.p != null && s.f != null; })
+    : ((D.sheets && D.sheets.PR) || []).filter(function (s) { return s.cu === 'PR-' + (cfg.cursoPR || '62') && s.p != null && s.f != null && !fuera(s); });
+  lista = lista.slice().sort(function (a, b) { return a.p - b.p; });
+  if (!lista.length) throw new Error('No hay estudiantes para este certificado.');
+
+  return JSZip.loadAsync(bytes).then(function (zip) {
+    return zip.file('word/document.xml').async('string').then(function (x) {
+      // ---- tabla
+      var i0 = x.indexOf('<w:tbl>'), i1 = x.indexOf('</w:tbl>') + 8, tbl = x.slice(i0, i1);
+      var filas = tbl.match(/<w:tr[ >][\s\S]*?<\/w:tr>/g);
+      if (!filas || filas.length < 3) throw new Error('La plantilla no tiene la tabla esperada.');
+      var enc = filas[0], modelo = filas[1], ultima = filas[filas.length - 1];
+      function filaCon(modeloFila, vals, faltan) {
+        var k = -1;
+        return modeloFila.replace(/<w:tc>[\s\S]*?<\/w:tc>/g, function (tc) {
+          k++;
+          var rs = runsDe(tc), rpr = rs.length ? rs[0].rpr : ((/<w:pPr>[\s\S]*?<w:rPr>([\s\S]*?)<\/w:rPr>/.exec(tc) || [])[1] || '');
+          var hl = !!faltan[k], t = vals[k] == null ? '' : vals[k];
+          if (hl && !t) t = 'COMPLETAR';
+          var sin = tc.replace(/<w:r(?: [^>]*)?>[\s\S]*?<\/w:r>/g, '').replace(/<w:proofErr[^>]*\/>/g, '');
+          return sin.replace(/<\/w:p>(?![\s\S]*<\/w:p>)/, run(rpr, t, hl) + '</w:p>');
+        });
+      }
+      var out = [enc];
+      lista.forEach(function (s, n) {
+        var vals, faltan = {};
+        var lugar = s.lx || '';
+        if (esNav) {
+          vals = [String(s.p), s.g || '', s.ct || '', s.sp || '', sinTildes(s.n), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          if (!lugar) faltan[6] = 1;
+          if (!s.ct) faltan[2] = 1;
+        } else {
+          vals = [String(s.p), s.g || 'GM', s.ec || '', sinTildes(s.ae || ''), sinTildes(s.n), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          if (!s.ec) faltan[2] = 1;
+          if (!s.ae) faltan[3] = 1;
+          if (!lugar) faltan[6] = 1;
+        }
+        out.push(filaCon(n === lista.length - 1 ? ultima : modelo, vals, faltan));
+      });
+      var nuevaTabla = tbl.slice(0, tbl.indexOf(filas[0])) + out.join('') + '</w:tbl>';
+      x = x.slice(0, i0) + nuevaTabla + x.slice(i1);
+
+      // ---- textos (en amarillo lo que se debe revisar o cambiar)
+      var K = function (rs, t, hl) { return { rpr: rs.rpr, t: t, hl: !!hl }; };
+      function armar(items, base) { return items.map(function (it) { return run(it.rpr != null ? it.rpr : base, it.t, it.hl); }); }
+      if (esNav) {
+        x = editarParrafo(x, 'con fecha', function (rs) {
+          var o = [], saltar = false;
+          rs.forEach(function (r, i) {
+            if (saltar) { if (/^ de 202$|^[0-9]$|^\.$/.test(r.t) && r.t !== '.') return; saltar = false; }
+            if (r.t === 'junio') { o.push({ rpr: r.rpr, t: fAsc, hl: true }); saltar = true; return; }
+            o.push(r);
+          });
+          return armar(o);
+        });
+        x = editarParrafo(x, 'PROMOCIÓN NAVAL No.', function (rs) {
+          var b = rs[0].rpr; return armar([{ t: 'PROMOCIÓN NAVAL No. ', rpr: b }, { t: cfg.promNaval || '146', rpr: b, hl: true }, { t: ' - CONTINGENTE NAVAL REGULAR No. ', rpr: b }, { t: cfg.contNaval || '172', rpr: b, hl: true }]);
+        });
+        x = editarParrafo(x, 'PROMOCIÓN DE INFANTERÍA DE MARINA No.', function (rs) {
+          var b = rs[0].rpr; return armar([{ t: 'PROMOCIÓN DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.promIM || '92', rpr: b, hl: true }, { t: ' - CONTINGENTE DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.contIM || '117', rpr: b, hl: true }]);
+        });
+        x = editarParrafo(x, 'Este certificado se expide', function (rs) {
+          var o = [], i = 0;
+          for (; i < rs.length; i++) { o.push(rs[i]); if (/el día $/.test(rs[i].t)) break; }
+          var b = rs[Math.min(i + 1, rs.length - 1)].rpr;
+          o.push({ rpr: b, t: fExp, hl: true }); o.push({ rpr: b, t: '.' });
+          return armar(o);
+        });
+        x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
+          return armar(rs.map(function (r) { return /PINILLA/.test(r.t) ? { rpr: r.rpr, t: cfg.director || r.t, hl: true } : r; }));
+        });
+        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: true }; })); });
+      } else {
+        x = editarParrafo(x, 'con fecha', function (rs) {
+          var r = rs[0], t = r.t, a = t.indexOf('Administrativo No. '), c = t.indexOf('con fecha ');
+          var m1 = /No\. (\d+),/.exec(t);
+          var pre = t.slice(0, t.indexOf('No. ' + m1[1]) + 4), med = t.slice(t.indexOf('No. ' + m1[1]) + 4 + m1[1].length, c + 10), cola = t.slice(t.indexOf('.', c + 10));
+          return armar([{ rpr: r.rpr, t: pre }, { rpr: r.rpr, t: cfg.cursoPR || '62', hl: true }, { rpr: r.rpr, t: med }, { rpr: r.rpr, t: fAsc, hl: true }, { rpr: r.rpr, t: cola }]);
+        });
+        x = editarParrafo(x, 'CURSO CADETE PROFESIONAL ADMINISTRATIVO No.', function (rs) {
+          var b = rs[0].rpr; return armar([{ t: 'CURSO CADETE PROFESIONAL ADMINISTRATIVO No. ', rpr: b }, { t: cfg.cursoPR || '62', rpr: b, hl: true }]);
+        });
+        x = editarParrafo(x, 'Este certificado se expide', function (rs) {
+          var t = rs.map(function (r) { return r.t; }).join(''), b = rs[0].rpr, k = t.indexOf('el día ') + 7;
+          return armar([{ t: t.slice(0, k), rpr: b }, { t: fExp, rpr: b, hl: true }, { t: '.', rpr: b }]);
+        });
+        x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
+          var b = rs[0].rpr; return armar([{ t: 'Contralmirante ', rpr: b }, { t: cfg.director || 'JUAN PABLO PINILLA ACOSTA', rpr: b, hl: true }]);
+        });
+        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: true }; })); });
+      }
+      zip.file('word/document.xml', x);
+
+      // ---- encabezados con el periodo
+      var hs = Object.keys(zip.files).filter(function (n) { return /^word\/header\d+\.xml$/.test(n); });
+      return Promise.all(hs.map(function (n) {
+        return zip.file(n).async('string').then(function (h) {
+          if (h.indexOf('Continuación') < 0) return;
+          if (esNav) {
+            h = h.replace(/(<w:t>Alféreces 20)2(<\/w:t>[\s\S]*?<w:t>)\d(<\/w:t>[\s\S]*?<w:t>-<\/w:t>[\s\S]*?<w:t>)\d(<\/w:t>)/, function (m, a1, a2, a3, a4) { return a1 + anio.slice(2, 3) + a2 + anio.slice(3) + a3 + sem + a4; });
+          } else {
+            h = h.replace(/PR61 2026-1/g, 'PR' + (cfg.cursoPR || '62') + ' ' + per);
+          }
+          zip.file(n, h);
+        });
+      })).then(function () { return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' }); });
+    });
+  }).then(function (u8) { return { bytes: u8, n: lista.length }; });
+}
+
+
+function bajarCert(tipo,msg){
+  msg.textContent='Preparando el certificado…';
+  var arch=tipo==='PR'?'cert-pr.docx':'cert-nav-im.docx';
+  return cargaJSZip().then(function(){return fetch('plantillas/'+arch,{cache:'no-cache'})}).then(function(r){if(!r.ok)throw new Error('No se encontró la plantilla del certificado.');return r.arrayBuffer()})
+  .then(function(b){return armarCert(window.JSZip,b,tipo,window.__D,{periodo:window.__PER||'2026-2'})})
+  .then(function(r){var nom='Certificado Escalafonamiento '+(window.__PER||'2026-2')+' '+(tipo==='PR'?'PR':'NAV-IM')+'.docx';
+    var blob=new Blob([r.bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),u=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=u;a.download=nom;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500);
+    msg.textContent='Listo: '+r.n+' estudiantes. Revisa lo resaltado en amarillo antes de firmar.'})
+  .catch(function(e){msg.textContent=e.message||'No se pudo generar el certificado.'})}
+document.getElementById('cnav').onclick=function(){bajarCert('NAV-IM',document.getElementById('cm'))};
+document.getElementById('cpr').onclick=function(){bajarCert('PR',document.getElementById('cm'))};
 document.getElementById('dl2').onclick=function(){descargar(document.getElementById('dm'))};
 function mostrarDl(puede,admin){yo.puede=puede;var b=document.getElementById('dl');b.hidden=!puede||!window.__D;document.body.classList.toggle('has-dl',!b.hidden);document.body.classList.toggle('has-gear',!!admin)}
 function arrancar(app){var s=document.createElement('script');s.textContent='(function(){'+app+'\n})();';document.body.appendChild(s)}
