@@ -895,7 +895,7 @@ svg .cnt{font-weight:700}
 
 .crn{font-style:italic;font-weight:400;opacity:.7}
 :root:fullscreen .credfs b,:root.fsx .credfs b{font-weight:400}
-.cred2,.credfs,.cred{font-size:11px!important;line-height:1.15!important;letter-spacing:.01em!important}
+.cred2,.credfs,.cred{font-size:12px!important;line-height:1.15!important;letter-spacing:.01em!important}
 .cred2 em,.credfs em,.cred em{display:block;margin-top:0}
 :root:fullscreen body,:root.fsx body{background:#EAF0F8!important}
 :root:fullscreen #pub,:root.fsx #pub{gap:12px}
@@ -1336,7 +1336,7 @@ function nvb(s,p){const E=isE(cur),q=t=>String(t==null?'':t).replace(/&/g,'&amp;
   if(s.e&&s.e!=='Normal')o+=`<span class="nvb" title="${q(s.ev||s.e)}">${s.e}${p?' · 2026-2':''}</span>`;
   if(E&&s.e!=='Refuerzo'&&/^Refuerzo/.test(s.ev||''))o+=`<span class="nvb rf" title="${q(s.ev)}">En refuerzo</span>`;
   if(E&&s.fin)o+=`<span class="nvb fn" title="${q(s.fin)}">Novedad financiera</span>`;
-  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q(s.rk.map(r=>r[0]+' '+f3(r[1])).join(' · '))}">En riesgo</span>`;
+  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q(s.rk.map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '))}">En riesgo</span>`;
   return o}
 function row(s,k,i){
   const h=s.h[s.h.length-1]||[];
@@ -1693,7 +1693,7 @@ function novRender(){
   const gs=GR.filter(g=>!(key==='MER'&&g[0]!=='__exc')).map(([k,n,c])=>[k,n,c!=null?c:l.filter(s=>mt(s,k)).length]);
   const pick=g=>g==='__all'?rk:l.filter(s=>mt(s,g));
   const items=nk&&gs.some(x=>x[0]===nk)?pick(nk).slice().sort((x,y)=>(x.p??1e9)-(y.p??1e9)):[];
-  const det=s=>nk==='__fin'?s.fin:nk==='__rk'?(s.rk||[]).map(r=>r[0]+' '+f3(r[1])).join(' · '):(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
+  const det=s=>nk==='__fin'?s.fin:nk==='__rk'?(s.rk||[]).map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '):(nk==='__dis'||nk==='__exc')?(s.ma!=null?'Mín. asignatura '+f3(s.ma):''):(s.ev?s.ev:(s.e&&s.e!=='Normal'?s.e:''));
   el.innerHTML=`<h3>Novedades · semestre ${eLab(key)||lab(key)} · ${l.length} estudiantes</h3><div class="nt">${gs.map(([k,n,c])=>`<button class="nb" data-k="${k}" aria-pressed="${k===nk}" aria-expanded="${k===nk}" ${c?'':'disabled'}><b>${c}${k==='__dis'||k==='__exc'?'<small class="de"> de '+ORD.reduce((n,x)=>n+D.sheets[x].filter(s=>k==='__dis'?s.dis:s.exc).length,0)+'</small>':''}</b><span>${k==='__dis'?MEDAL:k==='__exc'?STAR:''}${n}</span></button>`).join('')}</div>`;
   const hm=v=>{if(v==null||isNaN(v))return '';const t=Math.max(0,Math.min(1,(v-6)/4)),h=v<6?4:Math.round(8+t*112),sa=v<6?72:Math.round(66-t*14),li=v<6?88:Math.round(90-t*5);return `background:hsl(${h} ${sa}% ${li}%)`};
   const sv=s=>{if(!isE(key))return [s.ac,s.an,s.di,s.cf];const r=(s.h||[]).filter(x=>x[0]==='4.2').pop();return r?[r[1],r[2],r[3],r[4]]:[s.ac,s.an,s.di,s.cf]};
