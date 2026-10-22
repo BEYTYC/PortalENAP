@@ -1263,6 +1263,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 #novl table.nl td:nth-child(2){white-space:nowrap!important;overflow:visible}
 #novl table.nl td:nth-child(2) .nvb{white-space:nowrap!important;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;margin-left:8px;box-sizing:border-box;position:relative}
 #novl table.nl td:nth-child(2) .nvb:hover{max-width:none;overflow:visible;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.tt h5 .tk,.evo .tk{display:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1814,7 +1815,7 @@ function stuRender(){
     pfc=`<div class="pfc"><h4>Promedio final frente al promedio general</h4><div class="pfh"><b>${f3(s.f)}</b><span>${OUT(s)?'Fuera del orden':'Puesto '+(s.p??'—')+' de '+list.length}</span></div>${g}</div>`;
   }
   let evo='';
-  if(false&&s.h&&s.h.length){
+  if(s.h&&s.h.length){
     const n=s.h.length,E=0.05,fm=v=>v.toFixed(3).replace('.',','),sg=v=>(v>=0?'+':'−')+Math.abs(v).toFixed(3).replace('.',',');
     const slope=ys=>{const m=ys.length;if(m<2)return null;if(m===2)return ys[1]-ys[0];const mx=(m-1)/2,my=ys.reduce((x,y)=>x+y,0)/m;let nu=0,de=0;ys.forEach((y,i)=>{nu+=(i-mx)*(y-my);de+=(i-mx)*(i-mx)});return nu/de};
     const kind=b=>b==null?'na':b>E?'up':b<-E?'dn':'eq';
