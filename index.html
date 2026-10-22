@@ -1126,6 +1126,20 @@
     </div>
   </div>
 
+  <div class="panel-app__card" id="actividadCard" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;color:#0a2540;font-size:1.062rem;">Actividad en el Portal</h3>
+      <button type="button" class="panel-app__btn panel-app__btn--ghost" id="actividadRecargarBtn" style="padding:4px 10px;font-size:.843rem;">Actualizar</button>
+    </div>
+    <p style="font-size:.882rem;color:#5b6b7c;margin:6px 0 10px;">Cuánto tiempo estuvo cada persona en el Portal (solo cuenta el tiempo con la pestaña visible y con actividad) y los enlaces que clickeó, en orden. Hora de Colombia.</p>
+    <div style="max-height:420px;overflow:auto;">
+    <table>
+      <thead><tr><th>Inicio</th><th>Nombre</th><th>Correo</th><th>Duración</th><th>Enlaces clickeados</th></tr></thead>
+      <tbody id="actividadBody"><tr><td colspan="5">Cargando…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
   <div class="panel-app__card">
     <table>
       <thead><tr><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
@@ -1742,6 +1756,7 @@
 
     const roles = rolesEspeciales.length ? rolesEspeciales : ['USUARIO'];
     registrarIngresoPortal(cuenta);
+    actividadIniciar(cuenta);
     return { perfil, roles };
   }
 
@@ -2320,6 +2335,66 @@
   function anotarYEsperar(cuenta) {
     return Promise.race([registrarIngresoPortal(cuenta), new Promise((r) => setTimeout(r, 4000))]);
   }
+
+  // ---------------------------------------------------------------
+  // Actividad en el Portal: cuánto dura cada sesión y qué enlaces clickea.
+  // Cuenta solo el tiempo con la pestaña visible y con algún movimiento en
+  // los últimos 5 minutos. Se envía cada minuto y al salir (api/ingresos-portal.js).
+  // ---------------------------------------------------------------
+  const ACT = { id: null, inicio: 0, seg: 0, ultimoMov: 0, clics: [], sucio: false, token: null, cuenta: null, timer: null };
+  function actividadIniciar(cuenta) {
+    if (ACT.id) { ACT.cuenta = cuenta; return; }
+    const b = new Uint8Array(12); (window.crypto || {}).getRandomValues && crypto.getRandomValues(b);
+    ACT.id = Array.from(b, (x) => x.toString(36).padStart(2, '0')).join('') + Date.now().toString(36);
+    ACT.inicio = Date.now(); ACT.ultimoMov = Date.now(); ACT.cuenta = cuenta; ACT.sucio = true;
+    ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'].forEach((ev) => addEventListener(ev, () => { ACT.ultimoMov = Date.now(); }, { passive: true, capture: true }));
+    ACT.timer = setInterval(() => {
+      if (document.visibilityState === 'visible' && Date.now() - ACT.ultimoMov < 300000) { ACT.seg += 5; ACT.sucio = true; }
+    }, 5000);
+    setInterval(() => actividadEnviar(false), 60000);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') actividadEnviar(true); });
+    addEventListener('pagehide', () => actividadEnviar(true));
+    document.addEventListener('click', (e) => {
+      const el = e.target && e.target.closest && e.target.closest('.dropdown button, .dropdown a, #viewHome a, #viewHome button, a[target="_blank"], .nav-home, .subm-wrap button');
+      if (!el) return;
+      const et = el.querySelector && el.querySelector('.label');
+      const n = ((et ? et.textContent : el.textContent) || el.getAttribute('title') || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+      if (!n || n.length > 100) return;
+      const ult = ACT.clics[ACT.clics.length - 1];
+      if (ult && ult.n === n && Date.now() - Date.parse(ult.t) < 800) return;
+      ACT.clics.push({ n, t: new Date().toISOString() }); ACT.sucio = true;
+    }, true);
+  }
+  async function actividadEnviar(salida) {
+    if (!ACT.id || !ACT.sucio) return;
+    try {
+      if (!salida || !ACT.token) { ACT.token = await adquirirToken(['User.Read'], ACT.cuenta); }
+      if (!ACT.token) return;
+      ACT.sucio = false;
+      await fetch('/api/ingresos-portal', {
+        method: 'POST', keepalive: !!salida,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accessToken: ACT.token, accion: 'actividad', sesion: ACT.id, inicio: ACT.inicio, segundos: ACT.seg, clics: ACT.clics.slice(-200) }),
+      });
+    } catch (e) { ACT.sucio = true; }
+  }
+  const fmtDur = (s) => { s = Math.round(s || 0); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h} h ${m} min` : m ? `${m} min ${x} s` : `${x} s`; };
+  async function cargarActividad() {
+    const cuerpo = document.getElementById('actividadBody');
+    cuerpo.innerHTML = '<tr><td colspan="5">Cargando…</td></tr>';
+    try {
+      const cuentas = (await getMsal()).getAllAccounts();
+      if (!cuentas.length) return;
+      const token = await adquirirToken(['User.Read'], cuentas[0]);
+      const sesiones = (await llamarIngresos('listar-actividad', token)).sesiones || [];
+      const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+      cuerpo.innerHTML = sesiones.length ? sesiones.slice(0, 300).map((s) => {
+        const enl = (s.clics || []).map((c) => esc(c.n)).join(' → ') || '<em>Ninguno</em>';
+        return `<tr><td>${esc(fmt.format(new Date(s.inicio)))}</td><td>${esc(s.nombre)}</td><td>${esc(s.correo)}</td><td>${fmtDur(s.segundos)}</td><td>${enl}</td></tr>`;
+      }).join('') : '<tr><td colspan="5">Sin registros todavía.</td></tr>';
+    } catch (e) { cuerpo.innerHTML = '<tr><td colspan="5">No se pudo cargar: ' + String(e.message || e).replace(/[<&]/g, '') + '</td></tr>'; }
+  }
   function esAdminBitacora(sesion) {
     const p = (sesion && sesion.perfil) || {};
     return ADMINS_BITACORA.indexOf(String(p.mail || p.userPrincipalName || '').trim().toLowerCase()) !== -1;
@@ -2360,7 +2435,9 @@
     if (roles.includes('ADMIN')) cargarVistaAdmin();
     if (esAdminBitacora(sesion)) {
       document.getElementById('ingresosCard').hidden = false;
+      document.getElementById('actividadCard').hidden = false;
       cargarIngresos();
+      cargarActividad();
     }
     if (roles.includes('ADMIN') || roles.includes('SAC')) cargarSelectorCeremonias();
     renderNav();
@@ -2780,6 +2857,7 @@
     document.getElementById('adminGuardarBtn').addEventListener('click', guardarUsuarioAdmin);
     document.getElementById('adminRecargarBtn').addEventListener('click', cargarVistaAdmin);
     document.getElementById('ingresosRecargarBtn').addEventListener('click', cargarIngresos);
+    document.getElementById('actividadRecargarBtn').addEventListener('click', cargarActividad);
     document.getElementById('ingresosFiltroBtn').addEventListener('click', () => {
       ingresosSoloFallidos = !ingresosSoloFallidos;
       document.getElementById('ingresosFiltroBtn').textContent = ingresosSoloFallidos ? 'Ver todos los ingresos' : 'Ver solo intentos sin éxito';

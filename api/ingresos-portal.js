@@ -9,6 +9,8 @@
  *                       resultado se calcula aquí (Ingresó / Bloqueada / Cuenta no
  *                       institucional).
  *   accion "listar"     Solo los administradores fijos (ADMINS). Devuelve los eventos.
+ *   accion "actividad"  Duración y enlaces clickeados de una sesión (PortalAccesos/actividad.json).
+ *   accion "listar-actividad"  Solo ADMINS: devuelve las sesiones.
  *
  * Se guarda en SharePoint (carpeta PortalAccesos/ingresos.json), nunca en el repo.
  * Un mismo resultado de la misma cuenta se registra una sola vez cada 10 minutos
@@ -21,6 +23,9 @@ const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const DOMINIO = '@enap.edu.co';
 const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
 const RUTA = 'PortalAccesos/ingresos.json';
+const RUTA_ACT = 'PortalAccesos/actividad.json';
+const MAX_SESIONES = 3000;
+const MAX_CLICS = 200;
 const MAX_EVENTOS = 5000;
 const VENTANA_MS = 10 * 60 * 1000;
 
@@ -54,6 +59,23 @@ async function escribir(token, siteId, eventos) {
     body: JSON.stringify({ eventos }),
   });
   if (!r.ok) throw error(`No se pudo guardar la bitácora (${r.status}).`, 502);
+}
+
+async function leerSesiones(token, siteId) {
+  const r = await fetch(`${GRAPH_BASE}/sites/${siteId}/drive/root:/${RUTA_ACT}:/content`, { headers: { Authorization: `Bearer ${token}` } });
+  if (r.status === 404) return [];
+  if (!r.ok) throw error(`No se pudo leer la actividad (${r.status}).`, 502);
+  const j = await r.json();
+  return Array.isArray(j.sesiones) ? j.sesiones : [];
+}
+
+async function escribirSesiones(token, siteId, sesiones) {
+  const r = await fetch(`${GRAPH_BASE}/sites/${siteId}/drive/root:/${RUTA_ACT}:/content`, {
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sesiones }),
+  });
+  if (!r.ok) throw error(`No se pudo guardar la actividad (${r.status}).`, 502);
 }
 
 module.exports = async function handler(req, res) {
@@ -90,6 +112,36 @@ module.exports = async function handler(req, res) {
       if (!ADMINS.includes(yo.correo)) throw error('Solo los administradores pueden ver la bitácora.', 403);
       const eventos = await leer(token, siteId);
       res.status(200).json({ eventos: eventos.slice().reverse() });
+      return;
+    }
+
+    if (accion === 'actividad') {
+      // Duración y enlaces clickeados de UNA sesión del Portal. La identidad sale del token.
+      const b = req.body || {};
+      const id = String(b.sesion || '').slice(0, 40);
+      if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) throw error('Sesión inválida.', 400);
+      const inicio = Number(b.inicio) > 0 ? new Date(Number(b.inicio)).toISOString() : new Date().toISOString();
+      const segundos = Math.max(0, Math.min(86400, Math.round(Number(b.segundos) || 0)));
+      const clics = (Array.isArray(b.clics) ? b.clics : []).slice(0, MAX_CLICS)
+        .map((c) => ({ n: String((c && c.n) || '').slice(0, 120), t: String((c && c.t) || '').slice(0, 30) }))
+        .filter((c) => c.n);
+      const lista = await leerSesiones(token, siteId);
+      let ses = lista.find((x) => x.sesion === id && x.correo === yo.correo);
+      if (!ses) { ses = { sesion: id, correo: yo.correo, nombre: yo.nombre, inicio, ultimo: inicio, segundos: 0, clics: [] }; lista.push(ses); }
+      ses.segundos = Math.max(ses.segundos || 0, segundos);
+      ses.ultimo = new Date().toISOString();
+      const vistos = new Set(ses.clics.map((c) => c.t + '|' + c.n));
+      for (const c of clics) { const k = c.t + '|' + c.n; if (!vistos.has(k)) { ses.clics.push(c); vistos.add(k); } }
+      ses.clics = ses.clics.slice(-MAX_CLICS);
+      await escribirSesiones(token, siteId, lista.slice(-MAX_SESIONES));
+      res.status(200).json({ ok: true });
+      return;
+    }
+
+    if (accion === 'listar-actividad') {
+      if (!ADMINS.includes(yo.correo)) throw error('Solo los administradores pueden ver la actividad.', 403);
+      const lista = await leerSesiones(token, siteId);
+      res.status(200).json({ sesiones: lista.slice().reverse() });
       return;
     }
 
