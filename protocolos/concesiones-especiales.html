@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Protocolo · Concesiones Especiales</title>
+<style>
+  :root{
+    --navy-950:#04142E; --navy-900:#071142; --navy-800:#0B2A5B; --navy-700:#123A73; --navy-600:#1B4C92; --navy-500:#3A5F96;
+    --navy-300:#95AECF; --navy-200:#C4D2E7; --navy-100:#E3EAF4; --navy-50:#F2F5FA;
+    --gold-700:#846813; --gold-600:#A8861D; --gold-500:#D3A62A; --gold-400:#E8C662; --gold-300:#EBD79A; --gold-100:#FBF3D9;
+    --bg:#F7F9FC; --surface:#fff; --border:#DDE5F0; --text:#0B2A5B; --muted:#4C6386;
+    --ok:#1F7A4D; --okbg:#E6F4EC; --warn:#8A5A00; --warnbg:#FFF4DC; --red:#B3261E; --redbg:#FDECEA;
+    --shadow:0 1px 2px rgba(7,28,60,.06),0 10px 24px -14px rgba(7,28,60,.28);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;font-size:15px;line-height:1.5}
+  button{font-family:inherit;cursor:pointer}
+  h1,h2,h3{margin:0;font-weight:650;text-wrap:balance}
+  a{color:var(--navy-600)}
+
+  /* ---------- Portada ---------- */
+  .hero{background:radial-gradient(1200px 400px at 20% -20%,#1B4C92 0%,rgba(27,76,146,0) 60%),linear-gradient(135deg,var(--navy-900),var(--navy-800));color:#fff;padding:26px 28px 22px;position:relative;overflow:hidden}
+  .hero:after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border:1px solid rgba(232,198,98,.35);border-radius:50%;box-shadow:0 0 0 38px rgba(232,198,98,.06),0 0 0 80px rgba(232,198,98,.04)}
+  .hero .tag{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold-400);font-weight:700}
+  .hero h1{font-size:26px;margin:4px 0 4px}
+  .hero p{margin:0;color:#D5DFF0;max-width:720px}
+  .hero-row{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:16px;position:relative;z-index:1}
+  .prog{flex:1 1 300px;max-width:520px}
+  .prog .lbl{display:flex;justify-content:space-between;font-size:12.5px;color:#D5DFF0;margin-bottom:5px}
+  .bar{height:10px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden}
+  .bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-500),var(--gold-400));border-radius:99px;transition:width .4s ease}
+  .btn{border:none;border-radius:10px;padding:9px 16px;font-weight:650;font-size:14px;transition:transform .12s,box-shadow .12s,background .15s}
+  .btn:active{transform:translateY(1px)}
+  .btn.gold{background:var(--gold-400);color:var(--navy-950)}
+  .btn.gold:hover{background:var(--gold-300)}
+  .btn.ghost{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.28)}
+  .btn.ghost:hover{background:rgba(255,255,255,.2)}
+  .btn.navy{background:var(--navy-800);color:#fff}
+  .btn.navy:hover{background:var(--navy-700)}
+  .btn.line{background:#fff;color:var(--navy-800);border:1px solid var(--border)}
+  .btn.line:hover{background:var(--navy-50)}
+  .btn:focus-visible,.step-h:focus-visible,.faq-q:focus-visible,.ph-nav button:focus-visible,.tab:focus-visible{outline:3px solid var(--gold-400);outline-offset:2px}
+
+  /* ---------- Barra de pestañas de la herramienta (mapa) ---------- */
+  .mapa{background:#fff;border-bottom:1px solid var(--border);padding:10px 28px;position:sticky;top:0;z-index:20;box-shadow:0 6px 14px -12px rgba(7,28,60,.5)}
+  .mapa .t{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .tab{border:1px solid var(--border);background:#fff;border-radius:999px;padding:5px 13px;font-size:13px;font-weight:600;color:var(--navy-800);transition:all .18s}
+  .tab:hover{background:var(--navy-50)}
+  .tab.on{background:var(--navy-800);color:#fff;border-color:var(--navy-800);box-shadow:0 0 0 4px rgba(211,166,42,.35)}
+  .mapa .que{font-size:13px;color:var(--muted);margin-top:7px;min-height:20px}
+  .mapa .que b{color:var(--navy-800)}
+
+  /* ---------- Estructura ---------- */
+  .wrap{display:grid;grid-template-columns:250px minmax(0,1fr);gap:24px;padding:22px 28px 60px;max-width:1280px;margin:0 auto}
+  .ph-nav{position:sticky;top:112px;align-self:start;display:flex;flex-direction:column;gap:4px;max-height:calc(100vh - 130px);overflow:auto}
+  .ph-nav .h{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 4px 6px}
+  .ph-nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:1px solid transparent;background:transparent;border-radius:10px;padding:8px 10px;color:var(--navy-800);font-size:14px;font-weight:600}
+  .ph-nav button:hover{background:var(--navy-100)}
+  .ph-nav button.on{background:#fff;border-color:var(--border);box-shadow:var(--shadow)}
+  .ph-nav .n{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:var(--navy-100);color:var(--navy-800)}
+  .ph-nav .done .n{background:var(--ok);color:#fff}
+  .ph-nav small{display:block;font-weight:400;color:var(--muted);font-size:11.5px}
+  main{min-width:0}
+
+  .search{display:flex;gap:10px;align-items:center;margin-bottom:16px}
+  .search input{flex:1;border:1px solid var(--border);background:#fff;border-radius:10px;padding:10px 14px;font:inherit;color:var(--text)}
+  .search input:focus{outline:3px solid var(--gold-300);border-color:var(--gold-500)}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-bottom:18px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .card .k{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .card .v{font-size:20px;font-weight:700;margin:2px 0}
+  .card .s{font-size:13px;color:var(--muted)}
+  .card.gold{border-left:4px solid var(--gold-500)}
+
+  section.fase{margin-bottom:26px;scroll-margin-top:120px}
+  .fase-h{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+  .fase-h .num{flex:none;width:36px;height:36px;border-radius:12px;background:var(--navy-800);color:#fff;display:grid;place-items:center;font-weight:700}
+  .fase-h h2{font-size:20px}
+  .fase-h .sub{color:var(--muted);font-size:13.5px}
+  .fase-h .cnt{margin-left:auto;font-size:12.5px;font-weight:700;color:var(--navy-800);background:var(--navy-100);border-radius:99px;padding:3px 10px;white-space:nowrap}
+  .fase.done .fase-h .num{background:var(--ok)}
+  .fase.done .fase-h .cnt{background:var(--okbg);color:var(--ok)}
+
+  .step{background:#fff;border:1px solid var(--border);border-radius:14px;margin-bottom:10px;box-shadow:var(--shadow);overflow:hidden;transition:border-color .2s}
+  .step.open{border-color:var(--navy-300)}
+  .step.hecho{background:#FAFDFB}
+  .step-h{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:none;padding:13px 16px;color:var(--text);font-size:15.5px;font-weight:650}
+  .chk{flex:none;width:24px;height:24px;border-radius:8px;border:2px solid var(--navy-300);background:#fff;display:grid;place-items:center;color:#fff;transition:all .15s}
+  .chk svg{width:14px;height:14px;opacity:0;transform:scale(.4);transition:all .18s}
+  .hecho .chk{background:var(--ok);border-color:var(--ok)}
+  .hecho .chk svg{opacity:1;transform:none}
+  .hecho .step-h .tt{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(76,99,134,.4)}
+  .step-h .donde{margin-left:auto;font-size:11.5px;font-weight:700;color:var(--navy-700);background:var(--navy-100);border-radius:99px;padding:2px 10px;white-space:nowrap}
+  .step-h .chev{flex:none;width:16px;height:16px;color:var(--muted);transition:transform .2s}
+  .open .chev{transform:rotate(180deg)}
+  .step-b{display:none;padding:2px 18px 16px 52px}
+  .open .step-b{display:block;animation:desp .22s ease}
+  @keyframes desp{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+  .step-b p{margin:6px 0}
+  .step-b ol,.step-b ul{margin:6px 0;padding-left:20px}
+  .step-b li{margin:4px 0}
+  .btnlbl{display:inline-block;background:var(--navy-800);color:#fff;border-radius:6px;padding:0 7px;font-size:12.5px;font-weight:650;white-space:nowrap}
+  .btnlbl.alt{background:#fff;color:var(--navy-800);border:1px solid var(--navy-300)}
+  .btnlbl.verde{background:var(--ok)}
+  .callout{border-radius:10px;padding:9px 12px;margin:10px 0;font-size:14px}
+  .callout.ojo{background:var(--warnbg);color:var(--warn);border:1px solid #F3DFA9}
+  .callout.bien{background:var(--okbg);color:var(--ok);border:1px solid #BFE2CE}
+  .callout.regla{background:var(--navy-50);color:var(--navy-800);border:1px solid var(--navy-200)}
+  .callout b{font-weight:700}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .hl{background:var(--gold-100);box-shadow:0 0 0 3px var(--gold-100);border-radius:3px}
+
+  /* ---------- Línea de tiempo ---------- */
+  .tl{display:flex;gap:0;margin:2px 0 18px;overflow:auto;padding-bottom:4px}
+  .tl button{flex:1 0 108px;border:none;background:transparent;text-align:center;padding:0 4px;color:var(--navy-800);font-size:12.5px;font-weight:600;position:relative}
+  .tl button:before{content:"";position:absolute;top:13px;left:-50%;width:100%;height:3px;background:var(--navy-200);z-index:0}
+  .tl button:first-child:before{display:none}
+  .tl .dot{position:relative;z-index:1;width:28px;height:28px;border-radius:50%;margin:0 auto 5px;display:grid;place-items:center;background:#fff;border:3px solid var(--navy-300);font-size:12px;font-weight:700;transition:all .2s}
+  .tl button.done:before{background:var(--ok)}
+  .tl button.done .dot{background:var(--ok);border-color:var(--ok);color:#fff}
+  .tl button.act .dot{border-color:var(--gold-500);box-shadow:0 0 0 5px rgba(211,166,42,.28);transform:scale(1.12)}
+
+  /* ---------- Tablas / FAQ ---------- */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .faq{background:#fff;border:1px solid var(--border);border-radius:12px;margin-bottom:8px;box-shadow:var(--shadow);overflow:hidden}
+  .faq-q{width:100%;text-align:left;border:none;background:transparent;padding:12px 16px;font-size:15px;font-weight:650;color:var(--text);display:flex;gap:10px;align-items:center}
+  .faq-q .chev{margin-left:auto;width:16px;height:16px;color:var(--muted);transition:transform .2s;flex:none}
+  .faq.open .chev{transform:rotate(180deg)}
+  .faq-a{display:none;padding:0 16px 14px}
+  .faq.open .faq-a{display:block}
+  .faq-a p{margin:6px 0}
+  .final{background:linear-gradient(135deg,var(--navy-900),var(--navy-800));color:#fff;border-radius:16px;padding:18px 20px;box-shadow:var(--shadow)}
+  .final h2{font-size:19px;margin-bottom:6px}
+  .final label{display:flex;gap:10px;align-items:flex-start;padding:5px 0;cursor:pointer;color:#E5ECF8}
+  .final input{margin-top:4px;accent-color:#D3A62A;width:16px;height:16px}
+  .vacio{display:none;text-align:center;color:var(--muted);padding:26px}
+
+  @media (max-width:900px){
+    .wrap{grid-template-columns:minmax(0,1fr);padding:16px 14px 50px}
+    .ph-nav{position:static;flex-direction:row;overflow:auto;max-height:none;padding-bottom:4px}
+    .ph-nav .h{display:none}
+    .ph-nav button{flex:0 0 auto;width:auto}
+    .ph-nav small{display:none}
+    .hero{padding:20px 16px}
+    .mapa{padding:8px 14px}
+    .step-b{padding-left:18px}
+    .step-h .donde{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="tag">Protocolos académicos · Oficina de Estadística</div>
+  <h1>Protocolo de Concesiones Especiales</h1>
+  <p>Guía paso a paso para quien administre la herramienta: qué hacer en cada momento del semestre, en qué pestaña y qué botón pulsar. Marque cada paso al terminarlo y el avance queda guardado en este navegador.</p>
+  <div class="hero-row">
+    <div class="prog" aria-live="polite">
+      <div class="lbl"><span id="progTxt">0 de 0 pasos</span><span id="progPct">0 %</span></div>
+      <div class="bar"><span id="progBar"></span></div>
+    </div>
+    <button class="btn gold" id="btnSig" type="button">Empezar</button>
+    <button class="btn ghost" id="btnReset" type="button">Reiniciar avance</button>
+  </div>
+</header>
+
+<div class="mapa" aria-label="Mapa de la herramienta">
+  <div class="t">Dónde está cada cosa en la herramienta · pulse una pestaña</div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="que" id="tabQue"></div>
+</div>
+
+<div class="wrap">
+  <nav class="ph-nav" id="phNav" aria-label="Fases del protocolo"></nav>
+  <main>
+    <div class="cards" id="cards"></div>
+    <div class="tl" id="tl" aria-label="Ciclo del semestre"></div>
+    <div class="search"><input id="q" type="search" placeholder="Buscar en el protocolo (por ejemplo: devolver, correo, matrícula cero, resolución)…" aria-label="Buscar en el protocolo"></div>
+    <div class="vacio" id="vacio">No se encontró nada con esa búsqueda.</div>
+    <div id="fases"></div>
+
+    <section class="fase" id="faq-sec">
+      <div class="fase-h"><div class="num">?</div><div><h2>Si algo sale distinto</h2><div class="sub">Situaciones frecuentes y cómo resolverlas</div></div></div>
+      <div id="faq"></div>
+    </section>
+
+    <section class="fase" id="final-sec">
+      <div class="final">
+        <h2>Lista de cierre del periodo</h2>
+        <p style="margin:0 0 6px;color:#D5DFF0">Antes de dar el semestre por terminado, confirme cada punto.</p>
+        <div id="finalList"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+/* ============================ CONTENIDO ============================ */
+var TABS=[
+  {k:'resumen',t:'Resumen',q:'Semáforo del periodo: qué falta cargar o hacer, tarjetas con los listados de estudiantes y gráficas filtrables.'},
+  {k:'cargar',t:'Cargar notas',q:'Aquí se cargan los insumos (base histórica, Todas las Notas, matrícula cero, comandantes) y se pulsan <b>Validar periodo</b> y <b>Publicar resultados</b>.'},
+  {k:'detalle',t:'Detalle',q:'Lista completa de estudiantes con su resultado. Permite filtrar, corregir una decisión a mano y descargar listados y PDFs.'},
+  {k:'validacion',t:'Validación',q:'Revisión de los documentos que subió cada estudiante: verificar, aprobar, devolver o corregir sus datos.'},
+  {k:'dashboard',t:'Dashboard',q:'Gráficas para el mando: concesiones por periodo, por concepto, por programa y cuántos estudiantes vuelven a recibirla.'},
+  {k:'admin',t:'Administración',q:'Tres secciones en una sola página: <b>Convocatorias</b> (fechas, valores de matrícula, elecciones), <b>Correos</b> y <b>Resolución</b> en Word.'}
+];
+
+var FASES=[
+ {id:'prep',n:1,t:'Antes de empezar',s:'Accesos, insumos y reglas',pasos:[
+  {id:'p1',t:'Entrar a la herramienta',tab:'resumen',donde:'Portal ENAP',b:
+   '<ol><li>En el Portal ENAP abra el menú <b>Estadística</b> y elija <b>Concesiones Especiales</b>.</li><li>Se abre la vista de administración con las pestañas <span class="btnlbl alt">Resumen</span> <span class="btnlbl alt">Cargar notas</span> <span class="btnlbl alt">Detalle</span> <span class="btnlbl alt">Validación</span> <span class="btnlbl alt">Dashboard</span> <span class="btnlbl alt">Administración</span>.</li></ol>'
+   +'<p>Quienes entran como decano, secretario académico, jefe de programa o jefe de extensión ven solo el <b>Dashboard</b> (algunos roles también el <b>Detalle</b>) y no pueden cambiar nada.</p>'
+   +'<div class="callout regla"><b>Los estudiantes</b> no entran por aquí: usan la página pública <a href="https://www.escuelanaval.edu.co/concesiones" target="_blank" rel="noopener">escuelanaval.edu.co/concesiones</a>, sin usuario ni contraseña.</div>'},
+  {id:'p2',t:'Reunir los insumos del semestre',tab:'cargar',donde:'Archivos',b:
+   '<p>Tenga listos estos archivos antes de abrir la convocatoria o, a más tardar, antes de validar:</p><ul>'
+   +'<li><b>Todas las Notas</b> (Excel del semestre anterior). Es el mismo archivo que se usa en Antigüedades.</li>'
+   +'<li><b>Lista de matrícula cero</b>: números de documento (Excel, CSV o pegados). Aunque esos estudiantes ganen la concesión, no se les aplica.</li>'
+   +'<li><b>Lista de comandantes de curso</b>: números de documento de los nombrados para el periodo.</li>'
+   +'<li><b>Base Concesiones.xlsx</b> (hoja «Concesiones»): vive en el OneDrive de Estadística, <i>Bases de Datos › B.D Concesiones</i>. La herramienta la lee sola; solo hay que mantenerla al día.</li>'
+   +'<li><b>Valores de matrícula</b> por programa y año (para estimar el valor de los descuentos).</li>'
+   +'<li><b>Firmantes</b> de la resolución y el número y fecha de la resolución que faculta al Director.</li></ul>'},
+  {id:'p3',t:'Tener presentes las reglas de oro',tab:'',donde:'Reglas',b:
+   '<div class="callout regla"><ul style="margin:0">'
+   +'<li>Las concesiones <b>no son acumulables</b>: se otorga la de mayor descuento.</li>'
+   +'<li>El estudiante solicita <b>una sola</b> concesión; la única adicional permitida es <b>Votaciones</b>, que se le da si no cumple la principal.</li>'
+   +'<li><b>Alumno Distinguido, Excelencia Académica y Comandante de Curso</b> no se solicitan: el sistema las calcula con las notas y la lista de comandantes.</li>'
+   +'<li>Solo cuentan las solicitudes cuyos documentos están <b>aprobados</b> por Estadística. No hay aprobaciones automáticas de ningún tipo.</li>'
+   +'<li>Los soportes con fecha de expedición no pueden tener más de 30 días (el certificado de núcleo familiar no lleva límite).</li>'
+   +'<li>Los estudiantes de Mercantes y Mercantes de Máquinas son siempre <b>Civil</b>; el programa se reconoce por el curso (IM = Infantería de Marina; MC o MM = Mercantes).</li>'
+   +'<li>Los nombres se escriben siempre en MAYÚSCULA, con APELLIDOS primero y la sigla del grado antes.</li></ul></div>'}
+ ]},
+ {id:'conv',n:2,t:'Abrir la convocatoria',s:'Fechas, valores y elecciones',pasos:[
+  {id:'c1',t:'Revisar el periodo y la fecha límite',tab:'admin',donde:'Administración › Convocatorias',b:
+   '<p>Hay dos bloques independientes: <b>Convocatoria Batallón</b> (estudiantes) y <b>Convocatoria Aspirantes</b>. En cada uno:</p><ol>'
+   +'<li>Verifique el <b>Periodo a configurar</b> (se cambia solo al pasar el cierre; elíjalo en el desplegable si necesita otro).</li>'
+   +'<li>Revise la <b>Fecha y hora límite</b>. Cada periodo trae el cierre de la resolución; puede modificarlo.</li></ol>'
+   +'<div class="callout regla">Cierres habituales: periodo 1 → Batallón <b>30 de octubre</b> y Aspirantes <b>10 de diciembre</b> del año anterior · periodo 2 → Batallón <b>30 de mayo</b> y Aspirantes <b>10 de junio</b>. Cierran a las <b>10:00 p. m.</b>; si cae en fin de semana o festivo pasa al día hábil siguiente. Hora de Colombia.</div>'},
+  {id:'c2',t:'Dejar la convocatoria abierta',tab:'admin',donde:'Administración › Convocatorias',b:
+   '<ol><li>Marque <b>Convocatoria abierta</b>.</li><li>Pulse el botón de guardar del bloque.</li></ol>'
+   +'<p>La convocatoria se abre sola <b>2 meses antes</b> del cierre. Mientras está cerrada, el botón del estudiante muestra la fecha de apertura; al pasar la hora límite deja de aceptar solicitudes automáticamente.</p>'
+   +'<div class="callout bien"><b>Cómo sabe que quedó bien:</b> en la pestaña <span class="btnlbl alt">Resumen</span> aparece la fecha de cierre junto al selector de convocatoria.</div>'},
+  {id:'c3',t:'Guardar los valores de matrícula',tab:'admin',donde:'Administración › Convocatorias',b:
+   '<p>En la tarjeta <b>Valor de la matrícula por programa y año</b> escriba los valores (columnas Navales/Infantería y Mercantes/Máquinas) y pulse <span class="btnlbl">Guardar valores</span>.</p><p>Se usan solo para el <b>valor estimado</b> de los descuentos en el Dashboard.</p>'},
+  {id:'c4',t:'Actualizar las elecciones vigentes',tab:'admin',donde:'Administración › Convocatorias',b:
+   '<p>En <b>Elecciones vigentes (para votaciones)</b> escriba el nombre, la fecha de la elección y hasta cuándo está vigente; use el botón de agregar para una nueva y guarde.</p><div class="callout ojo"><b>Ojo:</b> el certificado electoral del estudiante se valida contra la fecha de votación de estas elecciones. Si no hay una vigente, nadie puede acreditar Votaciones.</div>'}
+ ]},
+ {id:'abierta',n:3,t:'Mientras está abierta',s:'Seguimiento de solicitudes',pasos:[
+  {id:'a1',t:'Seguir las solicitudes en el Resumen',tab:'resumen',donde:'Resumen',b:
+   '<ul><li>Arriba elija la convocatoria (<b>Estudiantes</b> o <b>Aspirantes</b>) y el periodo.</li><li>Cada tarjeta es un botón: al pulsarla se abre debajo el listado de esos estudiantes (con una X para cerrarlo).</li><li>Las gráficas se pueden filtrar por tipo de concesión, aspirante o no, y programa.</li><li>La lista de pasos del periodo muestra qué falta: base histórica, notas, matrícula cero, comandantes, validación, publicación y correos.</li></ul>'},
+  {id:'a2',t:'Entender qué le pasa a cada solicitud',tab:'validacion',donde:'Proceso',b:
+   '<ol><li>El estudiante radica y recibe por correo un <b>radicado</b> (formato <i>CE-añomesdíahoraminuto-sigla</i>).</li><li>Sus documentos se revisan solos en segundo plano; la solicitud queda <b>En revisión</b>.</li><li>Mientras la convocatoria esté abierta puede editarla: usa «Consultar o editar concesión» y un código que le llega a su correo.</li></ol>'
+   +'<div class="callout ojo"><b>Recuerde decirles</b> que revisen la carpeta de <b>correo no deseado (spam)</b>: los correos de la herramienta suelen llegar allí.</div>'}
+ ]},
+ {id:'docs',n:4,t:'Revisar los documentos',s:'Verificar, aprobar o devolver',pasos:[
+  {id:'d1',t:'Verificar las solicitudes',tab:'validacion',donde:'Validación',b:
+   '<ol><li>Entre a <span class="btnlbl alt">Validación</span>. Use los filtros <b>Resultado</b>, <b>Estado</b> y <b>Buscar</b> (nombre, documento o radicado).</li>'
+   +'<li>Pulse <span class="btnlbl">Verificar pendientes</span> para revisar todas las que falten, o <span class="btnlbl alt">Verificar</span> en una fila (también se pueden seleccionar varias).</li>'
+   +'<li>Pulse una fila para ver el detalle: cada documento aparece con ✓ (correcto), aviso o ✗ (error) y el motivo.</li>'
+   +'<li>El ícono del ojo abre solo ese documento, ya separado del PDF de la solicitud.</li></ol>'
+   +'<div class="callout regla">La verificación comprueba, documento por documento: que el número de documento coincida, que el nombre aparezca en el certificado, fechas de expedición, y en hijos de militar que el certificado de núcleo familiar incluya al militar y al estudiante como hijo(a) o hijastro(a).</div>'},
+  {id:'d2',t:'Aprobar las correctas',tab:'validacion',donde:'Validación',b:
+   '<p>Si el documento está bien, pulse <span class="btnlbl verde">Aprobar</span> en la fila. Para muchas a la vez: <span class="btnlbl alt">Aprobar las correctas</span> aprueba las que salieron sin ninguna alerta.</p><div class="callout ojo"><b>Importante:</b> la herramienta nunca aprueba por su cuenta. Una solicitud sin aprobar no se tiene en cuenta al decidir quién gana la concesión.</div>'},
+  {id:'d3',t:'Devolver las que tienen errores',tab:'validacion',donde:'Validación',b:
+   '<ol><li>Pulse <span class="btnlbl alt">Devolver</span> en la fila.</li><li>El motivo se arma solo con los errores encontrados; léalo y ajústelo si hace falta.</li><li>Pulse <span class="btnlbl">Devolver y avisar</span>: el estudiante recibe un correo con el motivo y el plazo.</li></ol>'
+   +'<div class="callout regla"><b>Plazo de corrección:</b> 5 días hábiles contados desde el envío de los correos con el resultado. Si usted devuelve una solicitud cuando ese plazo ya venció, el estudiante tiene 5 días hábiles desde la devolución.</div>'
+   +'<p>Para corregir, el estudiante entra a escuelanaval.edu.co/concesiones, pulsa <b>Consultar o editar Concesión Especial</b>, escribe su documento y confirma el código que le llega al correo.</p>'},
+  {id:'d4',t:'Corregir datos mal escritos',tab:'validacion',donde:'Validación',b:
+   '<p>Si el estudiante digitó mal la cédula, el nombre, el grado o eligió otra concesión, no hace falta devolverla: pulse <span class="btnlbl alt">Editar</span> en su fila.</p><ul><li>Se pueden cambiar: <b>grado, tipo y número de documento, apellidos, nombres y concesión</b> (y la opción de Votaciones).</li><li>Si cambia la <b>concesión</b>, cambian los documentos exigidos: la solicitud vuelve a <b>Por aprobar</b> y se borra su verificación.</li><li>Cada cambio queda guardado con quién lo hizo y los datos anteriores.</li></ul><div class="callout ojo"><b>Después de editar</b> vuelva a pulsar <span class="btnlbl">Validar periodo</span> para recalcular con los datos nuevos.</div>'}
+ ]},
+ {id:'insumos',n:5,t:'Cargar los insumos',s:'Notas, matrícula cero y comandantes',pasos:[
+  {id:'i1',t:'Actualizar la base histórica',tab:'cargar',donde:'Cargar notas › 1',b:
+   '<p>En el bloque <b>1 · Base histórica de concesiones</b> pulse <span class="btnlbl">Actualizar desde OneDrive</span>. Si no pudiera, use el enlace «o elegir el archivo manualmente».</p><p>Sirve para saber si es la primera vez que el estudiante pide la concesión y para el Dashboard histórico.</p>'},
+  {id:'i2',t:'Cargar Todas las Notas',tab:'cargar',donde:'Cargar notas › 2',b:
+   '<p>En <b>2 · Todas las Notas</b> cargue el archivo Excel del <b>semestre anterior</b>. Las columnas se leen por nombre. Los estudiantes con estado <b>REPITENTE</b> o <b>APLAZADO</b> pasan a <b>revisión</b> para que usted decida.</p><div class="callout bien"><b>Cómo sabe que quedó bien:</b> en el Resumen el paso «Notas cargadas» queda en verde con el número de estudiantes y la fecha.</div>'},
+  {id:'i3',t:'Guardar la lista de matrícula cero',tab:'cargar',donde:'Cargar notas › 3',b:
+   '<p>Cargue el archivo con <span class="btnlbl alt">Archivo…</span> o pegue los números de documento y pulse <span class="btnlbl">Guardar lista</span>. Esta lista suele llegar al final; puede dejarla para antes de publicar.</p>'},
+  {id:'i4',t:'Guardar los comandantes de curso',tab:'cargar',donde:'Cargar notas › 4',b:
+   '<p>Igual que el paso anterior, con los documentos de los comandantes de curso (10 % de descuento). Pulse <span class="btnlbl">Guardar lista</span>.</p>'}
+ ]},
+ {id:'validar',n:6,t:'Validar y decidir',s:'Calcular quién gana',pasos:[
+  {id:'v1',t:'Validar el periodo',tab:'cargar',donde:'Cargar notas',b:
+   '<p>Pulse <span class="btnlbl">Validar periodo</span>. La herramienta cruza notas, solicitudes aprobadas, base histórica y listas, calcula Alumno Distinguido, Excelencia Académica y Comandante, y aplica la regla de «una sola concesión, la de mayor descuento».</p><p>Puede repetirlo las veces que haga falta; cada vez recalcula todo.</p>'},
+  {id:'v2',t:'Revisar el Detalle y resolver casos',tab:'detalle',donde:'Detalle',b:
+   '<ol><li>Filtre por <b>Estado</b>: Otorgada, No otorgada, En revisión o Matrícula cero; también por programa y por «con solicitud» o «solo mérito calculado».</li><li>Pulse un estudiante para ver sus datos y razones.</li><li>Si necesita decidir a mano: <b>Otorgar</b> (elija la concesión), <b>No otorgar</b> (el motivo es obligatorio) o <b>volver a automático</b>.</li></ol>'
+   +'<div class="callout ojo">Resuelva primero los casos <b>En revisión</b> (repitentes, aplazados u otros). Si se publican sin decidir, el estudiante seguirá viendo «En revisión».</div>'},
+  {id:'v3',t:'Sacar listados y PDFs',tab:'detalle',donde:'Detalle',b:
+   '<ul><li><span class="btnlbl alt">Copiar para Excel</span> o <span class="btnlbl">Descargar</span> el listado filtrado.</li><li><span class="btnlbl alt">PDFs (ZIP)</span> o <span class="btnlbl alt">PDFs (1 solo)</span> con los documentos de las personas de la lista (con el filtro Estado = Otorgada, solo quienes ganaron).</li></ul>'}
+ ]},
+ {id:'publicar',n:7,t:'Publicar y avisar',s:'Resultados y correos',pasos:[
+  {id:'x1',t:'Publicar los resultados',tab:'cargar',donde:'Cargar notas',b:
+   '<p>Pulse <span class="btnlbl alt">Publicar resultados</span> y confirme. Desde ese momento los estudiantes pueden consultar su resultado con su número de documento. Los casos que sigan en revisión se verán como «En revisión».</p><p>Si después cambia algo, el mismo botón dice <b>Actualizar publicación</b>.</p>'},
+  {id:'x2',t:'Enviar los correos con el resultado',tab:'admin',donde:'Administración › Correos',b:
+   '<ol><li>En <b>Correos a estudiantes</b> pulse <span class="btnlbl">Enviar pendientes</span> (salen desde certificaciones@enap.edu.co).</li><li>Use <span class="btnlbl alt">Actualizar estados</span> para ver, por cada correo, si quedó <b>Enviado</b>, <b>Abierto</b> o <b>Rebotado</b>.</li><li><span class="btnlbl alt">Reenviar todos</span> solo si hubo un cambio general.</li></ol>'
+   +'<div class="callout regla"><b>Desde el primer envío empiezan a correr los 5 días hábiles de corrección</b> para quienes no cumplieron: pueden corregir su documentación o pedir al Batallón o a la Decanatura Académica la revisión de sus notas.</div>'
+   +'<p>La lista <b>Sin correo registrado</b> son estudiantes por mérito calculado que no presentaron solicitud (el archivo de notas no trae correo): notifíquelos por el Batallón con la resolución.</p>'}
+ ]},
+ {id:'cierre',n:8,t:'Correcciones y resolución',s:'Cierre del periodo',pasos:[
+  {id:'z1',t:'Atender las correcciones',tab:'validacion',donde:'Validación',b:
+   '<ol><li>Vigile en <span class="btnlbl alt">Validación</span> las solicitudes devueltas que el estudiante volvió a enviar.</li><li>Verifíquelas y apruébelas o devuélvalas de nuevo.</li><li>Cuando termine el plazo, pulse <span class="btnlbl">Validar periodo</span>, luego <span class="btnlbl alt">Actualizar publicación</span> y envíe los correos pendientes.</li></ol>'},
+  {id:'z2',t:'Generar la resolución en Word',tab:'admin',donde:'Administración › Resolución',b:
+   '<ol><li>Pulse <span class="btnlbl">Generar</span>: se listan las secciones del Artículo Primero con la cantidad de estudiantes por concesión.</li><li>La herramienta le pregunta los <b>firmantes</b> y la <b>resolución que faculta al Director</b>; lo que escriba se guarda y vale para las siguientes hasta que lo cambie.</li><li><span class="btnlbl">Descargar Word</span> o <span class="btnlbl alt">Guardar en OneDrive</span>.</li><li>Repita para <b>Excelencia Académica</b> y <b>Alumno Distinguido</b> (periodo académico anterior).</li></ol>'
+   +'<div class="callout ojo"><b>Revise antes de firmar:</b> el número de la resolución («DENAP / año») lleva el año actual, no el del periodo. Los casos «En revisión» sin decidir no aparecen en la resolución.</div>'},
+  {id:'z3',t:'Entregar al Batallón y presentar al mando',tab:'dashboard',donde:'Dashboard',b:
+   '<ul><li>Envíe copia de la resolución al <b>Batallón de Cadetes</b>, que debe notificar al personal nombrado.</li><li>Abra el <span class="btnlbl alt">Dashboard</span> para presentar al mando: concesiones por periodo, por concepto y programa, y cuántos estudiantes vuelven a recibir la concesión.</li></ul>'}
+ ]}
+];
+
+var FAQ=[
+ {q:'Un estudiante dice que no le llegó el correo',a:'<p>Primero pídale que revise <b>spam o correo no deseado</b>. Luego en <b>Administración › Correos</b> pulse <i>Actualizar estados</i> y busque su fila: si dice <b>Rebotado</b>, el correo registrado está mal. Corrija el correo con él y reenvíe.</p>'},
+ {q:'Un estudiante digitó mal su cédula o su nombre',a:'<p>No la devuelva: en <b>Validación</b> pulse <b>Editar</b> en su fila, corrija los datos y guarde. Luego pulse <b>Validar periodo</b> otra vez. Si la cédula nueva ya tiene otra solicitud en ese periodo, la herramienta no deja guardar y le indica el radicado repetido.</p>'},
+ {q:'Un estudiante eligió la concesión equivocada',a:'<p>Use <b>Editar</b> y cambie la concesión. La solicitud vuelve a <b>Por aprobar</b> porque los documentos exigidos cambian. Si le falta un documento, <b>Devuélvala</b> para que lo suba.</p>'},
+ {q:'Devolví una solicitud pero el plazo ya había vencido',a:'<p>No hay problema: cuando la devolución se hace con el plazo vencido, el estudiante tiene <b>5 días hábiles desde esa devolución</b>. El correo y la fecha límite lo reflejan solos.</p>'},
+ {q:'Un estudiante con matrícula cero ganó la concesión',a:'<p>Es normal: en el Detalle queda como <b>Matrícula cero</b>. La concesión cubre solo el valor de la matrícula, así que no se aplica descuento y no aparece en la resolución. Reciben un correo que se lo explica.</p>'},
+ {q:'El Dashboard no muestra Infantería de Marina o parece desactualizado',a:'<p>En <b>Cargar notas › 1</b> pulse <b>Actualizar desde OneDrive</b> para releer la base histórica (el programa se reconoce por el curso: IM, MC o MM). Luego recargue el Dashboard.</p>'},
+ {q:'La herramienta no ve la base histórica',a:'<p>Confirme que <b>Base Concesiones.xlsx</b> sigue en <i>Estadística › Bases de Datos › B.D Concesiones</i> y que la hoja se llama «Concesiones». Si no se puede leer desde OneDrive, use «o elegir el archivo manualmente».</p>'},
+ {q:'Cambié algo y los resultados no cambiaron',a:'<p>Después de aprobar, devolver o editar solicitudes, o de cargar archivos nuevos, hay que pulsar <b>Validar periodo</b> otra vez y, si ya había publicado, <b>Actualizar publicación</b>.</p>'},
+ {q:'Se cerró la convocatoria y alguien no alcanzó a radicar',a:'<p>Al pasar la hora límite no se aceptan solicitudes nuevas. Si la institución decide extender el plazo, cambie la <b>fecha y hora límite</b> en <b>Administración › Convocatorias</b> y guarde.</p>'},
+ {q:'Después de pegar archivos nuevos la herramienta se ve igual',a:'<p>Pegue todos los archivos, cree una <b>nueva versión</b> de la implementación en Apps Script y recargue con <b>Ctrl + Shift + R</b>. Ver el comportamiento antiguo casi siempre significa que el despliegue es el anterior.</p>'}
+];
+
+var FINAL=[
+ 'Convocatorias de Batallón y Aspirantes cerradas en la fecha prevista',
+ 'Todas las solicitudes revisadas: aprobadas o devueltas (ninguna «Por aprobar» pendiente)',
+ 'Insumos cargados: notas, matrícula cero, comandantes y base histórica al día',
+ 'Periodo validado y casos «En revisión» resueltos en el Detalle',
+ 'Resultados publicados y correos enviados (sin pendientes ni rebotados sin atender)',
+ 'Plazo de 5 días hábiles de correcciones atendido y publicación actualizada',
+ 'Resoluciones en Word generadas con los firmantes correctos y enviadas al Batallón',
+ 'Dashboard revisado para el mando'
+];
+
+/* ============================ ESTADO ============================ */
+var KEY='protocolo_concesiones_v1', ST={hecho:{},final:{}};
+try{ var s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&typeof s==='object') ST=s; }catch(e){}
+ST.hecho=ST.hecho||{}; ST.final=ST.final||{};
+function guardar(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); }catch(e){} }
+function $(i){return document.getElementById(i);}
+var CHEV='<svg class="chev" viewBox="0 0 24 24" fill="none"><path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+var CHK='<span class="chk"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+var todos=[]; FASES.forEach(function(f){ f.pasos.forEach(function(p){ p.fase=f.id; todos.push(p); }); });
+
+/* ============================ RENDER ============================ */
+function render(){
+  $('tabs').innerHTML=TABS.map(function(t){ return '<button class="tab" type="button" role="tab" data-k="'+t.k+'" aria-selected="false">'+t.t+'</button>'; }).join('');
+  $('fases').innerHTML=FASES.map(function(f){
+    return '<section class="fase" id="f_'+f.id+'" data-f="'+f.id+'"><div class="fase-h"><div class="num">'+f.n+'</div><div><h2>'+f.t+'</h2><div class="sub">'+f.s+'</div></div><span class="cnt" id="cnt_'+f.id+'"></span></div>'
+      +f.pasos.map(function(p){
+        return '<article class="step" id="s_'+p.id+'" data-id="'+p.id+'"><button class="step-h" type="button" aria-expanded="false" data-tog="'+p.id+'">'
+          +'<span class="chk-wrap" data-chk="'+p.id+'" role="checkbox" aria-checked="false" tabindex="0" title="Marcar como hecho">'+CHK+'</span>'
+          +'<span class="tt">'+p.t+'</span><span class="donde">'+p.donde+'</span>'+CHEV+'</button>'
+          +'<div class="step-b">'+p.b+'<div class="acts"><button class="btn navy" type="button" data-hecho="'+p.id+'">Hecho · siguiente paso</button><button class="btn line" type="button" data-undo="'+p.id+'">Aún no</button></div></div></article>';
+      }).join('')+'</section>';
+  }).join('');
+  $('phNav').innerHTML='<div class="h">Fases</div>'+FASES.map(function(f){ return '<button type="button" data-go="'+f.id+'" id="nav_'+f.id+'"><span class="n">'+f.n+'</span><span>'+f.t+'<small>'+f.s+'</small></span></button>'; }).join('')
+    +'<button type="button" data-go="faq-sec"><span class="n">?</span><span>Si algo sale distinto<small>Preguntas frecuentes</small></span></button>';
+  $('tl').innerHTML=FASES.map(function(f){ return '<button type="button" data-go="'+f.id+'" id="tl_'+f.id+'"><div class="dot">'+f.n+'</div>'+f.t+'</button>'; }).join('');
+  $('faq').innerHTML=FAQ.map(function(x,i){ return '<div class="faq" id="q'+i+'"><button class="faq-q" type="button" aria-expanded="false" data-faq="'+i+'">'+x.q+CHEV+'</button><div class="faq-a">'+x.a+'</div></div>'; }).join('');
+  $('finalList').innerHTML=FINAL.map(function(t,i){ return '<label><input type="checkbox" data-fin="'+i+'"'+(ST.final[i]?' checked':'')+'><span>'+t+'</span></label>'; }).join('');
+  cuadro(); refrescar();
+}
+
+/* Tarjetas de fechas: próximo cierre calculado con las fechas habituales */
+function cuadro(){
+  var hoy=new Date(); hoy.setHours(0,0,0,0); var y=hoy.getFullYear(), c=[];
+  [y-1,y,y+1].forEach(function(a){
+    c.push({d:new Date(a,9,30),t:'Batallón',p:(a+1)+'-1'},{d:new Date(a,11,10),t:'Aspirantes',p:(a+1)+'-1'},{d:new Date(a,4,30),t:'Batallón',p:a+'-2'},{d:new Date(a,5,10),t:'Aspirantes',p:a+'-2'});
+  });
+  c=c.filter(function(x){return x.d>=hoy;}).sort(function(a,b){return a.d-b.d;});
+  var n=c[0], ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var dias=Math.round((n.d-hoy)/864e5), ab=new Date(n.d.getFullYear(),n.d.getMonth()-2,n.d.getDate()), abre=hoy>=ab;
+  function f(d){ return d.getDate()+' de '+ms[d.getMonth()]+' de '+d.getFullYear(); }
+  $('cards').innerHTML=
+    '<div class="card gold"><div class="k">Próximo cierre habitual</div><div class="v">'+f(n.d)+'</div><div class="s">'+n.t+' · periodo '+n.p+' · '+(dias===0?'es hoy':'faltan '+dias+' días')+'</div></div>'
+   +'<div class="card"><div class="k">Apertura automática</div><div class="v">'+(abre?'Ya abierta':f(ab))+'</div><div class="s">La convocatoria abre sola 2 meses antes del cierre. Si el cierre cae en fin de semana o festivo, pasa al día hábil siguiente.</div></div>'
+   +'<div class="card"><div class="k">Plazo de correcciones</div><div class="v">5 días hábiles</div><div class="s">Desde el envío de los correos con el resultado (o desde la devolución, si el plazo ya había vencido).</div></div>';
+}
+
+function refrescar(){
+  var hechos=0, primera=null;
+  todos.forEach(function(p){
+    var el=$('s_'+p.id), h=!!ST.hecho[p.id]; if(h) hechos++; else if(!primera) primera=p;
+    el.classList.toggle('hecho',h); var w=el.querySelector('[data-chk]'); w.setAttribute('aria-checked',h);
+  });
+  FASES.forEach(function(f){
+    var n=f.pasos.filter(function(p){return ST.hecho[p.id];}).length, ok=n===f.pasos.length;
+    $('cnt_'+f.id).textContent=n+' / '+f.pasos.length; $('f_'+f.id).classList.toggle('done',ok);
+    $('nav_'+f.id).classList.toggle('done',ok); $('tl_'+f.id).classList.toggle('done',ok);
+    var act=primera&&primera.fase===f.id; $('tl_'+f.id).classList.toggle('act',!!act);
+  });
+  var pc=Math.round(hechos/todos.length*100);
+  $('progTxt').textContent=hechos+' de '+todos.length+' pasos'; $('progPct').textContent=pc+' %'; $('progBar').style.width=pc+'%';
+  $('btnSig').textContent= hechos===0?'Empezar' : (hechos===todos.length?'Protocolo completo ✓':'Continuar donde iba');
+  window.__sig=primera;
+}
+
+function abrir(id,scroll){
+  var el=$('s_'+id); if(!el) return;
+  document.querySelectorAll('.step.open').forEach(function(x){ if(x!==el){ x.classList.remove('open'); x.querySelector('.step-h').setAttribute('aria-expanded','false'); } });
+  el.classList.add('open'); el.querySelector('.step-h').setAttribute('aria-expanded','true');
+  var p=todos.filter(function(x){return x.id===id;})[0]; marcarTab(p&&p.tab);
+  if(scroll) setTimeout(function(){ el.scrollIntoView({behavior:'smooth',block:'center'}); },30);
+}
+function cerrar(id){ var el=$('s_'+id); el.classList.remove('open'); el.querySelector('.step-h').setAttribute('aria-expanded','false'); }
+function marcarTab(k){
+  document.querySelectorAll('.tab').forEach(function(t){ var on=t.dataset.k===k; t.classList.toggle('on',on); t.setAttribute('aria-selected',on); });
+  var t=TABS.filter(function(x){return x.k===k;})[0];
+  $('tabQue').innerHTML= t? '<b>'+t.t+':</b> '+t.q : 'Abra un paso para ver en qué pestaña se hace, o pulse una pestaña para ver para qué sirve.';
+}
+function siguiente(desde){
+  var i=todos.map(function(p){return p.id;}).indexOf(desde), sig=null, j;
+  for(j=i+1;j<todos.length;j++){ if(!ST.hecho[todos[j].id]){ sig=todos[j]; break; } }
+  if(!sig) for(j=0;j<todos.length;j++){ if(!ST.hecho[todos[j].id]){ sig=todos[j]; break; } }
+  if(sig) abrir(sig.id,true); else { cerrar(desde); window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}); }
+}
+
+/* ============================ EVENTOS ============================ */
+document.addEventListener('click',function(e){
+  var t=e.target, b;
+  if((b=t.closest('[data-chk]'))){ e.stopPropagation(); var id=b.dataset.chk; ST.hecho[id]=!ST.hecho[id]; guardar(); refrescar(); return; }
+  if((b=t.closest('[data-tog]'))){ var id2=b.dataset.tog, el=$('s_'+id2); if(el.classList.contains('open')) cerrar(id2); else abrir(id2,false); return; }
+  if((b=t.closest('[data-hecho]'))){ var id3=b.dataset.hecho; ST.hecho[id3]=true; guardar(); refrescar(); siguiente(id3); return; }
+  if((b=t.closest('[data-undo]'))){ var id4=b.dataset.undo; ST.hecho[id4]=false; guardar(); refrescar(); return; }
+  if((b=t.closest('[data-go]'))){ var d=$('f_'+b.dataset.go)||$(b.dataset.go); if(d) d.scrollIntoView({behavior:'smooth',block:'start'}); var f=FASES.filter(function(x){return x.id===b.dataset.go;})[0]; if(f){ abrir(f.pasos[0].id,false); } return; }
+  if((b=t.closest('.tab'))){ marcarTab(b.dataset.k); return; }
+  if((b=t.closest('[data-faq]'))){ var q=$('q'+b.dataset.faq), on=!q.classList.contains('open'); q.classList.toggle('open',on); b.setAttribute('aria-expanded',on); return; }
+});
+document.addEventListener('keydown',function(e){
+  if((e.key===' '||e.key==='Enter')&&e.target.matches&&e.target.matches('[data-chk]')){ e.preventDefault(); e.target.click(); }
+});
+document.addEventListener('change',function(e){ var i=e.target.dataset&&e.target.dataset.fin; if(i!=null&&i!==''){ ST.final[i]=e.target.checked; guardar(); } });
+$('btnSig').addEventListener('click',function(){ if(window.__sig) abrir(window.__sig.id,true); else window.scrollTo({top:0,behavior:'smooth'}); });
+$('btnReset').addEventListener('click',function(){ if(!confirm('¿Reiniciar el avance de este protocolo en este navegador?')) return; ST={hecho:{},final:{}}; guardar(); document.querySelectorAll('[data-fin]').forEach(function(c){c.checked=false;}); refrescar(); document.querySelectorAll('.step.open').forEach(function(x){x.classList.remove('open');}); marcarTab(''); window.scrollTo({top:0,behavior:'smooth'}); });
+
+/* Búsqueda */
+function norm(s){ return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+$('q').addEventListener('input',function(){
+  var q=norm(this.value.trim()), vis=0;
+  document.querySelectorAll('.step').forEach(function(el){
+    var ok=!q||norm(el.textContent).indexOf(q)>=0; el.style.display=ok?'':'none'; if(ok) vis++;
+    if(q&&ok) el.classList.add('open'); else if(!q) el.classList.remove('open');
+  });
+  document.querySelectorAll('section.fase[data-f]').forEach(function(s){ var h=Array.prototype.some.call(s.querySelectorAll('.step'),function(x){return x.style.display!=='none';}); s.style.display=h?'':'none'; });
+  document.querySelectorAll('.faq').forEach(function(el){ var ok=!q||norm(el.textContent).indexOf(q)>=0; el.style.display=ok?'':'none'; if(ok&&q) vis++; });
+  $('vacio').style.display=(q&&!vis)?'block':'none';
+});
+
+render(); marcarTab('');
+</script>
+</body>
+</html>
