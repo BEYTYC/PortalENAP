@@ -1259,10 +1259,10 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 :root:fullscreen #pub>.foot,:root.fsx #pub>.foot,:root:fullscreen::after,:root.fsx::after{display:none!important;background:none!important}
 :root:fullscreen body,:root.fsx body{padding-bottom:0!important}
 :root:fullscreen .pleg:not([hidden]),:root.fsx .pleg:not([hidden]),:root:fullscreen #plegw.pleg:not([hidden]),:root.fsx #plegw.pleg:not([hidden]){margin:3px auto 0!important}
-/* novedades: el nombre y la insignia de riesgo se ajustan en su columna, sin invadir el curso */
-#novl table.nl td:nth-child(2){white-space:normal!important;overflow:hidden;line-height:1.9}
-#novl table.nl td:nth-child(2) .nvb{white-space:normal!important;max-width:100%;box-sizing:border-box;line-height:1.35;margin-left:8px;margin-top:2px;display:inline-block}
-#novl table.nl td:nth-child(2) .nvb:first-of-type{margin-left:8px}
+/* novedades: insignia de riesgo en una línea, con puntos suspensivos; se despliega al pasar el mouse */
+#novl table.nl td:nth-child(2){white-space:nowrap!important;overflow:visible}
+#novl table.nl td:nth-child(2) .nvb{white-space:nowrap!important;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;margin-left:8px;box-sizing:border-box;position:relative}
+#novl table.nl td:nth-child(2) .nvb:hover{max-width:none;overflow:visible;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1295,7 +1295,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 <div class="frm" id="pvw" hidden><label for="pv" style="font-size:13px;color:var(--mute);align-self:center">Ver periodo</label><select id="pv" aria-label="Periodo a ver" style="max-width:160px"></select></div>
 <div class="frm"><input id="per" type="text" placeholder="Periodo (ej. 2026-2)" aria-label="Periodo" style="max-width:160px"><input id="fi" type="file" accept=".json,application/json" aria-label="Archivo de datos"></div>
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
-<section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
+<section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button><button class="btn" id="cpm">Cuadro de adjudicación de premios</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
 <section class="card ac"><h3>Descargar para compartir</h3><p>El sistema arma el Excel "BD Antigüedades" con los datos cargados, con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" class="wait" role="status"><div class="gbox"><i class="gsp" aria-hidden="true"></i><b id="gt">Verificando acceso</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
@@ -1376,7 +1376,7 @@ function ic(s){if(isE(cur))return '';return (s.dis?'<span class="ic" title="Alum
 function nvb(s,p){const E=isE(cur),q=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');let o='';
   if(s.e&&s.e!=='Normal')o+=`<span class="nvb" title="${q(s.ev||s.e)}">${s.e}${p?' · 2026-2':''}</span>`;
   if(E&&s.e!=='Refuerzo'&&/^Refuerzo/.test(s.ev||''))o+=`<span class="nvb rf" title="${q(s.ev)}">En refuerzo</span>`;
-  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q(s.rk.map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '))}">En riesgo - ${rkMot(s)}</span>`;
+  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q('En riesgo - '+rkMot(s)+': '+s.rk.map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '))}">En riesgo - ${rkMot(s)}</span>`;
   return o}
 function row(s,k,i){
   const h=s.h[s.h.length-1]||[];
@@ -2386,6 +2386,47 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
 }
 
 
+// Cuadro de adjudicación de premios (Word). Todo el texto en Arial 10.
+function armarPremios(JSZip, D, cfg) {
+  var esc = function (t) { return String(t == null ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  var RPR = '<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:eastAsia="Arial"/>__B__<w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>';
+  var run = function (t, b) { return '<w:r>' + RPR.replace('__B__', b ? '<w:b/>' : '') + '<w:t xml:space="preserve">' + esc(t) + '</w:t></w:r>'; };
+  var par = function (t, o) { o = o || {}; return '<w:p><w:pPr><w:spacing w:before="0" w:after="' + (o.after == null ? 0 : o.after) + '"/><w:jc w:val="' + (o.jc || 'left') + '"/>' + RPR.replace('__B__', '') + '</w:pPr>' + (t === '' ? '' : run(t, o.b)) + '</w:p>'; };
+  var cell = function (t, w, o) { o = o || {}; return '<w:tc><w:tcPr><w:tcW w:w="' + w + '" w:type="dxa"/>' + (o.sh ? '<w:shd w:val="clear" w:color="auto" w:fill="' + o.sh + '"/>' : '') + '<w:vAlign w:val="center"/></w:tcPr>' + String(t == null ? '' : t).split('\n').map(function (x) { return par(x, { b: o.b, jc: o.jc }); }).join('') + '</w:tc>'; };
+  var W = [500, 3300, 1700, 2600, 3000, 2800];
+  var all = (D.esc || []).slice(); Object.keys(D.sheets || {}).forEach(function (k) { (D.sheets[k] || []).forEach(function (s) { all.push(s); }); });
+  var por = {}; all.forEach(function (s) { if (!por[s.c] || (s.e !== 'Retirado' && por[s.c].e === 'Retirado')) por[s.c] = s; });
+  var rows = '', n = 0, P = (D.premios && D.premios.a) || [];
+  var tb = '<w:tcBorders><w:top w:val="single" w:sz="4" w:color="000000"/><w:left w:val="single" w:sz="4" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:color="000000"/><w:right w:val="single" w:sz="4" w:color="000000"/></w:tcBorders>';
+  var hdr = ['N.°', 'Premio', 'País / Entidad', 'Criterio de adjudicación', 'Adjudicado a', 'Soporte'];
+  rows += '<w:tr><w:trPr><w:tblHeader/></w:trPr>' + hdr.map(function (h, i) { return cell(h, W[i], { b: 1, sh: 'D9E2F3', jc: 'center' }); }).join('') + '</w:tr>';
+  P.forEach(function (a) {
+    (a.w || []).forEach(function (w, i) {
+      var s = por[w[0]]; if (!s) return;
+      n++;
+      var nom = (s.g ? s.g + ' ' : '') + s.n + (s.ce ? '\nC.C. ' + String(s.ce).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '');
+      rows += '<w:tr>' + cell(n, W[0], { jc: 'center' }) + cell(a.t, W[1]) + cell(a.o, W[2]) + cell(a.r, W[3]) + cell(nom, W[4]) + cell(w[1], W[5]) + '</w:tr>';
+    });
+  });
+  var pend = (D.premios && D.premios.pend) || [];
+  var tbl = '<w:tbl><w:tblPr><w:tblW w:w="' + W.reduce(function (a, b) { return a + b; }, 0) + '" w:type="dxa"/><w:tblLayout w:type="fixed"/><w:tblBorders><w:top w:val="single" w:sz="4" w:color="000000"/><w:left w:val="single" w:sz="4" w:color="000000"/><w:bottom w:val="single" w:sz="4" w:color="000000"/><w:right w:val="single" w:sz="4" w:color="000000"/><w:insideH w:val="single" w:sz="4" w:color="000000"/><w:insideV w:val="single" w:sz="4" w:color="000000"/></w:tblBorders><w:tblCellMar><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tblCellMar></w:tblPr><w:tblGrid>' + W.map(function (x) { return '<w:gridCol w:w="' + x + '"/>'; }).join('') + '</w:tblGrid>' + rows + '</w:tbl>';
+  var body = par('ESCUELA NAVAL DE CADETES "ALMIRANTE PADILLA"', { b: 1, jc: 'center' }) + par('CUADRO DE ADJUDICACIÓN DE PREMIOS', { b: 1, jc: 'center' }) + par('Escalafonamiento ' + ((cfg && cfg.periodo) || '2026-2'), { jc: 'center', after: 200 }) + tbl + par('', { after: 120 });
+  if (pend.length) {
+    body += par('Premios pendientes por adjudicar:', { b: 1, after: 60 });
+    pend.forEach(function (p) { body += par('• ' + p.join(' · ')); });
+  }
+  var doc = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + body + '<w:sectPr><w:pgSz w:w="16838" w:h="11906" w:orient="landscape"/><w:pgMar w:top="1000" w:right="1000" w:bottom="1000" w:left="1000" w:header="500" w:footer="500" w:gutter="0"/></w:sectPr></w:body></w:document>';
+  var sty = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial" w:eastAsia="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/><w:lang w:val="es-CO"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="0" w:line="240" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:style></w:styles>';
+  var z = new JSZip();
+  z.file('[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>');
+  z.file('_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  z.file('word/_rels/document.xml.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  z.file('word/styles.xml', sty); z.file('word/document.xml', doc);
+  return z.generateAsync({ type: 'uint8array' }).then(function (bytes) { return { bytes: bytes, n: n }; });
+}
+
+
+function bajarPrem(msg){msg.textContent='Preparando el cuadro…';return cargaJSZip().then(function(){return armarPremios(window.JSZip,window.__D,{periodo:window.__PER||'2026-2'})}).then(function(r){var blob=new Blob([r.bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='Cuadro adjudicación de premios '+(window.__PER||'2026-2')+'.docx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500);msg.textContent='Listo: '+r.n+' adjudicaciones. Todo el texto va en Arial 10.'}).catch(function(e){msg.textContent=e.message||'No se pudo generar el cuadro.'})}
 function bajarCert(tipo,msg){
   msg.textContent='Preparando el certificado…';
   var arch=tipo==='PR'?'cert-pr.docx':'cert-nav-im.docx';
@@ -2397,6 +2438,7 @@ function bajarCert(tipo,msg){
     msg.textContent='Listo: '+r.n+' estudiantes. Revisa lo resaltado en amarillo antes de firmar.'})
   .catch(function(e){msg.textContent=e.message||'No se pudo generar el certificado.'})}
 document.getElementById('cnav').onclick=function(){bajarCert('NAV-IM',document.getElementById('cm'))};
+document.getElementById('cpm').onclick=function(){bajarPrem(document.getElementById('cm'))};
 document.getElementById('cpr').onclick=function(){bajarCert('PR',document.getElementById('cm'))};
 document.getElementById('dl2').onclick=function(){descargar(document.getElementById('dm'))};
 function mostrarDl(puede,admin){yo.puede=puede;var b=document.getElementById('dl');b.hidden=!puede||!window.__D;document.body.classList.toggle('has-dl',!b.hidden);document.body.classList.toggle('has-gear',!!admin)}
