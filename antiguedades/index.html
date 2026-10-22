@@ -1318,7 +1318,7 @@ const BASE=({'2026-2':{ac:8.2739,an:9.2330,di:9.4161,cf:8.6069,f:8.7275,med:8.69
   const LM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1'},INV={};Object.keys(LM).forEach(k=>INV[LM[k]]=k);
   const keys=D.order.filter(k=>k!=='1.1'),G={},dl={order:D.order.slice(),sheets:{}};keys.forEach(k=>G[k]=[]);
   D.order.forEach(k=>{const L=D.sheets[k]||[];dl.sheets[k]=L.slice();L.forEach(s=>{s.pk=k;const m=(s.cu||'').match(/^\d\.\d/),tk=m&&INV[m[0]]?INV[m[0]]:(k==='1.1'?'1.2':k);s.tk=tk;G[tk].push(s)})});
-  if(D.sheets.MER)dl.sheets.MER=D.sheets.MER;
+  if(D.sheets.MER)dl.sheets.MER=D.sheets.MER;Object.keys(D.sheets).forEach(k=>{if(!dl.sheets[k])dl.sheets[k]=D.sheets[k]});
   keys.forEach(k=>{
     const L=G[k],rk=L.filter(s=>!OUT(s)&&s.f!=null).sort((a,b)=>b.f-a.f||(a.p??1e9)-(b.p??1e9)||String(a.n).localeCompare(String(b.n))),n=rk.length,ru=new Set(rk),rs=L.filter(s=>!ru.has(s));
     rk.forEach((s,i)=>{s.p=i+1;const h=s.hp&&s.hp[s.hp.length-1];if(h&&h[0]===PER){h[2]=s.p;h[3]=n}});
@@ -2075,9 +2075,9 @@ function armarBD(E,D0,quien){
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
   function fill(c,rgb){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:rgb}}}
-  var LBM={'MER':'Mercantes'};
+  var LBM={'MER':'Mercantes','MRE':'Mercantes'};
   function lb(k){return k==='ESC'?'Escalafonamiento 4.2':k==='PR'?'PR':k==='CDP'?'CDPRON':k==='CDPRIM'?'CDPRIM':(LBM[k]||k)}
-  (SOLO?['ESC'].concat(['PR','CDPRIM','CDP'].filter(function(x){return D.sheets[x]&&D.sheets[x].length})):D.order.concat(D.esc&&D.esc.length?['ESC']:[]).concat(D.sheets.MER?['MER']:[])).forEach(function(k){
+  (SOLO?['ESC'].concat(['PR','CDPRIM','CDP','MRE'].filter(function(x){return D.sheets[x]&&D.sheets[x].length})):D.order.concat(D.esc&&D.esc.length?['ESC']:[]).concat(D.sheets.MER?['MER']:[])).forEach(function(k){
     var lista=k==='ESC'?D.esc:D.sheets[k],ix=(k==='ESC'||k==='MER')?D.order.length-1:D.order.indexOf(k),bloques=[];
     if(k!=='ESC'&&k!=='MER'&&D0.dl){var oT=function(s){var x=D.order.indexOf(s.tk);return x<0?99:x};lista=lista.slice().sort(function(a,c){return ((a.p==null)-(c.p==null))||(oT(a)-oT(c))||((a.p||0)-(c.p||0))})}
     if(SOLO)lista=lista.filter(function(s){return s.e!=='Aplazado'&&s.e!=='Retirado'&&s.e!=='Comisión'}); // solo quienes se escalafonan
