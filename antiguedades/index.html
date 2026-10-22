@@ -2333,6 +2333,21 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       if (esNav) {
         x = editarParrafo(x, 'con fecha', function (rs) {
           var o = [], saltar = false;
+          if (!esExt) {
+            var hayGM = lista.some(function (s) { return s.g === 'GM'; }), hayALF = lista.some(function (s) { return s.g === 'ALF'; });
+            rs = rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: r.hl }; });
+            rs.forEach(function (r) {
+              if (!hayALF) {
+                if (/^ y Subteniente del Cuerpo/.test(r.t)) r.t = '';
+                if (/Guardiamarinas y Alf/.test(r.t)) r.t = r.t.replace('Guardiamarinas y Alféreces ', 'Guardiamarinas ');
+              }
+              if (!hayGM) {
+                if (r.t === 'Teniente' || r.t === ' de Corbeta') r.t = '';
+                if (/^ y Subteniente del Cuerpo/.test(r.t)) r.t = 'Subteniente del Cuerpo de Infantería de Marina';
+                if (/Guardiamarinas/.test(r.t)) r.t = r.t.replace('Guardiamarinas y Alféreces ', 'Alféreces ').replace('Guardiamarinas ', 'Alféreces ');
+              }
+            });
+          }
           rs.forEach(function (r, i) {
             if (saltar) { if (/^ de 202$|^[0-9]$|^\.$/.test(r.t) && r.t !== '.') return; saltar = false; }
             if (r.t === 'junio') { o.push({ rpr: r.rpr, t: fAsc, hl: false }); saltar = true; return; }
@@ -2386,6 +2401,16 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           var r0 = runsDe(p)[0], rp = r0 ? r0.rpr : '';
           var nota = reconstruir(p, [run(rp, '* ' + TXT_PEND + nombres + '.', false)]);
           return nota + reconstruir(p, []) + p;
+        });
+      }
+      if (esExt) {
+        x = editarParrafo(x, 'Que el siguiente es el listado', function (rs) {
+          var b = rs[rs.length - 1].rpr, o = [], k = 0;
+          for (; k < rs.length; k++) { if (/para ascender al grado de $/.test(rs[k].t)) { o.push({ rpr: rs[k].rpr, t: rs[k].t.replace('para ascender al grado de ', 'para ser escalafonado en el grado de ') }); k++; break; } o.push(rs[k]); }
+          o.push({ rpr: rs[k - 1].rpr, t: 'Teniente de Corbeta Honorario' });
+          for (; k < rs.length; k++) { if (/con fecha/.test(rs[k].t)) { o.push({ rpr: rs[k].rpr, t: ', ' + rs[k].t.replace(/^[\s\S]*?(con fecha)/, '$1') }); k++; break; } }
+          for (; k < rs.length; k++) o.push(rs[k]);
+          return armar(o);
         });
       }
       zip.file('word/document.xml', x);
