@@ -1296,6 +1296,7 @@ function rpx(b,n){return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre 
 function perF(s,i){if(i===s.h.length-1)return PER;const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x<=(PER==='2026-2'?2:1)))return a+'-'+x}return perI(s.h.length,i)}
 function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
+const rkMot=s=>{const M=[];(s.rk||[]).forEach(r=>{const n=r[0],m=/^(Aptitud naval|Disciplina|Cultura física)$/.test(n)?n:(/^Perdió/.test(n)?n:'Asignatura < 6,0');if(!M.includes(m))M.push(m)});return M.join(' · ')};
 const ORD=D.order, ESC='ESC';
 
 const TRC=[['#FFD23F','#F2A900','#FFF1A8'],['#D5DDE6','#98A5B5','#FFFFFF'],['#F0A06A','#C96F2E','#FFD9B8']];
@@ -1336,7 +1337,7 @@ function nvb(s,p){const E=isE(cur),q=t=>String(t==null?'':t).replace(/&/g,'&amp;
   if(s.e&&s.e!=='Normal')o+=`<span class="nvb" title="${q(s.ev||s.e)}">${s.e}${p?' · 2026-2':''}</span>`;
   if(E&&s.e!=='Refuerzo'&&/^Refuerzo/.test(s.ev||''))o+=`<span class="nvb rf" title="${q(s.ev)}">En refuerzo</span>`;
   if(E&&s.fin)o+=`<span class="nvb fn" title="${q(s.fin)}">Novedad financiera</span>`;
-  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q(s.rk.map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '))}">En riesgo</span>`;
+  if(E&&!OUT(s)&&s.rk&&s.rk.length)o+=`<span class="nvb rg" title="${q(s.rk.map(r=>r[1]==null?r[0]:r[0]+' '+f3(r[1])).join(' · '))}">En riesgo - ${rkMot(s)}</span>`;
   return o}
 function row(s,k,i){
   const h=s.h[s.h.length-1]||[];
