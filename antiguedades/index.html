@@ -1094,6 +1094,12 @@ svg .cnt{font-weight:700}
 :root:fullscreen #nov .nb,:root.fsx #nov .nb{padding-block:8px!important;min-height:0!important}
 :root:fullscreen #nov .nt,:root.fsx #nov .nt{grid-template-rows:repeat(2,78px)!important;grid-auto-rows:78px!important;flex:none!important;align-content:start!important}
 :root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:26px!important}
+/* leyenda de premios: en la franja inferior, a la izquierda, en línea con "Desarrollado por" */
+:root:fullscreen #prem,:root.fsx #prem{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:fixed!important;left:28px!important;right:auto!important;bottom:14px!important;top:auto!important;z-index:42!important;margin:0!important;padding:0!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:18px!important;align-items:center;justify-content:flex-start}
+/* cuando la vista hace scroll (detalle de premios, listado de novedades, ficha), el final no queda bajo la franja inferior */
+:root:fullscreen:has(.pst) body,:root.fsx:has(.pst) body,:root:fullscreen:has(#novl:not([hidden])) body,:root.fsx:has(#novl:not([hidden])) body{padding-bottom:84px!important}
+:root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-bottom:84px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1788,7 +1794,7 @@ function premRender(){
   const L=[...M.entries()].map(([c,x])=>({s:POOL.find(s=>s.c===c),x})).filter(o=>o.s).sort((a,b)=>(a.s.p??1e9)-(b.s.p??1e9)||b.x.length-a.x.length);
   if(cur==='PR'&&L.length===1)premSel=L[0].s.c;
   el.hidden=false;
-  const CT=PCAT.map(([cn])=>[cn,P.a.filter(a=>pcat(a.t)===cn).length]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
+  const CT=PCAT.map(([cn])=>[cn,L.reduce((n,o)=>n+o.x.filter(z=>pcat(z.a.t)===cn).length,0)]).filter(x=>x[1]),pl=(n,s)=>n+' '+s;
   const PCOL=['#2F6FBF','#C9962B','#3E8E7E','#7A5BA6','#8A97A8'],mx=Math.max(...L.map(o=>o.x.length));
   const catOf=o=>PCAT.map(([cn],k)=>({cn,k,xs:o.x.filter(z=>pcat(z.a.t)===cn)})).filter(c=>c.xs.length);
   const tip=o=>o.x.length+(o.x.length===1?' premio':' premios')+'\n'+catOf(o).map(c=>c.cn+' ('+c.xs.length+'): '+c.xs.map(z=>z.a.t).join('; ')).join('\n');
