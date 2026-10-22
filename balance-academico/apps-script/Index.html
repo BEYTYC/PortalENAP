@@ -1779,7 +1779,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     form: { notas: '' }, formErr: null, formAv: null, cargando: false, creando: false, filtro: 'todas', modal: null, firmaForm: { jefe: {} },
     sesion: { nombre: '', email: '', roles: ['jefe'], prueba: true }, msg: null,
     sel: {}, grupo: { msg: null, trabajando: false },
-    guardados: [], pensums: [], clave: '', pedirClave: false, errorClave: null, guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null
+    guardados: [], pensums: [], clave: '', pedirClave: false, errorClave: null, guardando: '', toast: null, dialogo: null, arranque: true, errorArranque: null, fueraPortal: false
   };
 
   /* ───── entorno: Apps Script (producción) o navegador suelto (pruebas) ───── */
@@ -1792,6 +1792,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   }
   /* Identidad: aplicación independiente en Apps Script; el servidor toma el correo de quien abre la página. */
   /* Identidad: el Portal ENAP entrega el token de Microsoft de quien inició sesión (postMessage); el servidor lo verifica con Microsoft. */
+  var PORTAL_URL = 'https://enap.vercel.app/';
   var tokenMs = { valor: '', t: 0 };
   function obtenerToken() {
     if (tokenMs.valor && Date.now() - tokenMs.t < 240000) return Promise.resolve(tokenMs.valor);
@@ -1804,7 +1805,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       }
       window.addEventListener('message', onMsg);
       try { window.top.postMessage({ type: 'balances:token-request' }, '*'); } catch (e) {}
-      setTimeout(function () { if (!fin) { window.removeEventListener('message', onMsg); no(new Error('Este módulo solo se abre desde el Portal ENAP, con la cuenta autorizada.')); } }, 20000);
+      setTimeout(function () { if (!fin) { window.removeEventListener('message', onMsg); var er = new Error('Este módulo solo se abre desde el Portal ENAP, con la cuenta autorizada.'); er.fueraPortal = true; no(er); } }, 6000);
     });
   }
   function srvAuth(fn) {
@@ -2644,6 +2645,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     else if (S.vista === 'revision') cuerpo = vRevision();
     else cuerpo = vFirma();
     if (S.arranque) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;font-weight:600;color:var(--navy)"><span class="spin" style="width:28px;height:28px;border-width:3px"></span>Cargando…</div>'; return; }
+    if (S.fueraPortal) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;padding:16px"><div class="card" style="width:min(460px,100%);padding:26px;border-top:4px solid var(--gold);text-align:center"><div style="font-size:18px;font-weight:700;color:var(--navy)">Ingrese por el Portal ENAP</div><p style="color:var(--mute);line-height:1.5">Este módulo no se abre desde el enlace directo.<br>Entre al <b>Portal ENAP</b> con su cuenta institucional y vaya a<br><b>Facultades › Generación de Balances Académicos</b>.</p><a class="btn pri" href="' + PORTAL_URL + '" target="_top" style="display:inline-block;margin-top:8px;padding:10px 18px;text-decoration:none">Ir al Portal ENAP</a><div style="font-size:12px;color:var(--mute);margin-top:12px">Lo estamos redirigiendo…</div></div></div>'; return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
     app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main><footer class="pie">Desarrollado por Oficina de Estadística<br><em style="font-style:italic;font-weight:400;opacity:.7">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></footer>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
@@ -2901,7 +2903,8 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
       return precargar();
     }).then(function () { S.arranque = false; render(); })
     .catch(function (err) {
-      S.arranque = false; S.errorArranque = err.message; render();
+      S.arranque = false; S.errorArranque = err.message; S.fueraPortal = !!err.fueraPortal; render();
+      if (err.fueraPortal) { setTimeout(function () { try { window.top.location.href = PORTAL_URL; } catch (e) {} }, 4000); }
     });
   }
   render();
