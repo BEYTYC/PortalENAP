@@ -2233,6 +2233,16 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
     var dd = g('day'), mm = g('month'), yy = g('year');
     return UNI[dd] + ' (' + dd + ') del mes de ' + MESES[mm - 1] + ' del año ' + anioLetras(yy) + ' (' + yy + ')';
   }
+  // Personal con compromisos de cultura física pendientes: se marca con asterisco en el listado y se indica al pie
+  var PEND_NAV = ['ÁNGEL GÓMEZ MARTHA', 'ARROYO SUÁREZ MARÍA', 'GUERRERO MORALES ALEXANDRA SARAY', 'MARTÍNEZ BENÍTEZ KAROLL', 'REALES SILVERA YOUSTHIN', 'SUÁREZ GANTIVA MICHELLE', 'URIBE PINZÓN DANIELA'];
+  var PEND_PR = ['IBÁÑEZ MARTÍNEZ CARLOS ANDRÉS', 'ARANGO CELIS KARLA STEFANÍA', 'BOHÓRQUEZ FAJARDO ROBERT EDUARDO', 'GUERRERO MONTOYA NICOLÁS ANDRÉS', 'HERNÁNDEZ SALGADO CAROL PATRICIA', 'LORDUY SIERRA ALEJANDRA MARCELA', 'OSPINA GALÁN VALENTINA', 'PORRAS TORRES ERIKA DAYANA', 'VARGAS MALDONADO MARÍA CAMILA'];
+  var TXT_PEND = tipo === 'NAV-IM' ? 'El siguiente personal se encuentra pendiente con compromisos de cultura física: '
+    : 'El siguiente personal de alumnos administrativos, se encuentra pendiente con compromisos de cultura física: ';
+  var LPEND = (tipo === 'NAV-IM' ? PEND_NAV : PEND_PR).map(function (n) { return sinTildes(n).split(' '); });
+  function pendiente(s) {
+    var t = sinTildes(s.n).split(' ');
+    return LPEND.some(function (q) { return q.every(function (w) { return t.indexOf(w) >= 0; }); });
+  }
   var per = cfg.periodo || '2026-2', anio = per.split('-')[0], sem = per.split('-')[1];
   var fAsc = cfg.fechaAscenso || 'diciembre de ' + anio;
   var fExp = cfg.fechaExpedicion || fechaExp(new Date());
@@ -2267,11 +2277,11 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         var vals, faltan = {};
         var lugar = s.lx || '';
         if (esNav) {
-          vals = [String(s.p), s.g || '', s.ct || '', s.sp || '', sinTildes(s.n), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          vals = [String(s.p), s.g || '', s.ct || '', s.sp || '', sinTildes(s.n) + (pendiente(s) ? '*' : ''), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!lugar) faltan[6] = 1;
           if (!s.ct) faltan[2] = 1;
         } else {
-          vals = [String(s.p), s.g || 'GM', s.ec || '', sinTildes(s.ae || ''), sinTildes(s.n), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          vals = [String(s.p), s.g || 'GM', s.ec || '', sinTildes(s.ae || ''), sinTildes(s.n) + (pendiente(s) ? '*' : ''), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!s.ec) faltan[2] = 1;
           if (!s.ae) faltan[3] = 1;
           if (!lugar) faltan[6] = 1;
@@ -2329,6 +2339,18 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           var b = rs[0].rpr; return armar([{ t: 'Contralmirante ', rpr: b }, { t: cfg.director || 'JUAN PABLO PINILLA ACOSTA', rpr: b, hl: true }]);
         });
         x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: true }; })); });
+      }
+      var pend = lista.filter(pendiente);
+      if (pend.length) {
+        var nombres = pend.map(function (s) { return (s.g || 'GM') + ' ' + s.n + '*'; }).join('; ');
+        var hecho2 = false;
+        x = x.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
+          if (hecho2 || textoDe(p).indexOf('Este certificado se expide') < 0) return p;
+          hecho2 = true;
+          var r0 = runsDe(p)[0], rp = r0 ? r0.rpr : '';
+          var nota = reconstruir(p, [run(rp, '* ' + TXT_PEND + nombres + '.', false)]);
+          return nota + reconstruir(p, []) + p;
+        });
       }
       zip.file('word/document.xml', x);
 
