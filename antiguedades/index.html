@@ -1264,6 +1264,15 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 #novl table.nl td:nth-child(2) .nvb{white-space:nowrap!important;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;margin-left:8px;box-sizing:border-box;position:relative}
 #novl table.nl td:nth-child(2) .nvb:hover{max-width:none;overflow:visible;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .tt h5 .tk,.evo .tk{display:none!important}
+/* historial: el grupo puesto + flecha va centrado en la columna */
+.stu .gt tbody td.pcl:not(:has(.pa2)){padding-inline:4px!important}
+.stu .gt tbody td.pcl,.stu .gt thead th.pcl{text-align:center!important}
+.stu .gt tbody td.pcl .pg{display:inline-flex!important;align-items:center;justify-content:center;gap:5px;width:auto!important}
+.stu .gt tbody td.pcl .pa2{margin-left:0!important;width:auto!important}
+/* historial: puesto en caja fija + hueco de flecha, para que todas las filas queden alineadas y el conjunto centrado */
+.stu .gt tbody td.pcl .pg{display:inline-block!important;width:50px!important;text-align:center!important}
+.stu .gt tbody td.pcl .pa2{display:inline-block!important;width:14px!important;margin-left:5px!important;text-align:center}
+.stu .gt tbody td.pcl:not(:has(.pa2)) .pg{width:auto!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1792,9 +1801,9 @@ function stuRender(){
   const np=OUT(s)||(s.e==='Retardado'&&!D.solo);
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
-  const PO=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'].concat(PER==='2026-2'?['2026-2']:[]);
+  const PO=['2022-1','2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1','2026-2'];
   const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
-    if(e[4]===''){const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
+    {const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
       if(pr){const rel=(p,n)=>n>1?(p-1)/(n-1):0,same=pr[3]===e[3],d=same?pr[2]-e[2]:Math.round((rel(pr[2],pr[3])-rel(e[2],e[3]))*100),u=same?'':'%';
         m=d>0?`<i class="pa2 up" title="${same?'Subió '+d+' puestos':'Subió '+d+' puntos porcentuales en su posición relativa'}">▲</i>`:d<0?`<i class="pa2 dn" title="${same?'Bajó '+(-d)+' puestos':'Bajó '+(-d)+' puntos porcentuales en su posición relativa'}">▼</i>`:'<i class="pa2 eq" title="Mismo puesto">≈</i>'}}
     return `<td class="pcl"><span class="pg"><b class="p1">${e[2]}</b><b class="ps">/</b><b class="p2">${e[3]}</b></span>${m}</td>`};
