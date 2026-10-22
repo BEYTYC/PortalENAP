@@ -2365,7 +2365,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           var o = [], i = 0;
           for (; i < rs.length; i++) { o.push(rs[i]); if (/el día $/.test(rs[i].t)) break; }
           var b = rs[Math.min(i + 1, rs.length - 1)].rpr;
-          o.push({ rpr: b, t: fExp, hl: true }); o.push({ rpr: b, t: '.' });
+          o.push({ rpr: b, t: fExp, hl: !!cfg.fechaExpedicion }); o.push({ rpr: b, t: '.' });
           return armar(o);
         });
         x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
@@ -2384,7 +2384,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         });
         x = editarParrafo(x, 'Este certificado se expide', function (rs) {
           var t = rs.map(function (r) { return r.t; }).join(''), b = rs[0].rpr, k = t.indexOf('el día ') + 7;
-          return armar([{ t: t.slice(0, k), rpr: b }, { t: fExp, rpr: b, hl: true }, { t: '.', rpr: b }]);
+          return armar([{ t: t.slice(0, k), rpr: b }, { t: fExp, rpr: b, hl: !!cfg.fechaExpedicion }, { t: '.', rpr: b }]);
         });
         x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
           var b = rs[0].rpr; return armar([{ t: 'Contralmirante ', rpr: b }, { t: cfg.director || DIRECTOR, rpr: b, hl: false }]);
@@ -2399,7 +2399,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           if (hecho2 || textoDe(p).indexOf('Este certificado se expide') < 0) return p;
           hecho2 = true;
           var r0 = runsDe(p)[0], rp = r0 ? r0.rpr : '';
-          var nota = reconstruir(p, [run(rp, '* ' + TXT_PEND + nombres + '.', false)]);
+          var nota = reconstruir(p, [run(rp, '* ' + TXT_PEND.replace(/: $/, ':'), false)]) + pend.map(function (s) { return reconstruir(p, [run(rp, (s.g || 'GM') + ' ' + s.n, false)]); }).join('');
           return nota + reconstruir(p, []) + p;
         });
       }
