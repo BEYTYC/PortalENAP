@@ -9,7 +9,7 @@
  *                       resultado se calcula aquí (Ingresó / Bloqueada / Cuenta no
  *                       institucional).
  *   accion "listar"     Solo los administradores fijos (ADMINS). Devuelve los eventos.
- *   accion "actividad"  Duración y enlaces clickeados de una sesión (PortalAccesos/actividad.json).
+ *   accion "actividad"  Enlaces a los que entra una sesión (PortalAccesos/actividad.json).
  *   accion "listar-actividad"  Solo ADMINS: devuelve las sesiones.
  *
  * Se guarda en SharePoint (carpeta PortalAccesos/ingresos.json), nunca en el repo.
@@ -121,14 +121,12 @@ module.exports = async function handler(req, res) {
       const id = String(b.sesion || '').slice(0, 40);
       if (!/^[A-Za-z0-9_-]{8,40}$/.test(id)) throw error('Sesión inválida.', 400);
       const inicio = Number(b.inicio) > 0 ? new Date(Number(b.inicio)).toISOString() : new Date().toISOString();
-      const segundos = Math.max(0, Math.min(86400, Math.round(Number(b.segundos) || 0)));
       const clics = (Array.isArray(b.clics) ? b.clics : []).slice(0, MAX_CLICS)
         .map((c) => ({ n: String((c && c.n) || '').slice(0, 120), t: String((c && c.t) || '').slice(0, 30) }))
         .filter((c) => c.n);
       const lista = await leerSesiones(token, siteId);
       let ses = lista.find((x) => x.sesion === id && x.correo === yo.correo);
-      if (!ses) { ses = { sesion: id, correo: yo.correo, nombre: yo.nombre, inicio, ultimo: inicio, segundos: 0, clics: [] }; lista.push(ses); }
-      ses.segundos = Math.max(ses.segundos || 0, segundos);
+      if (!ses) { ses = { sesion: id, correo: yo.correo, nombre: yo.nombre, inicio, ultimo: inicio, clics: [] }; lista.push(ses); }
       ses.ultimo = new Date().toISOString();
       const vistos = new Set(ses.clics.map((c) => c.t + '|' + c.n));
       for (const c of clics) { const k = c.t + '|' + c.n; if (!vistos.has(k)) { ses.clics.push(c); vistos.add(k); } }
