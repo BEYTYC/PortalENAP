@@ -1057,6 +1057,17 @@ svg .cnt{font-weight:700}
 #novl table.nl{table-layout:fixed!important;width:100%}
 #novl table.nl th:first-child,#novl table.nl td:first-child{width:64px}
 #novl table.nl th:nth-child(n+3),#novl table.nl td:nth-child(n+3){width:112px;white-space:nowrap}
+:root:fullscreen body,:root.fsx body{padding-top:14px!important;box-sizing:border-box!important}
+@media(min-height:1000px){:root:fullscreen body,:root.fsx body{padding-top:clamp(48px,6.6vh,76px)!important}}
+:root:fullscreen .wrap,:root.fsx .wrap{justify-content:flex-start!important;min-height:0!important}
+:root:fullscreen #kpi .k,:root.fsx #kpi .k,:root:fullscreen .chips,:root.fsx .chips,:root:fullscreen #prem,:root.fsx #prem,:root:fullscreen #novl:not([hidden]),:root.fsx #novl:not([hidden]),:root:fullscreen #nov .nb:not([aria-pressed="true"]):not(:hover),:root.fsx #nov .nb:not([aria-pressed="true"]):not(:hover){background:rgba(255,255,255,.62)!important;backdrop-filter:blur(2px)}
+:root:fullscreen #prem,:root.fsx #prem{position:relative!important;padding-block:10px 8px!important}
+:root:fullscreen #prem .pbars,:root.fsx #prem .pbars{gap:0!important;justify-content:flex-start!important}
+:root:fullscreen #prem .pbr,:root.fsx #prem .pbr{min-height:0!important;height:34px!important;padding-block:0!important}
+:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:absolute!important;right:230px;top:54px;display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:3px!important;margin:0!important;padding:0!important;font-size:11.5px!important;order:0!important;z-index:1;align-items:flex-start}
+:root:fullscreen #prem .pleg .ptk,:root.fsx #prem .pleg .ptk{width:16px!important;height:16px!important}
+:root:fullscreen #prem .pleg .ptk svg,:root.fsx #prem .pleg .ptk svg{width:15px!important;height:15px!important}
+:root:fullscreen #prem .pleg span,:root.fsx #prem .pleg span{gap:7px!important;white-space:nowrap}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
