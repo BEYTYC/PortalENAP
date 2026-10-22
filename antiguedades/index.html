@@ -1227,6 +1227,24 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 
 /* vista ampliada: sin el crédito 'Desarrollado por' */
 :root:fullscreen .credfs,:root.fsx .credfs,:root:fullscreen #pub>.foot .credfs,:root.fsx #pub>.foot .credfs{display:none!important}
+
+/* flechas de puesto pegadas al número */
+.stu .gt .pcl .pg{display:inline-grid!important;grid-template-columns:24px 8px 26px!important;width:58px!important;column-gap:0!important}
+.stu .gt td.pcl{text-align:center!important}
+.stu .gt .pa2{left:calc(50% + 36px)!important;right:auto!important}
+/* leyenda de premios: centrada en su franja al fondo de la vista ampliada */
+:root:fullscreen .pleg:not([hidden]),:root.fsx .pleg:not([hidden]){left:0!important;right:0!important;bottom:0!important;transform:none!important;height:64px!important;display:flex!important;align-items:center!important;justify-content:center!important;flex-wrap:wrap!important;gap:4px 24px!important;padding:0 24px!important;background:var(--bg,#F4F7FC)!important;box-sizing:border-box}
+:root:fullscreen #prem:not([hidden]),:root.fsx #prem:not([hidden]){margin-bottom:76px!important}
+/* título de la vista ampliada, más grande */
+:root:fullscreen .fstt,:root.fsx .fstt{gap:20px!important;padding-top:8px!important}
+:root:fullscreen .fstt b,:root.fsx .fstt b{font-size:36px!important;padding-bottom:7px!important;line-height:1.1!important}
+:root:fullscreen .fstt .fp,:root.fsx .fstt .fp{font-size:17px!important;padding:5px 16px!important;margin-bottom:7px!important}
+:root:fullscreen .fstt .fp::before,:root.fsx .fstt .fp::before{width:9px;height:9px}
+/* flecha de puesto inline, pegada al número (se reserva el hueco en filas sin flecha para que alineen) */
+.stu .gt .pcl .pg{display:inline-grid!important;grid-template-columns:auto 8px auto!important;width:auto!important;vertical-align:middle}
+.stu .gt tbody td.pcl .pa2{position:static!important;right:auto!important;left:auto!important;top:auto!important;transform:none!important;display:inline-block!important;width:14px;margin-left:5px;text-align:center;vertical-align:middle}
+.stu .gt tbody td.pcl{padding-inline:4px!important;text-align:center!important}
+.stu .gt tbody td.pcl:not(:has(.pa2)){padding-inline:4px 23px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1915,6 +1933,7 @@ function salvRender(){
 
 function grpRender(){
   const el=document.getElementById('grp');if(!el)return;
+  el.hidden=true;el.innerHTML='';return;
   if((cur!=='PR'&&cur!=='MRE')||q||sel){el.hidden=true;el.innerHTML='';return}
   const L=ls(cur).filter(s=>s.e==='Normal'&&s.f!=null&&!s.nv);
   if(L.length<2){el.hidden=true;el.innerHTML='';return}
@@ -1974,9 +1993,9 @@ function premRender(){
   const SG=['Medalla','Espada','Premio extranjero','Premio nacional','Placa'],tk=z=>`<span class="ptk v-icon" data-tip="${((SG[ki(z)]||'Premio')+': '+z.a.t+'\nPor '+rz(z)).replace(/"/g,'&quot;')}" style="--c:${PCOL[ki(z)]}"><svg viewBox="0 0 24 24" width="16" height="16">${GL[ki(z)]||GL[0]}</svg></span>`;
   const rowsH=L.map(o=>`<button type="button" class="pbr${premSel===o.s.c?' on':''}" data-c="${o.s.c}" aria-pressed="${premSel===o.s.c}"><span class="pbp">${o.s.p??'—'}</span><span class="pbn"><span class="pbfn"><small>${o.s.g||''}</small> ${o.s.n}</span><em>${o.s.cu||''} · ${f3(o.s.f)}</em></span><span class="pbk">${[...o.x].sort((a,b)=>ki(a)-ki(b)).map(tk).join('')}</span><b class="pbc">${o.x.length}<small>${o.x.length===1?'premio':'premios'}</small></b></button>`).join('');
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
-  const so=L.find(o=>o.s.c===premSel);
+  const one=L.length===1,so=one?L[0]:L.find(o=>o.s.c===premSel);
   const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${flag(z.a.o)}${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
-  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pbars" role="list">'+rowsH+'</div>'+det;
+  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3>'+(one?'':'<div class="pbars" role="list">'+rowsH+'</div>')+det;
   if(pw){pw.innerHTML=leg;pw.hidden=false}
   {const g=el.querySelector('.pbfn'),l=null;if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
