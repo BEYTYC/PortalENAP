@@ -1100,6 +1100,37 @@ svg .cnt{font-weight:700}
 /* cuando la vista hace scroll (detalle de premios, listado de novedades, ficha), el final no queda bajo la franja inferior */
 :root:fullscreen:has(.pst) body,:root.fsx:has(.pst) body,:root:fullscreen:has(#novl:not([hidden])) body,:root.fsx:has(#novl:not([hidden])) body{padding-bottom:84px!important}
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-bottom:84px!important}
+/* ---- Perfil del grupo por componente (PR y Mercantes) ---- */
+#grp{display:none}
+:root:fullscreen #grp:not([hidden]),:root.fsx #grp:not([hidden]){display:block;margin-top:14px;padding:12px 18px 8px;border:1px solid var(--line,#D6E2F0);border-radius:14px;background:rgba(255,255,255,.62)}
+#grp h3{margin:0 0 4px;font-size:17px;font-weight:650;color:#14304f}
+#grp .gk{display:flex;gap:22px;align-items:center;font-size:12.5px;color:#5B6F8F;margin-bottom:2px}
+#grp .gk i{display:inline-block;vertical-align:middle;margin-right:6px}
+#grp .gk .kd{width:10px;height:10px;border-radius:50%;background:#3A76C4;opacity:.75}
+#grp .gk .kt{width:12px;height:12px;border-radius:50%;background:#E8B13A;border:2px solid #9A6B0A;box-sizing:border-box}
+#grp .gk .km{width:10px;height:10px;background:#14304f;transform:rotate(45deg) scale(.9)}
+#grp .gk .kr{margin-left:auto}
+#grp svg{width:100%;height:auto;display:block}
+#grp .gx{stroke:#DCE5F1;stroke-width:1}#grp .gt{font-size:12px;fill:#6B7C96}
+#grp .gb{fill:transparent}#grp .gb.a{fill:rgba(233,237,243,.55)}
+#grp .gl{font-size:15px;font-weight:600;fill:#14304f}
+#grp .gr{stroke:#9DB7DD;stroke-width:2;stroke-linecap:round}
+#grp .gd{fill:#3A76C4;fill-opacity:.72;stroke:#fff;stroke-width:1}
+#grp .gd.t{fill:#E8B13A;fill-opacity:1;stroke:#9A6B0A;stroke-width:1.8}
+#grp .gm{fill:#14304f}
+#grp .gv{font-size:15px;font-weight:700;fill:#14304f}#grp .gs{font-size:12px;fill:#6B7C96}
+#grp .gh{display:flex;align-items:baseline;gap:24px;flex-wrap:wrap;margin-bottom:2px}
+#grp .gh h3{margin:0}#grp .gh .gk{margin:0;flex:1;justify-content:flex-end}
+:root:fullscreen #grp:not([hidden]),:root.fsx #grp:not([hidden]){margin-top:10px;padding:10px 18px 6px}
+/* ---- Vista normal: mismo diseño de la vista ampliada (podio y novedades sin recuadro, tarjetas translúcidas, premios en una línea) ---- */
+.podc,#nov{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+#kpi .k,#prem,.chips,#nov .nb:not([aria-pressed="true"]){background:rgba(255,255,255,.62)!important}
+#prem .pbr{display:grid!important;grid-template-columns:34px minmax(360px,520px) 1fr 84px!important;align-items:center;height:34px!important;min-height:0!important;padding:0 10px!important}
+#prem .pbn{display:flex!important;flex-direction:row!important;align-items:baseline!important;gap:14px!important;white-space:nowrap!important;line-height:1.3!important;font-size:13px!important}
+#prem .pbn em{display:inline!important;font-size:12px!important}
+#prem .pbc{display:flex!important;flex-direction:row!important;align-items:baseline!important;justify-content:flex-end;gap:6px;white-space:nowrap}
+#prem .pbc small{display:inline!important;font-size:13px!important;font-weight:600;opacity:.65;margin:0!important}
+#prem .pleg{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:8px 4px 0!important;padding:0!important;font-size:12px!important;align-items:center}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1112,7 +1143,7 @@ svg .cnt{font-weight:700}
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
 <div class="charts" id="charts"></div>
-<div class="card prem" id="prem" hidden></div>
+<div class="card prem" id="prem" hidden></div><div class="card grp" id="grp" hidden></div>
 <div class="card salv" id="salv" hidden></div>
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
@@ -1433,7 +1464,7 @@ function render(){
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Fuera del orden · aplazados, en comisión y retirados</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
   document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
-  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();salvRender();countUp();mkSort();centerLg();fitK();{const _p=document.getElementById('pod');if(_p)_p.classList.toggle('pr',cur==='PR')}
+  stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();grpRender();salvRender();countUp();mkSort();centerLg();fitK();{const _p=document.getElementById('pod');if(_p)_p.classList.toggle('pr',cur==='PR')}
 }
 
 
@@ -1780,6 +1811,31 @@ function salvRender(){
   el.hidden=true;el.innerHTML='';return;
   el.hidden=false;
   el.innerHTML='<h3>Salvedades</h3><p class="sv0">Casos que no entran en el cálculo normal o que conviene revisar. Quienes aparecen aquí no se dejan por fuera: están en la lista, con su estado, o se explican acá.</p><div class="svg">'+S.map(g=>`<section class="sv"><h4>${g.t}</h4>${g.d?`<p>${g.d}</p>`:''}${g.i.length>8?`<details><summary>Ver los ${g.i.length} casos</summary><ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul></details>`:`<ul>${g.i.map(x=>`<li>${x}</li>`).join('')}</ul>`}</section>`).join('')+'</div>';
+}
+
+function grpRender(){
+  const el=document.getElementById('grp');if(!el)return;
+  if((cur!=='PR'&&cur!=='MRE')||q||sel){el.hidden=true;el.innerHTML='';return}
+  const L=ls(cur).filter(s=>s.e==='Normal'&&s.f!=null&&!s.nv);
+  if(L.length<2){el.hidden=true;el.innerHTML='';return}
+  const C=[['Académico','ac'],['Aptitud naval','an'],['Disciplina','di'],['Cultura física','cf']];
+  const all=[].concat(...C.map(([,k])=>L.map(s=>s[k]).filter(v=>typeof v==='number')));
+  const lo=Math.max(0,Math.floor(Math.min(...all)*2)/2-.5),hi=10;
+  const W=1800,x0=170,x1=W-190,rh=38,top=8,H=top+C.length*rh+18,X=v=>x0+(v-lo)/(hi-lo)*(x1-x0),r=3.6;
+  let g='';
+  for(let t=Math.ceil(lo);t<=hi;t++)g+=`<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${H-18}" class="gx"/><text x="${X(t)}" y="${H-4}" text-anchor="middle" class="gt">${t}</text>`;
+  const top1=L.reduce((a,b)=>(b.f>a.f?b:a),L[0]);
+  C.forEach(([nm,k],i)=>{
+    const y=top+i*rh+rh/2,V=L.filter(s=>typeof s[k]==='number').map(s=>({s,v:s[k]})).sort((a,b)=>a.v-b.v);
+    const mn=V[0].v,mx=V[V.length-1].v,me=V.reduce((a,b)=>a+b.v,0)/V.length;
+    g+=`<rect x="${x0-10}" y="${y-rh/2+2}" width="${x1-x0+20}" height="${rh-4}" rx="8" class="gb${i%2?'':' a'}"/><text x="${x0-24}" y="${y+4}" text-anchor="end" class="gl">${nm}</text><line x1="${X(mn)}" x2="${X(mx)}" y1="${y}" y2="${y}" class="gr"/>`;
+    const lanes=[],NL=5,off=[0,-1,1,-2,2];let n=0;
+    V.forEach(o=>{const px=X(o.v);let ln=lanes.findIndex(l=>px-l>r*2+.6);if(ln<0||ln>=NL){if(lanes.length<NL){ln=lanes.length;lanes.push(-1e9)}else ln=n%NL}lanes[ln]=px;o.px=px+(lanes.length>=NL&&n>=NL?Math.floor(n/NL)*1.2:0);n++;o.py=y+off[ln]*(r*1.85)});
+    V.forEach(o=>{const t=o.s===top1;g+=`<circle cx="${o.px}" cy="${o.py}" r="${t?r+1.6:r}" class="gd${t?' t':''}"><title>${o.s.n} · ${nm} ${f3(o.v)}${o.s.p?' · puesto '+o.s.p:''}</title></circle>`});
+    g+=`<path d="M${X(me)} ${y-9}l5 9-5 9-5-9z" class="gm"><title>Promedio del grupo en ${nm}: ${f3(me)}</title></path><text x="${x1+22}" y="${y-2}" class="gv">${f3(me)}</text><text x="${x1+22}" y="${y+12}" class="gs">${f3(mn)} – ${f3(mx)}</text>`;
+  });
+  el.hidden=false;
+  el.innerHTML=`<div class="gh"><h3>Perfil del grupo por componente · ${eLab(cur)} · ${L.length} estudiantes</h3><div class="gk"><span><i class="kd"></i>Un punto por estudiante</span><span><i class="kt"></i>Primer puesto</span><span><i class="km"></i>Promedio del grupo</span><span class="kr">A la derecha: promedio y rango</span></div></div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dispersión de las notas del grupo por componente">${g}</svg>`;
 }
 let premSel=null;
 const FLG={"Argentina": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Argentina\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><rect y=\"13.3\" width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><circle cx=\"15\" cy=\"10\" r=\"2.2\" fill=\"#F6B40E\"/></svg>", "Brasil": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Brasil\"><rect width=\"30\" height=\"20\" fill=\"#009B3A\"/><path d=\"M15 2.2 27.5 10 15 17.8 2.5 10z\" fill=\"#FEDF00\"/><circle cx=\"15\" cy=\"10\" r=\"4.4\" fill=\"#002776\"/></svg>", "Chile": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Chile\"><rect width=\"30\" height=\"20\" fill=\"#D52B1E\"/><rect width=\"30\" height=\"10\" fill=\"#fff\"/><rect width=\"10\" height=\"10\" fill=\"#0039A6\"/><circle cx=\"5\" cy=\"5\" r=\"2.2\" fill=\"#fff\"/></svg>", "Corea": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Corea\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><path d=\"M10.5 10a4.5 4.5 0 0 1 9 0z\" fill=\"#CD2E3A\"/><path d=\"M10.5 10a4.5 4.5 0 0 0 9 0z\" fill=\"#0047A0\"/><g fill=\"#000\"><rect x=\"2.5\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/></g></svg>", "Ecuador": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Ecuador\"><rect width=\"30\" height=\"20\" fill=\"#FFDD00\"/><rect y=\"10\" width=\"30\" height=\"5\" fill=\"#034EA2\"/><rect y=\"15\" width=\"30\" height=\"5\" fill=\"#ED1C24\"/></svg>", "México": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de México\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#006847\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE1126\"/><circle cx=\"15\" cy=\"10\" r=\"2.4\" fill=\"#8C5A2B\"/></svg>", "Perú": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Perú\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#D91023\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#D91023\"/></svg>", "España": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de España\"><rect width=\"30\" height=\"20\" fill=\"#AA151B\"/><rect y=\"5\" width=\"30\" height=\"10\" fill=\"#F1BF00\"/></svg>", "Francia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Francia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#0055A4\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#EF4135\"/></svg>", "Italia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Italia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#009246\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE2B37\"/></svg>", "Estados Unidos": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Estados Unidos\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><g fill=\"#B22234\"><rect width=\"30\" height=\"1.54\"/><rect y=\"3.08\" width=\"30\" height=\"1.54\"/><rect y=\"6.15\" width=\"30\" height=\"1.54\"/><rect y=\"9.23\" width=\"30\" height=\"1.54\"/><rect y=\"12.3\" width=\"30\" height=\"1.54\"/><rect y=\"15.4\" width=\"30\" height=\"1.54\"/><rect y=\"18.46\" width=\"30\" height=\"1.54\"/></g><rect width=\"12\" height=\"10.8\" fill=\"#3C3B6E\"/></svg>", "Gran Bretaña": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Gran Bretaña\"><rect width=\"30\" height=\"20\" fill=\"#012169\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#fff\" stroke-width=\"4\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#C8102E\" stroke-width=\"1.4\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#fff\" stroke-width=\"6\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#C8102E\" stroke-width=\"3.4\"/></svg>"};const flag=o=>FLG[o]||'';
