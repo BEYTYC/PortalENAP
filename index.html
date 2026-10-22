@@ -1,4 +1,4 @@
-<script>(function(){var ok=function(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();</script>
+<script>(function(){var ok=function(t){var P=window.PortalENAP;if(P&&P.sesion&&(P.sesion.roles||[]).indexOf('ADMIN')>=0)return true;return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Portal de Servicios Digitales</title>
@@ -458,7 +458,7 @@
   footer .left, footer .right{ position:relative; z-index:1; }
   footer .left b{display:block; color:#fff; font-size:12.5px;}
   footer .right{margin-left:auto; text-align:right;}
-  footer .right .line1{display:block; color:#fff;}
+  footer .right .line1{display:block; color:#fff; text-align:right; line-height:1.15;}
   footer .right .line1 b{font-weight:600;}
   footer .copyright{ display:block; font-size:10.5px; color:var(--navy-300); margin-top:2px; }
 
@@ -574,6 +574,12 @@
     .cde-copy{ max-width:none; }
     .cde-preview{ max-width:none; }
     main{ display:block; padding:18px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
+       desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
+       el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
+    main:has(> :is(#viewTitulacion,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE):not([hidden])){
+      padding:0 !important; overflow:hidden !important;
+    }
   }
 
   @media (prefers-reduced-motion: reduce){ *{transition:none !important;} }
@@ -639,9 +645,10 @@
   }
   @keyframes login-gate-spin{ to{ transform:rotate(360deg); } }
   .login-gate__foot{ margin-top:24px; font-size:13px; color:var(--text-muted); line-height:1.6; text-align:center; }
+  .cred-n{font-style:italic;font-weight:400;opacity:.72}
   .login-gate__credito{
     position:absolute; right:20px; bottom:16px; z-index:1;
-    font-size:12.5px; font-weight:500; color:var(--text-muted); opacity:1;
+    font-size:11.5px; font-weight:400; color:var(--text-muted); opacity:1; text-align:right; line-height:1.15; text-align:right; line-height:1.15;
   }
   @media (max-width:860px){
     .login-gate__credito{ position:static; margin-top:28px; text-align:center; }
@@ -770,7 +777,7 @@
   }
 
   /* Fondo entre el encabezado y el pie: azulado claro. */
-  :root{ --bg:#F3F8FE; }
+  :root{ --bg:#F9FBFE; }
   main{ background:var(--bg); }
   .sac-view{ background:transparent; }
   .login-gate{ background:#FDFEFF; }
@@ -849,7 +856,7 @@
       </button>
       <p class="login-gate__foot">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
     </div>
-    <p class="login-gate__credito">Desarrollado por PD02 Beyty P. Camargo M.</p>
+    <p class="login-gate__credito">Desarrollado por Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></p>
   </div>
 </div>
 
@@ -901,7 +908,7 @@
   .panel-app__modal-eyebrow svg{width:14px; height:14px; flex:none;}
   .panel-app__modal h3{margin:0 0 4px; color:#0a2540; font-size:1.282rem; font-weight:700; letter-spacing:-.01em;}
   .panel-app__modal-sub{margin:0 0 20px; color:#64748b; font-size:.882rem; line-height:1.5;}
-  .panel-app__hint{margin:6px 0 0; color:#64748b; font-size:.843rem; line-height:1.45;}
+  .panel-app__hint{margin:6px 0 0; color:#64748b; font-size:.843rem; line-height:1.15;}
   .panel-app__modal-fields{display:flex; flex-direction:column; gap:16px;}
   .panel-app__modal-fields > div{display:flex; flex-direction:column; gap:6px;}
   .panel-app__modal-fields > .panel-app__modal-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
@@ -1042,6 +1049,15 @@
 #vistaAdmin td{white-space:nowrap}
 @media (max-width:1000px){#vistaAdmin .panel-app__inner{grid-template-columns:minmax(0,1fr);padding:24px 16px 56px}#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:560px){#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr)}}
+
+/* móvil: sin "Protocolos Académicos" y los tres menús en una sola línea */
+@media (max-width:760px){
+  .navcat[data-key="protocolos"]{display:none!important}
+  .navcats{flex-wrap:nowrap!important;width:100%}
+  .navcat{flex:1 1 auto;min-width:0}
+  .navcat > .nav-btn{width:100%;justify-content:center;gap:4px;padding:11px 4px!important;font-size:11.5px!important;white-space:nowrap}
+  .navcat > .nav-btn .icon{display:none}
+}
 </style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
@@ -1400,7 +1416,7 @@
     Portal de Servicios Digitales
   </div>
   <div class="right">
-    <span class="line1">Desarrollado por <b>PD02 Beyty P. Camargo M</b> - Jefe de Estadística ENAP</span>
+    <span class="line1">Desarrollado por Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span>
   </div>
 </footer>
 
@@ -1820,6 +1836,25 @@
         + `Revisa en SharePoint: Configuración de la lista → Columnas → abre esa columna → el nombre interno sale en la URL como "Field=...". `
         + `Ajusta ese nombre en el código y vuelve a intentar.`;
     }
+    // Errores de inicio de sesion de Microsoft (MSAL): se explican en claro
+    // en vez de mostrar el codigo tecnico ("timed_out: See https://aka.ms/...").
+    const cod = String((error && error.errorCode) || '') + ' ' + bruto;
+    if (/timed_out|monitor_window_timeout|iframe_closed_timeout/i.test(cod)) {
+      return 'No se pudo completar el inicio de sesión porque la ventana de Microsoft tardó demasiado en responder '
+        + '(puede ser que no hayas terminado de iniciar sesión, que el navegador haya bloqueado la ventana emergente o que la conexión esté lenta). '
+        + 'Vuelve a pulsar «Iniciar sesión con cuenta institucional» y termina el proceso en la ventana que se abre. '
+        + 'Si se repite, permite las ventanas emergentes de este sitio o cierra otras sesiones de Microsoft abiertas.';
+    }
+    if (/user_cancelled|popup_window_error|empty_window_error|window_closed/i.test(cod)) {
+      return 'La ventana de inicio de sesión se cerró antes de terminar. Vuelve a pulsar «Iniciar sesión con cuenta institucional» '
+        + 'y completa el proceso; si no se abre la ventana, permite las ventanas emergentes de este sitio.';
+    }
+    if (/interaction_in_progress/i.test(cod)) {
+      return 'Ya hay un inicio de sesión en curso. Termínalo en la ventana de Microsoft o espera unos segundos y vuelve a intentarlo.';
+    }
+    if (/network|failed to fetch|NetworkError/i.test(cod)) {
+      return 'No se pudo conectar con Microsoft. Revisa tu conexión a internet e inténtalo de nuevo.';
+    }
     return bruto;
   }
 
@@ -2058,7 +2093,7 @@
       if (!aviso) {
         aviso = document.createElement('p');
         aviso.id = avisoId;
-        aviso.style.cssText = 'margin:8px 0 0;color:#b3261e;font-size:.882rem;line-height:1.45;';
+        aviso.style.cssText = 'margin:8px 0 0;color:#b3261e;font-size:.882rem;line-height:1.15;';
         if (selector.parentElement) selector.parentElement.appendChild(aviso);
       }
       aviso.textContent = mensaje;
@@ -2509,6 +2544,88 @@
       // se salta la animacion la primera vez que carga la pagina).
       requestAnimationFrame(() => requestAnimationFrame(() => home.classList.add('entrada-lista')));
     }
+    avisarEntradaCentroDatos();
+  }
+  // Sonido de inicio de sesión, sintetizado con Web Audio (sin archivos):
+  // un "whoosh" suave, un golpe grave cuando aparece la esfera, un arpegio
+  // brillante sincronizado con la salida de los módulos y un acorde final.
+  // Si el navegador bloquea el audio (sin interacción previa), se omite en silencio.
+  // El audio se "despierta" al hacer clic en el botón de login (gesto de la
+  // persona), así el navegador no lo deja suspendido y suena al instante.
+  let audioInicio = null;
+  function prepararAudioInicio() {
+    try {
+      if (audioInicio) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioInicio = new AC();
+      audioInicio.resume().catch(() => {});
+    } catch (e) {}
+  }
+  function sonidoInicioSesion() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = audioInicio || new AC();
+      audioInicio = null;
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const t0 = ctx.currentTime + 0.01;
+      // "Entrando a otra dimensión": vacío grave que se abre, barrido de aire
+      // resonante, tonos de cristal que rebotan en eco, golpe sordo y acorde final.
+      const master = ctx.createGain(); master.gain.value = 0.5;
+      const eco = ctx.createDelay(1); eco.delayTime.value = 0.28;
+      const ecoG = ctx.createGain(); ecoG.gain.value = 0.33;
+      master.connect(ctx.destination); master.connect(eco); eco.connect(ecoG); ecoG.connect(eco); ecoG.connect(ctx.destination);
+      const env = (g, pts) => { g.gain.setValueAtTime(0.0001, t0); pts.forEach(([t, v]) => g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0001), t0 + t)); };
+      const pan = (p) => { const n = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (n) n.pan.value = p; return n; };
+      const salida = (nodo, p) => { const n = pan(p); if (n) { nodo.connect(n); n.connect(master); } else nodo.connect(master); };
+      // 1) vacío grave
+      [[55, 0.1], [55.7, -0.1], [82.4, 0]].forEach(([f, p]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        env(g, [[1.2, 0.2], [2.6, 0.2], [4.2, 0.02]]); o.connect(g); salida(g, p); o.start(t0); o.stop(t0 + 4.4);
+      });
+      // 2) barrido de aire resonante
+      const len = ctx.sampleRate * 3.2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const ns = ctx.createBufferSource(); ns.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 14;
+      bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(7000, t0 + 2.8);
+      const ng = ctx.createGain(); env(ng, [[0.4, 0.5], [1.3, 0.5], [3.2, 0.05]]);
+      ns.connect(bp); bp.connect(ng); salida(ng, 0); ns.start(t0);
+      // 3) tonos de cristal (FM) que rebotan de lado a lado
+      [[1.2, 880, -0.6], [1.45, 1318.5, 0.6], [1.7, 1760, -0.6], [2.0, 2637, 0.6]].forEach(([ini, f, p]) => {
+        const c = ctx.createOscillator(), m = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+        c.frequency.value = f; m.frequency.value = f * 1.5;
+        mg.gain.setValueAtTime(f * 4.5, t0 + ini); mg.gain.exponentialRampToValueAtTime(1, t0 + ini + 1.8);
+        m.connect(mg); mg.connect(c.frequency);
+        g.gain.setValueAtTime(0.0001, t0 + ini); g.gain.exponentialRampToValueAtTime(0.2, t0 + ini + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + ini + 2.2);
+        c.connect(g); salida(g, p); c.start(t0 + ini); m.start(t0 + ini); c.stop(t0 + ini + 2.3); m.stop(t0 + ini + 2.3);
+      });
+      // 4) acorde etéreo de llegada
+      [196, 293.66, 392, 493.88, 587.33].forEach((f) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t0 + 1.6); g.gain.exponentialRampToValueAtTime(0.07, t0 + 2.4); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 4.2);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.6); o.stop(t0 + 4.3);
+      });
+      // 5) golpe sordo de entrada
+      { const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.setValueAtTime(75, t0 + 1.2); o.frequency.exponentialRampToValueAtTime(30, t0 + 2.2);
+        g.gain.setValueAtTime(0.0001, t0 + 1.2); g.gain.exponentialRampToValueAtTime(0.5, t0 + 1.23); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.4);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.2); o.stop(t0 + 2.5); }
+      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 9000);
+    } catch (e) {}
+  }
+  // Avisa a la pantalla de inicio del Centro de Datos (iframe) que la persona
+  // ya entró, para que arranque su animación de aparición.
+  function avisarEntradaCentroDatos() {
+    const fr = document.getElementById('cdiHomeFrame');
+    if (!fr) return;
+    const enviar = () => { try { fr.contentWindow.postMessage({ type: 'centrodatos:entrada' }, '*'); } catch (e) {} };
+    sonidoInicioSesion();
+    enviar();
+    // Si el iframe aún estaba cargando, reintenta cuando termine de cargar.
+    fr.addEventListener('load', enviar, { once: true });
+    setTimeout(enviar, 600);
   }
   function clonarEscudo() {
     const original = document.querySelector('.header-logo');
@@ -2571,6 +2688,7 @@
   // detecta el resultado del login, y la sesion sigue en esta misma
   // pestana sin recargar a pantalla completa.
   async function manejarLogin() {
+    prepararAudioInicio();
     ocultarError();
     loginEnCurso = true;
     mostrarCargando(true);
