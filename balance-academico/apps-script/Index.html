@@ -2617,7 +2617,7 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     if (S.arranque) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;font-weight:600;color:var(--navy)"><span class="spin" style="width:28px;height:28px;border-width:3px"></span>Cargando…</div>'; return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
-    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main><footer class="pie">Desarrollado por Oficina de Estadística<br><em style="font-style:italic;font-weight:400;opacity:.7">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></footer>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
+    app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main><footer class="pie">Desarrollado por Oficina de Estadística ENAP</footer>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
     if (S.vista === 'firma' && S.est) pintarPrevia();
     if (S.modal) { var q = $('#modal-q'); if (q) q.focus(); }
     if (S.dialogo) { var ok = $('#dialogo-ok'); if (ok) ok.focus(); }

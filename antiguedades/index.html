@@ -1175,6 +1175,30 @@ svg .cnt{font-weight:700}
 /* ficha de estudiante en pantalla completa: sin título ni franjas, arriba y abajo mínimos para que todo quede en una vista */
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-top:14px!important;padding-bottom:0!important}
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) .fstt,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) .fstt{display:none!important}
+/* ficha: números de la tabla de notas un poco más grandes */
+.stu table.gt td{font-size:16.5px!important}
+.stu table.gt tfoot td,.stu table.gt tr.pa td{font-size:16.5px!important}
+@media (max-height:900px){.stu table.gt td,.stu table.gt tfoot td,.stu table.gt tr.pa td{font-size:15px!important}}
+/* vista normal: podio y novedades alineados con las tarjetas de arriba */
+.podc,#nov{padding-left:0!important;padding-right:0!important}
+:root:not(:fullscreen):not(.fsx) #nov .nt{margin-bottom:2px}
+/* vista normal: premios más compactos */
+#prem .pbars{gap:0!important}#prem .pbr{height:29px!important;padding-block:0!important}#prem .pbk .ptk{width:17px!important;height:17px!important}#prem .pbk .ptk svg{width:16px!important;height:16px!important}
+/* móvil: nada se desplaza a los lados */
+html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{overflow-x:clip}}
+@media (max-width:700px){.chips .cpe{white-space:normal!important;max-width:100%;box-sizing:border-box;display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.chips .cpe select{max-width:100%;min-width:0}.chips{max-width:100%;box-sizing:border-box}}
+@media (max-width:700px){
+#prem .pbr{grid-template-columns:28px minmax(0,1fr) auto!important;height:auto!important;padding:6px 6px!important;row-gap:3px;min-width:0}
+#prem .pbn{white-space:normal!important;flex-wrap:wrap!important;gap:2px 8px!important;min-width:0}
+#prem .pbn .pbfn{white-space:normal!important}
+#prem .pbk{grid-column:2/4;flex-wrap:wrap;min-width:0}
+#prem .pbc{white-space:nowrap}
+#prem .pbars{gap:2px!important}}
+@media (max-width:700px){
+.pdt,.pdt *{min-width:0;max-width:100%;box-sizing:border-box}
+.pdt .pgrid,.pdt.pgrid{grid-template-columns:minmax(0,1fr)!important}
+.pdt li,.pdt li *{white-space:normal!important;overflow-wrap:anywhere}
+.pdt .ph{flex-wrap:wrap}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1192,7 +1216,7 @@ svg .cnt{font-weight:700}
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
+<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística ENAP</span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
@@ -1216,6 +1240,8 @@ const D=window.__D;
 [...(D.esc||[]),...Object.values(D.sheets||{}).flat()].forEach(s=>{if(s.e==='Salió')s.e='Retirado'});
 const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado'||s.nv==='CDPRON';
 const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
+// Promedios oficiales del grupo en el periodo anterior (BD Escalafonamiento 2026-1, hoja 4.1, 64 estudiantes)
+const BASE=({'2026-2':{ac:8.2739,an:9.2330,di:9.4161,cf:8.6069,f:8.7275,med:8.6935,max:9.3866,min:8.0881}})[PER]||null;
 /* Mercantes que figuran también en Naval/Infante (cambiaron de programa): solo cuentan como mercantes; se renumera el puesto del resto */
 (function(){const M=new Set();(D.sheets.MER||[]).forEach(s=>{if(s.c!=null)M.add(s.c);if(s.ce!=null)M.add(s.ce)});if(!M.size)return;
   const out=s=>M.has(s.c)||M.has(s.ce),fix=a=>{const n=a.filter(s=>!out(s));if(n.length!==a.length)n.filter(s=>s.p!=null).sort((x,y)=>x.p-y.p).forEach((s,i)=>{s.p=i+1});return n};
@@ -1435,15 +1461,15 @@ function totRender(){
   const fs=L.map(s=>s.f).sort((a,b)=>a-b),med=fs.length%2?fs[(fs.length-1)/2]:(fs[fs.length/2-1]+fs[fs.length/2])/2,nN=S.filter(s=>s.e&&s.e!=='Normal').length;
   // periodo de trabajo (2026-1) frente al periodo anterior (2025-2), con las mismas personas
   const nL=PER,nP=PREV,W5=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null;
-  const PV=[];S.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PV.push({p,s})});
+  const PV=[];S.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=prv(s);if(p)PV.push({p,s})});
   const nB=PV.length,IXT={ac:1,an:2,di:3,cf:4};
   const mA=a=>mean(a),mD=a=>{const q=a.slice().sort((x,y)=>x-y);return q.length%2?q[(q.length-1)/2]:(q[q.length/2-1]+q[q.length/2])/2};
-  const dlt=(key,agg,who)=>{const cu=L.map(s=>s[key]).filter(v=>v!=null),fn=key==='f'?W5:r=>r[IXT[key]],pv=PV.map(x=>fn(x.p)).filter(v=>v!=null);if(cu.length<3||pv.length<3)return '';
-    const A1=agg(cu),B1=agg(pv),d=A1-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-    let ti=`${who?(who==='max'?'Mejor promedio':'Promedio más bajo'):'Promedio'} ${nP}: ${f3(B1)}`;if(who){const e=PV.map(x=>[fn(x.p),x.s]).filter(x=>x[0]!=null).sort((a,b)=>who==='max'?b[0]-a[0]:a[0]-b[0])[0];if(e)ti+=` · ${e[1].g?e[1].g+' ':''}${e[1].n}`}
+  const dlt=(key,agg,who,bk)=>{const cu=L.map(s=>s[key]).filter(v=>v!=null),fn=r=>r[key],pv=PV.map(x=>fn(x.p)).filter(v=>v!=null);const bb=BASE&&BASE[bk||key];if(cu.length<3||(bb==null&&pv.length<3))return '';
+    const A1=agg(cu),B1=bb!=null?bb:agg(pv),d=A1-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
+    let ti=`${who?(who==='max'?'Mejor promedio':'Promedio más bajo'):(bk==='med'?'Mediana':'Promedio')} ${nP}: ${f3(B1)}`;if(who&&bb==null){const e=PV.map(x=>[fn(x.p),x.s]).filter(x=>x[0]!=null).sort((a,b)=>who==='max'?b[0]-a[0]:a[0]-b[0])[0];if(e)ti+=` · ${e[1].g?e[1].g+' ':''}${e[1].n}`}
     ti=ti.replace(/"/g,'&quot;');
-    return `${Math.abs(d/B1)<0.02?`<small class="dl eq" title="${ti}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}" title="${ti}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
-  const cmp=f=>f==='f'?dlt('f',mA):f==='med'?dlt('f',mD):f==='max'?dlt('f',a=>Math.max(...a),'max'):f==='min'?dlt('f',a=>Math.min(...a),'min'):dlt(f,mA);
+    return `${Math.abs(d/B1)<0.01?`<small class="dl eq" title="${ti}">≈ Más o menos igual vs. ${nP}</small>`:`<small class="dl ${up?'up':'dn'}" title="${ti}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${nP}</small>`}`};
+  const cmp=f=>f==='f'?dlt('f',mA):f==='med'?dlt('f',mD,null,'med'):f==='max'?dlt('f',a=>Math.max(...a),'max','max'):f==='min'?dlt('f',a=>Math.min(...a),'min','min'):dlt(f,mA);
   const whoF=top=>{const e=L.slice().sort((a,b)=>top?b.f-a.f:a.f-b.f)[0];return e?`${top?'Mejor promedio':'Promedio más bajo'} actual: ${f3(e.f)} · ${e.g?e.g+' ':''}${e.n}${e.cu?' · '+e.cu:''}`:''};
   const kp=(n,v,sub,act,tip)=>`<div class="k${act?' clk':''}"${tip?` data-tip="${String(tip).replace(/"/g,'&quot;')}"`:''}${act?` role="button" tabindex="0" data-act="${act}" aria-pressed="${totSel===act}"`:''}><span>${n}</span><b>${v}</b>${sub||''}</div>`;
   const pcs=(n,x)=>`<small class="dl pcn">${pc(n)} del total${x?' · ver lista':''}</small>`;
@@ -1500,9 +1526,9 @@ function render(){
     {const fv=ranked.filter(s=>s.f!=null).map(s=>s.f);const G={};['ac','an','di','cf','f'].forEach(f=>{const v=ORD.flatMap(k=>D.sheets[k]).filter(s=>!OUT(s)&&s[f]!=null).map(s=>s[f]);G[f]=v.reduce((x,y)=>x+y,0)/v.length});
       const av=f=>{const v=ranked.filter(s=>s[f]!=null).map(s=>s[f]);return v.length?v.reduce((x,y)=>x+y,0)/v.length:null};
       const W=r=>(r[1]!=null&&r[2]!=null&&r[3]!=null&&r[4]!=null)?r[1]*.5+r[2]*.2+r[3]*.2+r[4]*.1:null,IX={ac:1,an:2,di:3,cf:4};
-      const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=h[h.length-2];if(p)PP.push(p)});
-      const dl=(v,g,f)=>{const fn=f==='f'?W:r=>r[IX[f]],pv=PP.map(fn).filter(x=>x!=null);if(pv.length<3)return '';const B1=mean(pv),d=v-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
-        return (Math.abs(d/B1)<0.02?`<small class="dl eq" title="Promedio ${PREV}: ${f3(B1)}">≈ Más o menos igual vs. ${PREV}</small>`:`<small class="dl ${up?'up':'dn'}" title="Promedio ${PREV}: ${f3(B1)}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${PREV}</small>`)};
+      const PP=[];ranked.forEach(s=>{const h=s.h||[];if(h.length<2)return;const p=prv(s);if(p)PP.push(p)});
+      const dl=(v,g,f)=>{if(cur==='PR')return '';const fn=r=>r[f],pv=PP.map(fn).filter(x=>x!=null);if(!(BASE&&BASE[f]!=null)&&pv.length<3)return '';const B1=(BASE&&BASE[f]!=null)?BASE[f]:mean(pv),d=v-B1,up=d>=0,t=Math.abs(d).toFixed(3).replace('.',','),pp=Math.abs(d/B1*100).toFixed(1).replace('.',',')+'%';
+        return (Math.abs(d/B1)<0.01?`<small class="dl eq" title="Promedio ${PREV}: ${f3(B1)}">≈ Más o menos igual vs. ${PREV}</small>`:`<small class="dl ${up?'up':'dn'}" title="Promedio ${PREV}: ${f3(B1)}">${up?'▲ +':'▼ −'}${t} (${pp}) vs. ${PREV}</small>`)};
       const tile=(n,v,f)=>`<div class="k"><span>${n}</span><b>${f3(v)}</b>${f&&v!=null?dl(v,G[f],f):''}</div>`;
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Promedio final semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b><small class="dl eq">${(ranked.find(s=>s.f===Math.max(...fv))||{g:'',n:''}).g||''} ${(ranked.find(s=>s.f===Math.max(...fv))||{n:''}).n}</small></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Fuera del orden · aplazados, en comisión y retirados</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
@@ -1756,7 +1782,7 @@ function stuRender(){
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
   <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
-  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></div></div>${evo}`;
+  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Oficina de Estadística ENAP</div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
 function side(){
@@ -1881,6 +1907,14 @@ function grpRender(){
   el.hidden=false;
   el.innerHTML=`<div class="gh"><h3>Perfil del grupo por componente · ${eLab(cur)} · ${L.length} estudiantes</h3><div class="gk"><span><i class="kd"></i>Un punto por estudiante</span><span><i class="kt"></i>Primer puesto</span><span><i class="km"></i>Promedio del grupo</span><span class="kr">A la derecha: promedio y rango</span></div></div><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Dispersión de las notas del grupo por componente">${g}</svg>`;
 }
+
+/* Acumulado del mismo estudiante hasta el semestre anterior (todas las filas menos la última): es lo que se compara con el acumulado actual */
+function prv(s){const H=(s.h||[]).slice(0,-1);if(!H.length)return null;
+  const m=i=>{const v=H.map(r=>r[i]).filter(x=>typeof x==='number');return v.length?v.reduce((a,b)=>a+b,0)/v.length:null};
+  const wr=H.filter(r=>typeof r[1]==='number'&&typeof r[5]==='number'&&r[5]>0);
+  const ac0=wr.length?wr.reduce((a,r)=>a+r[1]*r[5],0)/wr.reduce((a,r)=>a+r[5],0):m(1),pf=s.pf!=null?s.pf:(s.pd!=null?s.pd:1);
+  const o={ac:ac0==null?null:ac0*pf,an:m(2),di:m(3),cf:m(4)};
+  o.f=(o.ac!=null&&o.an!=null&&o.di!=null&&o.cf!=null)?o.ac*.5+o.an*.2+o.di*.2+o.cf*.1:null;return o}
 let premSel=null;
 const FLG={"Argentina": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Argentina\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><rect y=\"13.3\" width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><circle cx=\"15\" cy=\"10\" r=\"2.2\" fill=\"#F6B40E\"/></svg>", "Brasil": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Brasil\"><rect width=\"30\" height=\"20\" fill=\"#009B3A\"/><path d=\"M15 2.2 27.5 10 15 17.8 2.5 10z\" fill=\"#FEDF00\"/><circle cx=\"15\" cy=\"10\" r=\"4.4\" fill=\"#002776\"/></svg>", "Chile": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Chile\"><rect width=\"30\" height=\"20\" fill=\"#D52B1E\"/><rect width=\"30\" height=\"10\" fill=\"#fff\"/><rect width=\"10\" height=\"10\" fill=\"#0039A6\"/><circle cx=\"5\" cy=\"5\" r=\"2.2\" fill=\"#fff\"/></svg>", "Corea": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Corea\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><path d=\"M10.5 10a4.5 4.5 0 0 1 9 0z\" fill=\"#CD2E3A\"/><path d=\"M10.5 10a4.5 4.5 0 0 0 9 0z\" fill=\"#0047A0\"/><g fill=\"#000\"><rect x=\"2.5\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/></g></svg>", "Ecuador": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Ecuador\"><rect width=\"30\" height=\"20\" fill=\"#FFDD00\"/><rect y=\"10\" width=\"30\" height=\"5\" fill=\"#034EA2\"/><rect y=\"15\" width=\"30\" height=\"5\" fill=\"#ED1C24\"/></svg>", "México": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de México\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#006847\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE1126\"/><circle cx=\"15\" cy=\"10\" r=\"2.4\" fill=\"#8C5A2B\"/></svg>", "Perú": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Perú\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#D91023\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#D91023\"/></svg>", "España": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de España\"><rect width=\"30\" height=\"20\" fill=\"#AA151B\"/><rect y=\"5\" width=\"30\" height=\"10\" fill=\"#F1BF00\"/></svg>", "Francia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Francia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#0055A4\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#EF4135\"/></svg>", "Italia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Italia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#009246\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE2B37\"/></svg>", "Estados Unidos": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Estados Unidos\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><g fill=\"#B22234\"><rect width=\"30\" height=\"1.54\"/><rect y=\"3.08\" width=\"30\" height=\"1.54\"/><rect y=\"6.15\" width=\"30\" height=\"1.54\"/><rect y=\"9.23\" width=\"30\" height=\"1.54\"/><rect y=\"12.3\" width=\"30\" height=\"1.54\"/><rect y=\"15.4\" width=\"30\" height=\"1.54\"/><rect y=\"18.46\" width=\"30\" height=\"1.54\"/></g><rect width=\"12\" height=\"10.8\" fill=\"#3C3B6E\"/></svg>", "Gran Bretaña": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Gran Bretaña\"><rect width=\"30\" height=\"20\" fill=\"#012169\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#fff\" stroke-width=\"4\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#C8102E\" stroke-width=\"1.4\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#fff\" stroke-width=\"6\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#C8102E\" stroke-width=\"3.4\"/></svg>"};const flag=o=>FLG[o]||'';
 function premRender(){
