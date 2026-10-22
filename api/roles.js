@@ -346,4 +346,7 @@ module.exports = async function handler(req, res) {
 // Utilidades compartidas con api/antiguedades.js (misma autenticación de aplicación y mismo sitio de SharePoint).
 module.exports.getAppAccessToken = getAppAccessToken;
 module.exports.resolveSiteId = resolveSiteId;
+module.exports.resolveListId = resolveListId;
+module.exports.leerFilas = leerFilas;
+module.exports.rolesActivosPara = rolesActivosPara;
 module.exports.CORREOS_BLOQUEADOS = CORREOS_BLOQUEADOS;

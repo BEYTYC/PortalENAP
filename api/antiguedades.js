@@ -118,6 +118,28 @@ function puedeDescargar(correo, accesos) {
   return !!(x && x.descarga === true);
 }
 
+/* ---- ACCESO TEMPORAL DE CONSULTA ----
+ * Mientras dure el escalafonamiento 2026-2, quienes tienen en la lista de permisos del Portal
+ * (la misma de Solicitud de Grado) el rol DECANO o JEFE_PROGRAMA, más los correos de abajo, entran como CONSULTA
+ * (solo ven; no descargan ni administran). Para quitarlo: poner ACCESO_TEMPORAL = false. */
+const ACCESO_TEMPORAL = true;
+const ROLES_TEMPORALES = ['DECANO', 'JEFE_PROGRAMA'];
+const CORREOS_TEMPORALES = ['cben@enap.edu.co'];
+
+async function rolTemporal(correo) {
+  if (!ACCESO_TEMPORAL) return null;
+  if (CORREOS_TEMPORALES.includes(correo)) return 'CONSULTA';
+  try {
+    const t = await roles.getAppAccessToken();
+    const sid = await roles.resolveSiteId(t);
+    const lid = await roles.resolveListId(t, sid);
+    const filas = await roles.leerFilas(t, sid, lid);
+    return roles.rolesActivosPara(filas, correo).some((x) => ROLES_TEMPORALES.includes(x)) ? 'CONSULTA' : null;
+  } catch (e) {
+    return null;
+  }
+}
+
 async function leerAccesos() {
   const a = (await leerJson('accesos.json')) || {};
   return { consulta: a.consulta || [], vistos: a.vistos || {} };
@@ -144,7 +166,7 @@ module.exports = async function handler(req, res) {
     }
     await contexto();
     const accesos = await leerAccesos();
-    const rol = rolDe(yo.correo, accesos);
+    const rol = rolDe(yo.correo, accesos) || (await rolTemporal(yo.correo));
 
     /* ---- sesión: dice qué rol tiene; si no tiene, deja registrado el intento ---- */
     if (accion === 'sesion') {
