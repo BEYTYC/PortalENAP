@@ -1280,7 +1280,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística ENAP</span></div></div>
+<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
@@ -1847,7 +1847,7 @@ function stuRender(){
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · C.C. ${s.ce??'—'} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
   <div class="tw2"><h4>Notas de todos los semestres</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
-  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div><div class="cred2">Desarrollado por Oficina de Estadística ENAP</div></div>${evo}`;
+  <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del semestre (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
 function side(){
@@ -2404,7 +2404,7 @@ function armarPremios(JSZip, D, cfg) {
     (a.w || []).forEach(function (w, i) {
       var s = por[w[0]]; if (!s) return;
       n++;
-      var nom = (s.g ? s.g + ' ' : '') + s.n + (s.ce ? '\nC.C. ' + String(s.ce).replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '');
+      var nom = (s.g ? s.g + ' ' : '') + s.n;
       rows += '<w:tr>' + cell(n, W[0], { jc: 'center' }) + cell(a.t, W[1]) + cell(a.o, W[2]) + cell(a.r, W[3]) + cell(nom, W[4]) + cell(w[1], W[5]) + '</w:tr>';
     });
   });
