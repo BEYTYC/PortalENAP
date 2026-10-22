@@ -1064,10 +1064,10 @@ svg .cnt{font-weight:700}
 :root:fullscreen #prem,:root.fsx #prem{position:relative!important;padding-block:10px 8px!important}
 :root:fullscreen #prem .pbars,:root.fsx #prem .pbars{gap:0!important;justify-content:flex-start!important}
 :root:fullscreen #prem .pbr,:root.fsx #prem .pbr{min-height:0!important;height:34px!important;padding-block:0!important}
-:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:absolute!important;right:230px;top:54px;display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:3px!important;margin:0!important;padding:0!important;font-size:11.5px!important;order:0!important;z-index:1;align-items:flex-start}
-:root:fullscreen #prem .pleg .ptk,:root.fsx #prem .pleg .ptk{width:16px!important;height:16px!important}
-:root:fullscreen #prem .pleg .ptk svg,:root.fsx #prem .pleg .ptk svg{width:15px!important;height:15px!important}
-:root:fullscreen #prem .pleg span,:root.fsx #prem .pleg span{gap:7px!important;white-space:nowrap}
+:root:fullscreen .pleg,:root.fsx .pleg{position:absolute!important;right:230px;top:54px;display:flex!important;flex-direction:column!important;flex-wrap:nowrap!important;gap:3px!important;margin:0!important;padding:0!important;font-size:11.5px!important;order:0!important;z-index:1;align-items:flex-start}
+:root:fullscreen .pleg .ptk,:root.fsx .pleg .ptk{width:16px!important;height:16px!important}
+:root:fullscreen .pleg .ptk svg,:root.fsx .pleg .ptk svg{width:15px!important;height:15px!important}
+:root:fullscreen .pleg span,:root.fsx .pleg span{gap:7px!important;white-space:nowrap}
 /* ---- Vista ampliada: franja superior (pestañas) y franja inferior (crédito) fijas, en blanco degradado ---- */
 :root:fullscreen,:root.fsx{--pt:14px}
 @media(min-height:1000px){:root:fullscreen,:root.fsx{--pt:clamp(48px,6.6vh,76px)}}
@@ -1085,7 +1085,7 @@ svg .cnt{font-weight:700}
 :root:fullscreen,:root.fsx{--pt:46px}
 @media(min-height:1000px){:root:fullscreen,:root.fsx{--pt:clamp(56px,6.6vh,80px)}}
 :root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:28px!important}
-:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:static!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:6px 4px 0!important;padding:0!important;align-items:center}
+:root:fullscreen .pleg,:root.fsx .pleg{position:static!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:6px 4px 0!important;padding:0!important;align-items:center}
 :root:fullscreen .podc .pd.p1 .pb,:root.fsx .podc .pd.p1 .pb{height:104px!important}
 :root:fullscreen .podc .pd.p2 .pb,:root.fsx .podc .pd.p2 .pb{height:94px!important}
 :root:fullscreen .podc .pd.p3 .pb,:root.fsx .podc .pd.p3 .pb{height:84px!important}
@@ -1096,7 +1096,7 @@ svg .cnt{font-weight:700}
 :root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:26px!important}
 /* leyenda de premios: en la franja inferior, a la izquierda, en línea con "Desarrollado por" */
 :root:fullscreen #prem,:root.fsx #prem{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
-:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:fixed!important;left:28px!important;right:auto!important;bottom:14px!important;top:auto!important;z-index:42!important;margin:0!important;padding:0!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:18px!important;align-items:center;justify-content:flex-start}
+:root:fullscreen .pleg,:root.fsx .pleg{position:fixed!important;left:28px!important;right:auto!important;bottom:14px!important;top:auto!important;z-index:42!important;margin:0!important;padding:0!important;flex-direction:row!important;flex-wrap:nowrap!important;gap:18px!important;align-items:center;justify-content:flex-start}
 /* cuando la vista hace scroll (detalle de premios, listado de novedades, ficha), el final no queda bajo la franja inferior */
 :root:fullscreen:has(.pst) body,:root.fsx:has(.pst) body,:root:fullscreen:has(#novl:not([hidden])) body,:root.fsx:has(#novl:not([hidden])) body{padding-bottom:84px!important}
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-bottom:84px!important}
@@ -1130,12 +1130,56 @@ svg .cnt{font-weight:700}
 #prem .pbn em{display:inline!important;font-size:12px!important}
 #prem .pbc{display:flex!important;flex-direction:row!important;align-items:baseline!important;justify-content:flex-end;gap:6px;white-space:nowrap}
 #prem .pbc small{display:inline!important;font-size:13px!important;font-weight:600;opacity:.65;margin:0!important}
-#prem .pleg{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:8px 4px 0!important;padding:0!important;font-size:12px!important;align-items:center}
+.pleg{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:8px 4px 0!important;padding:0!important;font-size:12px!important;align-items:center}
+/* ---- Título de la vista ampliada ---- */
+:root:fullscreen .fstt,:root.fsx .fstt{display:flex!important;align-items:center;justify-content:center;gap:14px;padding:9px 28px 0!important;text-transform:none!important;letter-spacing:0!important;font-size:inherit!important}
+.fstt b{font-family:Georgia,"Times New Roman",serif;font-size:23px;font-weight:700;letter-spacing:.34em;text-transform:uppercase;color:#14304f;padding-left:.34em}
+.fstt .fan{color:#B8892A;flex:none}
+.fstt .fp{font-size:12.5px;font-weight:700;letter-spacing:.08em;color:#fff;background:#1B4688;border-radius:999px;padding:3px 11px}
+.fstt .fp:empty{display:none}
+.fstt i{flex:1 1 0;max-width:420px;height:2px;border-radius:2px}
+.fstt .fl1{background:linear-gradient(90deg,rgba(184,137,42,0),#C9A24A)}
+.fstt .fl2{background:linear-gradient(270deg,rgba(184,137,42,0),#C9A24A)}
+/* novedades: ocupan todo el alto disponible, sin espacios en blanco */
+:root:fullscreen #nov,:root.fsx #nov{display:flex!important;flex-direction:column!important}
+:root:fullscreen #nov .nt,:root.fsx #nov .nt{flex:1 1 auto!important;grid-template-rows:1fr 1fr!important;grid-auto-rows:1fr!important;align-content:stretch!important;min-height:0}
+/* premios: fila seleccionada/hover más limpia */
+:root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:32px!important;border-radius:9px!important;align-items:center!important}
+#prem .pbr{border-radius:9px!important}
+:root:fullscreen #prem .pbk,:root.fsx #prem .pbk{display:flex!important;align-items:center;gap:6px}
+:root:fullscreen #prem .pbk .ptk,:root.fsx #prem .pbk .ptk,#prem .pbk .ptk{width:20px!important;height:20px!important;display:inline-flex!important;align-items:center;justify-content:center}
+#prem .pbk .ptk svg{width:18px!important;height:18px!important}
+:root:fullscreen #prem .pbc,:root.fsx #prem .pbc{align-self:center!important;align-items:center!important}
+/* leyenda de premios fuera del cuadro (vista normal) */
+.pleg{display:flex;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;gap:4px 18px;margin:8px 6px 0;padding:0;font-size:12px;align-items:center;color:#4C6386}
+.pleg[hidden]{display:none!important}
+.pleg span{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.pleg .ptk{width:16px;height:16px}.pleg .ptk svg{width:15px;height:15px}
+:root:fullscreen .pleg:not([hidden]),:root.fsx .pleg:not([hidden]){position:fixed!important;left:28px!important;right:auto!important;bottom:14px!important;z-index:42!important;margin:0!important;flex-wrap:nowrap!important;gap:18px!important;justify-content:flex-start}
+/* título elegante y mínimo */
+.fstt i,.fstt .fan{display:none!important}
+.fstt b{font-family:inherit!important;font-size:21px!important;font-weight:650!important;letter-spacing:.06em!important;text-transform:none!important;padding:0 0 7px!important;position:relative;color:#14304f}
+.fstt b::after{content:"";position:absolute;left:50%;bottom:0;width:38px;height:2px;margin-left:-19px;border-radius:2px;background:#C9A24A}
+.fstt .fp{background:none!important;color:#7A8CA6!important;padding:0 0 7px!important;font-size:13px!important;font-weight:500!important;letter-spacing:.1em!important}
+/* crédito centrado en el espacio */
+.foot{text-align:center!important}
+.foot .credfs,.credfs,.cred2{text-align:center!important}
+:root:fullscreen #pub>.foot,:root.fsx #pub>.foot{text-align:right!important}
+:root:fullscreen #pub>.foot .credfs,:root.fsx #pub>.foot .credfs{text-align:right!important;display:block!important;margin:0!important}
+/* leyenda de premios siempre centrada en el espacio */
+.pleg{justify-content:center!important}
+:root:fullscreen .pleg:not([hidden]),:root.fsx .pleg:not([hidden]){left:50%!important;right:auto!important;transform:translateX(-50%);justify-content:center!important}
+:root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:28px!important}
+:root:fullscreen #prem .pbk .ptk,:root.fsx #prem .pbk .ptk{width:18px!important;height:18px!important}
+:root:fullscreen #prem .pbk .ptk svg,:root.fsx #prem .pbk .ptk svg{width:16px!important;height:16px!important}
+/* ficha de estudiante en pantalla completa: sin título ni franjas, arriba y abajo mínimos para que todo quede en una vista */
+:root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-top:14px!important;padding-bottom:0!important}
+:root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) .fstt,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) .fstt{display:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
 <div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
-<div id="pub"><div class="fstt" id="fstt" aria-hidden="true">Antigüedades ENAP · <span id="fsttp">Escalafonamiento</span></div><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Apellidos, código o cédula" aria-label="Buscar estudiante"></div>
+<div id="pub"><div class="fstt" id="fstt" aria-hidden="true"><i class="fl1"></i><svg class="fan" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V20M7 11h10M4.5 14c.6 3.8 3.4 6 7.5 6s6.9-2.2 7.5-6"/></svg><b>Antigüedades</b><span id="fsttp" class="fp"></span><svg class="fan" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="5" r="2.2"/><path d="M12 7.2V20M7 11h10M4.5 14c.6 3.8 3.4 6 7.5 6s6.9-2.2 7.5-6"/></svg><i class="fl2"></i></div><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="chips msub" id="msub" hidden></div>
 <div class="card stu" id="stu" hidden></div>
 <div class="kpi" id="kpi"></div>
@@ -1143,12 +1187,12 @@ svg .cnt{font-weight:700}
 <div class="card nov" id="nov"></div></div>
 <div class="card nov" id="novl" hidden></div>
 <div class="charts" id="charts"></div>
-<div class="card prem" id="prem" hidden></div><div class="card grp" id="grp" hidden></div>
+<div class="card prem" id="prem" hidden></div><div class="pleg" id="plegw" hidden></div><div class="card grp" id="grp" hidden></div>
 <div class="card salv" id="salv" hidden></div>
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent="Escalafonamiento"+(t?" "+t:"")}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
+<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
@@ -1841,6 +1885,7 @@ let premSel=null;
 const FLG={"Argentina": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Argentina\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><rect y=\"13.3\" width=\"30\" height=\"6.7\" fill=\"#74ACDF\"/><circle cx=\"15\" cy=\"10\" r=\"2.2\" fill=\"#F6B40E\"/></svg>", "Brasil": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Brasil\"><rect width=\"30\" height=\"20\" fill=\"#009B3A\"/><path d=\"M15 2.2 27.5 10 15 17.8 2.5 10z\" fill=\"#FEDF00\"/><circle cx=\"15\" cy=\"10\" r=\"4.4\" fill=\"#002776\"/></svg>", "Chile": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Chile\"><rect width=\"30\" height=\"20\" fill=\"#D52B1E\"/><rect width=\"30\" height=\"10\" fill=\"#fff\"/><rect width=\"10\" height=\"10\" fill=\"#0039A6\"/><circle cx=\"5\" cy=\"5\" r=\"2.2\" fill=\"#fff\"/></svg>", "Corea": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Corea\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><path d=\"M10.5 10a4.5 4.5 0 0 1 9 0z\" fill=\"#CD2E3A\"/><path d=\"M10.5 10a4.5 4.5 0 0 0 9 0z\" fill=\"#0047A0\"/><g fill=\"#000\"><rect x=\"2.5\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"2.5\" width=\"4.5\" height=\"1.2\"/><rect x=\"23\" y=\"5\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"13.8\" width=\"4.5\" height=\"1.2\"/><rect x=\"2.5\" y=\"16.3\" width=\"4.5\" height=\"1.2\"/></g></svg>", "Ecuador": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Ecuador\"><rect width=\"30\" height=\"20\" fill=\"#FFDD00\"/><rect y=\"10\" width=\"30\" height=\"5\" fill=\"#034EA2\"/><rect y=\"15\" width=\"30\" height=\"5\" fill=\"#ED1C24\"/></svg>", "México": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de México\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#006847\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE1126\"/><circle cx=\"15\" cy=\"10\" r=\"2.4\" fill=\"#8C5A2B\"/></svg>", "Perú": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Perú\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#D91023\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#D91023\"/></svg>", "España": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de España\"><rect width=\"30\" height=\"20\" fill=\"#AA151B\"/><rect y=\"5\" width=\"30\" height=\"10\" fill=\"#F1BF00\"/></svg>", "Francia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Francia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#0055A4\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#EF4135\"/></svg>", "Italia": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Italia\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><rect width=\"10\" height=\"20\" fill=\"#009246\"/><rect x=\"20\" width=\"10\" height=\"20\" fill=\"#CE2B37\"/></svg>", "Estados Unidos": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Estados Unidos\"><rect width=\"30\" height=\"20\" fill=\"#fff\"/><g fill=\"#B22234\"><rect width=\"30\" height=\"1.54\"/><rect y=\"3.08\" width=\"30\" height=\"1.54\"/><rect y=\"6.15\" width=\"30\" height=\"1.54\"/><rect y=\"9.23\" width=\"30\" height=\"1.54\"/><rect y=\"12.3\" width=\"30\" height=\"1.54\"/><rect y=\"15.4\" width=\"30\" height=\"1.54\"/><rect y=\"18.46\" width=\"30\" height=\"1.54\"/></g><rect width=\"12\" height=\"10.8\" fill=\"#3C3B6E\"/></svg>", "Gran Bretaña": "<svg class=\"fl\" viewBox=\"0 0 30 20\" role=\"img\" aria-label=\"Bandera de Gran Bretaña\"><rect width=\"30\" height=\"20\" fill=\"#012169\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#fff\" stroke-width=\"4\"/><path d=\"M0 0 30 20M30 0 0 20\" stroke=\"#C8102E\" stroke-width=\"1.4\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#fff\" stroke-width=\"6\"/><path d=\"M15 0v20M0 10h30\" stroke=\"#C8102E\" stroke-width=\"3.4\"/></svg>"};const flag=o=>FLG[o]||'';
 function premRender(){
   const el=document.getElementById('prem');if(!el)return;
+  const pw=document.getElementById('plegw');if(pw){pw.hidden=true;pw.innerHTML=''}
   const P=D.premios;
   if(!isE(cur)||q||sel||!P||!P.a||!P.a.length){el.hidden=true;el.innerHTML='';return}
   const POOL=ls(cur),PC=new Set(POOL.map(s=>s.c)),PA=P.a.map(a=>({...a,w:a.w.filter(([c])=>PC.has(c))})).filter(a=>a.w.length);
@@ -1867,8 +1912,9 @@ function premRender(){
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
   const so=L.find(o=>o.s.c===premSel);
   const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${flag(z.a.o)}${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
-  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pbars" role="list">'+rowsH+'</div><div class="pleg">'+leg+'</div>'+det;
-  {const g=el.querySelector('.pbfn'),l=el.querySelector('.pleg');if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
+  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3><div class="pbars" role="list">'+rowsH+'</div>'+det;
+  if(pw){pw.innerHTML=leg;pw.hidden=false}
+  {const g=el.querySelector('.pbfn'),l=null;if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
 }
 function mrRender(){
