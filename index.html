@@ -2760,6 +2760,15 @@ img,svg,video,canvas,iframe{max-width:100%}
       // su cuenta personal o con otra institucional) en esa misma maquina,
       // el popup entraba directo con esa cuenta sin dar oportunidad de
       // cambiar.
+      // En celulares (sobre todo iPhone) la ventana emergente se abre como otra pestaña y, al volver, la pestana del Portal
+      // suele haberse descartado/dormido: el login terminaba y se volvia a ver la pantalla de inicio. Alli se inicia sesion
+      // en la MISMA pestana (loginRedirect): Microsoft vuelve a redirect.html, que reenvia la respuesta aqui (ver redirect.html)
+      // y procesarSesion() la completa con handleRedirectPromise(). En computador se mantiene la ventana emergente.
+      if (esCelular()) {
+        try { sessionStorage.setItem('PortalENAP_loginRedirect', '1'); } catch (_) {}
+        await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
+        return;
+      }
       const resultado = await conInteraccionMsalExclusiva(() => instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' }));
       if (resultado && resultado.account) {
         const sesion = await obtenerRolesUsuario(resultado.account);
@@ -2784,8 +2793,35 @@ img,svg,video,canvas,iframe{max-width:100%}
   // Al cargar la pestana principal: si ya hay una cuenta en cache de una
   // sesion anterior, se intenta en silencio: si tiene roles activos entra
   // directo, si no, se queda en el login (sin mostrar error todavia).
+  function esCelular() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '') || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ''));
+  }
+
   async function procesarSesion() {
     const instance = await getMsal();
+    // Regreso de un login por redireccion (celulares): completa la sesion con la respuesta que viene en la URL.
+    let vieneDeRedireccion = false;
+    try { vieneDeRedireccion = sessionStorage.getItem('PortalENAP_loginRedirect') === '1'; } catch (_) {}
+    if (vieneDeRedireccion || /[#&](code|error)=/.test(window.location.hash)) {
+      try { sessionStorage.removeItem('PortalENAP_loginRedirect'); } catch (_) {}
+      mostrarCargando(true);
+      try {
+        const r = await instance.handleRedirectPromise();
+        if (r && r.account) {
+          const sesion = await obtenerRolesUsuario(r.account);
+          window.PortalENAP.sesion = sesion;
+          ocultarGate();
+          mostrarSesionUsuario(sesion);
+          mostrarVistasSegunSesion(sesion);
+          return;
+        }
+      } catch (error) {
+        mostrarError(mensajeErrorGraph(error));
+        return;
+      } finally {
+        mostrarCargando(false);
+      }
+    }
     const cuentas = instance.getAllAccounts();
     if (cuentas.length === 0) return;
     try {

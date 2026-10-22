@@ -42,6 +42,18 @@
   login con "redirect_uri_mismatch".
 -->
 <p id="msg" style="text-align:center;padding:0 24px;line-height:1.5">Procesando el inicio de sesión…</p>
+<script>
+  // Login en celular (misma pestaña, ver index.html -> manejarLogin): si esta pagina es la vuelta de ese login,
+  // se reenvia la respuesta de Microsoft (#code=...) al Portal para que la procese alli.
+  (function () {
+    try {
+      if (sessionStorage.getItem('PortalENAP_loginRedirect') === '1' && !window.opener && /[#&](code|error)=/.test(location.hash)) {
+        location.replace(location.origin + '/' + location.hash);
+        window.__reenviado = true;
+      }
+    } catch (e) { /* si falla, sigue el comportamiento normal de esta pagina */ }
+  })();
+</script>
 <script src="msal-redirect-bridge.min.js"></script>
 <script>
   // Marca en localStorage: llegar a ESTA pagina (sin importar login o
@@ -58,7 +70,7 @@
   // tampoco lo rompen las politicas COOP.
   try { localStorage.setItem('PortalENAP_bridgeAlcanzado', String(Date.now())); } catch (e) { /* nada mas que hacer aqui */ }
 
-  window.msalRedirectBridge.broadcastResponseToMainFrame().catch(function (error) {
+  (window.__reenviado ? Promise.resolve() : window.msalRedirectBridge.broadcastResponseToMainFrame()).catch(function (error) {
     console.error('[PortalENAP] Error en el puente de redireccion de MSAL:', error);
   }).then(function () {
     // Respaldo: en un LOGOUT (logoutPopup), Microsoft trae aqui de vuelta
