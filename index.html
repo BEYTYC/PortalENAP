@@ -1245,7 +1245,7 @@
       <section class="cdi-home" id="cdiHome">
         <span class="preview-tag">En construcción</span>
         <div class="cdi-home__stage" id="cdiHomeStage">
-          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" allowtransparency="true" src="centro-datos/index.html?modo=inicio" loading="lazy"></iframe>
+          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional (en construcción)" allowtransparency="true" src="centro-datos/index.html?modo=inicio"></iframe>
         </div>
       </section>
     </div>
@@ -2509,6 +2509,88 @@
       // se salta la animacion la primera vez que carga la pagina).
       requestAnimationFrame(() => requestAnimationFrame(() => home.classList.add('entrada-lista')));
     }
+    avisarEntradaCentroDatos();
+  }
+  // Sonido de inicio de sesión, sintetizado con Web Audio (sin archivos):
+  // un "whoosh" suave, un golpe grave cuando aparece la esfera, un arpegio
+  // brillante sincronizado con la salida de los módulos y un acorde final.
+  // Si el navegador bloquea el audio (sin interacción previa), se omite en silencio.
+  // El audio se "despierta" al hacer clic en el botón de login (gesto de la
+  // persona), así el navegador no lo deja suspendido y suena al instante.
+  let audioInicio = null;
+  function prepararAudioInicio() {
+    try {
+      if (audioInicio) return;
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      audioInicio = new AC();
+      audioInicio.resume().catch(() => {});
+    } catch (e) {}
+  }
+  function sonidoInicioSesion() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      const ctx = audioInicio || new AC();
+      audioInicio = null;
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+      const t0 = ctx.currentTime + 0.01;
+      // "Entrando a otra dimensión": vacío grave que se abre, barrido de aire
+      // resonante, tonos de cristal que rebotan en eco, golpe sordo y acorde final.
+      const master = ctx.createGain(); master.gain.value = 0.5;
+      const eco = ctx.createDelay(1); eco.delayTime.value = 0.28;
+      const ecoG = ctx.createGain(); ecoG.gain.value = 0.33;
+      master.connect(ctx.destination); master.connect(eco); eco.connect(ecoG); ecoG.connect(eco); ecoG.connect(ctx.destination);
+      const env = (g, pts) => { g.gain.setValueAtTime(0.0001, t0); pts.forEach(([t, v]) => g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0001), t0 + t)); };
+      const pan = (p) => { const n = ctx.createStereoPanner ? ctx.createStereoPanner() : null; if (n) n.pan.value = p; return n; };
+      const salida = (nodo, p) => { const n = pan(p); if (n) { nodo.connect(n); n.connect(master); } else nodo.connect(master); };
+      // 1) vacío grave
+      [[55, 0.1], [55.7, -0.1], [82.4, 0]].forEach(([f, p]) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        env(g, [[1.2, 0.2], [2.6, 0.2], [4.2, 0.02]]); o.connect(g); salida(g, p); o.start(t0); o.stop(t0 + 4.4);
+      });
+      // 2) barrido de aire resonante
+      const len = ctx.sampleRate * 3.2, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      const ns = ctx.createBufferSource(); ns.buffer = buf;
+      const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 14;
+      bp.frequency.setValueAtTime(200, t0); bp.frequency.exponentialRampToValueAtTime(7000, t0 + 2.8);
+      const ng = ctx.createGain(); env(ng, [[0.4, 0.5], [1.3, 0.5], [3.2, 0.05]]);
+      ns.connect(bp); bp.connect(ng); salida(ng, 0); ns.start(t0);
+      // 3) tonos de cristal (FM) que rebotan de lado a lado
+      [[1.2, 880, -0.6], [1.45, 1318.5, 0.6], [1.7, 1760, -0.6], [2.0, 2637, 0.6]].forEach(([ini, f, p]) => {
+        const c = ctx.createOscillator(), m = ctx.createOscillator(), mg = ctx.createGain(), g = ctx.createGain();
+        c.frequency.value = f; m.frequency.value = f * 1.5;
+        mg.gain.setValueAtTime(f * 4.5, t0 + ini); mg.gain.exponentialRampToValueAtTime(1, t0 + ini + 1.8);
+        m.connect(mg); mg.connect(c.frequency);
+        g.gain.setValueAtTime(0.0001, t0 + ini); g.gain.exponentialRampToValueAtTime(0.2, t0 + ini + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + ini + 2.2);
+        c.connect(g); salida(g, p); c.start(t0 + ini); m.start(t0 + ini); c.stop(t0 + ini + 2.3); m.stop(t0 + ini + 2.3);
+      });
+      // 4) acorde etéreo de llegada
+      [196, 293.66, 392, 493.88, 587.33].forEach((f) => {
+        const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t0 + 1.6); g.gain.exponentialRampToValueAtTime(0.07, t0 + 2.4); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 4.2);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.6); o.stop(t0 + 4.3);
+      });
+      // 5) golpe sordo de entrada
+      { const o = ctx.createOscillator(), g = ctx.createGain();
+        o.frequency.setValueAtTime(75, t0 + 1.2); o.frequency.exponentialRampToValueAtTime(30, t0 + 2.2);
+        g.gain.setValueAtTime(0.0001, t0 + 1.2); g.gain.exponentialRampToValueAtTime(0.5, t0 + 1.23); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.4);
+        o.connect(g); salida(g, 0); o.start(t0 + 1.2); o.stop(t0 + 2.5); }
+      setTimeout(() => { try { ctx.close(); } catch (e) {} }, 9000);
+    } catch (e) {}
+  }
+  // Avisa a la pantalla de inicio del Centro de Datos (iframe) que la persona
+  // ya entró, para que arranque su animación de aparición.
+  function avisarEntradaCentroDatos() {
+    const fr = document.getElementById('cdiHomeFrame');
+    if (!fr) return;
+    const enviar = () => { try { fr.contentWindow.postMessage({ type: 'centrodatos:entrada' }, '*'); } catch (e) {} };
+    sonidoInicioSesion();
+    enviar();
+    // Si el iframe aún estaba cargando, reintenta cuando termine de cargar.
+    fr.addEventListener('load', enviar, { once: true });
+    setTimeout(enviar, 600);
   }
   function clonarEscudo() {
     const original = document.querySelector('.header-logo');
@@ -2571,6 +2653,7 @@
   // detecta el resultado del login, y la sesion sigue en esta misma
   // pestana sin recargar a pantalla completa.
   async function manejarLogin() {
+    prepararAudioInicio();
     ocultarError();
     loginEnCurso = true;
     mostrarCargando(true);
