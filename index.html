@@ -798,6 +798,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 </style><style id="login-movil">
 /* Inicio de sesión en celular: pantalla azul compacta + hoja blanca con el acceso */
 @media (max-width:600px){
+  .login-gate[hidden]{display:none!important}
   .login-gate{display:flex!important;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--navy-950,#0B1E3F)}
   .login-gate__brand{flex:0 0 auto;align-items:center;text-align:center;padding:max(26px,env(safe-area-inset-top)) 22px 56px!important;gap:10px!important;justify-content:center!important;min-height:50vh;min-height:50dvh;box-sizing:border-box}
   .login-gate__mark{flex-direction:column;gap:12px;align-items:center}
