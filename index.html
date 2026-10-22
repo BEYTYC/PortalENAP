@@ -368,7 +368,7 @@
   .cde-note{ margin-top:9px; font-size:11.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc{
+  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -385,7 +385,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloConc[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -466,7 +466,7 @@
   footer .left, footer .right{ position:relative; z-index:1; }
   footer .left b{display:block; color:#fff; font-size:12.5px;}
   footer .right{margin-left:auto; text-align:right;}
-  footer .right .line1{display:block; color:#fff; text-align:right; line-height:1.15;}
+  footer .right .line1{display:block; color:#fff; text-align:right; line-height:1.15; font-size:11px;}
   footer .right .line1 b{font-weight:600;}
   footer .copyright{ display:block; font-size:10.5px; color:var(--navy-300); margin-top:2px; }
 
@@ -656,7 +656,7 @@
   .cred-n{font-style:italic;font-weight:400;opacity:.72}
   .login-gate__credito{
     position:absolute; right:20px; bottom:16px; z-index:1;
-    font-size:11.5px; font-weight:400; color:var(--text-muted); opacity:1; text-align:right; line-height:1.15; text-align:right; line-height:1.15;
+    font-size:10.5px; font-weight:400; color:var(--text-muted); opacity:1; text-align:right; line-height:1.15; text-align:right; line-height:1.15;
   }
   @media (max-width:860px){
     .login-gate__credito{ position:static; margin-top:28px; text-align:center; }
@@ -1328,6 +1328,10 @@
       allow="fullscreen"
       allowfullscreen
     ></iframe>
+  </div>
+
+  <div id="viewProtocoloAnt" hidden>
+    <iframe id="protocoloAntFrame" class="registro-iframe" title="Protocolo Antigüedades ENAP" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewAntiguedades" hidden>
@@ -2876,6 +2880,7 @@
       items: [
         { nombre: 'Protocolo Solicitud de Grado', status: 'soon' },
         { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'ok' },
+        { nombre: 'Protocolo Antigüedades ENAP', status: 'ok' },
       ],
     },
   ];
@@ -2980,6 +2985,7 @@
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
+          else if (item.status === 'ok' && item.nombre === 'Protocolo Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Protocolo · Antigüedades ENAP'); cargarProtocoloAnt(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
@@ -3102,6 +3108,13 @@
     const f = document.getElementById('protocoloConcFrame');
     if (f.dataset.cargado) return;
     f.src = 'protocolos/concesiones-especiales.html';
+    f.dataset.cargado = '1';
+  }
+
+  function cargarProtocoloAnt() {
+    const f = document.getElementById('protocoloAntFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'protocolos/antiguedades-enap.html';
     f.dataset.cargado = '1';
   }
 
