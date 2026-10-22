@@ -2250,7 +2250,8 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   var fuera = function (s) { return s.e === 'Aplazado' || s.e === 'Retirado' || s.e === 'Comisión' || s.nv === 'CDPRON'; };
   var lista = esNav
     ? (D.esc || []).filter(function (s) { return !fuera(s) && s.p != null && s.f != null; })
-    : ((D.sheets && D.sheets.PR) || []).filter(function (s) { return s.cu === 'PR-' + (cfg.cursoPR || '62') && s.p != null && s.f != null && !fuera(s); });
+    : ((D.sheets && D.sheets.PR) || []).filter(function (s) { return s.f != null && ((s.cu === 'PR-' + (cfg.cursoPR || '62') && s.p != null && !fuera(s)) || (s.nv === 'CDPRON' && s.e !== 'Retirado' && s.e !== 'Aplazado')); })
+      .sort(function (a, b) { return b.f - a.f; }).map(function (s, i) { var c = {}; for (var k in s) c[k] = s[k]; c.p = i + 1; return c; });
   lista = lista.slice().sort(function (a, b) { return a.p - b.p; });
   if (!lista.length) throw new Error('No hay estudiantes para este certificado.');
 
