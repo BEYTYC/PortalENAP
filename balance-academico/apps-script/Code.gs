@@ -47,7 +47,7 @@ function configurar() {
   var d = graph_('get', rutaDrive_() + '?$select=id,name,webUrl', null, t);
   asegurarCarpeta_(t);
   Logger.log('OneDrive conectado: ' + (d.webUrl || d.name) + '\nCarpeta de balances: ' + carpetaBalances_() +
-    '\nClave de acceso: ' + (prop_('CLAVE_ACCESO') ? 'configurada' : '(no configurada)') + '\nUsuarios permitidos: ' + (prop_('USUARIOS_PERMITIDOS', '') || '(cualquiera que abra la página)') +
+    '\nCuenta autorizada (login del Portal): ' + prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co') +
     '\nPlantillas: ' + (prop_('PORTAL_URL') ? prop_('PORTAL_URL').replace(/\/+$/, '') + '/balances/' : 'OneDrive ' + carpetaPlantillas_()));
 }
 
@@ -119,33 +119,28 @@ function sha_(t) {
 }
 
 /** Identidad y acceso.
- *  · Con la propiedad CLAVE_ACCESO la implementación puede ser de acceso “Cualquier persona” (así se ve dentro de la página
- *    del Portal también en celulares): la aplicación pide la clave y el servidor la verifica en CADA acción.
- *  · Sin esa propiedad se usa la cuenta de Google de quien abre la página (y USUARIOS_PERMITIDOS, si existe).
- *  El argumento `tokenUsuario` es la clave que escribió la persona. */
-function requiereClave() { return !!prop_('CLAVE_ACCESO'); }
-function iguales_(a, b) {
-  a = String(a); b = String(b);
-  var d = a.length === b.length ? 0 : 1, n = Math.max(a.length, b.length);
-  for (var i = 0; i < n; i++) d |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
-  return d === 0;
-}
+ *  El Portal ENAP entrega el token de Microsoft de quien inició sesión; aquí se verifica con Microsoft Graph (/me) y solo
+ *  se permite la cuenta autorizada (propiedad CORREO_PERMITIDO; por defecto posfam@enap.edu.co). La implementación debe ser
+ *  de acceso “Cualquier persona”, pero sin un token válido de esa cuenta el servidor rechaza todas las acciones.
+ *  El argumento `tokenUsuario` es ese token de Microsoft. */
+function requiereClave() { return false; }
 function sesionDe_(tokenUsuario) {
-  var clave = prop_('CLAVE_ACCESO'), correo = '';
-  try { correo = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); } catch (e) {}
-  if (clave) {
-    var cache = CacheService.getScriptCache(), fallos = Number(cache.get('fallos') || 0);
-    if (fallos >= 40) throw new Error('Clave incorrecta: demasiados intentos. Espere 10 minutos.');
-    if (!iguales_(tokenUsuario || '', clave)) {
-      cache.put('fallos', String(fallos + 1), 600); Utilities.sleep(1200);
-      throw new Error('Clave de acceso incorrecta.');
-    }
-    return { email: correo, nombre: correo || 'Jefe de Programa', roles: ['jefe'], prueba: false };
+  var permitido = String(prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co')).trim().toLowerCase();
+  var token = String(tokenUsuario || '');
+  if (!token) throw new Error('Este usuario no tiene acceso a este módulo. Ábralo desde el Portal ENAP.');
+  var cache = CacheService.getScriptCache(), k = 'ms_' + sha_(token), correo = cache.get(k);
+  if (!correo) {
+    var r;
+    try { r = UrlFetchApp.fetch('https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName', { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true }); }
+    catch (e) { throw new Error('No se pudo verificar la sesión de Microsoft. Intente de nuevo.'); }
+    if (r.getResponseCode() === 401) throw new Error('La sesión de Microsoft venció. Recargue el Portal.');
+    if (r.getResponseCode() !== 200) throw new Error('No se pudo verificar la sesión de Microsoft (' + r.getResponseCode() + ').');
+    var u = JSON.parse(r.getContentText());
+    correo = String(u.mail || u.userPrincipalName || '').trim().toLowerCase();
+    if (correo === permitido) cache.put(k, correo, 300);
   }
-  if (!correo) throw new Error('Falta configurar la propiedad CLAVE_ACCESO (la implementación es de acceso público y no hay cuenta de Google).');
-  var permitidos = prop_('USUARIOS_PERMITIDOS', '').toLowerCase().split(/[,;\s]+/).filter(Boolean);
-  if (permitidos.length && permitidos.indexOf(correo) < 0) throw new Error('Su cuenta no tiene permiso para usar el Balance Académico.');
-  return { email: correo, nombre: correo, roles: ['jefe'], prueba: false };
+  if (correo !== permitido) throw new Error('Este usuario no tiene acceso a este módulo.');
+  return { email: correo, nombre: 'Jefe de Programa – Facultad de Administración', roles: ['jefe'], prueba: false };
 }
 
 function exigir_(token, permitidos) {

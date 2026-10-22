@@ -1791,7 +1791,22 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     });
   }
   /* Identidad: aplicación independiente en Apps Script; el servidor toma el correo de quien abre la página. */
-  function obtenerToken() { return Promise.resolve(S.clave || ''); }   // aplicación independiente: aquí va la clave de acceso, si el servidor la pide
+  /* Identidad: el Portal ENAP entrega el token de Microsoft de quien inició sesión (postMessage); el servidor lo verifica con Microsoft. */
+  var tokenMs = { valor: '', t: 0 };
+  function obtenerToken() {
+    if (tokenMs.valor && Date.now() - tokenMs.t < 240000) return Promise.resolve(tokenMs.valor);
+    return new Promise(function (ok, no) {
+      var fin = false;
+      function onMsg(ev) {
+        var d = ev.data; if (!d || d.type !== 'balances:token' || !d.token) return;
+        fin = true; window.removeEventListener('message', onMsg);
+        tokenMs = { valor: d.token, t: Date.now() }; ok(d.token);
+      }
+      window.addEventListener('message', onMsg);
+      try { window.top.postMessage({ type: 'balances:token-request' }, '*'); } catch (e) {}
+      setTimeout(function () { if (!fin) { window.removeEventListener('message', onMsg); no(new Error('Este módulo solo se abre desde el Portal ENAP, con la cuenta autorizada.')); } }, 20000);
+    });
+  }
   function srvAuth(fn) {
     var args = Array.prototype.slice.call(arguments, 1);
     function intento(reintento) {
@@ -2629,7 +2644,6 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
     else if (S.vista === 'revision') cuerpo = vRevision();
     else cuerpo = vFirma();
     if (S.arranque) { app.innerHTML = '<div style="height:100%;display:flex;align-items:center;justify-content:center;gap:14px;font-size:17px;font-weight:600;color:var(--navy)"><span class="spin" style="width:28px;height:28px;border-width:3px"></span>Cargando…</div>'; return; }
-    if (S.pedirClave) { app.innerHTML = vClave(); var cc = $('#clave'); if (cc) cc.focus(); return; }
     if (S.errorArranque) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>No se pudo iniciar</b><p>' + h(S.errorArranque) + '</p></div></main>'; return; }
     if (!S.sesion.roles.length) { app.innerHTML = vTop() + '<main><div class="card" style="padding:24px;max-width:640px;margin:40px auto"><b>Sin permiso</b><p>La cuenta ' + h(S.sesion.email || '') + ' no tiene un rol asignado para el Balance Académico. Solicítelo a la Oficina de Estadística.</p></div></main>'; return; }
     app.innerHTML = vTop() + vTabs() + '<main>' + cuerpo + '</main><footer class="pie">Desarrollado por Oficina de Estadística<br><em style="font-style:italic;font-weight:400;opacity:.7">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></footer>' + (S.modal ? vModal() : '') + (S.dialogo ? vDialogo() : '') + (S.avance ? vAvance() : '') + (S.guardandoBal ? vGuardando() : '');
@@ -2882,25 +2896,16 @@ window.__ASSETS = {logo: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADcAAABW
   function iniciar() {
     var assets = cargarAssets();
     leerSesion().then(function () {         // primero se valida la clave (una sola vez); luego lo demás
-      try { if (S.clave) { localStorage.setItem('balance.clave', S.clave); } } catch (e) { try { if (S.clave) sessionStorage.setItem('balance.clave', S.clave); } catch (e2) {} }
       return Promise.all([assets, refrescarGuardados(), Backend.pensums().then(function (l) { S.pensums = l || []; }).catch(function () { S.pensums = []; })]);
     }).then(function () {
       return precargar();
     }).then(function () { S.arranque = false; render(); })
     .catch(function (err) {
-      if (/clave|intentos/i.test(err.message)) {
-        try { localStorage.removeItem('balance.clave'); } catch (e) {} try { sessionStorage.removeItem('balance.clave'); } catch (e) {}
-        S.clave = ''; S.errorClave = S.errorClave || err.message; S.pedirClave = true; S.arranque = false; render();
-      } else { S.arranque = false; S.errorArranque = err.message; render(); }
+      S.arranque = false; S.errorArranque = err.message; render();
     });
   }
   render();
-  if (GAS) {
-    try { S.clave = localStorage.getItem('balance.clave') || sessionStorage.getItem('balance.clave') || ''; } catch (e) {}
-    srv('requiereClave').then(function (pide) {
-      if (pide && !S.clave) { S.pedirClave = true; S.arranque = false; render(); } else iniciar();
-    }).catch(function () { iniciar(); });
-  } else iniciar();
+  iniciar();
   window.BalanceApp = { estado: S }; // útil para pruebas
 })();
 </script>
