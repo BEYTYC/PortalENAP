@@ -11,6 +11,7 @@
   --ok-bg:#DFF2E7;--ok:#115C37;--warn-bg:#FFEFCF;--warn:#6E4300;--bad-bg:#FADFDC;--bad:#8E1A12;--mute-bg:#E5E9F1;--mute2:#33425C}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
+html.embebido,html.embebido body{background:transparent}
 body{font-family:'Aptos Display','Aptos','Segoe UI Variable Text','Segoe UI','Libre Franklin',system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.4}
 button,input,select,textarea{font:inherit;color:inherit}
 #app{height:100%;display:flex;flex-direction:column}
@@ -166,6 +167,7 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 <script src="certificado.js"></script>
 <!-- /build:modulos -->
 <!-- build:entorno -->
+<script>try{if(window.self!==window.top)document.documentElement.className+=' embebido'}catch(e){document.documentElement.className+=' embebido'}</script>
 <script>window.__GAS = false;</script>
 <!-- /build:entorno -->
 <script>
