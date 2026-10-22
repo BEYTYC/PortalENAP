@@ -124,7 +124,7 @@ function puedeDescargar(correo, accesos) {
  * (solo ven; no descargan ni administran). Para quitarlo: poner ACCESO_TEMPORAL = false. */
 const ACCESO_TEMPORAL = true;
 const ROLES_TEMPORALES = ['DECANO', 'JEFE_PROGRAMA'];
-const CORREOS_TEMPORALES = ['cben@enap.edu.co'];
+const CORREOS_TEMPORALES = ['cben@enap.edu.co', 'sac@enap.edu.co', 'daen@enap.edu.co', 'denap@enap.edu.co', 'aspapen@enap.edu.co'];
 
 async function rolTemporal(correo) {
   if (!ACCESO_TEMPORAL) return null;
