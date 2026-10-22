@@ -1175,6 +1175,10 @@ svg .cnt{font-weight:700}
 /* ficha de estudiante en pantalla completa: sin título ni franjas, arriba y abajo mínimos para que todo quede en una vista */
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) body,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) body{padding-top:14px!important;padding-bottom:0!important}
 :root:fullscreen:has(.card.stu:not([hidden]):not(:empty)) .fstt,:root.fsx:has(.card.stu:not([hidden]):not(:empty)) .fstt{display:none!important}
+/* ficha: números de la tabla de notas un poco más grandes */
+.stu table.gt td{font-size:16.5px!important}
+.stu table.gt tfoot td,.stu table.gt tr.pa td{font-size:16.5px!important}
+@media (max-height:900px){.stu table.gt td,.stu table.gt tfoot td,.stu table.gt tr.pa td{font-size:15px!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
