@@ -1305,7 +1305,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 <div class="frm" id="pvw" hidden><label for="pv" style="font-size:13px;color:var(--mute);align-self:center">Ver periodo</label><select id="pv" aria-label="Periodo a ver" style="max-width:160px"></select></div>
 <div class="frm"><input id="per" type="text" placeholder="Periodo (ej. 2026-2)" aria-label="Periodo" style="max-width:160px"><input id="fi" type="file" accept=".json,application/json" aria-label="Archivo de datos"></div>
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
-<section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button><button class="btn" id="ccd">Certificado CDPRON (extranjero)</button><button class="btn" id="cpm">Cuadro de adjudicación de premios</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
+<section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button><button class="btn" id="ccd">Certificado CDPRON (extranjero)</button><button class="btn" id="cmr">Certificado Mercantes (Reserva Activa)</button><button class="btn" id="cpm">Cuadro de adjudicación de premios</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
 <section class="card ac"><h3>Descargar para compartir</h3><p>El sistema arma el Excel "BD Antigüedades" con los datos cargados, con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" class="wait" role="status"><div class="gbox"><i class="gsp" aria-hidden="true"></i><b id="gt">Verificando acceso</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
@@ -2263,10 +2263,10 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   // Personal con compromisos de cultura física pendientes: se marca con asterisco en el listado y se indica al pie
   var PEND_NAV = ['ÁNGEL GÓMEZ MARTHA', 'ARROYO SUÁREZ MARÍA', 'GUERRERO MORALES ALEXANDRA SARAY', 'MARTÍNEZ BENÍTEZ KAROLL', 'REALES SILVERA YOUSTHIN', 'SUÁREZ GANTIVA MICHELLE', 'URIBE PINZÓN DANIELA'];
   var PEND_PR = ['IBÁÑEZ MARTÍNEZ CARLOS ANDRÉS', 'ARANGO CELIS KARLA STEFANÍA', 'BOHÓRQUEZ FAJARDO ROBERT EDUARDO', 'GUERRERO MONTOYA NICOLÁS ANDRÉS', 'HERNÁNDEZ SALGADO CAROL PATRICIA', 'LORDUY SIERRA ALEJANDRA MARCELA', 'OSPINA GALÁN VALENTINA', 'PORRAS TORRES ERIKA DAYANA', 'VARGAS MALDONADO MARÍA CAMILA'];
-  var esExt = tipo === 'CDPRON', esNav = tipo === 'NAV-IM' || esExt;
+  var esExt = tipo === 'CDPRON', esMre = tipo === 'MRE', esNav = tipo === 'NAV-IM' || esExt || esMre;
   var TXT_PEND = tipo === 'NAV-IM' ? 'El siguiente personal se encuentra pendiente con compromisos de cultura física: '
     : 'El siguiente personal de alumnos administrativos, se encuentra pendiente con compromisos de cultura física: ';
-  var LPEND = (esExt ? [] : tipo === 'NAV-IM' ? PEND_NAV : PEND_PR).map(function (n) { return sinTildes(n).split(' '); });
+  var LPEND = (esExt || esMre ? [] : tipo === 'NAV-IM' ? PEND_NAV : PEND_PR).map(function (n) { return sinTildes(n).split(' '); });
   function pendiente(s) {
     var t = sinTildes(s.n).split(' ');
     return LPEND.some(function (q) { return q.every(function (w) { return t.indexOf(w) >= 0; }); });
@@ -2277,7 +2277,9 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   var fExp = cfg.fechaExpedicion || fechaExp(new Date());
   
   var fuera = function (s) { return s.e === 'Aplazado' || s.e === 'Retirado' || s.e === 'Comisión' || s.nv === 'CDPRON'; };
-  var lista = esExt
+  var lista = esMre
+    ? ((D.sheets && D.sheets.MRE) || []).filter(function (s) { return s.f != null && s.p != null && s.e !== 'Retirado' && s.e !== 'Aplazado'; })
+    : esExt
     ? ((D.sheets && D.sheets.CDP) || []).filter(function (s) { return s.f != null && s.e !== 'Retirado' && s.e !== 'Aplazado'; })
     : esNav
     ? (D.esc || []).filter(function (s) { return !fuera(s) && s.p != null && s.f != null; })
@@ -2316,6 +2318,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           vals = [String(s.p), s.g || '', s.ct || '', s.sp || '', sinTildes(s.n) + (pendiente(s) ? '*' : ''), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!lugar) faltan[6] = 1;
           if (!s.ct) faltan[2] = 1;
+          if (esMre && !s.ct) vals[2] = 'MC-55';
         } else {
           vals = [String(s.p), s.g || 'GM', s.ec || '', sinTildes(s.ae || ''), sinTildes(s.n) + (pendiente(s) ? '*' : ''), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!s.ec) faltan[2] = 1;
@@ -2337,6 +2340,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
             var hayGM = lista.some(function (s) { return s.g === 'GM'; }), hayALF = lista.some(function (s) { return s.g === 'ALF'; });
             rs = rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: r.hl }; });
             rs.forEach(function (r) {
+              if (esMre && r.t === ' de Corbeta') r.t = ' de Corbeta de la Reserva Activa';
               if (!hayALF) {
                 if (/^ y Subteniente del Cuerpo/.test(r.t)) r.t = '';
                 if (/Guardiamarinas y Alf/.test(r.t)) r.t = r.t.replace('Guardiamarinas y Alféreces ', 'Guardiamarinas ');
@@ -2356,10 +2360,14 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           return armar(o);
         });
         x = editarParrafo(x, 'PROMOCIÓN NAVAL No.', function (rs) {
-          var b = rs[0].rpr; return armar([{ t: 'PROMOCIÓN NAVAL No. ', rpr: b }, { t: cfg.promNaval || '146', rpr: b, hl: true }, { t: ' - CONTINGENTE NAVAL REGULAR No. ', rpr: b }, { t: cfg.contNaval || '172', rpr: b, hl: true }]);
+          var b = rs[0].rpr;
+          if (esMre) return armar([{ t: 'PROMOCIÓN MERCANTE No. ', rpr: b }, { t: cfg.promMre || '55', rpr: b, hl: true }, { t: ' - CONTINGENTE MERCANTE No. ', rpr: b }, { t: cfg.contMre || '55', rpr: b, hl: true }]);
+          return armar([{ t: 'PROMOCIÓN NAVAL No. ', rpr: b }, { t: cfg.promNaval || '146', rpr: b, hl: true }, { t: ' - CONTINGENTE NAVAL REGULAR No. ', rpr: b }, { t: cfg.contNaval || '172', rpr: b, hl: true }]);
         });
         x = editarParrafo(x, 'PROMOCIÓN DE INFANTERÍA DE MARINA No.', function (rs) {
-          var b = rs[0].rpr; return armar([{ t: 'PROMOCIÓN DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.promIM || '92', rpr: b, hl: true }, { t: ' - CONTINGENTE DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.contIM || '117', rpr: b, hl: true }]);
+          var b = rs[0].rpr;
+          if (esMre || esExt) return armar([]);
+          return armar([{ t: 'PROMOCIÓN DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.promIM || '92', rpr: b, hl: true }, { t: ' - CONTINGENTE DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.contIM || '117', rpr: b, hl: true }]);
         });
         x = editarParrafo(x, 'Este certificado se expide', function (rs) {
           var o = [], i = 0;
@@ -2410,6 +2418,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           o.push({ rpr: rs[k - 1].rpr, t: 'Teniente de Corbeta Honorario' });
           for (; k < rs.length; k++) { if (/con fecha/.test(rs[k].t)) { o.push({ rpr: rs[k].rpr, t: ', ' + rs[k].t.replace(/^[\s\S]*?(con fecha)/, '$1') }); k++; break; } }
           for (; k < rs.length; k++) o.push(rs[k]);
+          o.forEach(function (r) { r.t = r.t.replace('Guardiamarinas y Alféreces ', 'Guardiamarinas '); });
           return armar(o);
         });
       }
@@ -2478,15 +2487,16 @@ function armarPremios(JSZip, D, cfg) {
 function bajarPrem(msg){msg.textContent='Preparando el cuadro…';return cargaJSZip().then(function(){return armarPremios(window.JSZip,window.__D,{periodo:window.__PER||'2026-2'})}).then(function(r){var blob=new Blob([r.bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download='Cuadro adjudicación de premios '+(window.__PER||'2026-2')+'.docx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500);msg.textContent='Listo: '+r.n+' adjudicaciones. Todo el texto va en Arial 10.'}).catch(function(e){msg.textContent=e.message||'No se pudo generar el cuadro.'})}
 function bajarCert(tipo,msg){
   msg.textContent='Preparando el certificado…';
-  var arch=tipo==='PR'?'cert-pr.docx':tipo==='CDPRON'?'cert-cdpron.docx':'cert-nav-im.docx';
+  var arch=tipo==='PR'?'cert-pr.docx':tipo==='CDPRON'?'cert-cdpron.docx':tipo==='MRE'?'cert-mre.docx':'cert-nav-im.docx';
   return cargaJSZip().then(function(){return fetch('plantillas/'+arch,{cache:'no-cache'})}).then(function(r){if(!r.ok)throw new Error('No se encontró la plantilla del certificado.');return r.arrayBuffer()})
   .then(function(b){return armarCert(window.JSZip,b,tipo,window.__D,{periodo:window.__PER||'2026-2'})})
-  .then(function(r){var nom='Certificado Escalafonamiento '+(window.__PER||'2026-2')+' '+(tipo==='PR'?'PR':tipo==='CDPRON'?'CDPRON (honorario)':'NAV-IM')+'.docx';
+  .then(function(r){var nom='Certificado Escalafonamiento '+(window.__PER||'2026-2')+' '+(tipo==='PR'?'PR':tipo==='CDPRON'?'CDPRON (honorario)':tipo==='MRE'?'Mercantes':'NAV-IM')+'.docx';
     var blob=new Blob([r.bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}),u=URL.createObjectURL(blob),a=document.createElement('a');
     a.href=u;a.download=nom;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove()},1500);
     msg.textContent='Listo: '+r.n+' estudiantes. Revisa lo resaltado en amarillo antes de firmar.'})
   .catch(function(e){msg.textContent=e.message||'No se pudo generar el certificado.'})}
 document.getElementById('cnav').onclick=function(){bajarCert('NAV-IM',document.getElementById('cm'))};
+document.getElementById('cmr').onclick=function(){bajarCert('MRE',document.getElementById('cm'))};
 document.getElementById('ccd').onclick=function(){bajarCert('CDPRON',document.getElementById('cm'))};
 document.getElementById('cpm').onclick=function(){bajarPrem(document.getElementById('cm'))};
 document.getElementById('cpr').onclick=function(){bajarCert('PR',document.getElementById('cm'))};
