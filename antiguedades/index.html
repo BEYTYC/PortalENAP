@@ -1316,7 +1316,7 @@ const BASE=({'2026-2':{ac:8.2739,an:9.2330,di:9.4161,cf:8.6069,f:8.7275,med:8.69
 (function(){const fix=s=>{const h=s&&s.h;if(!h)return;for(let i=1;i<h.length;i++)if(h[i][0]===h[i-1][0]+'A'){const x=h[i];h[i]=h[i-1];h[i-1]=x}};
 Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEach(fix)})();
 /* periodo de cada semestre: el último es 2026-1 y se retrocede un semestre por fila */
-function motivo(b){const nm=['académica','apt. naval','disciplina','cultura física'],lo=[];for(let i=0;i<4;i++){const v=b[i+1];if(v!=null&&v<6)lo.push(nm[i]+' ('+v.toFixed(3).replace('.',',')+')')}
+function motivo(b){const nm=['académica','apt. naval','disciplina','cultura física'],lo=[];for(let i=0;i<4;i++){const v=b[i+1];if(v!=null&&v<(i===3?7:6))lo.push(nm[i]+' ('+v.toFixed(3).replace('.',',')+')')}
 return lo.length?'No alcanzó la nota mínima de 6,000 en: '+lo.join(', ')+'.':'Ninguna nota por componente quedó por debajo de 6,000; el motivo (por ejemplo una asignatura perdida) no está en los datos cargados.'}
 function rpx(b,n){return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre ${b[0].replace(/A$/,'')} reprobado.</b> ${motivo(b)}</td></tr>`}
 function perF(s,i){if(i===s.h.length-1)return PER;const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x<=(PER==='2026-2'?2:1)))return a+'-'+x}return perI(s.h.length,i)}
@@ -1877,7 +1877,7 @@ function recalc(s){
   s.f=(s.ac!=null&&s.an!=null&&s.di!=null&&s.cf!=null)?.5*s.ac+.2*s.an+.2*s.di+.1*s.cf:null;
   const MIL=['Aptitud naval','Disciplina','Cultura física'],u=s.h[s.h.length-1]||[];
   s.rk=(s.rk||[]).filter(x=>!MIL.includes(x[0]));
-  if(!OUT(s))[[MIL[0],u[2]],[MIL[1],u[3]],[MIL[2],u[4]]].forEach(([n,v])=>{if(v!=null&&v<6)s.rk.push([n,Math.round(v*1000)/1000])});
+  if(!OUT(s))[[MIL[0],u[2]],[MIL[1],u[3]],[MIL[2],u[4]]].forEach(([n,v],ix)=>{if(v!=null&&v<(ix===2?7:6))s.rk.push([n,Math.round(v*1000)/1000])});
 }
 function rerank(){
   [D.esc||[],(D.sheets||{}).PR||[],(D.sheets||{}).CDP||[],(D.sheets||{}).MRE||[]].forEach(arr=>{
@@ -2020,14 +2020,14 @@ function mrRender(){
    :`<div class="card ch an"><h3>Movimiento de puestos</h3><div class="vac">Sin puesto anterior comparable para este grupo.</div></div>`;
   // riesgo
   const nmC=['Académica','Apt. naval','Disciplina','C.FIS'];
-  const rk=list.map(s=>{const b=lastB(s),fl=[];nmC.forEach((n,i)=>{if(b[i+1]!=null&&b[i+1]<6)fl.push(n+' bajo 6')});if(/Asignaturas bajo/.test(s.ev||''))fl.push(s.ev.replace(/\s*\(.*\)/,''));return{s,fl}});
+  const rk=list.map(s=>{const b=lastB(s),fl=[];nmC.forEach((n,i)=>{if(b[i+1]!=null&&b[i+1]<(i===3?7:6))fl.push(n+(i===3?' bajo 7':' bajo 6'))});if(/Asignaturas bajo/.test(s.ev||''))fl.push(s.ev.replace(/\s*\(.*\)/,''));return{s,fl}});
   const srt=[...list].sort((a,b)=>(a.p??1e9)-(b.p??1e9));
   const tie=new Set();srt.forEach((s,i)=>{const n=srt[i+1];if(n&&Math.abs(s.f-n.f)<0.001){tie.add(s);tie.add(n)}});
   rk.forEach(r=>{if(tie.has(r.s))r.fl.push('Empate técnico')});
   const tI=(n,t)=>`<div class="rt"><b>${n}</b><span>${t}</span></div>`;
-  const nLow=rk.filter(r=>r.fl.some(f=>/bajo 6$/.test(f))).length,nAs=rk.filter(r=>r.s.ev&&/Asignaturas bajo/.test(r.s.ev)).length,nCf=rk.filter(r=>r.fl.includes('C.FIS bajo 6')).length;
+  const nLow=rk.filter(r=>r.fl.some(f=>/bajo [67]$/.test(f))).length,nAs=rk.filter(r=>r.s.ev&&/Asignaturas bajo/.test(r.s.ev)).length,nCf=rk.filter(r=>r.fl.includes('C.FIS bajo 7')).length;
   const top=rk.filter(r=>r.fl.length).sort((a,b)=>b.fl.length-a.fl.length||(a.s.p??1e9)-(b.s.p??1e9)).slice(0,8);
-  const c2=`<div class="card ch an"><h3>Riesgo</h3><div class="rts">${tI(nLow,'con algún componente bajo 6')}${tI(nAs,'con asignaturas bajo 6,0')}${tI(nCf,'con C.FIS bajo 6')}${tI(tie.size,'en empate técnico (&lt; 0,001)')}</div><ul class="ml">${top.map(r=>`<li data-k="${k}" data-i="${all.indexOf(r.s)}"><b class="pn">${r.s.p??'—'}</b><span class="nx">${nm(r.s)}</span><small>${r.fl.join(' · ')}</small></li>`).join('')||'<li class="vac">Sin alertas</li>'}</ul></div>`;
+  const c2=`<div class="card ch an"><h3>Riesgo</h3><div class="rts">${tI(nLow,'con algún componente bajo el mínimo')}${tI(nAs,'con asignaturas bajo 6,0')}${tI(nCf,'con C.FIS bajo 7')}${tI(tie.size,'en empate técnico (&lt; 0,001)')}</div><ul class="ml">${top.map(r=>`<li data-k="${k}" data-i="${all.indexOf(r.s)}"><b class="pn">${r.s.p??'—'}</b><span class="nx">${nm(r.s)}</span><small>${r.fl.join(' · ')}</small></li>`).join('')||'<li class="vac">Sin alertas</li>'}</ul></div>`;
   el.innerHTML=c1;
   el.querySelectorAll('.ml li[data-i]').forEach(l=>l.onclick=()=>{sel=ls(l.dataset.k)[+l.dataset.i];selK=l.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})});
 }
