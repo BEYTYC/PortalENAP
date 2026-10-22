@@ -183,6 +183,7 @@
     </div>
     <button class="btn gold" id="btnSig" type="button">Empezar</button>
     <button class="btn ghost" id="btnReset" type="button">Reiniciar avance</button>
+    <button class="btn ghost" id="btnFs" type="button" title="Pantalla completa (Esc para salir)" aria-label="Pantalla completa">⛶ Pantalla completa</button>
   </div>
 </header>
 
@@ -465,6 +466,21 @@ $('q').addEventListener('input',function(){
   document.querySelectorAll('.faq').forEach(function(el){ var ok=!q||norm(el.textContent).indexOf(q)>=0; el.style.display=ok?'':'none'; if(ok&&q) vis++; });
   $('vacio').style.display=(q&&!vis)?'block':'none';
 });
+
+
+/* Pantalla completa */
+(function(){
+  var b=$('btnFs'), de=document.documentElement;
+  var can=de.requestFullscreen||de.webkitRequestFullscreen;
+  if(!can||document.fullscreenEnabled===false){ b.style.display='none'; return; }
+  function activo(){ return document.fullscreenElement||document.webkitFullscreenElement; }
+  function pinta(){ b.textContent=activo()?'✕ Salir de pantalla completa':'⛶ Pantalla completa'; }
+  b.addEventListener('click',function(){
+    if(activo()){ (document.exitFullscreen||document.webkitExitFullscreen).call(document); }
+    else { var r=(de.requestFullscreen||de.webkitRequestFullscreen).call(de); if(r&&r.catch) r.catch(function(){ b.style.display='none'; }); }
+  });
+  document.addEventListener('fullscreenchange',pinta); document.addEventListener('webkitfullscreenchange',pinta);
+})();
 
 render(); marcarTab('');
 </script>
