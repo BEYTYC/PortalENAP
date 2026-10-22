@@ -794,7 +794,31 @@
 html,body{max-width:100%;overflow-x:hidden}
 @supports (overflow:clip){html,body{overflow-x:clip}}
 img,svg,video,canvas,iframe{max-width:100%}
+</style><style id="login-movil">
+/* Inicio de sesión en celular: pantalla azul compacta + hoja blanca con el acceso */
+@media (max-width:600px){
+  .login-gate{display:flex!important;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--navy-950,#0B1E3F)}
+  .login-gate__brand{flex:0 0 auto;align-items:center;text-align:center;padding:max(34px,env(safe-area-inset-top)) 26px 62px!important;gap:12px!important;justify-content:flex-start!important}
+  .login-gate__mark{flex-direction:column;gap:12px;align-items:center}
+  .login-gate__mark img{height:78px!important;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
+  .login-gate__mark-text{align-items:center;gap:5px}
+  .login-gate__mark-text .nombre{font-size:12.5px;letter-spacing:.07em;max-width:300px}
+  .login-gate__mark-text .oficina{font-size:11px;letter-spacing:.2em}
+  .login-gate__heading{max-width:340px;display:flex;flex-direction:column;align-items:center}
+  .login-gate__eyebrow{display:none}
+  .login-gate__rule{margin:6px 0 14px!important;width:44px}
+  .login-gate__heading h1{font-size:28px!important;line-height:1.12;letter-spacing:-.01em}
+  .login-gate__heading p{display:none!important}
+  .login-gate__panel{flex:1 0 auto;background:#fff;border-radius:28px 28px 0 0;margin-top:-30px;padding:32px 22px max(20px,env(safe-area-inset-bottom))!important;justify-content:flex-start!important;box-shadow:0 -10px 30px rgba(6,20,45,.35);z-index:2}
+  .login-gate__card{max-width:none!important}
+  .login-gate__card h2{font-size:21px}
+  .login-gate__sub{font-size:14px;margin-bottom:22px!important}
+  .login-gate__btn{min-height:54px;border-radius:14px;font-size:15px;gap:10px;padding:0 14px}
+  .login-gate__foot{margin-top:18px!important;font-size:12.5px;padding:0 6px}
+  .login-gate__credito{margin-top:auto!important;padding-top:26px;font-size:11px!important;line-height:1.5}
+}
 </style>
+
 
 
 <!--
