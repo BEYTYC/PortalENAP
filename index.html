@@ -141,6 +141,14 @@
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0;
   }
   .nav-subsistema .dz-back{ flex-shrink:0; }
+  .nav-home{
+    flex:none; width:32px; height:32px; display:inline-grid; place-items:center; cursor:pointer;
+    border:1px solid var(--border); border-radius:50%; background:var(--surface); color:var(--navy-700);
+    transition:background .15s, color .15s, border-color .15s, transform .12s;
+  }
+  .nav-home:hover{ background:var(--navy-50); color:var(--navy-900); border-color:var(--gold-500); }
+  .nav-home:active{ transform:scale(.94); }
+  .nav-home:focus-visible{ outline:3px solid var(--gold-400); outline-offset:2px; }
   .navcat{ position:relative; }
   .navcats--der{ margin-left:auto; padding-left:6px; }
   @media (min-width:861px){ .navcat--der .dropdown{ left:auto; right:0; border-radius:0 0 12px 12px; } }
@@ -1245,6 +1253,9 @@
   <!-- "Protocolos Académicos": pegado a la derecha, a la izquierda de "Módulo". -->
   <div class="navcats navcats--der" id="navcatsDer"></div>
   <div class="nav-subsistema" id="navSubsistema" hidden>
+    <button type="button" class="nav-home" id="navInicioBtn" title="Volver al inicio del Portal ENAP" aria-label="Volver al inicio del Portal ENAP">
+      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 3.8 20.5 11"/><path d="M5.8 9.6V19a1 1 0 0 0 1 1h3.4v-5.2h3.6V20h3.4a1 1 0 0 0 1-1V9.6"/></svg>
+    </button>
     <span class="tag">Módulo:</span>
     <span class="name" id="navSubsistemaNombre"></span>
   </div>
@@ -3018,6 +3029,8 @@
     });
   }
   document.addEventListener('click', closeAllNav);
+  // Casita: vuelve al inicio del Portal desde cualquier módulo.
+  document.getElementById('navInicioBtn').addEventListener('click', (e) => { e.stopPropagation(); closeAllNav(); volverAlPortal(); });
 
   // Toda la tarjeta del Inicio lleva al Centro de Datos (no solo el botón).
   const cdeCard = document.querySelector('.cde-card');
