@@ -132,7 +132,7 @@
   .navcats{ display:flex; align-items:stretch; gap:2px; flex-shrink:0; }
   .nav-subsistema{
     display:none; align-items:center; justify-content:flex-end; gap:9px; padding:0 0 0 14px; border-left:1px solid var(--border);
-    min-width:0; flex:1 1 auto;
+    min-width:0; flex:0 1 auto;
   }
   .nav-subsistema.show{ display:flex; }
   .nav-subsistema .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted); flex-shrink:0; }
@@ -1242,12 +1242,12 @@
 
 <nav class="topnav">
   <div class="navcats" id="navcats"></div>
+  <!-- "Protocolos Académicos": pegado a la derecha, a la izquierda de "Módulo". -->
+  <div class="navcats navcats--der" id="navcatsDer"></div>
   <div class="nav-subsistema" id="navSubsistema" hidden>
     <span class="tag">Módulo:</span>
     <span class="name" id="navSubsistemaNombre"></span>
   </div>
-  <!-- "Protocolos Académicos": pegado a la derecha, al lado de "Módulo". -->
-  <div class="navcats navcats--der" id="navcatsDer"></div>
 </nav>
 
 <main id="main">
