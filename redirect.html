@@ -41,7 +41,7 @@
   ("Registro de Cursos de Extensión — ENAP"), o Microsoft va a rechazar el
   login con "redirect_uri_mismatch".
 -->
-<p>Procesando el inicio de sesión…</p>
+<p id="msg" style="text-align:center;padding:0 24px;line-height:1.5">Procesando el inicio de sesión…</p>
 <script src="msal-redirect-bridge.min.js"></script>
 <script>
   // Marca en localStorage: llegar a ESTA pagina (sin importar login o
@@ -74,6 +74,19 @@
         try { window.close(); } catch (e) { /* nada mas que hacer aqui */ }
       }
     }, 600);
+    // En celulares el navegador abre esta pagina como una pestana normal y no
+    // siempre deja cerrarla sola: en vez de quedarse en "Procesando..." se le
+    // dice a la persona que el inicio ya termino y que vuelva a la pestana
+    // del Portal (la sesion se completa alli, no en esta pestana).
+    setTimeout(function () {
+      var p = document.getElementById('msg');
+      if (!p) return;
+      p.innerHTML = '<strong style="font-size:18px">Inicio de sesión completado</strong><br><br>Vuelve a la pestaña del Portal ENAP para continuar.<br><br><button id="cerrarPestana" type="button" style="font:inherit;font-weight:600;padding:12px 22px;border:0;border-radius:12px;background:#fff;color:#0a2540;cursor:pointer">Cerrar esta pestaña</button>';
+      document.getElementById('cerrarPestana').onclick = function () {
+        try { window.close(); } catch (e) { /* nada mas que hacer aqui */ }
+        setTimeout(function () { p.innerHTML = 'Ya puedes cerrar esta pestaña y volver al Portal ENAP.'; }, 300);
+      };
+    }, 1800);
   });
 </script>
 </body>
