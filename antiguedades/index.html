@@ -1078,11 +1078,27 @@ svg .cnt{font-weight:700}
 :root:fullscreen::after,:root.fsx::after{display:none!important}
 :root:fullscreen #pub>.foot,:root.fsx #pub>.foot{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:40!important;margin:0!important;padding:16px 28px 10px!important;box-sizing:border-box!important;background:linear-gradient(to top,#fff 0,#fff calc(100% - 14px),rgba(255,255,255,0) 100%)!important;display:block!important;text-align:right!important}
 :root:fullscreen #pub>.foot .credfs,:root.fsx #pub>.foot .credfs{position:static!important;display:block!important;margin:0!important;text-align:right!important;color:var(--mute)!important}
+/* ---- Pantalla completa: título, leyenda de premios abajo, alturas más compactas ---- */
+.fstt{display:none}
+:root:fullscreen .fstt,:root.fsx .fstt{display:block;position:fixed;top:0;left:0;right:0;z-index:41;text-align:center;padding:10px 28px 0;font-size:17px;font-weight:700;letter-spacing:.04em;color:#14304f;text-transform:uppercase;background:#fff;pointer-events:none}
+:root:fullscreen .fstt span,:root.fsx .fstt span{font-weight:500;color:#5B6F8F}
+:root:fullscreen,:root.fsx{--pt:46px}
+@media(min-height:1000px){:root:fullscreen,:root.fsx{--pt:clamp(56px,6.6vh,80px)}}
+:root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:28px!important}
+:root:fullscreen #prem .pleg,:root.fsx #prem .pleg{position:static!important;flex-direction:row!important;flex-wrap:wrap!important;justify-content:flex-end;gap:4px 18px!important;margin:6px 4px 0!important;padding:0!important;align-items:center}
+:root:fullscreen .podc .pd.p1 .pb,:root.fsx .podc .pd.p1 .pb{height:104px!important}
+:root:fullscreen .podc .pd.p2 .pb,:root.fsx .podc .pd.p2 .pb{height:94px!important}
+:root:fullscreen .podc .pd.p3 .pb,:root.fsx .podc .pd.p3 .pb{height:84px!important}
+:root:fullscreen .podc .pd.p4 .pb,:root.fsx .podc .pd.p4 .pb{height:74px!important}
+:root:fullscreen .podc .pd.p5 .pb,:root.fsx .podc .pd.p5 .pb{height:66px!important}
+:root:fullscreen #nov .nb,:root.fsx #nov .nb{padding-block:8px!important;min-height:0!important}
+:root:fullscreen #nov .nt,:root.fsx #nov .nt{grid-template-rows:repeat(2,78px)!important;grid-auto-rows:78px!important;flex:none!important;align-content:start!important}
+:root:fullscreen #prem .pbr,:root.fsx #prem .pbr{height:26px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
 <div class="mtool"><button type="button" class="fsb" id="fs" title="Abrir en pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fst" hidden></span></button><button type="button" class="dlb" id="dl" hidden title="Descargar Excel" aria-label="Descargar Excel"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 11l5 5 5-5M5 20h14"/></svg></button><div class="vt" role="group" aria-label="Vista"><button id="vp" aria-pressed="true" hidden>Consulta</button><button id="va" class="gearb" aria-pressed="false" title="Administración" aria-label="Administración"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/></svg></button></div></div>
-<div id="pub"><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Apellidos, código o cédula" aria-label="Buscar estudiante"></div>
+<div id="pub"><div class="fstt" id="fstt" aria-hidden="true">Antigüedades ENAP · <span id="fsttp">Escalafonamiento</span></div><div class="bar"><div class="chips" id="chips" role="group" aria-label="Semestre"></div><input id="q" type="search" placeholder="Apellidos, código o cédula" aria-label="Buscar estudiante"></div>
 <div class="chips msub" id="msub" hidden></div>
 <div class="card stu" id="stu" hidden></div>
 <div class="kpi" id="kpi"></div>
@@ -1095,7 +1111,7 @@ svg .cnt{font-weight:700}
 <div class="ana-grid" id="mr"></div>
 <div class="grid"><div class="card"><div class="tw"><table><thead><tr><th>Puesto</th><th>Estudiante</th><th id="thc">Curso 2026-1</th><th class="n" title="Nota académica">Acad</th><th class="n" title="Aptitud naval">AN</th><th class="n" title="Disciplina">Disc</th><th class="n" title="Cultura física">C.FIS</th><th>Promedio final</th></tr></thead><tbody id="tb"></tbody></table></div><div id="apl"></div></div>
 <aside class="card side" id="side" aria-live="polite"></aside></div>
-<div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
+<script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent="Escalafonamiento"+(t?" "+t:"")}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script><div class="foot"><span class="credfs">Desarrollado por Oficina de Estadística<br><em class="crn">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span></div></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
 <div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
