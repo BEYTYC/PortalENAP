@@ -1323,6 +1323,9 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 /* tarjetas de novedades (vista normal): ocupan todo el ancho y altura contenida */
 :root:not(:fullscreen):not(.fsx) #nov .nt{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;grid-auto-rows:104px!important;grid-template-rows:none!important;align-content:center!important;flex:1 1 auto!important}
 :root:not(:fullscreen):not(.fsx) #nov .nb{grid-column:auto!important;grid-row:auto!important}
+/* puesto y concesión: exactamente la misma fuente, tamaño y grosor que las notas (sin herencias propias) */
+.stu table.gt tbody td.pcl .pg,.stu table.gt tbody td.pcl .pg b,.stu table.gt tbody td.cnc{font:inherit!important;font-size:16.5px!important;font-weight:400!important;letter-spacing:normal!important;font-variant-numeric:inherit!important;font-style:normal!important}
+.stu table.gt tbody td.pcl .pg{line-height:inherit!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
