@@ -1343,6 +1343,30 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 .stu .hd h2 .trn{vertical-align:-3px!important;margin-left:12px!important}
 .stu .hd h2 svg.flag{vertical-align:2px!important;margin:0 10px 0 14px!important}
 .stu .gt td .pw .pl,.stu .gt td .pw .pr{width:17px!important}.stu .gt td .pw .pic{margin:0 2px!important}
+/* ---- celular: lista y detalle de premios, y aire al final de la página ---- */
+@media(max-width:700px){
+  body{padding-bottom:96px!important}
+  .pbr{grid-template-columns:34px minmax(0,1fr) auto!important;grid-template-areas:"p n c" ". k k"!important;row-gap:4px!important;padding:7px 6px!important}
+  .pbr .pbp{grid-area:p!important}.pbr .pbn{grid-area:n!important;white-space:normal!important;min-width:0}.pbr .pbk{grid-area:k!important;min-width:0}
+  .pbr .pbc{grid-area:c!important;flex-direction:row!important;align-items:baseline!important;gap:4px!important;font-size:17px!important;text-align:right}
+  .pbr .pbc small{margin:0!important}
+  .pbr .pbfn{white-space:normal!important}
+  .pst{padding:12px!important}
+  .pst .ph{flex-wrap:wrap!important;align-items:center!important}
+  .pst .pp{min-width:30px!important;height:30px!important;font-size:13px!important}
+  .pst .pn{font-size:15px!important;flex:1 1 calc(100% - 44px)!important;min-width:0!important}
+  .pst .pc{flex:1 1 100%!important;white-space:normal!important;font-size:12px!important;padding:4px 10px!important;border-radius:10px!important;margin-top:2px}
+  .pst .pcat{font-size:11px!important}
+  .pst li{font-size:14px!important;grid-template-columns:minmax(0,1fr)!important}
+  .pst li b{font-size:14px!important}
+  .pst li span{font-size:12px!important}
+  .pst li em{grid-column:1!important;grid-row:auto!important;text-align:left!important;font-size:12px!important}
+}
+@media(max-width:700px){
+  .pst li{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:2px!important}
+  .pst li b,.pst li span,.pst li em{grid-column:1!important;grid-row:auto!important;width:auto!important;max-width:100%;overflow-wrap:anywhere;word-break:normal;text-align:left!important}
+}
+@media(max-width:700px){.pst li span::before{display:none!important}.pst li span{margin:0!important;padding:0!important}.pst li em{margin:0!important;padding:0!important;white-space:normal!important;font-weight:600;color:#3F5A7D}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
