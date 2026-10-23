@@ -2332,6 +2332,9 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   function cats(s) {
     if (tipo === 'NAV-IM') {
       var c = [], pe = s.pe || '';
+      if (/Sanidad/.test(pe)) return ['sa'];
+      if (/disciplinario/.test(pe)) return ['di'];
+      if (/cultura física/.test(pe)) return ['cf'];
       (s.rk || []).forEach(function (r) {
         if (r[0] === 'Cultura física') c.push('cf');
         else if (r[0] === 'Disciplina') c.push('di');
