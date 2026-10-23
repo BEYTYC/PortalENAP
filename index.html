@@ -600,6 +600,9 @@
     main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:hidden !important; }
     main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
     footer{ position:relative; z-index:5; }
+    /* Un módulo abierto no debe poder moverse dentro de main (ni siquiera por scrollIntoView desde el iframe):
+       así el módulo siempre queda debajo de la barra de la casita y termina sobre el pie. */
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:clip !important; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
        el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
@@ -1475,6 +1478,7 @@ img,svg,video,canvas,iframe{max-width:100%}
     </div>
   </div>
 </main>
+<script>(function(){var m=document.getElementById('main');if(!m)return;m.addEventListener('scroll',function(){if(m.querySelector(':scope > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])')&&m.scrollTop!==0)m.scrollTop=0},{passive:true})})();</script>
 
 <footer>
   <div class="deco" aria-hidden="true">
