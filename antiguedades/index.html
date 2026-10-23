@@ -1288,7 +1288,8 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media (min-width:1200px){#novl table.nl td:nth-child(2) .nvb{max-width:none!important;overflow:visible!important;text-overflow:clip!important}}
 :root:fullscreen #novl table.nl td:nth-child(2) .nvb,:root.fsx #novl table.nl td:nth-child(2) .nvb{max-width:none!important;overflow:visible!important;text-overflow:clip!important}
 /* flecha del puesto alineada verticalmente con el número */
-.stu .gt tbody td.pcl .pa2{display:inline-block!important;line-height:1!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important}
+.stu .gt tbody td.pcl .pa2{display:inline-block!important;line-height:1!important;vertical-align:middle!important;position:relative!important;top:-4px!important;transform:none!important}
+.stu .gt.hasrep thead th:first-child{width:205px!important}.stu .gt tbody tr.rp td:first-child{white-space:nowrap}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1358,7 +1359,7 @@ Object.keys(D.sheets||{}).forEach(k=>D.sheets[k].forEach(fix));(D.esc||[]).forEa
 /* periodo de cada semestre: el último es 2026-1 y se retrocede un semestre por fila */
 function motivo(b){const nm=['académica','apt. naval','disciplina','cultura física'],lo=[];for(let i=0;i<4;i++){const v=b[i+1];if(v!=null&&v<(i===3?7:6))lo.push(nm[i]+' ('+v.toFixed(3).replace('.',',')+')')}
 return lo.length?'No alcanzó la nota mínima de 6,000 en: '+lo.join(', ')+'.':'Ninguna nota por componente quedó por debajo de 6,000; el motivo (por ejemplo una asignatura perdida) no está en los datos cargados.'}
-function rpx(b,n){return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre ${b[0].replace(/A$/,'')} reprobado.</b> ${motivo(b)}</td></tr>`}
+function rpx(b,n,l){const rt=l==='Retardado';return `<tr class="rpx" hidden><td colspan="${n}"><b>Semestre ${b[0].replace(/A$/,'')} ${rt?'retardado':'reprobado'}.</b> ${rt?(motivo(b)||'Cursa de nuevo el semestre por cultura física.'):motivo(b)}</td></tr>`}
 function perF(s,i){if(i===s.h.length-1)return PER;const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x<=(PER==='2026-2'?2:1)))return a+'-'+x}return perI(s.h.length,i)}
 function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
@@ -1789,7 +1790,7 @@ function chart(h){
 function notas(h){
   if(!h||!h.length) return '';
   const c=(v,t=6)=>`<td class="${v!=null&&v<t?'lo':''}">${f3(v)}</td>`;
-  return `<table class="gt"><thead><tr><th>Curso</th><th>Periodo</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':b[0]}</td><td>${perI(h.length,i)}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4],7)}</tr>${r?rpx(b,6):''}`}).join('')+`</tbody></table>`;
+  return `<table class="gt"><thead><tr><th>Curso</th><th>Periodo</th><th>Acad</th><th>AN</th><th>Disc</th><th>C.F</th></tr></thead><tbody>`+h.map((b,i)=>{const r=b[0].endsWith('A');return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver el motivo"':''}><td>${r?b[0].slice(0,-1)+' · reprobado':b[0]}</td><td>${perI(h.length,i)}</td>${c(b[1])}${c(b[2])}${c(b[3])}${c(b[4],7)}</tr>${r?rpx(b,6):''}`}).join('')+`</tbody></table>`;
 }
 function radar(s,avg){
   const ax=[['Académico','ac'],['Apt. naval','an'],['Disciplina','di'],['C. física','cf']];
@@ -1822,6 +1823,8 @@ function stuRender(){
   const mg=(td,i)=>MD&&s.h.length>1?(gs[i]?td.replace('<td','<td rowspan="'+gs[i]+'" style="vertical-align:middle"'):''):td;
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
+  const nxP=(p,d)=>{const t=p.split('-').map(Number),n=t[0]*2+(t[1]-1)+d;return Math.floor(n/2)+'-'+(n%2+1)};
+  const perAn=i=>{if(mat[i])return mat[i][0];let j=i-1;while(j>=0&&!mat[j])j--;if(j>=0)return nxP(mat[j][0],i-j);j=i+1;while(j<mat.length&&!mat[j])j++;if(j<mat.length)return nxP(mat[j][0],i-j);return perF(s,i)};
   const PO=['2022-1','2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1','2026-2'];
   const puH=(b,i)=>{const e=mat[i];if(!e||e[2]==null)return '<td>—</td>';let m='';
     {const pr=hp.filter(x=>x[4]===''&&PO.indexOf(x[0])<PO.indexOf(e[0])).pop();
@@ -1832,7 +1835,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:'<i class="pa2 eq" title="Mismo puesto">≈</i>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,''),lb=x=>MD?x:x+sf;const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania'||/^Retirad[oa]/.test(b[6]||''))return `<tr><td>${lb(b[0])}</td>${np?'':`<td>${b[7]||'—'}</td>`}<td colspan="4" class="enc">${b[6]}</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · Reprobado':(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':lb(b[0]))}</td>${np?'':mg(`<td>${MD?(b[7]||'2026-1'):HAS?(mat[i]?mat[i][0]:'—'):perF(s,i)}</td>`,i)}${c(b[1])}${mg(c(b[2]),i)}${mg(c(b[3]),i)}${mg(c(b[4],7),i)}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
+  const sf=(s.cu||'').replace(/^\d\.\d/,''),lb=x=>MD?x:x+sf;const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania'||/^Retirad[oa]/.test(b[6]||''))return `<tr><td>${lb(b[0])}</td>${np?'':`<td>${b[7]||(HAS?perAn(i):perF(s,i))}</td>`}<td colspan="4" class="enc">${b[6]}</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);const bad=x=>x&&((x[1]!=null&&x[1]<6)||(x[2]!=null&&x[2]<6)||(x[3]!=null&&x[3]<6)),cfBad=x=>x&&x[4]!=null&&x[4]<7,rtdRow=x=>x&&x[0].endsWith('A')&&cfBad(x)&&!(x[1]!=null&&x[1]<6)&&!(x[2]!=null&&x[2]<6),rt=r&&(rtdRow(b)||(!bad(b)&&!cfBad(b)&&i>0&&rtdRow(s.h[i-1]))),lbR=rt?'Retardado':'Reprobado';return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · '+lbR:(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':lb(b[0]))}</td>${np?'':mg(`<td>${MD?(b[7]||'2026-1'):HAS?perAn(i):perF(s,i)}</td>`,i)}${c(b[1])}${mg(c(b[2]),i)}${mg(c(b[3]),i)}${mg(c(b[4],7),i)}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7,lbR):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
