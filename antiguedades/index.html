@@ -1386,7 +1386,7 @@ function rpx(b,n,l,ex){const rt=l==='Retardado';if(l==='Refuerzo')return `<tr cl
 function perF(s,i){if(i===s.h.length-1)return PER;const c=String(s.c||''),y=+c.slice(0,2),q=+c[2];if(y>=18&&y<=26&&(q===1||q===2)){let a=2000+y,x=q,d=i;while(d-->0){if(x===1)x=2;else{x=1;a++}}if(a<2026||(a===2026&&x<=(PER==='2026-2'?2:1)))return a+'-'+x}return perI(s.h.length,i)}
 function perI(n,i){let a=2026,s=1,d=n-1-i;while(d-->0){if(s===1){s=2;a--}else s=1}return a+'-'+s}
 const f3=v=>v==null?'—':v.toFixed(3).replace('.',',');
-const rkMot=s=>{const M=[];(s.rk||[]).forEach(r=>{const n=r[0],m=/^(Aptitud naval|Disciplina|Cultura física)$/.test(n)?n:(/^(Perdió|Concepto de Sanidad|Consejo|Curso Instructor|Novedad financiera)/.test(n)?n:'Asignatura < 6,0');if(!M.includes(m))M.push(m)});return M.join(' · ')};
+const rkMot=s=>{const M=[],_k=(s.rk||[]).map(r=>r[0]);(s.rk||[]).forEach(r=>{const n=r[0];if((n==='Consejo disciplinario'&&_k.includes('Disciplina'))||(n==='Consejo de cultura física'&&_k.includes('Cultura física')))return;const m=/^(Aptitud naval|Disciplina|Cultura física)$/.test(n)?n:(/^(Perdió|Concepto de Sanidad|Consejo|Curso Instructor|Novedad financiera)/.test(n)?n:'Asignatura < 6,0');if(!M.includes(m))M.push(m)});return M.join(' · ')};
 const ORD=D.order, ESC='ESC';
 
 const TRC=[['#FFD23F','#F2A900','#FFF1A8'],['#D5DDE6','#98A5B5','#FFFFFF'],['#F0A06A','#C96F2E','#FFD9B8']];
