@@ -2381,15 +2381,6 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           var hl = !!faltan[k], t = vals[k] == null ? '' : vals[k];
           if (hl && !t) t = 'COMPLETAR';
           var sin = tc.replace(/<w:r(?: [^>]*)?>[\s\S]*?<\/w:r>/g, '').replace(/<w:proofErr[^>]*\/>/g, '');
-          // todo en un solo renglón: si el texto no cabe en el ancho de la celda, se reduce un poco la letra
-          var wm = /<w:tcW w:w="(\d+)"/.exec(tc), sm = /<w:sz w:val="(\d+)"/.exec(rpr || '');
-          if (wm && sm && String(t).length > 0) {
-            var disp = (+wm[1] / 20) - 12, need = String(t).length * 0.7 * (+sm[1] / 2);
-            if (need > disp) {
-              var ns = Math.max(9, Math.floor(2 * disp / (0.7 * String(t).length)));
-              rpr = rpr.replace(/<w:sz w:val="\d+"\/>/, '<w:sz w:val="' + ns + '"/>').replace(/<w:szCs w:val="\d+"\/>/, '<w:szCs w:val="' + ns + '"/>');
-            }
-          }
           return sin.replace(/<\/w:p>(?![\s\S]*<\/w:p>)/, run(rpr, t, hl) + '</w:p>');
         });
       }
@@ -2415,7 +2406,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         out.push(filaCon(n === lista.length - 1 ? ultima : modelo, vals, faltan));
       });
       var nuevaTabla = tbl.slice(0, tbl.indexOf(filas[0])) + out.join('') + '</w:tbl>';
-      if (esNav) { var AN = { '3420': '3100', '1246': '1190', '1820': '2196' }; nuevaTabla = nuevaTabla.replace(/(<w:tcW w:w="|<w:gridCol w:w=")(\d+)"/g, function (m, a, v) { return a + (AN[v] || v) + '"'; }); }
+      if (esNav) { var AN = { '3420': '3570', '1820': '2050', '871': '640', '1246': '1100' }; nuevaTabla = nuevaTabla.replace(/(<w:tcW w:w="|<w:gridCol w:w=")(\d+)"/g, function (m, a, v) { return a + (AN[v] || v) + '"'; }); }
       x = x.slice(0, i0) + nuevaTabla + x.slice(i1);
 
       // ---- textos (en amarillo lo que se debe revisar o cambiar)
