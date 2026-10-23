@@ -584,7 +584,8 @@
     /* Cabecera y pie siempre visibles: la página se ancla a la pantalla (no se desplaza ni "rebota" por debajo
        de las barras del navegador del celular) y solo se mueve el contenido interno de cada módulo. */
     html{ overflow:hidden; overscroll-behavior:none; height:100%; }
-    body{ position:fixed; inset:0; width:100%; height:auto; overscroll-behavior:none; }
+    body{ position:fixed; top:0; left:0; right:0; bottom:auto; width:100%; height:100vh; height:100dvh; overscroll-behavior:none; }
+    footer{ padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); }
     .registro-iframe{ overscroll-behavior:contain; }
     /* Nada se mueve a izquierda/derecha: la página nunca es más ancha que la pantalla; si una tabla es más ancha,
        solo esa tabla se desplaza horizontalmente por dentro. */
