@@ -47,7 +47,7 @@ function configurar() {
   var d = graph_('get', rutaDrive_() + '?$select=id,name,webUrl', null, t);
   asegurarCarpeta_(t);
   Logger.log('OneDrive conectado: ' + (d.webUrl || d.name) + '\nCarpeta de balances: ' + carpetaBalances_() +
-    '\nCuenta autorizada (login del Portal): ' + prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co') +
+    '\nCuenta autorizada (login del Portal): ' + prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co,sac@enap.edu.co') +
     '\nPlantillas: ' + (prop_('PORTAL_URL') ? prop_('PORTAL_URL').replace(/\/+$/, '') + '/balances/' : 'OneDrive ' + carpetaPlantillas_()));
 }
 
@@ -125,7 +125,7 @@ function sha_(t) {
  *  El argumento `tokenUsuario` es ese token de Microsoft. */
 function requiereClave() { return false; }
 function sesionDe_(tokenUsuario) {
-  var permitidos = String(prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co')).toLowerCase().split(/[,;\s]+/).filter(Boolean);
+  var permitidos = String(prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co,sac@enap.edu.co')).toLowerCase().split(/[,;\s]+/).filter(Boolean);
   var token = String(tokenUsuario || '');
   if (!token) throw new Error('Este usuario no tiene acceso a este módulo. Ábralo desde el Portal ENAP.');
   var cache = CacheService.getScriptCache(), k = 'ms_' + sha_(token), correo = cache.get(k);
