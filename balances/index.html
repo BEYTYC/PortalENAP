@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Balance Académico · ENAP</title>
 <style>
-  html,body{height:100%;margin:0;background:#f4f6fa;font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:#13294b}
-  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:#f4f6fa}
+  html,body{height:100%;margin:0;background:transparent;font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:#13294b}
+  iframe{position:fixed;inset:0;width:100%;height:100%;border:0;background:transparent}
   #carga{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;gap:12px;font-size:15px}
   #carga.off{display:none}
   .spin{width:20px;height:20px;border:3px solid #c9d3e3;border-top-color:#13294b;border-radius:50%;animation:g .8s linear infinite}
@@ -25,10 +25,6 @@
     document.body.insertAdjacentHTML('beforeend', '<div id="aviso"><b>Falta la dirección del Balance Académico.</b><br>Pegue la URL de la implementación de Apps Script (termina en /exec) en <code>balances/config.js</code>.</div>');
     return;
   }
-  /* En celulares y tabletas el navegador bloquea las cookies de Google dentro de un marco, y Google responde “401”.
-     Ahí se abre la aplicación directamente (sigue siendo la misma, con su inicio de sesión de Google). */
-  var movil = /Android|iPhone|iPad|iPod|Mobile|CriOS|FxiOS/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
-  if (movil) { window.location.replace(u); return; }
   var f = document.createElement('iframe');
   f.title = 'Balance Académico'; f.allow = 'clipboard-read; clipboard-write; downloads';
   f.onload = function () { document.getElementById('carga').className = 'off'; };

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Protocolo · Concesiones Especiales</title>
 <style>
   :root{
@@ -168,6 +168,12 @@
   .callout b{font-weight:500}
   .step-b b,.faq-a b,.mapa .que b,.callout b,.card b{font-weight:500}
   .step-b li b:first-child{font-weight:500}
+</style>
+<style id="sin-desplazamiento-lateral">
+/* Móvil: la página nunca se desplaza hacia los lados */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,svg,video,canvas,iframe{max-width:100%}
 </style>
 </head>
 <body>
@@ -483,6 +489,29 @@ $('q').addEventListener('input',function(){
 })();
 
 render(); marcarTab('');
+</script>
+<style id="fs-boton">
+.fs-btn{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,env(safe-area-inset-bottom,0px));z-index:60;width:42px;height:42px;display:inline-flex;align-items:center;justify-content:center;padding:0;border-radius:50%;border:1px solid #C4D2E7;background:#fff;color:#0B2A5B;cursor:pointer;box-shadow:0 2px 10px rgba(20,50,100,.2);transition:background .15s,border-color .15s}
+.fs-btn:hover{background:#F2F5FA;border-color:#1B4C92}
+.fs-btn:focus-visible{outline:3px solid rgba(211,166,42,.6);outline-offset:2px}
+.fs-btn[hidden]{display:none}
+@media print{.fs-btn{display:none}}
+</style>
+<button type="button" class="fs-btn" id="fsBtn" title="Pantalla completa" aria-label="Pantalla completa"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path id="fsIc" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+<script>
+(function(){
+  var b=document.getElementById('fsBtn'),ic=document.getElementById('fsIc'),de=document.documentElement;
+  if(!b)return;
+  if(!de.requestFullscreen){b.hidden=true;return}
+  var es=function(){return !!document.fullscreenElement};
+  function pinta(){
+    var on=es();
+    ic.setAttribute('d',on?'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5':'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+    var t=on?'Salir de pantalla completa':'Pantalla completa';b.title=t;b.setAttribute('aria-label',t);
+  }
+  b.onclick=function(){try{if(es())document.exitFullscreen();else de.requestFullscreen().catch(function(){})}catch(e){}};
+  document.addEventListener('fullscreenchange',pinta);
+})();
 </script>
 </body>
 </html>

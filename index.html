@@ -1,6 +1,6 @@
 <script>(function(){var ok=function(t){var P=window.PortalENAP;if(P&&P.sesion&&(P.sesion.roles||[]).indexOf('ADMIN')>=0)return true;return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)};['copy','cut'].forEach(function(n){document.addEventListener(n,function(e){if(ok(e.target))return;e.preventDefault();try{e.clipboardData.setData('text/plain','')}catch(x){}},true)});document.addEventListener('dragstart',function(e){if(!ok(e.target))e.preventDefault()},true)})();</script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>Portal de Servicios Digitales</title>
 <link rel="preload" as="image" href="assets/escudo-sm.webp" type="image/webp">
 <link rel="preload" as="image" href="assets/escudo-marca-agua-sm.webp" type="image/webp">
@@ -368,7 +368,7 @@
   .cde-note{ margin-top:9px; font-size:11.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc{
+  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -385,7 +385,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloConc[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -466,7 +466,7 @@
   footer .left, footer .right{ position:relative; z-index:1; }
   footer .left b{display:block; color:#fff; font-size:12.5px;}
   footer .right{margin-left:auto; text-align:right;}
-  footer .right .line1{display:block; color:#fff; text-align:right; line-height:1.15;}
+  footer .right .line1{display:block; color:#fff; text-align:right; line-height:1.15; font-size:12px;}
   footer .right .line1 b{font-weight:600;}
   footer .copyright{ display:block; font-size:10.5px; color:var(--navy-300); margin-top:2px; }
 
@@ -581,11 +581,23 @@
     .cde-inner{ flex-direction:column; align-items:stretch; }
     .cde-copy{ max-width:none; }
     .cde-preview{ max-width:none; }
+    /* Cabecera y pie siempre visibles: la página se ancla a la pantalla (no se desplaza ni "rebota" por debajo
+       de las barras del navegador del celular) y solo se mueve el contenido interno de cada módulo. */
+    html{ overflow:hidden; overscroll-behavior:none; height:100%; }
+    body{ position:fixed; top:0; left:0; right:0; bottom:auto; width:100%; height:100vh; height:100dvh; overscroll-behavior:none; }
+    footer{ padding-bottom:calc(8px + env(safe-area-inset-bottom,0px)); }
+    .registro-iframe{ overscroll-behavior:contain; }
+    /* Nada se mueve a izquierda/derecha: la página nunca es más ancha que la pantalla; si una tabla es más ancha,
+       solo esa tabla se desplaza horizontalmente por dentro. */
+    html, body{ max-width:100%; overflow-x:hidden; }
+    main{ min-width:0; max-width:100%; }
+    main table, .panel-app table{ display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    main img, main video, main canvas, main svg{ max-width:100%; }
     main{ display:block; padding:18px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
        el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
-    main:has(> :is(#viewTitulacion,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE):not([hidden])){
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE):not([hidden])){
       padding:0 !important; overflow:hidden !important;
     }
   }
@@ -763,7 +775,7 @@
     footer .footer-glow{ display:none; }
     footer .left, footer .right{ margin:0; text-align:center; min-width:0; }
     footer .left b{ display:inline; font-size:11.5px; }
-    footer .right .line1{ font-size:10.5px; }
+    footer .right .line1{ font-size:11.5px; }
     footer .copyright{ display:none; }
 
     input, select, textarea{ font-size:16px !important; }
@@ -789,7 +801,40 @@
   main{ background:var(--bg); }
   .sac-view{ background:transparent; }
   .login-gate{ background:#FDFEFF; }
+</style><style id="sin-desplazamiento-lateral">
+/* Móvil: la página nunca se desplaza hacia los lados */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,svg,video,canvas,iframe{max-width:100%}
+@media (max-width:760px){ footer .left{ display:none !important; } footer .right .line1{ text-align:center; } }
+</style><style id="zoom-movil">@media (max-width:760px){input,select,textarea{font-size:16px!important}}</style>
+<style id="login-movil">
+/* Inicio de sesión en celular: pantalla azul compacta + hoja blanca con el acceso */
+@media (max-width:600px){
+  .login-gate[hidden]{display:none!important}
+  .login-gate{display:flex!important;flex-direction:column;overflow-y:auto;overflow-x:hidden;background:var(--navy-950,#0B1E3F)}
+  .login-gate__brand{flex:0 0 auto;align-items:center;text-align:center;padding:max(26px,env(safe-area-inset-top)) 22px 56px!important;gap:10px!important;justify-content:center!important;min-height:50vh;min-height:50dvh;box-sizing:border-box}
+  .login-gate__mark{flex-direction:column;gap:12px;align-items:center}
+  .login-gate__mark img{height:64px!important;filter:drop-shadow(0 4px 14px rgba(0,0,0,.35))}
+  .login-gate__mark-text{align-items:center;gap:5px}
+  .login-gate__mark-text .nombre{font-size:10.5px;letter-spacing:.06em;max-width:280px}
+  .login-gate__mark-text .oficina{font-size:9.5px;letter-spacing:.18em}
+  .login-gate__heading{max-width:340px;display:flex;flex-direction:column;align-items:center}
+  .login-gate__eyebrow{display:none}
+  .login-gate__rule{margin:6px 0 14px!important;width:44px}
+  .login-gate__heading h1{font-size:22px!important;line-height:1.12;letter-spacing:-.01em}
+  .login-gate__heading p{display:none!important}
+  .login-gate__panel{flex:1 0 auto;background:#fff;border-radius:28px 28px 0 0;margin-top:-30px;padding:32px 22px max(20px,env(safe-area-inset-bottom))!important;justify-content:flex-start!important;box-shadow:0 -10px 30px rgba(6,20,45,.35);z-index:2}
+  .login-gate__card{max-width:none!important;margin-block:auto!important}
+  .login-gate__card h2{font-size:18px}
+  .login-gate__sub{font-size:12.5px;margin-bottom:18px!important}
+  .login-gate__btn{min-height:48px;border-radius:12px;font-size:13.5px;gap:10px;padding:0 14px}
+  .login-gate__foot{margin-top:14px!important;font-size:11.5px;padding:0 6px}
+  .login-gate__credito{margin-top:0!important;padding-top:20px;font-size:11px!important;line-height:1.5}
+}
 </style>
+
+
 
 <!--
   MODO DE PRUEBAS -- solo se activa visitando la pagina con
@@ -864,7 +909,7 @@
       </button>
       <p class="login-gate__foot">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
     </div>
-    <p class="login-gate__credito">Desarrollado por Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></p>
+    <p class="login-gate__credito">Desarrollado por Oficina de Estadística ENAP</p>
   </div>
 </div>
 
@@ -1306,6 +1351,17 @@
     ></iframe>
   </div>
 
+  <div id="viewBalances" hidden>
+    <!-- "Generación de Balances Académicos": solo posfam@enap.edu.co. El
+         iframe se carga al abrir el modulo por primera vez (cargarBalances). -->
+    <iframe
+      id="balancesFrame"
+      class="registro-iframe"
+      title="Generación de Balances Académicos"
+      allow="clipboard-read; clipboard-write; downloads"
+    ></iframe>
+  </div>
+
   <div id="viewConcesiones" hidden>
     <!-- Concesiones Especiales (Google Apps Script, vista de Estadistica y
          lectores). La direccion del script se configura en
@@ -1328,6 +1384,10 @@
       allow="fullscreen"
       allowfullscreen
     ></iframe>
+  </div>
+
+  <div id="viewProtocoloAnt" hidden>
+    <iframe id="protocoloAntFrame" class="registro-iframe" title="Protocolo Antigüedades ENAP" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewAntiguedades" hidden>
@@ -1429,7 +1489,7 @@
     Portal de Servicios Digitales
   </div>
   <div class="right">
-    <span class="line1">Desarrollado por Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez · Jefe de Estadística</em></span>
+    <span class="line1">Desarrollado por Oficina de Estadística ENAP</span>
   </div>
 </footer>
 
@@ -2576,6 +2636,8 @@
     } catch (e) {}
   }
   function sonidoInicioSesion() {
+    if (window.__sonidoHecho) return;
+    window.__sonidoHecho = true;
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return;
@@ -2714,6 +2776,15 @@
       // su cuenta personal o con otra institucional) en esa misma maquina,
       // el popup entraba directo con esa cuenta sin dar oportunidad de
       // cambiar.
+      // En celulares (sobre todo iPhone) la ventana emergente se abre como otra pestaña y, al volver, la pestana del Portal
+      // suele haberse descartado/dormido: el login terminaba y se volvia a ver la pantalla de inicio. Alli se inicia sesion
+      // en la MISMA pestana (loginRedirect): Microsoft vuelve a redirect.html, que reenvia la respuesta aqui (ver redirect.html)
+      // y procesarSesion() la completa con handleRedirectPromise(). En computador se mantiene la ventana emergente.
+      if (esCelular()) {
+        try { sessionStorage.setItem('PortalENAP_loginRedirect', '1'); } catch (_) {}
+        await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
+        return;
+      }
       const resultado = await conInteraccionMsalExclusiva(() => instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' }));
       if (resultado && resultado.account) {
         const sesion = await obtenerRolesUsuario(resultado.account);
@@ -2738,8 +2809,35 @@
   // Al cargar la pestana principal: si ya hay una cuenta en cache de una
   // sesion anterior, se intenta en silencio: si tiene roles activos entra
   // directo, si no, se queda en el login (sin mostrar error todavia).
+  function esCelular() {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || '') || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent || ''));
+  }
+
   async function procesarSesion() {
     const instance = await getMsal();
+    // Regreso de un login por redireccion (celulares): completa la sesion con la respuesta que viene en la URL.
+    let vieneDeRedireccion = false;
+    try { vieneDeRedireccion = sessionStorage.getItem('PortalENAP_loginRedirect') === '1'; } catch (_) {}
+    if (vieneDeRedireccion || /[#&](code|error)=/.test(window.location.hash)) {
+      try { sessionStorage.removeItem('PortalENAP_loginRedirect'); } catch (_) {}
+      mostrarCargando(true);
+      try {
+        const r = await instance.handleRedirectPromise();
+        if (r && r.account) {
+          const sesion = await obtenerRolesUsuario(r.account);
+          window.PortalENAP.sesion = sesion;
+          ocultarGate();
+          mostrarSesionUsuario(sesion);
+          mostrarVistasSegunSesion(sesion);
+          return;
+        }
+      } catch (error) {
+        mostrarError(mensajeErrorGraph(error));
+        return;
+      } finally {
+        mostrarCargando(false);
+      }
+    }
     const cuentas = instance.getAllAccounts();
     if (cuentas.length === 0) return;
     try {
@@ -2849,6 +2947,8 @@
         // "Solicitud de Grado" que Beyty construyó en Google Apps Script
         // (ver el src del iframe #titulacionFrame más arriba).
         { nombre: 'Solicitud de Grado', status: 'ok' },
+        // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
+        { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -2876,12 +2976,17 @@
       items: [
         { nombre: 'Protocolo Solicitud de Grado', status: 'soon' },
         { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'ok' },
+        { nombre: 'Protocolo Antigüedades ENAP', status: 'ok' },
       ],
     },
   ];
 
   const STATUS_LABEL = { ok: 'Disponible', soon: '' };
 
+  function correoSesion() {
+    const p = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.perfil) || {};
+    return String(p.mail || p.userPrincipalName || '').trim().toLowerCase();
+  }
   function renderNav() {
     const navIzq = document.getElementById('navcats');
     const navDer = document.getElementById('navcatsDer');
@@ -2909,6 +3014,7 @@
         // tiene alguno de esos roles -- sin sesion, o sin ese rol, ni
         // siquiera aparecen en el menu.
         if (item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r))) continue;
+        if (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1) continue;
 
         // Submenu anidado (p. ej. "Descarga de Balances Académicos"): se abre
         // como flyout a la DERECHA del boton (con el mouse, con solo pasar
@@ -2977,9 +3083,14 @@
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
+          else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); }
+            else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
+          }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
+          else if (item.status === 'ok' && item.nombre === 'Protocolo Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Protocolo · Antigüedades ENAP'); cargarProtocoloAnt(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
@@ -3105,6 +3216,13 @@
     f.dataset.cargado = '1';
   }
 
+  function cargarProtocoloAnt() {
+    const f = document.getElementById('protocoloAntFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'protocolos/antiguedades-enap.html';
+    f.dataset.cargado = '1';
+  }
+
   // Concesiones Especiales: la primera vez que se abre se carga el iframe
   // de Apps Script (direccion en concesiones-config.js).
   function cargarConcesiones() {
@@ -3132,6 +3250,12 @@
     f.src = TITULACION_URL;
     f.dataset.cargado = '1';
   }
+  function cargarBalances() {
+    const f = document.getElementById('balancesFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'balances/index.html';
+    f.dataset.cargado = '1';
+  }
   // Se precarga desde que abre el Portal (iframe oculto), como al principio:
   // asi, al entrar al modulo ya esta listo. El token lo entrega el Portal en
   // cuanto haya sesion (ver tokenMicrosoft).
@@ -3143,7 +3267,7 @@
   window.addEventListener('message', async (event) => {
     const d = event.data;
     const tiposValidos = ['concesiones:token-request', 'concesiones:pantalla-completa', 'concesiones:listo',
-                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo'];
+                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request'];
     if (!d || tiposValidos.indexOf(d.type) === -1) return;
     let host = '';
     try { host = new URL(event.origin).hostname; } catch (e) { return; }

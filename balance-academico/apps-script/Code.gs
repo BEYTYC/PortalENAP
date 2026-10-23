@@ -47,7 +47,7 @@ function configurar() {
   var d = graph_('get', rutaDrive_() + '?$select=id,name,webUrl', null, t);
   asegurarCarpeta_(t);
   Logger.log('OneDrive conectado: ' + (d.webUrl || d.name) + '\nCarpeta de balances: ' + carpetaBalances_() +
-    '\nUsuarios permitidos: ' + (prop_('USUARIOS_PERMITIDOS', '') || '(cualquiera que abra la página)') +
+    '\nCuenta autorizada (login del Portal): ' + prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co,sac@enap.edu.co') +
     '\nPlantillas: ' + (prop_('PORTAL_URL') ? prop_('PORTAL_URL').replace(/\/+$/, '') + '/balances/' : 'OneDrive ' + carpetaPlantillas_()));
 }
 
@@ -118,15 +118,29 @@ function sha_(t) {
   return Utilities.base64EncodeWebSafe(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, t)).slice(0, 40);
 }
 
-/** Identidad: la aplicación web va sola en Apps Script (sin Portal). Si el despliegue es para cuentas del dominio,
- *  Google entrega el correo de quien abre la página. Propiedad opcional USUARIOS_PERMITIDOS: correos separados por coma
- *  (si existe, solo esas personas entran). El argumento `tokenUsuario` ya no se usa. */
+/** Identidad y acceso.
+ *  El Portal ENAP entrega el token de Microsoft de quien inició sesión; aquí se verifica con Microsoft Graph (/me) y solo
+ *  se permite la cuenta autorizada (propiedad CORREO_PERMITIDO; por defecto posfam@enap.edu.co). La implementación debe ser
+ *  de acceso “Cualquier persona”, pero sin un token válido de esa cuenta el servidor rechaza todas las acciones.
+ *  El argumento `tokenUsuario` es ese token de Microsoft. */
+function requiereClave() { return false; }
 function sesionDe_(tokenUsuario) {
-  var correo = '';
-  try { correo = String(Session.getActiveUser().getEmail() || '').trim().toLowerCase(); } catch (e) {}
-  var permitidos = prop_('USUARIOS_PERMITIDOS', '').toLowerCase().split(/[,;\s]+/).filter(Boolean);
-  if (permitidos.length && permitidos.indexOf(correo) < 0) throw new Error('Su cuenta no tiene permiso para usar el Balance Académico.');
-  return { email: correo, nombre: correo, roles: ['jefe'], prueba: false };
+  var permitidos = String(prop_('CORREO_PERMITIDO', 'posfam@enap.edu.co,jestadisticaplen@enap.edu.co,sac@enap.edu.co')).toLowerCase().split(/[,;\s]+/).filter(Boolean);
+  var token = String(tokenUsuario || '');
+  if (!token) throw new Error('Este usuario no tiene acceso a este módulo. Ábralo desde el Portal ENAP.');
+  var cache = CacheService.getScriptCache(), k = 'ms_' + sha_(token), correo = cache.get(k);
+  if (!correo) {
+    var r;
+    try { r = UrlFetchApp.fetch('https://graph.microsoft.com/v1.0/me?$select=mail,userPrincipalName', { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true }); }
+    catch (e) { throw new Error('No se pudo verificar la sesión de Microsoft. Intente de nuevo.'); }
+    if (r.getResponseCode() === 401) throw new Error('La sesión de Microsoft venció. Recargue el Portal.');
+    if (r.getResponseCode() !== 200) throw new Error('No se pudo verificar la sesión de Microsoft (' + r.getResponseCode() + ').');
+    var u = JSON.parse(r.getContentText());
+    correo = String(u.mail || u.userPrincipalName || '').trim().toLowerCase();
+    if (permitidos.indexOf(correo) >= 0) cache.put(k, correo, 300);
+  }
+  if (permitidos.indexOf(correo) < 0) throw new Error('Este usuario no tiene acceso a este módulo.');
+  return { email: correo, nombre: 'Jefe de Programa – Facultad de Administración', roles: ['jefe'], prueba: false };
 }
 
 function exigir_(token, permitidos) {

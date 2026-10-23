@@ -106,16 +106,42 @@ const REGEX_PERIODO = /^\d{4}-[12]$/;
 const ahora = () => new Date().toISOString();
 const esCorreoValido = (c) => /^[^\s@]+@enap\.edu\.co$/i.test(c);
 
+/* Cuentas con acceso a TODOS los módulos del Portal (permanente, no depende de ACCESO_TEMPORAL). */
+const ACCESO_TOTAL = ['sac@enap.edu.co'];
+
 function rolDe(correo, accesos) {
   if (ADMINS.includes(correo)) return 'ADMIN';
+  if (ACCESO_TOTAL.includes(correo)) return 'CONSULTA';
   if ((accesos.consulta || []).some((x) => x.correo === correo)) return 'CONSULTA';
   return null;
 }
 
 function puedeDescargar(correo, accesos) {
-  if (ADMINS.includes(correo)) return true;
+  if (ADMINS.includes(correo) || ACCESO_TOTAL.includes(correo)) return true;
   const x = (accesos.consulta || []).find((c) => c.correo === correo);
   return !!(x && x.descarga === true);
+}
+
+/* ---- ACCESO TEMPORAL DE CONSULTA ----
+ * Mientras dure el escalafonamiento 2026-2, quienes tienen en la lista de permisos del Portal
+ * (la misma de Solicitud de Grado) el rol DECANO o JEFE_PROGRAMA, más los correos de abajo, entran como CONSULTA
+ * (solo ven; no descargan ni administran). Para quitarlo: poner ACCESO_TEMPORAL = false. */
+const ACCESO_TEMPORAL = true;
+const ROLES_TEMPORALES = ['DECANO', 'JEFE_PROGRAMA'];
+const CORREOS_TEMPORALES = ['cben@enap.edu.co', 'sac@enap.edu.co', 'daen@enap.edu.co', 'denap@enap.edu.co', 'aspapen@enap.edu.co'];
+
+async function rolTemporal(correo) {
+  if (!ACCESO_TEMPORAL) return null;
+  if (CORREOS_TEMPORALES.includes(correo)) return 'CONSULTA';
+  try {
+    const t = await roles.getAppAccessToken();
+    const sid = await roles.resolveSiteId(t);
+    const lid = await roles.resolveListId(t, sid);
+    const filas = await roles.leerFilas(t, sid, lid);
+    return roles.rolesActivosPara(filas, correo).some((x) => ROLES_TEMPORALES.includes(x)) ? 'CONSULTA' : null;
+  } catch (e) {
+    return null;
+  }
 }
 
 async function leerAccesos() {
@@ -144,7 +170,7 @@ module.exports = async function handler(req, res) {
     }
     await contexto();
     const accesos = await leerAccesos();
-    const rol = rolDe(yo.correo, accesos);
+    const rol = rolDe(yo.correo, accesos) || (await rolTemporal(yo.correo));
 
     /* ---- sesión: dice qué rol tiene; si no tiene, deja registrado el intento ---- */
     if (accion === 'sesion') {
