@@ -2138,7 +2138,7 @@ function premRender(){
   el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3>'+(one?'':'<div class="pbars" role="list">'+rowsH+'</div>')+det;
   if(pw){pw.innerHTML=leg;pw.hidden=false}
   {const g=el.querySelector('.pbfn'),l=null;if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
-  el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d)d.scrollIntoView({behavior:'smooth',block:'nearest'})}});
+  el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d){const q=d.getBoundingClientRect();if(q.bottom>innerHeight)scrollBy({top:q.bottom-innerHeight+16,behavior:'smooth'});else if(q.top<0)scrollBy({top:q.top-16,behavior:'smooth'})}}});
 }
 function mrRender(){
   const el=document.getElementById('mr');if(cur==null&&!sel&&!q)return;
