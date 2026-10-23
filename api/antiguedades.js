@@ -106,14 +106,18 @@ const REGEX_PERIODO = /^\d{4}-[12]$/;
 const ahora = () => new Date().toISOString();
 const esCorreoValido = (c) => /^[^\s@]+@enap\.edu\.co$/i.test(c);
 
+/* Cuentas con acceso a TODOS los módulos del Portal (permanente, no depende de ACCESO_TEMPORAL). */
+const ACCESO_TOTAL = ['sac@enap.edu.co'];
+
 function rolDe(correo, accesos) {
   if (ADMINS.includes(correo)) return 'ADMIN';
+  if (ACCESO_TOTAL.includes(correo)) return 'CONSULTA';
   if ((accesos.consulta || []).some((x) => x.correo === correo)) return 'CONSULTA';
   return null;
 }
 
 function puedeDescargar(correo, accesos) {
-  if (ADMINS.includes(correo)) return true;
+  if (ADMINS.includes(correo) || ACCESO_TOTAL.includes(correo)) return true;
   const x = (accesos.consulta || []).find((c) => c.correo === correo);
   return !!(x && x.descarga === true);
 }
