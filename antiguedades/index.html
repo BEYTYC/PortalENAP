@@ -1292,6 +1292,20 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 .stu .gt.hasrep thead th:first-child{width:205px!important}.stu .gt tbody tr.rp td:first-child{white-space:nowrap}
 .stu .gt tbody td.pcl .pa2.eq{top:0!important}
 .stu .gt thead th.wp{width:118px!important}
+/* Columna Concesión: se reduce un poco el ancho de las demás para que no quede apretada */
+.stu .gt thead th.wcn{width:150px!important}.stu .gt td.cnc{font-size:.82em!important;line-height:1.25;white-space:normal!important;padding-inline:6px!important;text-align:center}
+.stu .gt.hasrep thead th:first-child{width:178px!important}
+.stu .gt thead th.wp{width:104px!important}
+.stu .gt tbody td.pcl{padding-inline:2px!important}
+/* gráfica de araña: ocupa bien el espacio de su columna */
+.stu .rd svg{max-width:560px!important;width:100%!important}
+/* Ficha: tabla más ancha para la columna Concesión; la araña usa el resto */
+@media (min-width:821px){.stu{grid-template-columns:minmax(0,1.9fr) minmax(250px,1fr)!important}}
+.stu .gt thead th.wcn{width:128px!important}
+.stu .gt tbody td:nth-child(2){white-space:nowrap!important}
+.stu .gt tfoot td:first-child{white-space:nowrap}
+.stu .rd svg{max-width:420px!important}
+.stu .rd svg{max-width:480px!important}.stu .rd h4{letter-spacing:.08em!important;font-size:11px!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1825,6 +1839,8 @@ function stuRender(){
   const mg=(td,i)=>MD&&s.h.length>1?(gs[i]?td.replace('<td','<td rowspan="'+gs[i]+'" style="vertical-align:middle"'):''):td;
   const HAS=!!(s.hp&&s.hp.length),hp=(s.hp||[]).slice(),usd=new Set();
   const mat=s.h.map(b=>{let j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]&&e[4]!=='E');if(j<0)j=hp.findIndex((e,x)=>!usd.has(x)&&e[1]===b[0]);if(j>=0)usd.add(j);return j<0?null:hp[j]});
+  const CC=!np&&!MD&&!!D.cnon;
+  const cnP=i=>s.h[i][7]||(HAS?perAn(i):perF(s,i));
   const nxP=(p,d)=>{const t=p.split('-').map(Number),n=t[0]*2+(t[1]-1)+d;return Math.floor(n/2)+'-'+(n%2+1)};
   const perAn=i=>{if(mat[i])return mat[i][0];let j=i-1;while(j>=0&&!mat[j])j--;if(j>=0)return nxP(mat[j][0],i-j);j=i+1;while(j<mat.length&&!mat[j])j++;if(j<mat.length)return nxP(mat[j][0],i-j);return perF(s,i)};
   const PO=['2022-1','2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1','2026-2'];
@@ -1837,7 +1853,7 @@ function stuRender(){
   const puC=(b,i)=>{const A=b[0].endsWith('A');if(A)return '<td>—</td>';
     if(i===s.h.length-1){if(s.p==null)return '<td>—</td>';let m='';if(pvOk&&s.pv[0]!==selK){const d=s.pv[1]-s.p;m=d>0?`<i class="pa2 up" title="Subió ${d} puestos">▲</i>`:d<0?`<i class="pa2 dn" title="Bajó ${-d} puestos">▼</i>`:'<i class="pa2 eq" title="Mismo puesto">≈</i>'}return `<td class="pcl"><b>${s.p}/${list.length}</b>${m}</td>`}
     if(pvOk&&b[0]===s.pv[0])return `<td class="pcl">${s.pv[1]}/${list.length}</td>`;return '<td>—</td>'};
-  const sf=(s.cu||'').replace(/^\d\.\d/,''),lb=x=>MD?x:x+sf;const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania'||/^Retirad[oa]/.test(b[6]||''))return `<tr><td>${lb(b[0])}</td>${np?'':`<td>${b[7]||(HAS?perAn(i):perF(s,i))}</td>`}<td colspan="4" class="enc">${b[6]}</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);const bad=x=>x&&((x[1]!=null&&x[1]<6)||(x[2]!=null&&x[2]<6)||(x[3]!=null&&x[3]<6)),cfBad=x=>x&&x[4]!=null&&x[4]<7,rtdRow=x=>x&&x[0].endsWith('A')&&cfBad(x)&&!(x[1]!=null&&x[1]<6)&&!(x[2]!=null&&x[2]<6),rt=r&&(rtdRow(b)||(!bad(b)&&!cfBad(b)&&i>0&&rtdRow(s.h[i-1]))),lbR=rt?'Retardado':'Reprobado';return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · '+lbR:(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':lb(b[0]))}</td>${np?'':mg(`<td>${MD?(b[7]||'2026-1'):HAS?perAn(i):perF(s,i)}</td>`,i)}${c(b[1])}${mg(c(b[2]),i)}${mg(c(b[3]),i)}${mg(c(b[4],7),i)}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}</tr>${r?rpx(b,np?5:7,lbR):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
+  const sf=(s.cu||'').replace(/^\d\.\d/,''),lb=x=>MD?x:x+sf;const body=s.h.map((b,i)=>{if(b[6]==='Comisión Alemania'||/^Retirad[oa]/.test(b[6]||''))return `<tr><td>${lb(b[0])}</td>${np?'':`<td>${b[7]||(HAS?perAn(i):perF(s,i))}</td>`}<td colspan="4" class="enc">${b[6]}</td>${np?'':(b[8]!=null?`<td class="pcl"><span class="pg"><b class="p1">${b[8]}</b><b class="ps">/</b><b class="p2">${b[9]}</b></span></td>`:'<td>—</td>')}${CC?'<td>—</td>':''}</tr>`;const r=b[0].endsWith('A')||(s.e==='Repitente'&&i===s.h.length-1);const bad=x=>x&&((x[1]!=null&&x[1]<6)||(x[2]!=null&&x[2]<6)||(x[3]!=null&&x[3]<6)),cfBad=x=>x&&x[4]!=null&&x[4]<7,rtdRow=x=>x&&x[0].endsWith('A')&&cfBad(x)&&!(x[1]!=null&&x[1]<6)&&!(x[2]!=null&&x[2]<6),rt=r&&(rtdRow(b)||(!bad(b)&&!cfBad(b)&&i>0&&rtdRow(s.h[i-1]))),lbR=rt?'Retardado':'Reprobado';return `<tr class="${r?'rp':''}"${r?' onclick="this.nextElementSibling.hidden=!this.nextElementSibling.hidden" title="Ver por qué se reprobó"':''}><td>${r?b[0].replace(/A$/,'')+sf+' · '+lbR:(s.e==='Refuerzo'&&b[1]==null?b[0]+sf+' (Refuerzo)':lb(b[0]))}</td>${np?'':mg(`<td>${MD?(b[7]||'2026-1'):HAS?perAn(i):perF(s,i)}</td>`,i)}${c(b[1])}${mg(c(b[2]),i)}${mg(c(b[3]),i)}${mg(c(b[4],7),i)}${np?'':(HAS?puH(b,i):(b[0].replace(/A$/,'')==='1.1'?'<td>—</td>':puC(b,i)))}${CC?`<td class="cnc">${(s.cn||{})[cnP(i)]||'—'}</td>`:''}</tr>${r?rpx(b,np?5:CC?8:7,lbR):''}`}).join('')+(s.pk&&!isE(selK)&&selK!=='MER'&&!OUT(s)?`<tr class="cur"><td>${s.pk+sf}</td>${np?'':`<td>${window.__PER2||'2026-2'}</td>`}<td colspan="4" class="enc">En curso</td>${np?'':'<td>—</td>'}</tr>`:'');
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
@@ -1882,7 +1898,7 @@ function stuRender(){
   const where=isE(selK)?(selK==='ESC'?'Escalafonamiento 4.2':eLab(selK)):'Semestre '+lab(selK);
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · ${s.ex?'Cédula de extranjería ':'C.C. '}${s.ce??'—'}${s.pais?' · '+s.pais.charAt(0)+s.pais.slice(1).toLowerCase():''} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${s.fl==='PA'?FLAG_PA:''}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los ${MD?'módulos':'semestres'}</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los ${MD?'módulos':'semestres'}</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}${CC?'<th class="wcn">Concesión</th>':''}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:CC?8:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}${CC?'<td></td>':''}</tr></tfoot></table>${pfc}</div>
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del ${MD?'grupo':'semestre'} (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
