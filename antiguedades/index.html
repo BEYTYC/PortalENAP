@@ -1278,7 +1278,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media (max-width:760px){body{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))!important}}
 @media (max-width:760px){input,select,textarea{font-size:16px!important}}
 /* Puesto: misma fuente/tamaño/peso que los promedios; flecha pegada al número y todo el bloque centrado en la celda */
-.stu .gt tbody td.pcl{text-align:center!important;padding-inline:4px!important;font:inherit!important}
+.stu .gt tbody td.pcl{text-align:center!important;padding-inline:4px!important}
 .stu .gt tbody td.pcl .pg,.stu .gt tbody td.pcl .pg b,.stu .gt tbody td.pcl > b{font:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-family:inherit!important;letter-spacing:inherit!important;text-align:center!important;width:auto!important;display:inline!important;padding:0!important}
 .stu .gt tbody td.pcl .pg b.ps{margin:0 1px}
 .stu .gt tbody td.pcl .pa2{display:inline!important;width:auto!important;margin-left:4px!important;font-size:.8em!important;vertical-align:baseline}
@@ -1287,6 +1287,8 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 /* El tope con puntos suspensivos solo aplica en vista reducida; en pantalla completa/ancha se ve todo */
 @media (min-width:1200px){#novl table.nl td:nth-child(2) .nvb{max-width:none!important;overflow:visible!important;text-overflow:clip!important}}
 :root:fullscreen #novl table.nl td:nth-child(2) .nvb,:root.fsx #novl table.nl td:nth-child(2) .nvb{max-width:none!important;overflow:visible!important;text-overflow:clip!important}
+/* flecha del puesto alineada verticalmente con el número */
+.stu .gt tbody td.pcl .pa2{display:inline-block!important;line-height:1!important;vertical-align:middle!important;position:relative!important;top:0!important;transform:none!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
