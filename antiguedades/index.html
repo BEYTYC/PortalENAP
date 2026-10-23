@@ -1319,6 +1319,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 .stu .gt thead th:not(:first-child),.stu .gt thead th.wp,.stu .gt thead th.wcn{width:auto!important}
 .stu .gt td.cnc{font-size:16.5px!important;font-family:inherit!important;font-weight:400!important;line-height:inherit!important;white-space:nowrap!important;padding-inline:4px!important}
 .stu .gt thead th{font-size:11px!important}
+.stu .pfc{border-top:0!important;margin-top:8px!important;padding-top:0!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1896,13 +1897,13 @@ function stuRender(){
       const pts=ys.map((v,i)=>v==null?null:[i,v]).filter(Boolean),vs=pts.map(q=>q[1]);
       if(!vs.length)return `<div class="tt na"><h5>${nm}</h5><div class="tv">—</div></div>`;
       const b=slope(vs),kd=kind(b),last=vs[vs.length-1],prev=vs.length>1?vs[vs.length-2]:null;
-      const W=210,H=62,pl=6,pr=8,pt=8,pb=8,lo0=Math.min(...vs),hi0=Math.max(...vs),pad=Math.max(.25,(hi0-lo0)*.2),lo=lo0-pad,hi=hi0+pad;
+      const W=210,H=62,pl=6,pr=8,pt=8,pb=8,lo0=Math.min(...vs),hi0=Math.max(...vs),pad=Math.max(.25,(hi0-lo0)*.2),RF=nm==='C. física'?7:6,lo=Math.min(lo0-pad,RF-.35),hi=hi0+pad;
       const X=i=>n===1?W/2:pl+(W-pl-pr)*i/(n-1),Y=v=>pt+(H-pt-pb)*(hi-v)/(hi-lo);
       let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${nm}: ${TXT[kd]}">`;
-      if(6>lo&&6<hi)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(6)}" y2="${Y(6)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+      g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(RF)}" y2="${Y(RF)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
       if(b!=null&&pts.length>1){const m=vs.reduce((x,y)=>x+y,0)/vs.length,mi=pts.reduce((x,q)=>x+q[0],0)/pts.length,y0=m+b*(pts[0][0]-mi),y1=m+b*(pts[pts.length-1][0]-mi);g+=`<line x1="${X(pts[0][0])}" y1="${Y(y0)}" x2="${X(pts[pts.length-1][0])}" y2="${Y(y1)}" stroke="var(--tc)" stroke-width="5" stroke-linecap="round" opacity=".16"/>`}
       if(pts.length>1)g+=`<polyline points="${pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--mute)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>`;
-      pts.forEach((q,i)=>{const L=i===pts.length-1;g+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="${L?4.2:2.4}" fill="${L?'var(--tc)':(q[1]<6?'var(--warn)':'var(--mute)')}" stroke="var(--card)" stroke-width="1.2"><title>${labs[q[0]]}: ${f3(q[1])}</title></circle>`});
+      pts.forEach((q,i)=>{const L=i===pts.length-1;g+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="${L?4.2:2.4}" fill="${L?'var(--tc)':(q[1]<RF?'var(--warn)':'var(--mute)')}" stroke="var(--card)" stroke-width="1.2"><title>${labs[q[0]]}: ${f3(q[1])}</title></circle>`});
       g+='</svg>';
       const dp=prev!=null?last-prev:null;
       return `<div class="tt ${kd}"><h5>${nm}<span class="tk">${AR[kd]} ${TXT[kd]}</span></h5><div class="tv">${f3(last)}<small>último</small></div>${g}<div class="tf">${b!=null?`<span><b>${sg(b)}</b> por ${UM}</span>`:'<span>Un solo '+UM+'</span>'}${dp!=null?`<span>vs. anterior <b class="${dp<0?'dn':dp>0?'up':''}">${sg(dp)}</b></span>`:''}</div></div>`};
@@ -1913,7 +1914,7 @@ function stuRender(){
     const cnt={up:0,dn:0,eq:0};S.forEach(([nm,k])=>{const vs=s.h.map(h=>h[k]).filter(x=>x!=null),b=slope(vs),kd=kind(b);if(cnt[kd]!=null)cnt[kd]++});
     const head=n<2?'Solo hay un semestre registrado: aún no se puede medir una tendencia.':ak==='dn'?'El estudiante viene a la baja':ak==='up'?'El estudiante viene mejorando':'El estudiante se mantiene estable';
     const sub=n<2?'':`Promedio ponderado por semestre (50 % académica, 20 % apt. naval, 20 % disciplina, 10 % C. física): ${fm(av[0])} → ${fm(av[av.length-1])} (${sg(ab)} por semestre). Componentes: ${cnt.up} mejoran, ${cnt.eq} estables, ${cnt.dn} empeoran.`;
-    evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los ${MD?'módulos':'semestres'} (±0,05 por ${UM} se considera estable). La línea discontinua roja marca la nota mínima de 6.</div></div>`;
+    evo=`<div class="evo"><h4>Tendencia por componente</h4><div class="ttg">${tiles}</div><div class="evn">Tendencia = pendiente de la recta ajustada a todos los ${MD?'módulos':'semestres'} (±0,05 por ${UM} se considera estable). La línea discontinua roja marca la nota mínima (6; en C. física, 7).</div></div>`;
   }
   const where=isE(selK)?(selK==='ESC'?'Escalafonamiento 4.2':eLab(selK)):'Semestre '+lab(selK);
   el.hidden=false;
