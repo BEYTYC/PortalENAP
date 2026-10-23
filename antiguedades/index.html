@@ -2335,6 +2335,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         else if (/Aptis|Curso Instructor/.test(r[0])) c.push('ac');
         else if (/Novedad financiera/.test(r[0])) c.push('fi');
         else if (r[0] === 'Aptitud naval') c.push('di');
+        else if (!/Concepto|Consejo/.test(r[0])) c.push('ac');
       });
       if (/Falta grave/.test(s.ev || '')) c.push('di');
       if (/Sanidad/.test(pe)) c.push('sa');
