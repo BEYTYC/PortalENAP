@@ -1320,6 +1320,9 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 .stu .gt td.cnc{font-size:16.5px!important;font-family:inherit!important;font-weight:400!important;line-height:inherit!important;white-space:nowrap!important;padding-inline:4px!important}
 .stu .gt thead th{font-size:11px!important}
 .stu .pfc{border-top:0!important;margin-top:8px!important;padding-top:0!important}
+/* tarjetas de novedades (vista normal): ocupan todo el ancho y altura contenida */
+:root:not(:fullscreen):not(.fsx) #nov .nt{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))!important;grid-auto-rows:104px!important;grid-template-rows:none!important;align-content:center!important;flex:1 1 auto!important}
+:root:not(:fullscreen):not(.fsx) #nov .nb{grid-column:auto!important;grid-row:auto!important}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
