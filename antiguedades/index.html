@@ -1261,7 +1261,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 :root:fullscreen .pleg:not([hidden]),:root.fsx .pleg:not([hidden]),:root:fullscreen #plegw.pleg:not([hidden]),:root.fsx #plegw.pleg:not([hidden]){margin:3px auto 0!important}
 /* novedades: insignia de riesgo en una línea, con puntos suspensivos; se despliega al pasar el mouse */
 #novl table.nl td:nth-child(2){white-space:nowrap!important;overflow:visible}
-#novl table.nl td:nth-child(2) .nvb{white-space:nowrap!important;display:inline-block;max-width:190px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;margin-left:8px;box-sizing:border-box;position:relative}
+#novl table.nl td:nth-child(2) .nvb{white-space:nowrap!important;display:inline-block;max-width:none;overflow:visible;text-overflow:clip;vertical-align:middle;margin-left:8px;box-sizing:border-box;position:relative}
 #novl table.nl td:nth-child(2) .nvb:hover{max-width:none;overflow:visible;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .tt h5 .tk,.evo .tk{display:none!important}
 /* historial: el grupo puesto + flecha va centrado en la columna */
@@ -1277,6 +1277,13 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media (max-width:760px){html,body{max-width:100%;overflow-x:hidden}html{overscroll-behavior:contain}.tw{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}}
 @media (max-width:760px){body{padding-bottom:calc(28px + env(safe-area-inset-bottom,0px))!important}}
 @media (max-width:760px){input,select,textarea{font-size:16px!important}}
+/* Puesto: misma fuente/tamaño/peso que los promedios; flecha pegada al número y todo el bloque centrado en la celda */
+.stu .gt tbody td.pcl{text-align:center!important;padding-inline:4px!important;font:inherit!important}
+.stu .gt tbody td.pcl .pg,.stu .gt tbody td.pcl .pg b,.stu .gt tbody td.pcl > b{font:inherit!important;font-size:inherit!important;font-weight:inherit!important;font-family:inherit!important;letter-spacing:inherit!important;text-align:center!important;width:auto!important;display:inline!important;padding:0!important}
+.stu .gt tbody td.pcl .pg b.ps{margin:0 1px}
+.stu .gt tbody td.pcl .pa2{display:inline!important;width:auto!important;margin-left:4px!important;font-size:.8em!important;vertical-align:baseline}
+/* Gráfica "Estudiante frente al promedio": baja y queda centrada verticalmente en su columna */
+@media (min-width:821px){.stu .rd h4{margin-top:auto!important}.stu .rd .cred2{margin-top:auto!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
