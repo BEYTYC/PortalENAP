@@ -2351,9 +2351,9 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
     return LPEND.some(function (q) { return q.every(function (w) { return t.indexOf(w) >= 0; }); }) ? ['cf'] : [];
   }
   function pendiente(s) { return cats(s).length > 0; }
-  var MK = { di: '*', cf: '**', sa: '***', ac: '****' };
-  var ORDK = ['di', 'cf', 'sa', 'ac'];
-  var PRIO = ['di', 'cf', 'sa', 'ac'];
+  var MK = { di: '*', sa: '**', cf: '***', ac: '****' };
+  var ORDK = ['di', 'sa', 'cf', 'ac'];
+  var PRIO = ['di', 'sa', 'cf', 'ac'];
   function principal(s) { var c = cats(s); for (var k = 0; k < PRIO.length; k++) if (c.indexOf(PRIO[k]) >= 0) return PRIO[k]; return null; }
   function marcas(s) { var p = principal(s); return tipo === 'NAV-IM' ? (p ? MK[p] : '') : (cats(s).length ? '*' : ''); }
   var DIRECTOR = 'DARÍO EDUARDO SANABRIA GAITÁN';
