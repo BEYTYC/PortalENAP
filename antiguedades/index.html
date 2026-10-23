@@ -2319,20 +2319,21 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   var TXT_PEND = tipo === 'NAV-IM' ? 'El siguiente personal se encuentra pendiente con compromisos de cultura física: '
     : 'El siguiente personal de alumnos administrativos, se encuentra pendiente con compromisos de cultura física: ';
   var LPEND = (esExt || esMre ? [] : tipo === 'NAV-IM' ? PEND_NAV : PEND_PR).map(function (n) { return sinTildes(n).split(' '); });
-  var PEN_TXT = { 'Concepto de Sanidad Naval': 'concepto de Sanidad Naval', 'Consejo disciplinario': 'consejo disciplinario', 'Consejo de cultura física': 'consejo de cultura física' };
   function cats(s) {
     if (tipo === 'NAV-IM') {
-      var c = [], pe = s.pe ? (PEN_TXT[s.pe] || String(s.pe).toLowerCase()) : '';
+      var c = [], pe = s.pe || '';
       (s.rk || []).forEach(function (r) {
-        if (r[0] === 'Cultura física' && pe !== 'consejo de cultura física') c.push('compromisos de cultura física');
-        else if (r[0] === 'Disciplina') c.push('compromisos de disciplina');
-        else if (/Aptis/.test(r[0])) c.push('novedad en la prueba Aptis (inglés)');
+        if (r[0] === 'Cultura física') c.push('cf');
+        else if (r[0] === 'Disciplina') c.push('di');
+        else if (/Aptis|Curso Instructor/.test(r[0])) c.push('ac');
       });
-      if (pe) c.push(pe);
-      return c;
+      if (/Sanidad/.test(pe)) c.push('sa');
+      if (/disciplinario/.test(pe)) c.push('di');
+      if (/cultura física/.test(pe)) c.push('cf');
+      return c.filter(function (v, k) { return c.indexOf(v) === k; });
     }
     var t = sinTildes(s.n).split(' ');
-    return LPEND.some(function (q) { return q.every(function (w) { return t.indexOf(w) >= 0; }); }) ? ['compromisos de cultura física'] : [];
+    return LPEND.some(function (q) { return q.every(function (w) { return t.indexOf(w) >= 0; }); }) ? ['cf'] : [];
   }
   function pendiente(s) { return cats(s).length > 0; }
   var DIRECTOR = 'DARÍO EDUARDO SANABRIA GAITÁN';
@@ -2466,21 +2467,10 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       var pend = lista.filter(pendiente);
       if (pend.length) {
         var hecho2 = false;
-        var gr = function (g, n) { return n + ' ' + (g === 'ALF' ? (n === 1 ? 'Alférez' : 'Alféreces') : (n === 1 ? 'Guardiamarina' : 'Guardiamarinas')); };
-        var porGrado = function (l) {
-          var gm = l.filter(function (s) { return s.g !== 'ALF'; }).length, af = l.length - gm, o = [];
-          if (gm) o.push(gr('GM', gm)); if (af) o.push(gr('ALF', af));
-          return o.join(' y ');
-        };
-        var ORD = ['compromisos de cultura física', 'compromisos de disciplina', 'novedad en la prueba Aptis (inglés)', 'concepto de Sanidad Naval', 'consejo disciplinario', 'consejo de cultura física'];
-        var partes = [];
-        ORD.forEach(function (c) {
-          var l = pend.filter(function (s) { return cats(s).indexOf(c) >= 0; });
-          if (l.length) partes.push(c + ' (' + porGrado(l) + ')');
-        });
-        var hayGM2 = pend.some(function (s) { return s.g !== 'ALF'; }), hayAL2 = pend.some(function (s) { return s.g === 'ALF'; });
-        var quien = hayGM2 && hayAL2 ? 'Los Guardiamarinas y Alféreces' : hayAL2 ? 'Los Alféreces' : 'Los Guardiamarinas';
-        var txt = '* ' + quien + ' marcados con asterisco tienen pendiente: ' + partes.join('; ') + '.';
+        var NOM = { cf: 'compromisos de cultura física', ac: 'académicos', di: 'disciplinarios', sa: 'de sanidad' };
+        var hay = ['cf', 'ac', 'di', 'sa'].filter(function (c) { return pend.some(function (s) { return cats(s).indexOf(c) >= 0; }); }).map(function (c) { return NOM[c]; });
+        var lst = hay.length > 1 ? hay.slice(0, -1).join(', ') + ' y ' + hay[hay.length - 1] : hay[0];
+        var txt = '* Los estudiantes marcados con un asterisco se encuentran pendientes con ' + (hay[0] === NOM.cf ? '' : 'compromisos ') + lst + '.';
         x = x.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
           if (hecho2 || textoDe(p).indexOf('Este certificado se expide') < 0) return p;
           hecho2 = true;
