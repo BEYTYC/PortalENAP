@@ -1926,7 +1926,7 @@ function stuRender(){
       const W=210,H=62,pl=6,pr=8,pt=8,pb=8,lo0=Math.min(...vs),hi0=Math.max(...vs),pad=Math.max(.25,(hi0-lo0)*.2),RF=nm==='C. física'?7:6,lo=Math.min(lo0-pad,RF-.35),hi=hi0+pad;
       const X=i=>n===1?W/2:pl+(W-pl-pr)*i/(n-1),Y=v=>pt+(H-pt-pb)*(hi-v)/(hi-lo);
       let g=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${nm}: ${TXT[kd]}">`;
-      g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(RF)}" y2="${Y(RF)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>`;
+      g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(RF)}" y2="${Y(RF)}" stroke="var(--warn)" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/><text x="${W-pr}" y="${Y(RF)-2.5}" text-anchor="end" font-size="7.5" fill="var(--warn)" style="font-family:inherit">mín: ${RF.toFixed(1).replace('.',',')}</text>`;
       if(b!=null&&pts.length>1){const m=vs.reduce((x,y)=>x+y,0)/vs.length,mi=pts.reduce((x,q)=>x+q[0],0)/pts.length,y0=m+b*(pts[0][0]-mi),y1=m+b*(pts[pts.length-1][0]-mi);g+=`<line x1="${X(pts[0][0])}" y1="${Y(y0)}" x2="${X(pts[pts.length-1][0])}" y2="${Y(y1)}" stroke="var(--tc)" stroke-width="5" stroke-linecap="round" opacity=".16"/>`}
       if(pts.length>1)g+=`<polyline points="${pts.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}" fill="none" stroke="var(--mute)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".75"/>`;
       pts.forEach((q,i)=>{const L=i===pts.length-1;g+=`<circle cx="${X(q[0])}" cy="${Y(q[1])}" r="${L?4.2:2.4}" fill="${L?'var(--tc)':(q[1]<RF?'var(--warn)':'var(--mute)')}" stroke="var(--card)" stroke-width="1.2"><title>${labs[q[0]]}: ${f3(q[1])}</title></circle>`});
