@@ -2449,7 +2449,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
           var b = rs[0].rpr; return armar([{ t: 'Contralmirante ', rpr: b }, { t: cfg.director || DIRECTOR, rpr: b, hl: false }]);
         });
-        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: true }; })); });
+        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: false }; })); });
       } else {
         x = editarParrafo(x, 'con fecha', function (rs) {
           var r = rs[0], t = r.t, a = t.indexOf('Administrativo No. '), c = t.indexOf('con fecha ');
@@ -2467,7 +2467,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         x = editarParrafo(x, 'JUAN PABLO PINILLA', function (rs) {
           var b = rs[0].rpr; return armar([{ t: 'Contralmirante ', rpr: b }, { t: cfg.director || DIRECTOR, rpr: b, hl: false }]);
         });
-        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: true }; })); });
+        x = editarParrafo(x, 'SACEN', function (rs) { return armar(rs.map(function (r) { return { rpr: r.rpr, t: r.t, hl: false }; })); });
       }
       var pend = lista.filter(pendiente);
       if (pend.length) {
