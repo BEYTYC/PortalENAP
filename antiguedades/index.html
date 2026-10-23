@@ -2347,7 +2347,9 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   function pendiente(s) { return cats(s).length > 0; }
   var MK = { cf: '*', ac: '**', di: '***', sa: '****' };
   var ORDK = ['cf', 'ac', 'di', 'sa'];
-  function marcas(s) { var c = cats(s); return tipo === 'NAV-IM' ? ORDK.filter(function (k) { return c.indexOf(k) >= 0; }).map(function (k) { return MK[k]; }).join(',') : (c.length ? '*' : ''); }
+  var PRIO = ['di', 'cf', 'sa', 'ac'];
+  function principal(s) { var c = cats(s); for (var k = 0; k < PRIO.length; k++) if (c.indexOf(PRIO[k]) >= 0) return PRIO[k]; return null; }
+  function marcas(s) { var p = principal(s); return tipo === 'NAV-IM' ? (p ? MK[p] : '') : (cats(s).length ? '*' : ''); }
   var DIRECTOR = 'DARÍO EDUARDO SANABRIA GAITÁN';
   var per = cfg.periodo || '2026-2', anio = per.split('-')[0], sem = per.split('-')[1];
   var fAsc = cfg.fechaAscenso || 'diciembre de ' + anio;
@@ -2481,7 +2483,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       if (pend.length) {
         var hecho2 = false;
         var NOM = { cf: 'Pendiente con compromisos de cultura física', ac: 'Pendiente con compromisos académicos', di: 'Pendiente con compromisos disciplinarios', sa: 'Pendiente con compromisos de sanidad' };
-        var lineas = (tipo === 'NAV-IM' ? ORDK : ['cf']).filter(function (c) { return pend.some(function (s) { return cats(s).indexOf(c) >= 0; }); }).map(function (c) { return MK[c] + ' ' + NOM[c] + ' (' + pend.filter(function (s) { return cats(s).indexOf(c) >= 0; }).length + ').'; });
+        var lineas = (tipo === 'NAV-IM' ? ORDK : ['cf']).filter(function (c) { return pend.some(function (s) { return tipo === 'NAV-IM' ? principal(s) === c : true; }); }).map(function (c) { return MK[c] + ' ' + NOM[c] + ' (' + pend.filter(function (s) { return tipo === 'NAV-IM' ? principal(s) === c : true; }).length + ').'; });
         x = x.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
           if (hecho2 || textoDe(p).indexOf('Este certificado se expide') < 0) return p;
           hecho2 = true;
