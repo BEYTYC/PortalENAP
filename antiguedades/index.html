@@ -1367,6 +1367,54 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
   .pst li b,.pst li span,.pst li em{grid-column:1!important;grid-row:auto!important;width:auto!important;max-width:100%;overflow-wrap:anywhere;word-break:normal;text-align:left!important}
 }
 @media(max-width:700px){.pst li span::before{display:none!important}.pst li span{margin:0!important;padding:0!important}.pst li em{margin:0!important;padding:0!important;white-space:normal!important;font-weight:600;color:#3F5A7D}}
+/* ---- celular: vista del estudiante con letra más chica y la tabla completa en pantalla ---- */
+@media(max-width:700px){
+  .stu .hd h2{font-size:19px!important;line-height:1.2!important;white-space:normal!important;overflow:visible!important;text-overflow:clip!important}
+  .stu .hd h2 .trn svg.trf{width:20px!important;height:23px!important}
+  .stu .hd .meta{font-size:11px!important}
+  .stu table.gt{width:100%!important;max-width:100%!important;table-layout:fixed!important}
+  .stu table.gt th{font-size:9px!important;padding:6px 2px!important;letter-spacing:0!important;line-height:1.15!important;white-space:normal!important;word-break:normal}
+  .stu table.gt tbody td,.stu table.gt tbody td.pcl,.stu table.gt tbody td.cnc,.stu table.gt tbody td.pcl .pg,.stu table.gt tbody td.pcl .pg b,.stu table.gt tfoot td,.stu .gt tbody tr:last-child td{font-size:11.5px!important;line-height:1.25!important;padding:6px 2px!important;letter-spacing:0!important}
+  .stu .gt tbody td.pcl{padding-inline:2px!important}
+  .stu .gt .pa2{display:none!important}
+  .stu .gt td .pw .pl,.stu .gt td .pw .pr{width:11px!important}
+  .stu .gt td .pic svg.mi{width:10px!important;height:12px!important}
+  .stu .gt td .pic{margin:0 1px!important}
+  .stu .gt td .cno{font-size:8.5px!important}
+  .stu .gt tbody tr:last-child td:first-child{font-size:10.5px!important}
+}
+@media(max-width:700px){.stu .gt,.stu table.gt{min-width:0!important}.stu .gtw,.stu .tw{overflow-x:visible!important}}
+@media(max-width:700px){
+  .stu table.gt.gt{table-layout:fixed!important;width:100%!important}
+  .stu table.gt.gt thead th:nth-child(1){width:12%!important}.stu table.gt.gt thead th:nth-child(2){width:17%!important}
+  .stu table.gt.gt thead th:nth-child(n+3):nth-child(-n+6){width:12%!important}
+  .stu table.gt.gt thead th:nth-child(7){width:12%!important}.stu table.gt.gt thead th:nth-child(8){width:11%!important}
+  .stu table.gt.gt tbody tr td,.stu table.gt.gt tbody tr td.pcl,.stu table.gt.gt tbody tr td.pcl .pg,.stu table.gt.gt tbody tr td.pcl .pg b,.stu table.gt.gt tbody tr td.pcl>b,.stu table.gt.gt tbody tr td.cnc{font-size:11px!important;line-height:1.25!important;padding:6px 1px!important;letter-spacing:0!important;overflow:hidden;text-overflow:clip;white-space:nowrap!important}
+  .stu table.gt.gt tbody tr td.pcl .pg{display:inline-block!important;width:auto!important}
+  .stu table.gt.gt tbody tr td.pcl .pg b{display:inline!important;padding:0!important}
+  .stu table.gt.gt tbody tr td.pcl .pa2{position:static!important;font-size:7px!important;margin-left:1px}
+  .stu table.gt.gt tbody tr td.cnc{white-space:normal!important;font-size:10px!important;word-break:break-word}
+  .stu table.gt.gt thead th{font-size:8px!important;padding:6px 1px!important;overflow:hidden}
+  .stu table.gt.gt tbody tr td:nth-child(2){white-space:nowrap!important}
+  .stu table.gt.gt tbody tr:last-child td:first-child{font-size:9.5px!important;white-space:normal!important}
+}
+@media(max-width:700px){
+  .stu table.gt.gt thead th:nth-child(1){width:11%!important}.stu table.gt.gt thead th:nth-child(2){width:17%!important}
+  .stu table.gt.gt thead th:nth-child(n+3):nth-child(-n+6){width:12.5%!important}
+  .stu table.gt.gt thead th:nth-child(7){width:11%!important}.stu table.gt.gt thead th:nth-child(8){width:11%!important}
+  .stu table.gt.gt tbody tr td,.stu table.gt.gt tbody tr td.pcl,.stu table.gt.gt tbody tr td.pcl .pg,.stu table.gt.gt tbody tr td.pcl .pg b,.stu table.gt.gt tbody tr td.cnc{font-size:9.5px!important;letter-spacing:-.2px!important;font-variant-numeric:normal!important}
+  .stu table.gt.gt tbody tr td.cnc{font-size:8.5px!important}
+  .stu table.gt.gt thead th{font-size:7px!important;letter-spacing:0!important}
+  .stu table.gt.gt tbody tr:last-child td:first-child{font-size:8.5px!important}
+  .stu .gt td .pw .pl,.stu .gt td .pw .pr{width:9px!important}
+  .stu .gt td .pic svg.mi{width:8px!important;height:10px!important}
+}
+@media(max-width:700px){
+  .stu table.gt.gt thead th:nth-child(1){width:13%!important}.stu table.gt.gt thead th:nth-child(2){width:16%!important}
+  .stu table.gt.gt thead th:nth-child(n+3):nth-child(-n+6){width:12%!important}
+  .stu table.gt.gt thead th:nth-child(7){width:11%!important}.stu table.gt.gt thead th:nth-child(8){width:12%!important}
+  .stu table.gt.gt tbody tr td:first-child{font-size:8.5px!important;letter-spacing:-.3px!important}
+}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
