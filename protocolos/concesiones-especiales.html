@@ -257,7 +257,7 @@ var FASES=[
    '<p>Hay dos bloques independientes: <b>Convocatoria Batallón</b> (estudiantes) y <b>Convocatoria Aspirantes</b>. En cada uno:</p><ol>'
    +'<li>Verifique el <b>Periodo a configurar</b> (se cambia solo al pasar el cierre; elíjalo en el desplegable si necesita otro).</li>'
    +'<li>Revise la <b>Fecha y hora límite</b>. Cada periodo trae el cierre de la resolución; puede modificarlo.</li></ol>'
-   +'<div class="callout regla">Cierres habituales: periodo 1 → Batallón <b>30 de octubre</b> y Aspirantes <b>10 de diciembre</b> del año anterior · periodo 2 → Batallón <b>30 de mayo</b> y Aspirantes <b>10 de junio</b>. Cierran a las <b>10:00 p. m.</b>; si cae en fin de semana o festivo pasa al día hábil siguiente. Hora de Colombia.</div>'},
+   +'<div class="callout regla">Cierres habituales: periodo 1 → Batallón <b>30 de noviembre</b> y Aspirantes <b>10 de diciembre</b> del año anterior · periodo 2 → Batallón <b>30 de mayo</b> y Aspirantes <b>10 de junio</b>. Cierran a las <b>10:00 p. m.</b>; si cae en fin de semana o festivo pasa al día hábil siguiente. Hora de Colombia.</div>'},
   {id:'c2',t:'Dejar la convocatoria abierta',tab:'admin',donde:'Administración › Convocatorias',b:
    '<ol><li>Marque <b>Convocatoria abierta</b>.</li><li>Pulse el botón de guardar del bloque.</li></ol>'
    +'<p>La convocatoria se abre sola <b>2 meses antes</b> del cierre. Mientras está cerrada, el botón del estudiante muestra la fecha de apertura; al pasar la hora límite deja de aceptar solicitudes automáticamente.</p>'
@@ -386,7 +386,7 @@ function render(){
 function cuadro(){
   var hoy=new Date(); hoy.setHours(0,0,0,0); var y=hoy.getFullYear(), c=[];
   [y-1,y,y+1].forEach(function(a){
-    c.push({d:new Date(a,9,30),t:'Batallón',p:(a+1)+'-1'},{d:new Date(a,11,10),t:'Aspirantes',p:(a+1)+'-1'},{d:new Date(a,4,30),t:'Batallón',p:a+'-2'},{d:new Date(a,5,10),t:'Aspirantes',p:a+'-2'});
+    c.push({d:new Date(a,10,30),t:'Batallón',p:(a+1)+'-1'},{d:new Date(a,11,10),t:'Aspirantes',p:(a+1)+'-1'},{d:new Date(a,4,30),t:'Batallón',p:a+'-2'},{d:new Date(a,5,10),t:'Aspirantes',p:a+'-2'});
   });
   c=c.filter(function(x){return x.d>=hoy;}).sort(function(a,b){return a.d-b.d;});
   var n=c[0], ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
