@@ -2328,7 +2328,10 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         if (r[0] === 'Cultura física') c.push('cf');
         else if (r[0] === 'Disciplina') c.push('di');
         else if (/Aptis|Curso Instructor/.test(r[0])) c.push('ac');
+        else if (/Novedad financiera/.test(r[0])) c.push('fi');
+        else if (r[0] === 'Aptitud naval') c.push('di');
       });
+      if (/Falta grave/.test(s.ev || '')) c.push('di');
       if (/Sanidad/.test(pe)) c.push('sa');
       if (/disciplinario/.test(pe)) c.push('di');
       if (/cultura física/.test(pe)) c.push('cf');
@@ -2469,8 +2472,8 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       var pend = lista.filter(pendiente);
       if (pend.length) {
         var hecho2 = false;
-        var NOM = { cf: 'compromisos de cultura física', ac: 'académicos', di: 'disciplinarios', sa: 'de sanidad' };
-        var hay = ['cf', 'ac', 'di', 'sa'].filter(function (c) { return pend.some(function (s) { return cats(s).indexOf(c) >= 0; }); }).map(function (c) { return NOM[c]; });
+        var NOM = { cf: 'compromisos de cultura física', ac: 'académicos', di: 'disciplinarios', sa: 'de sanidad', fi: 'financieros' };
+        var hay = ['cf', 'ac', 'di', 'sa', 'fi'].filter(function (c) { return pend.some(function (s) { return cats(s).indexOf(c) >= 0; }); }).map(function (c) { return NOM[c]; });
         var lst = hay.length > 1 ? hay.slice(0, -1).join(', ') + ' y ' + hay[hay.length - 1] : hay[0];
         var txt = '* Los estudiantes marcados con un asterisco se encuentran pendientes con ' + (hay[0] === NOM.cf ? '' : 'compromisos ') + lst + '.';
         x = x.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
