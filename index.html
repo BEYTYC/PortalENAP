@@ -581,6 +581,17 @@
     .cde-inner{ flex-direction:column; align-items:stretch; }
     .cde-copy{ max-width:none; }
     .cde-preview{ max-width:none; }
+    /* Cabecera y pie siempre visibles: la página se ancla a la pantalla (no se desplaza ni "rebota" por debajo
+       de las barras del navegador del celular) y solo se mueve el contenido interno de cada módulo. */
+    html{ overflow:hidden; overscroll-behavior:none; height:100%; }
+    body{ position:fixed; inset:0; width:100%; height:auto; overscroll-behavior:none; }
+    .registro-iframe{ overscroll-behavior:contain; }
+    /* Nada se mueve a izquierda/derecha: la página nunca es más ancha que la pantalla; si una tabla es más ancha,
+       solo esa tabla se desplaza horizontalmente por dentro. */
+    html, body{ max-width:100%; overflow-x:hidden; }
+    main{ min-width:0; max-width:100%; }
+    main table, .panel-app table{ display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    main img, main video, main canvas, main svg{ max-width:100%; }
     main{ display:block; padding:18px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
@@ -812,12 +823,12 @@ img,svg,video,canvas,iframe{max-width:100%}
   .login-gate__heading h1{font-size:22px!important;line-height:1.12;letter-spacing:-.01em}
   .login-gate__heading p{display:none!important}
   .login-gate__panel{flex:1 0 auto;background:#fff;border-radius:28px 28px 0 0;margin-top:-30px;padding:32px 22px max(20px,env(safe-area-inset-bottom))!important;justify-content:flex-start!important;box-shadow:0 -10px 30px rgba(6,20,45,.35);z-index:2}
-  .login-gate__card{max-width:none!important}
+  .login-gate__card{max-width:none!important;margin-block:auto!important}
   .login-gate__card h2{font-size:18px}
   .login-gate__sub{font-size:12.5px;margin-bottom:18px!important}
   .login-gate__btn{min-height:48px;border-radius:12px;font-size:13.5px;gap:10px;padding:0 14px}
   .login-gate__foot{margin-top:14px!important;font-size:11.5px;padding:0 6px}
-  .login-gate__credito{margin-top:auto!important;padding-top:20px;font-size:11px!important;line-height:1.5}
+  .login-gate__credito{margin-top:0!important;padding-top:20px;font-size:11px!important;line-height:1.5}
 }
 </style>
 
