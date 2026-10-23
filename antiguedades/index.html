@@ -2326,6 +2326,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       (s.rk || []).forEach(function (r) {
         if (r[0] === 'Cultura física' && pe !== 'consejo de cultura física') c.push('compromisos de cultura física');
         else if (r[0] === 'Disciplina') c.push('compromisos de disciplina');
+        else if (/Aptis/.test(r[0])) c.push('novedad en la prueba Aptis (inglés)');
       });
       if (pe) c.push(pe);
       return c;
@@ -2471,7 +2472,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           if (gm) o.push(gr('GM', gm)); if (af) o.push(gr('ALF', af));
           return o.join(' y ');
         };
-        var ORD = ['compromisos de cultura física', 'compromisos de disciplina', 'concepto de Sanidad Naval', 'consejo disciplinario', 'consejo de cultura física'];
+        var ORD = ['compromisos de cultura física', 'compromisos de disciplina', 'novedad en la prueba Aptis (inglés)', 'concepto de Sanidad Naval', 'consejo disciplinario', 'consejo de cultura física'];
         var partes = [];
         ORD.forEach(function (c) {
           var l = pend.filter(function (s) { return cats(s).indexOf(c) >= 0; });
