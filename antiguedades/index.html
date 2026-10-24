@@ -1431,6 +1431,11 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
   .stu table.gt.gt tbody tr td.pcl,.stu table.gt.gt tbody tr td.cnc{padding-top:4px!important;padding-bottom:4px!important;line-height:1.2!important}
   .stu .gt tbody td.pcl .pg{white-space:nowrap!important;line-height:1.2!important}
 }
+@media(max-width:700px){
+  .pfc .pfs{overflow:visible!important}
+  .pfc .pfs svg{min-width:0!important;width:100%!important;max-width:100%!important;height:auto!important}
+  .pfd{display:flex;flex-direction:column;gap:2px;margin-top:6px;font-size:13px}
+}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -1992,13 +1997,13 @@ function stuRender(){
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
-    const W=700,lw=116,rw=58,mx=266,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
+    const MB=window.matchMedia('(max-width:700px)').matches,RP=MB?34:22,BH=MB?18:10,W=MB?400:700,lw=MB?126:116,rw=58,mx=MB?214:266,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
     const rows=[['Estudiante',s.f,'var(--navy)'],[isE(selK)?'Escalafonamiento':'Semestre '+lab(selK),sem,'var(--bar-fill)']];if(!D.solo)rows.push(['General (todos)',gen,'var(--mute)']);
-    let g=`<svg viewBox="0 0 ${W} ${rows.length*22+8}" role="img" aria-label="Promedio final del estudiante frente al promedio general">`;
-    rows.forEach(([n,v,c],i)=>{const y=12+i*22;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:11.5px">${n}</text><rect x="${lw}" y="${y-5}" width="${mx}" height="10" rx="5" fill="var(--bar)"/><rect x="${lw}" y="${y-5}" width="${Math.max(2,X(v)-lw)}" height="10" rx="5" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:12px">${f3(v)}</text>${i>0?(()=>{const r=i===1?sem:gen,d=s.f-r,up=d>=0;return `<text x="${X(v)+66}" y="${y+4}" style="font-size:12px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${i===1?(/^(PR-\d|CDPRON)/.test(s.cu||'')?'grupo':'semestre'):'general'}</text>`})():''}`});
-    g+=`<line x1="${X(sem)}" x2="${X(sem)}" y1="2" y2="${rows.length*22}" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="3 3" opacity=".7"><title>${rows[1][0]}: ${f3(sem)}</title></line>`;g+=(D.solo?'':`<line x1="${X(gen)}" x2="${X(gen)}" y1="2" y2="${rows.length*22}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/>`)+'</svg>';
+    let g=`<svg viewBox="0 0 ${W} ${rows.length*RP+8}" role="img" aria-label="Promedio final del estudiante frente al promedio general">`;
+    rows.forEach(([n,v,c],i)=>{const y=(MB?16:12)+i*RP;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:${MB?13:11.5}px">${n}</text><rect x="${lw}" y="${y-BH/2}" width="${mx}" height="${BH}" rx="${BH/2}" fill="var(--bar)"/><rect x="${lw}" y="${y-BH/2}" width="${Math.max(2,X(v)-lw)}" height="${BH}" rx="${BH/2}" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:${MB?13:12}px">${f3(v)}</text>${i>0&&!MB?(()=>{const r=i===1?sem:gen,d=s.f-r,up=d>=0;return `<text x="${X(v)+66}" y="${y+4}" style="font-size:12px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${i===1?(/^(PR-\d|CDPRON)/.test(s.cu||'')?'grupo':'semestre'):'general'}</text>`})():''}`});
+    g+=`<line x1="${X(sem)}" x2="${X(sem)}" y1="2" y2="${rows.length*RP}" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="3 3" opacity=".7"><title>${rows[1][0]}: ${f3(sem)}</title></line>`;g+=(D.solo?'':`<line x1="${X(gen)}" x2="${X(gen)}" y1="2" y2="${rows.length*RP}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="3 3" opacity=".55"/>`)+'</svg>';
     const dl=(v,r,l)=>{const d=v-r,up=d>=0;return `<span class="dl2 ${up?'up':'dn'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${l}</span>`};
-    pfc=`<div class="pfc"><h4>Promedio final frente al promedio general</h4><div class="pfh"><b>${f3(s.f)}</b><span>${OUT(s)?'Fuera del orden':'Puesto '+(s.p??'—')+' de '+list.length}</span></div><div class="pfs">${g}</div></div>`;
+    pfc=`<div class="pfc"><h4>Promedio final frente al promedio general</h4><div class="pfh"><b>${f3(s.f)}</b><span>${OUT(s)?'Fuera del orden':'Puesto '+(s.p??'—')+' de '+list.length}</span></div><div class="pfs">${g}</div>${MB?`<div class="pfd">${dl(s.f,sem,isE(selK)?'escalafonamiento':'semestre')}${D.solo?'':dl(s.f,gen,'general')}</div>`:''}</div>`;
   }
   let evo='';
   if(s.h&&s.h.length){
