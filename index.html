@@ -1132,7 +1132,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 @media (max-width:760px){
   .navcats{flex-wrap:nowrap!important;width:100%}
   .navcat{flex:1 1 auto;min-width:0}
-  .navcat > .nav-btn{width:100%;justify-content:center;gap:4px;padding:14px 4px!important;font-size:11.5px!important;white-space:nowrap}
+  .navcat > .nav-btn{width:100%;justify-content:center;gap:4px;padding:14px 4px!important;font-size:12.5px!important;white-space:nowrap}
   .navcat > .nav-btn .icon{display:none}
   .dropdown button{ padding:7px 12px !important; min-height:34px !important; font-size:13.5px !important; }
   .subitems a{ padding:7px 12px !important; font-size:13px !important; }
@@ -1142,9 +1142,13 @@ img,svg,video,canvas,iframe{max-width:100%}
 }
 /* móvil: barra del módulo = misma altura, tipografía y ancho que el menú; "Módulo: nombre" */
 @media (max-width:760px){
-  .nav-subsistema.show{ display:flex !important; flex-direction:row-reverse !important; align-items:center !important; justify-content:flex-start !important; text-align:right; gap:6px !important; padding:0 4px !important; min-height:45px !important; width:100% }
-  .nav-subsistema .tag{ display:inline !important; font-size:11.5px !important; font-weight:600 !important; letter-spacing:.01em !important; text-transform:none !important; color:var(--navy-800) !important; font-family:inherit !important; margin-left:4px }
-  .nav-subsistema .name{ font-size:11.5px !important; font-weight:600 !important; letter-spacing:.01em !important; color:var(--navy-800) !important; font-family:inherit !important; flex:1 1 auto; text-align:left !important }
+  /* móvil: título del encabezado en dos líneas fijas */
+  header.masthead .titles h1 .h1a, header.masthead .titles h1 .h1b{ display:block; white-space:nowrap; }
+  header.masthead .titles h1{ line-height:1.2; }
+  .nav-subsistema.show{ display:flex !important; flex-direction:row !important; align-items:center !important; justify-content:flex-start !important; text-align:left; gap:6px !important; padding:0 4px 0 12px !important; min-height:45px !important; width:100% }
+  .nav-subsistema .tag{ order:1 } .nav-subsistema .name{ order:2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0 } .nav-subsistema .nav-home{ order:3; flex:none }
+  .nav-subsistema .tag{ display:inline !important; font-size:12.5px !important; font-weight:600 !important; letter-spacing:.01em !important; text-transform:none !important; color:var(--navy-800) !important; font-family:inherit !important; margin-left:4px }
+  .nav-subsistema .name{ font-size:12.5px !important; font-weight:600 !important; letter-spacing:.01em !important; color:var(--navy-800) !important; font-family:inherit !important; flex:1 1 auto; text-align:left !important }
   .nav-home{ width:34px !important; height:34px !important }
   /* Antigüedades: UN solo desplazamiento (el de la página), el marco se estira a la altura de su contenido */
   main:has(> :is(#viewAntiguedades,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
@@ -1160,7 +1164,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 }
 @media (max-width:760px){ html,body,main{ overflow-x:clip; overscroll-behavior-x:none; } }
 </style>
-<style id="barras-compactas">@media (max-width:760px){ .navcat > .nav-btn{ padding:8px 10px !important; } .nav-subsistema.show{ min-height:34px !important; } footer{ padding-top:4px !important; padding-bottom:calc(4px + env(safe-area-inset-bottom,0px)) !important; } }</style>
+<style id="barras-compactas">@media (max-width:760px){ .navcat > .nav-btn{ padding:11px 4px !important; } .nav-subsistema.show{ min-height:34px !important; } footer{ padding-top:4px !important; padding-bottom:calc(4px + env(safe-area-inset-bottom,0px)) !important; } }</style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
   <div class="panel-app__header">
@@ -1306,7 +1310,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   </div>
   <span class="logo-glow header-glow"><img class="logo-plain header-logo" src="assets/escudo-sm.webp" alt="Escudo ENAP"></span>
   <div class="titles">
-    <h1>Escuela Naval de Cadetes "Almirante Padilla"</h1>
+    <h1><span class="h1a">Escuela Naval de Cadetes</span> <span class="h1b">"Almirante Padilla"</span></h1>
     <span class="oficina">OFICINA DE ESTADÍSTICA</span>
     <span class="ciudad">Cartagena de Indias, D. T. y C.</span>
   </div>
