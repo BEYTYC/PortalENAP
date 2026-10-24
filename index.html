@@ -1136,14 +1136,14 @@ img,svg,video,canvas,iframe{max-width:100%}
   .nav-subsistema .name{ font-size:11.5px !important; font-weight:600 !important; letter-spacing:.01em !important; color:var(--navy-800) !important; font-family:inherit !important; flex:1 1 auto; text-align:left !important }
   .nav-home{ width:34px !important; height:34px !important }
   /* Antigüedades: UN solo desplazamiento (el de la página), el marco se estira a la altura de su contenido */
-  main:has(> :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  main > :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
+  main:has(> :is(#viewAntiguedades,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  main > :is(#viewAntiguedades,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
   /* móvil: la marca de agua del escudo queda fija y centrada en la pantalla (no se mueve al desplazarse) */
   main > .watermark{ position:fixed !important; inset:auto !important; left:0 !important; right:0 !important; top:var(--wmt,0px) !important; height:var(--wmh,100dvh) !important; z-index:0 !important; }
   main > .watermark img{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
   .cdi-tab{ background:transparent !important; }
   header.masthead, nav.topnav, footer{ position:relative; z-index:3; }
-  #antiguedadesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
+  #antiguedadesFrame,#concesionesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
   #viewCDE .cdi-tab{ height:auto !important; min-height:100% !important; overflow:visible !important; flex:none !important; }
   #cdeFrame{ position:static !important; display:block; height:100%; min-height:100%; }
 }
@@ -3353,12 +3353,17 @@ img,svg,video,canvas,iframe{max-width:100%}
   // Apps Script (googleusercontent.com), nunca a otros origenes.
   window.addEventListener('message', async (event) => {
     const d = event.data;
-    const tiposValidos = ['concesiones:token-request', 'concesiones:pantalla-completa', 'concesiones:listo',
+    const tiposValidos = ['concesiones:token-request', 'concesiones:pantalla-completa', 'concesiones:listo', 'concesiones:alto',
                           'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request'];
     if (!d || tiposValidos.indexOf(d.type) === -1) return;
     let host = '';
     try { host = new URL(event.origin).hostname; } catch (e) { return; }
     if (!/\.googleusercontent\.com$/.test(host)) return;
+    if (d.type === 'concesiones:alto') {   // móvil: el marco toma la altura de su contenido y solo se desplaza la página
+      const fr0 = document.getElementById('concesionesFrame'), mn = document.getElementById('main');
+      if (fr0 && mn && window.matchMedia('(max-width:760px)').matches && +d.h > 0) fr0.style.height = Math.max(Math.ceil(+d.h) + 16, mn.clientHeight) + 'px';
+      return;
+    }
     if (d.type === 'concesiones:listo') {
       const cg = document.getElementById('concesionesCarga'); if (cg) cg.classList.remove('on');
       return;
