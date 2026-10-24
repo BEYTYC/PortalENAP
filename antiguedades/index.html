@@ -1423,7 +1423,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media(max-width:700px){body.has-gear .bar,body.has-dl .bar{padding-right:0!important}}
 @media(max-width:700px){
   .stu{padding:14px 10px 10px!important}
-  .stu table.gt.gt tbody tr td{padding-top:4px!important;padding-bottom:4px!important;line-height:1.2!important;height:auto!important}
+  .stu table.gt.gt tbody tr td{padding-top:6px!important;padding-bottom:6px!important;line-height:1.2!important;height:auto!important}
   .stu table.gt.gt thead th{padding-top:7px!important;padding-bottom:7px!important}
   .stu table.gt.gt tbody tr.pro td,.stu table.gt.gt tfoot td{padding-top:6px!important;padding-bottom:6px!important}
 }
@@ -1435,6 +1435,15 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
   .pfc .pfs{overflow:visible!important}
   .pfc .pfs svg{min-width:0!important;width:100%!important;max-width:100%!important;height:auto!important}
   .pfd{display:flex;flex-direction:column;gap:2px;margin-top:6px;font-size:13px}
+}
+@media(max-width:700px){
+  .stu table.gt.gt{min-width:0!important;width:auto!important;table-layout:auto}
+  .stu table.gt.gt thead th,.stu table.gt.gt tbody tr td,.stu table.gt.gt tbody tr td.pcl,.stu table.gt.gt tbody tr td.cnc{padding-left:7px!important;padding-right:7px!important;font-size:14px!important}
+  .stu table.gt.gt thead th{font-size:11.5px!important;letter-spacing:.02em!important}
+  .stu table.gt.gt tbody tr td.pcl .pg,.stu table.gt.gt tbody tr td.pcl .pg b{padding:0!important;margin:0!important;font-size:14px!important}
+  .stu table.gt.gt tbody tr td.pcl .pg b.ps{margin:0 2px!important}
+  .stu table.gt.gt tbody tr td.pcl .pa2{margin-left:4px!important}
+  .stu table.gt.gt tbody tr td.cnc{white-space:nowrap!important}
 }
 </style>
 <h1 id="h1" hidden></h1>
@@ -1997,7 +2006,7 @@ function stuRender(){
   let pfc='';
   if(s.f!=null){
     let gv=ORD.flatMap(k=>D.sheets[k]||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);if(!gv.length)gv=(D.esc||[]).filter(x=>x.f!=null&&!OUT(x)).map(x=>x.f);const gen=mean(gv),sem=avg.f;
-    const MB=window.matchMedia('(max-width:700px)').matches,RP=MB?34:22,BH=MB?18:10,W=MB?400:700,lw=MB?126:116,rw=58,mx=MB?214:266,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
+    const MB=window.matchMedia('(max-width:700px)').matches,RP=MB?34:22,BH=MB?13:10,W=MB?400:700,lw=MB?126:116,rw=58,mx=MB?214:266,lo=Math.min(6,Math.floor(Math.min(s.f,gen,sem))),X=v=>lw+mx*(v-lo)/(10-lo);
     const rows=[['Estudiante',s.f,'var(--navy)'],[isE(selK)?'Escalafonamiento':'Semestre '+lab(selK),sem,'var(--bar-fill)']];if(!D.solo)rows.push(['General (todos)',gen,'var(--mute)']);
     let g=`<svg viewBox="0 0 ${W} ${rows.length*RP+8}" role="img" aria-label="Promedio final del estudiante frente al promedio general">`;
     rows.forEach(([n,v,c],i)=>{const y=(MB?16:12)+i*RP;g+=`<text x="0" y="${y+4}" style="fill:var(--ink);font-size:${MB?13:11.5}px">${n}</text><rect x="${lw}" y="${y-BH/2}" width="${mx}" height="${BH}" rx="${BH/2}" fill="var(--bar)"/><rect x="${lw}" y="${y-BH/2}" width="${Math.max(2,X(v)-lw)}" height="${BH}" rx="${BH/2}" fill="${c}"/><text x="${X(v)+7}" y="${y+4}" class="cnt" style="font-size:${MB?13:12}px">${f3(v)}</text>${i>0&&!MB?(()=>{const r=i===1?sem:gen,d=s.f-r,up=d>=0;return `<text x="${X(v)+66}" y="${y+4}" style="font-size:12px;font-weight:600;fill:${up?'var(--good)':'var(--warn)'}">${up?'▲ +':'▼ −'}${Math.abs(d).toFixed(3).replace('.',',')} (${up?'+':'−'}${Math.abs(d/r*100).toFixed(1).replace('.',',')}%) vs. ${i===1?(/^(PR-\d|CDPRON)/.test(s.cu||'')?'grupo':'semestre'):'general'}</text>`})():''}`});
