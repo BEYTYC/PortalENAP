@@ -1451,6 +1451,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 }
 @media(max-width:700px){.chip[data-k="ESC"]{display:none!important}}
 @media(max-width:700px){.stu .hd{padding-top:0!important;margin-top:0!important}.stu .hd .back{margin:0 0 6px auto!important}.stu{padding-top:8px!important}}
+@media(max-width:700px){.stu>.pfc{margin-top:4px!important;padding:0 4px!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
@@ -2053,7 +2054,7 @@ function stuRender(){
   const where=isE(selK)?(selK==='ESC'?'Escalafonamiento 4.2':eLab(selK)):'Semestre '+lab(selK);
   el.hidden=false;
   el.innerHTML=`<div class="hd"><button type="button" class="back" id="back">← Volver</button><div class="meta">Cód. ${s.c} · ${s.ex?'Cédula de extranjería ':'C.C. '}${s.ce??'—'}${s.pais?' · '+s.pais.charAt(0)+s.pais.slice(1).toLowerCase():''} · ${s.cu||''}</div><h2><span class="gr">${s.g}</span> ${s.n}${s.p>=1&&s.p<=3&&!OUT(s)?'<span class="trn">'+trofeo(s.p-1)+'</span>':''}${AST(s)}${s.fl==='PA'?FLAG_PA:''}${nvb(s,1)}${s.dis?'<span class="bdg">'+MEDAL+'Alumno distinguido</span>':''}${s.exc?'<span class="bdg bx">'+STAR+'Excelencia académica</span>':''}</h2></div>
-  <div class="tw2"><h4>Notas de todos los ${MD?'módulos':'semestres'}</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}${CC?'<th class="wcn">Concesión</th>':''}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:CC?8:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an,8)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}${CC?'<td></td>':''}</tr></tfoot></table>${pfc}</div>
+  <div class="tw2"><h4>Notas de todos los ${MD?'módulos':'semestres'}</h4><table class="gt${(s.h.some(b=>b[0].endsWith('A'))||s.e==='Repitente'||s.e==='Refuerzo')?' hasrep':''}"><thead><tr><th>Curso</th>${np?'':'<th>Periodo</th>'}<th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C. física</th>${np?'':'<th class="wp">Puesto</th>'}${CC?'<th class="wcn">Concesión</th>':''}</tr></thead><tbody>${body||'<tr><td colspan="${np?5:CC?8:7}">Sin notas registradas</td></tr>'}</tbody><tfoot><tr><td colspan="${np?1:2}">Promedio acumulado</td>${c(s.ac)}${c(s.an,8)}${c(s.di)}${c(s.cf)}${np?'':'<td></td>'}${CC?'<td></td>':''}</tr></tfoot></table>${window.matchMedia('(max-width:700px)').matches?'':pfc}</div>${window.matchMedia('(max-width:700px)').matches?pfc:''}
   <div class="rd"><h4>Estudiante frente al promedio de ${where.toLowerCase()}</h4>${radar(s,avg)}<div class="lg"><span><i></i>Estudiante</span><span><i class="m"></i>Promedio del ${MD?'grupo':'semestre'} (${list.length})</span></div></div>${evo}`;
   const h2=el.querySelector('h2');
 }
