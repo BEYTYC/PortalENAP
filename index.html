@@ -1138,6 +1138,11 @@ img,svg,video,canvas,iframe{max-width:100%}
   /* Antigüedades: UN solo desplazamiento (el de la página), el marco se estira a la altura de su contenido */
   main:has(> :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   main > :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
+  /* móvil: la marca de agua del escudo queda fija y centrada en la pantalla (no se mueve al desplazarse) */
+  main > .watermark{ position:fixed !important; inset:0 !important; z-index:0 !important; }
+  main > .watermark img{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
+  .cdi-tab{ background:transparent !important; }
+  header.masthead, nav.topnav, footer{ position:relative; z-index:3; }
   #antiguedadesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
   #viewCDE .cdi-tab{ height:auto !important; min-height:100% !important; overflow:visible !important; flex:none !important; }
   #cdeFrame{ position:static !important; display:block; height:100%; min-height:100%; }
@@ -3249,6 +3254,8 @@ img,svg,video,canvas,iframe{max-width:100%}
           if (!sc || !sc.isConnected) { sc = f.__sc = Array.prototype.find.call(d.body.querySelectorAll('div'), function (e) { const c = w.getComputedStyle(e); return (c.overflowY === 'auto' || c.overflowY === 'scroll') && e.scrollHeight > e.clientHeight + 2; }) || null; }
           if (sc) { for (let a = sc; a && a !== d.body; a = a.parentElement) { const ps = w.getComputedStyle(a).position; if (ps === 'fixed' || ps === 'absolute') { a.style.setProperty('position', 'relative', 'important'); a.style.setProperty('inset', 'auto', 'important'); a.style.setProperty('height', 'auto', 'important'); a.style.setProperty('overflow', 'visible', 'important'); } }
             sc.style.setProperty('overflow', 'visible', 'important'); sc.style.setProperty('height', 'auto', 'important'); sc.style.setProperty('max-height', 'none', 'important'); sc.style.setProperty('flex', 'none', 'important'); }
+          Array.prototype.forEach.call(d.body.querySelectorAll('div'), function (e) { const st = e.getAttribute('style') || ''; if (st.indexOf('pointer-events:none') >= 0 && st.indexOf('background:url(data:image') >= 0) e.style.setProperty('display', 'none', 'important'); });
+          for (let a = sc; a && a !== d.documentElement; a = a.parentElement) a.style.setProperty('background', 'transparent', 'important');
           d.documentElement.style.setProperty('height', 'auto', 'important'); d.body.style.setProperty('height', 'auto', 'important'); d.body.style.setProperty('overflow', 'visible', 'important');
           h = Math.ceil(sc ? sc.getBoundingClientRect().height + sc.getBoundingClientRect().top : d.body.scrollHeight);
         } else {
