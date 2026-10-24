@@ -600,6 +600,12 @@
     main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:hidden !important; }
     main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
     footer{ position:relative; z-index:5; }
+    /* Barra del módulo (casita + nombre): más baja y la casita sin círculo. */
+    .nav-subsistema{ padding:0 8px 0 4px !important; min-height:0 !important; gap:6px !important; }
+    nav.topnav .nav-subsistema.show{ padding-top:0 !important; padding-bottom:0 !important; }
+    .nav-home{ width:30px !important; height:30px !important; min-width:0 !important; padding:0 !important; border:0 !important; background:transparent !important; box-shadow:none !important; border-radius:0 !important; }
+    .nav-home svg{ width:20px; height:20px; }
+    .nav-subsistema .name{ font-size:14px !important; }
     /* Un módulo abierto no debe poder moverse dentro de main (ni siquiera por scrollIntoView desde el iframe):
        así el módulo siempre queda debajo de la barra de la casita y termina sobre el pie. */
     main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:clip !important; }
