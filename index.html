@@ -1166,6 +1166,18 @@ img,svg,video,canvas,iframe{max-width:100%}
 }
 @media (max-width:760px){ html,body,main{ overflow-x:clip; overscroll-behavior-x:none; } }
 </style>
+<style id="nav-fila">@media (max-width:760px){
+  nav.topnav{ flex-wrap:wrap !important; align-items:center !important; padding:0 4px !important; }
+  nav.topnav #navcats{ flex:0 1 auto !important; width:auto !important; }
+  nav.topnav #navcats .navcat{ flex:0 0 auto !important; }
+  nav.topnav #navcats .navcat > .nav-btn{ width:auto !important; padding:11px 7px !important; }
+  nav.topnav .nav-subsistema.show{ flex:1 1 150px !important; width:auto !important; min-width:150px !important; min-height:34px !important; padding:0 2px 0 0 !important; gap:2px !important; border:0 !important; justify-content:flex-end !important; flex-direction:row !important; }
+  nav.topnav .nav-subsistema .tag{ display:none !important; }
+  nav.topnav .nav-subsistema .name{ order:2 !important; flex:0 1 auto !important; min-width:0 !important; text-align:right !important; font-style:italic !important; font-weight:400 !important; color:#8591a1 !important; font-size:12.5px !important; letter-spacing:0 !important; }
+  nav.topnav .nav-subsistema .nav-home{ order:3 !important; }
+  .dropdown button{ padding:10px 14px !important; min-height:42px !important; font-size:14.5px !important; }
+  .subitems a{ padding:10px 14px !important; font-size:14px !important; }
+}</style>
 <style id="barras-compactas">@media (max-width:760px){ .navcat > .nav-btn{ padding:11px 4px !important; } .nav-subsistema.show{ min-height:34px !important; } footer{ padding-top:4px !important; padding-bottom:calc(4px + env(safe-area-inset-bottom,0px)) !important; } }</style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
