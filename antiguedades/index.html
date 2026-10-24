@@ -1956,6 +1956,8 @@ function fitK(){document.querySelectorAll('#kpi .k small.dl,#kpi .k span').forEa
 addEventListener('resize',()=>fitK());document.addEventListener('fullscreenchange',()=>setTimeout(fitK,120));
 let selK=null;
 function render2(){render()}
+(function(){const _r=render;let _last=null;const top=()=>{try{window.scrollTo(0,0);document.documentElement.scrollTop=0;document.body.scrollTop=0;['pub','app','main'].forEach(id=>{const e=document.getElementById(id);if(e)e.scrollTop=0})}catch(e){}};
+render=function(){const r=_r.apply(this,arguments);if(sel&&sel!==_last){top();requestAnimationFrame(top);setTimeout(top,120)}_last=sel;return r}})();
 function chart(h){
   if(!h.length) return '';
   const W=308,H=130,pl=6,pb=22,pt=16,bw=Math.min(30,(W-pl*2)/h.length-6),gap=((W-pl*2)-bw*h.length)/h.length;
