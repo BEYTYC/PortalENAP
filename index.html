@@ -1139,8 +1139,8 @@ img,svg,video,canvas,iframe{max-width:100%}
   main:has(> :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   main > :is(#viewAntiguedades,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
   /* móvil: la marca de agua del escudo queda fija y centrada en la pantalla (no se mueve al desplazarse) */
-  main > .watermark{ position:fixed !important; inset:0 !important; z-index:0 !important; }
-  main > .watermark img{ position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
+  main > .watermark{ position:fixed !important; inset:auto !important; left:0 !important; right:0 !important; top:var(--wmt,0px) !important; height:var(--wmh,100dvh) !important; z-index:0 !important; }
+  main > .watermark img{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
   .cdi-tab{ background:transparent !important; }
   header.masthead, nav.topnav, footer{ position:relative; z-index:3; }
   #antiguedadesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
@@ -3278,6 +3278,15 @@ img,svg,video,canvas,iframe{max-width:100%}
     window.addEventListener('resize', fit);
   });
 
+
+  /* móvil: el escudo de fondo se centra en el espacio entre la barra del módulo y el pie de página */
+  (function () {
+    const m = document.getElementById('main'); if (!m) return;
+    function wm() { const r = m.getBoundingClientRect(); document.documentElement.style.setProperty('--wmt', Math.round(r.top) + 'px'); document.documentElement.style.setProperty('--wmh', Math.round(r.height) + 'px'); }
+    wm(); window.addEventListener('resize', wm); window.addEventListener('orientationchange', wm); window.addEventListener('load', wm);
+    if (window.ResizeObserver) new ResizeObserver(wm).observe(m);
+    new MutationObserver(wm).observe(document.body, { attributes: true, subtree: false });
+  })();
   function cargarAntiguedades() {
     const f = document.getElementById('antiguedadesFrame');
     if (f.dataset.cargado) return;
