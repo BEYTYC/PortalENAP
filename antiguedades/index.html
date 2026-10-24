@@ -1409,6 +1409,18 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media(max-width:700px){
   .stu .hd .back,.stu .hd #back,#back.back{position:static!important;inset:auto!important;float:none!important;z-index:auto!important;align-self:flex-end!important}
 }
+@media(max-width:700px){
+  html,body{height:auto!important;min-height:0!important;overflow:visible!important}
+  #fs,.fsb{display:none!important}
+  /* selector de semestres / programas al ancho de las demás tarjetas */
+  .bar,.bar>*,#chips,.chips,.mtool{max-width:100%!important}
+}
+@media(max-width:700px){
+  .bar,.has-dl .bar,.has-gear .bar,body .bar{padding-right:0!important}
+  .chips{width:100%!important;box-sizing:border-box}
+  .wrap{padding-inline:0!important}
+}
+@media(max-width:700px){body.has-gear .bar,body.has-dl .bar{padding-right:0!important}}
 </style>
 <h1 id="h1" hidden></h1>
 <div class="wrap">
