@@ -103,17 +103,22 @@ html.cdi-go body::after{content:"";position:fixed;inset:0;z-index:99;pointer-eve
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html.cdi-pre .core,html.cdi-pre .spin,html.cdi-pre .spinr,html.cdi-pre path.flow,html.cdi-pre .aur{opacity:1}}
 
 .mob .appin{position:relative !important;inset:auto !important;flex-direction:column !important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .xp{position:relative}.xpt{position:absolute;left:12px;right:12px;bottom:12px;z-index:40;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.97);border:1px solid #C9D8F3;box-shadow:0 14px 40px rgba(12,32,80,.22);font-size:12px;line-height:1.5;color:#3D4D69;opacity:0;transform:translateY(8px);transition:opacity .18s ease,transform .18s ease;pointer-events:none}.xp:hover .xpt{opacity:1;transform:none}.xp:after{content:"ⓘ Pasa el cursor";position:absolute;bottom:10px;right:14px;font-size:10px;font-weight:600;color:#8A97AD;pointer-events:none;opacity:.9}.xp:hover:after{opacity:0}.xq:after{display:none}
 .mob aside{width:100% !important;zoom:1 !important}
 .mob main{flex:none !important;width:100%}
 .mob{display:flex;flex-direction:column}
 .mob .mobbar{order:-1;position:relative !important;right:auto !important;top:auto !important;justify-content:flex-end;padding:10px 12px 0}
-.mob main > div:nth-child(n+4){display:flex !important;flex-direction:column !important;gap:12px !important;flex:none !important;height:auto !important}
-.mob main > div:nth-child(n+4) > div:not(.rise):not([style*="display: none"]){display:flex !important;flex-direction:column !important;gap:12px !important}
+.mob main > div:nth-child(n+4),.mob main > .egg > div:nth-child(n+2){display:flex !important;flex-direction:column !important;gap:12px !important;flex:none !important;height:auto !important}
+.mob main > div:nth-child(n+4) > div:not(.rise):not([style*="display: none"]),.mob main > .egg > div:nth-child(n+2) > div:not(.rise):not([style*="display: none"]){display:flex !important;flex-direction:column !important;gap:12px !important;height:auto !important}
+.mob main > .egg.egoff{display:none !important}
+.mob .egk{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
 .mob main div[style*="grid-template-rows"]{display:flex !important;flex-direction:column !important;gap:12px !important;height:auto !important}
-.mob main div.rise[style*="border-radius: 20px"]{height:360px;flex:none !important;width:100%;box-sizing:border-box}
+.mob main div.rise[style*="border-radius: 20px"]{height:auto !important;min-height:360px;flex:none !important;width:100%;box-sizing:border-box;grid-column:auto !important;grid-row:auto !important}
+.mob main div[style*="repeat(12"]{display:flex !important;flex-direction:column !important;gap:12px !important;height:auto !important}
+.mob main div[style*="repeat(3,"]{grid-template-columns:minmax(0,1fr) !important}
 .mob main div[style*="repeat(8"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
-.mob main > div:nth-child(3){grid-template-columns:repeat(2,minmax(0,1fr)) !important;height:auto !important}
+.mob main > div:nth-child(3),.mob main > .egg > div:nth-child(1){grid-template-columns:repeat(2,minmax(0,1fr)) !important;height:auto !important}
 .mob main > div:first-child{height:auto !important;flex-wrap:wrap}
 .mob .mobhide{display:none !important}
 </style>
@@ -272,7 +277,7 @@ html.cdi-go body::after{content:"";position:fixed;inset:0;z-index:99;pointer-eve
 <div><div style="font-size:20px;font-weight:700;color:#0C2050;letter-spacing:-.01em">Egresados no graduados</div><div style="margin-top:2px;font-size:12px;color:#6B7A94">Escalafonados de Navales, Infantería de Marina y Mercantes que no aparecen en Graduados ENAP por cédula ni por nombre. Base para convocar y graduar.</div></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><button class="x" onClick="{{ egDl }}" style="padding:8px 18px;border-radius:12px;border:0;background:#E8702A;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(232,112,42,.35)">⬇ {{ egDlTxt }}</button><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><sc-for list="{{ egVen }}" as="c" hint-placeholder-count="6"><button class="x" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ egSem }}" as="c" hint-placeholder-count="3"><button class="x" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div><div style="display:flex;gap:6px;flex-wrap:wrap"><sc-for list="{{ egProgChips }}" as="c" hint-placeholder-count="4"><button class="x" onClick="{{ c.go }}" style="{{ c.style }}">{{ c.label }}</button></sc-for></div></div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px">
+<div class="egk" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px">
 <sc-for list="{{ egKpis }}" as="k" hint-placeholder-count="5"><div class="rise" style="box-sizing:border-box;padding:14px 16px;border-radius:18px;background:#fff;border:1px solid #E3E8F0"><div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#6B7A94;font-weight:500"><span style="{{ k.dot }}"></span>{{ k.label }}</div><div style="margin-top:2px;font-size:25px;line-height:1.1;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#0C2050">{{ k.value }}</div><div style="margin-top:6px;height:4px;border-radius:2px;background:rgba(12,32,80,.07)"><div style="{{ k.bar }}"></div></div><div style="margin-top:6px;font-size:10.5px;color:#6B7A94">{{ k.sub }}</div></div></sc-for>
 </div>
 <div style="display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px">
@@ -286,7 +291,7 @@ html.cdi-go body::after{content:"";position:fixed;inset:0;z-index:99;pointer-eve
 </div>
 </div>
 </sc-if>
-<div style="{{ egGate }}">
+<div class="{{ egCls }}" style="{{ egGate }}">
 <div style="{{ kpiGrid }}">
 <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="7">
 <button class="rise" onClick="{{ k.go }}" style="{{ k.style }}">
@@ -1160,7 +1165,7 @@ class Component extends DCLogic {
     const PN = ['Oficiales Navales', 'Infantería de Marina', 'Mercantes'], PCOL = ['#2F6FE0', '#12A58F', '#E3A92E'];
     const dn = (y, k, sm) => { const d = E.D[y]; return d ? (sm ? d[k * 2 + sm - 1] : d[k * 2] + d[k * 2 + 1]) : 0; };
     const r95 = E.R.filter((r) => r[0] >= 1995).length, t95 = Object.keys(E.D).map(Number).filter((y) => y >= 1995).reduce((a, y) => a + dn(y, 0) + dn(y, 1) + dn(y, 2), 0);
-    const base = { egOn: on, egGate: on ? 'display:none' : 'display:contents', egBadge: fmt(r95),
+    const base = { egOn: on, egGate: on ? 'display:none' : 'display:contents', egCls: on ? 'egg egoff' : 'egg', egBadge: fmt(r95),
       egCard: { value: fmt(r95), tasa: pc(r95, t95), hist: fmt(E.R.length) },
       egOpen: () => this.setState({ eg: { on: true, prog: null, ran: [1995, 9999], sem: null }, dd: false, rd: false, ed: false, pd: false, cd: false }),
       egBack: () => this.setState({ eg: null }) };
