@@ -135,7 +135,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mob main > div:first-child{height:auto !important;flex-wrap:wrap}
 .mob .mobhide{display:none !important}
 .mobi .inib{display:none}.mobi .core{cursor:pointer}.mobent{display:none}.mobi .mobent{display:inline-block;margin-top:9px;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.55);font-size:13px;font-weight:600;letter-spacing:.02em}
-.mobi .inip{display:none}.mobi .inic{display:none !important}.mobi .inic .glass{padding:6px 14px 4px !important}.mobi .inic .glass svg{height:20px;display:block}.mobi .inic .glass > div:nth-child(2){font-size:24px !important;margin-top:0 !important}
+.mobi .inip{margin:10px auto 0 !important;max-width:520px !important;font-size:20px !important;line-height:1.45 !important}.mobi .inic{display:none !important}.mobi .inic .glass{padding:6px 14px 4px !important}.mobi .inic .glass svg{height:20px;display:block}.mobi .inic .glass > div:nth-child(2){font-size:24px !important;margin-top:0 !important}
 .mob .mobbar{display:none !important}
 .mobdate{display:none}.mob .mobdate{display:block}
 .mob .ctp{overflow-x:auto !important;-webkit-overflow-scrolling:touch}
@@ -1291,8 +1291,8 @@ class Component extends DCLogic {
     const stageStyle = (scr && mobq) ? "position:relative;width:445px;zoom:" + fsk + ";min-height:" + (ah / fsk) + "px;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;color:#14233F;background:linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)" : "position:absolute;width:" + stW + "px;height:" + stH + "px;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;color:#14233F;background:" + (isIni ? 'transparent' : 'linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)') + ";overflow:hidden;transform-origin:0 0;" + (fsOn || fitMode ? 'left:' + Math.max(0, (aw - stW * fsk) / 2) + 'px;top:' + Math.max(0, (ah - stH * fsk) / 2) + 'px;transform:scale(' + fsk + ')' : 'left:0;top:0');
     const welBox = mobIni ? 'position:absolute;left:' + Math.max(0, Math.round((stW - 480) / 2)) + 'px;top:0;width:480px;height:640px' : 'position:absolute;left:' + (isIni ? Math.round((stW - 1280) / 2) : 80) + 'px;top:' + (isIni ? Math.round((stH - 760) / 2) : 70) + 'px;width:1280px;height:760px';
     const credStyle = (mobIni && this.state.screen === 'welcome' && window.self === window.top) ? 'position:fixed;left:0;right:0;bottom:8px;z-index:50;text-align:center;font-size:10px;line-height:1.35;color:#8A94A6;letter-spacing:.02em;pointer-events:none' : 'display:none';
-    const txtBox = mobIni ? 'position:absolute;left:30px;top:52px;width:600px;text-align:center;transform:scale(.7);transform-origin:0 0' : 'position:absolute;left:50px;top:80px;width:600px;transform:scale(.97);transform-origin:0 0';
-    const orbBox = mobIni ? 'position:absolute;left:-50px;top:140px;width:580px;height:580px;transform:scale(.8);transform-origin:50% 50%' : 'position:absolute;left:640px;top:90px;width:580px;height:580px;transform:scale(1.07);transform-origin:50% 50%';
+    const txtBox = mobIni ? 'position:absolute;left:30px;top:14px;width:600px;text-align:center;transform:scale(.7);transform-origin:0 0' : 'position:absolute;left:50px;top:80px;width:600px;transform:scale(.97);transform-origin:0 0';
+    const orbBox = mobIni ? 'position:absolute;left:-50px;top:150px;width:580px;height:580px;transform:scale(.8);transform-origin:50% 50%' : 'position:absolute;left:640px;top:90px;width:580px;height:580px;transform:scale(1.07);transform-origin:50% 50%';
     const data = this._data;
     const f = this.state.f;
     const tab = this.state.tab;
