@@ -439,6 +439,7 @@
   #viewHome{ width:100%; height:100%; align-self:stretch; position:relative; }
   /* Crédito fijo sobre el inicio del Centro de Datos (solo móvil) */
   .cred-fijo{ display:none; }
+  @media (max-width:760px){ .navcat[data-key="secretaria"]{ display:none !important; } }
   @media (max-width:760px){
     body:has(#viewHome:not([hidden])) .cred-fijo{ display:block; position:fixed; left:0; right:0; bottom:22px; z-index:20; text-align:center; font-size:10px; line-height:1.35; color:#4A5568; letter-spacing:.02em; pointer-events:none; }
   }
