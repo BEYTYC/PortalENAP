@@ -3241,8 +3241,8 @@ img,svg,video,canvas,iframe{max-width:100%}
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Antigüedades ENAP', status: 'ok' },
-        { nombre: 'Aprobación de Certificados', status: 'soon' },
-        { nombre: 'Concesiones Especiales', status: 'ok' },
+        // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
+        { nombre: 'Aprobación de Certificados', status: 'ok' },
         { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
@@ -3363,7 +3363,7 @@ img,svg,video,canvas,iframe{max-width:100%}
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
-          else if (item.status === 'ok' && item.nombre === 'Concesiones Especiales') { abrirSubsistema('viewConcesiones', 'Concesiones Especiales'); cargarConcesiones(); }
+          else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') { abrirSubsistema('viewConcesiones', 'Aprobación de Certificados'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Protocolo · Antigüedades ENAP'); cargarProtocoloAnt(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
