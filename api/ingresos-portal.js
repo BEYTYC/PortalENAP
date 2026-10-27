@@ -32,7 +32,7 @@ const RUTA_MODULOS = 'PortalAccesos/modulos.json';
 const MAX_SESIONES = 3000;
 const MAX_MODULOS = 5000;
 const MAX_SALTO_S = 180;      // un latido suma como máximo 3 min (si la pestaña estuvo oculta no cuenta)
-const RESULTADOS_MODULO = ['Abrió', 'Sin permiso', 'No disponible'];
+const RESULTADOS_MODULO = ['Abrió', 'Sin permiso', 'No disponible', 'Solicitó acceso'];
 const MAX_EVENTOS = 5000;
 const VENTANA_MS = 10 * 60 * 1000;
 
@@ -146,7 +146,8 @@ module.exports = async function handler(req, res) {
       if (!mod || !RESULTADOS_MODULO.includes(resultado)) throw error('Faltan "modulo" o "resultado" válidos.', 400);
       const eventos = await leerJson(token, siteId, RUTA_MODULOS, 'eventos');
       const ahora = Date.now();
-      const repetido = eventos.some((e) => e.correo === yo.correo && e.modulo === mod && e.resultado === resultado && ahora - Date.parse(e.fecha) < 30 * 1000);
+      const ventana = resultado === 'Solicitó acceso' ? 60 * 60 * 1000 : 30 * 1000; // una solicitud de acceso por módulo cada hora
+      const repetido = eventos.some((e) => e.correo === yo.correo && e.modulo === mod && e.resultado === resultado && ahora - Date.parse(e.fecha) < ventana);
       if (!repetido) {
         eventos.push({ fecha: new Date(ahora).toISOString(), correo: yo.correo, nombre: yo.nombre, modulo: mod, resultado });
         await escribirJson(token, siteId, RUTA_MODULOS, 'eventos', eventos.slice(-MAX_MODULOS));

@@ -2296,7 +2296,7 @@ document.getElementById('vp').onclick=()=>vista(false);document.getElementById('
 
 (function(){
 var gate=document.getElementById('gate'),gt=document.getElementById('gt'),gm=document.getElementById('gm');
-function msg(t,m){gate.hidden=false;gate.classList.toggle('wait',/^(Verificando|Cargando|Consultando)/.test(t));gt.textContent=t;gm.textContent=m}
+function msg(t,m){var sb=document.getElementById('gsol');if(sb)sb.remove();gate.hidden=false;gate.classList.toggle('wait',/^(Verificando|Cargando|Consultando)/.test(t));gt.textContent=t;gm.textContent=m}
 function tok(){var P=window.parent&&window.parent!==window?window.parent.PortalENAP:null;if(!P||!P.tokenMicrosoft)return Promise.reject(new Error('fuera'));return Promise.race([P.tokenMicrosoft(),new Promise(function(_,rj){setTimeout(function(){rj(new Error('No se pudo obtener tu sesión de Microsoft del Portal. Cierra sesión, vuelve a entrar y abre de nuevo el módulo.'))},25000)})])}
 function api(accion,extra){return tok().then(function(t){var ac=new AbortController();setTimeout(function(){ac.abort()},40000);return fetch('/api/antiguedades',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))}).catch(function(e){throw new Error(e&&e.name==='AbortError'?'El servidor tardó demasiado en responder (más de 40 s). Intenta de nuevo.':'No se pudo conectar con el servidor ('+(e&&e.message)+').')})}).then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok){var e=new Error(j.error||('Error '+r.status));e.status=r.status;throw e}return j})})}
 window.__api=api;window.__yo=null;
@@ -2799,7 +2799,11 @@ function metaTxt(m){document.getElementById('meta').textContent=m?('Última carg
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 function iniciar(){
   api('sesion').then(function(s){
-    if(!s.rol){try{window.parent.PortalENAP.actividadModulo('Antigüedades ENAP','Sin permiso')}catch(_){}msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Solicítalo a la Oficina de Estadística.');return}
+    if(!s.rol){try{window.parent.PortalENAP.actividadModulo('Antigüedades ENAP','Sin permiso')}catch(_){}msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Puedes solicitarlo a la Oficina de Estadística.');
+      (function(){var b=document.createElement('button');b.id='gsol';b.type='button';b.textContent='Solicitar acceso';b.style.cssText='display:block;margin:16px auto 0;height:40px;padding:0 22px;border:0;border-radius:10px;background:linear-gradient(180deg,#1F4E96,#163C78);color:#fff;font-weight:600;font-size:14px;cursor:pointer';
+        b.onclick=function(){b.disabled=true;b.textContent='Enviando…';var P=null;try{P=window.parent.PortalENAP}catch(_){}
+          Promise.resolve(P&&P.solicitarAcceso?P.solicitarAcceso('Antigüedades ENAP'):false).then(function(ok){if(ok){gm.textContent='Solicitud enviada. La Oficina de Estadística la revisará y te dará acceso si corresponde.';b.remove()}else{b.disabled=false;b.textContent='Reintentar';gm.textContent='No se pudo enviar la solicitud. Inténtalo de nuevo.'}})};
+        gm.parentNode.appendChild(b)})();return}
     return api('datos',{periodo:perElegido()}).then(function(r){
       var esAdmin=s.rol==='ADMIN';window.__adm=esAdmin;yo.correo=s.correo;
       if(!esAdmin)document.querySelector('.vt').hidden=true;
