@@ -138,6 +138,13 @@
     min-width:0; flex:0 1 auto;
   }
   .nav-subsistema.show{ display:flex; }
+  /* escritorio: la casita queda pegada a la barra desplazadora (borde derecho) */
+  @media (min-width:761px){
+    nav.topnav:has(.nav-subsistema.show){ padding-right:var(--sbw,0px); }
+    .nav-subsistema.show{ flex:1 1 auto; }
+    .nav-subsistema .name{ flex:1 1 auto; text-align:left; }
+    .nav-subsistema .tag{ order:1 } .nav-subsistema .name{ order:2 } .nav-subsistema .nav-home{ order:3; margin-left:auto }
+  }
   .nav-subsistema .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted); flex-shrink:0; }
   .nav-subsistema .name{
     font-size:13.5px; font-weight:600; color:var(--navy-800);
@@ -481,13 +488,18 @@
   footer .copyright{ display:block; font-size:10.5px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
 
-  .toast{
+  .toast-old{
     position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0;
     background:var(--navy-900); color:#fff; padding:9px 16px; border-radius:10px; font-size:13.5px; font-weight:600;
     box-shadow:var(--shadow-lg); transition:opacity .2s ease, transform .2s ease; pointer-events:none; z-index:60;
     max-width:min(90vw,440px); text-align:center;
   }
-  .toast.show{opacity:1; transform:translate(-50%,0);}
+  .toast{ position:fixed; inset:0; z-index:200; display:grid; place-items:center; padding:20px; background:rgba(7,28,60,.45); }
+  .toast[hidden]{ display:none; }
+  .toast-box{ background:var(--surface); color:var(--navy-900); border-radius:14px; padding:22px 22px 16px; max-width:min(92vw,400px); text-align:center; box-shadow:var(--shadow-lg); border-top:3px solid var(--gold-500); }
+  .toast-box p{ margin:0 0 16px; font-size:15px; font-weight:600; line-height:1.4; }
+  .toast-ok{ background:var(--navy-800); color:#fff; border:0; border-radius:9px; padding:9px 28px; font:inherit; font-weight:600; cursor:pointer; }
+  .toast-ok:hover{ background:var(--navy-900); }
 
   /* ---------- Modal: aviso de seguridad antes de descargar (macros) ---------- */
   /* [hidden] (display:none, sin animar) es solo el estado inicial en el
@@ -806,7 +818,6 @@
     footer .copyright{ display:none; }
 
     input, select, textarea{ font-size:16px !important; }
-    .toast{ bottom:calc(16px + env(safe-area-inset-bottom)); }
   }
 
   @media (max-width:640px){
@@ -1599,7 +1610,9 @@ img,svg,video,canvas,iframe{max-width:100%}
   </div>
 </footer>
 
-<div class="toast" id="toast">Este módulo aún no está disponible.</div>
+<div class="toast" id="toast" role="alertdialog" aria-live="assertive" aria-modal="true" hidden>
+  <div class="toast-box"><p id="toastMsg"></p><button type="button" id="toastOk" class="toast-ok">Aceptar</button></div>
+</div>
 
 <!-- Aviso de seguridad previo a la descarga de balances con macros (.xlsm/
      .xltm): Windows marca estos archivos como "bloqueados" al bajarlos de
@@ -3214,15 +3227,6 @@ img,svg,video,canvas,iframe{max-width:100%}
       ],
     },
     {
-      key: 'secretaria', nombre: 'Secretaría Académica', icon: 'secretaria',
-      items: [
-        { nombre: 'Sistema de Alertas Docente - SAD', status: 'soon' },
-        // Solo visible para SAC/ADMIN ya con sesion iniciada (ver el
-        // filtro por rolesPermitidos en renderNav, mas abajo).
-        { nombre: 'Gestión de Ceremonias de Grado', status: 'ok', rolesPermitidos: ['SAC', 'ADMIN'] },
-      ],
-    },
-    {
       key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
@@ -3623,10 +3627,12 @@ img,svg,video,canvas,iframe{max-width:100%}
   let toastTimer = null;
   function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    document.getElementById('toastMsg').textContent = msg;
+    t.hidden = false;
+    const ok = document.getElementById('toastOk');
+    ok.onclick = () => { t.hidden = true; };
+    t.onclick = (e) => { if (e.target === t) t.hidden = true; };
+    try { ok.focus(); } catch (e) {}
   }
 
   // ---------------------------------------------------------------
@@ -3697,4 +3703,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   });
 
   renderNav();
+
+  // ancho real de la barra desplazadora (0 si es flotante) -> --sbw
+  (function(){ try { const d=document.createElement('div'); d.style.cssText='position:absolute;top:-999px;width:100px;height:100px;overflow:scroll;visibility:hidden'; document.body.appendChild(d); const w=d.offsetWidth-d.clientWidth; document.body.removeChild(d); document.documentElement.style.setProperty('--sbw', w+'px'); } catch (e) {} })();
 </script>
