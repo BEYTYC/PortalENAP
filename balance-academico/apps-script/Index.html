@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" translate="no">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>Balance Académico</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
@@ -150,7 +150,13 @@ td.num{text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap}
 .vacío{padding:30px;text-align:center;color:var(--mute)}
 @media (max-width:1100px){.rev{grid-template-columns:1fr}.inicio,.firma{grid-template-columns:1fr}main{overflow:auto}}
 </style>
-</head>
+<style id="sin-desplazamiento-lateral">
+/* Móvil: la página nunca se desplaza hacia los lados */
+html,body{max-width:100%;overflow-x:hidden}
+@supports (overflow:clip){html,body{overflow-x:clip}}
+img,svg,video,canvas,iframe{max-width:100%}
+</style>
+<style>@media (max-width:760px){html,body{overflow-x:clip!important;overscroll-behavior-x:none!important;max-width:100%}}</style><style id="sin-resorte">html,body,*{overscroll-behavior:none !important}html,body{overscroll-behavior-y:none !important;overscroll-behavior-x:none !important}@media (hover:hover) and (pointer:fine){*{overscroll-behavior:auto !important}html,body{overscroll-behavior:none !important}}</style></head>
 <body>
 <div id="app"></div>
 
