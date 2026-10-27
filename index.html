@@ -1121,6 +1121,8 @@ img,svg,video,canvas,iframe{max-width:100%}
 #vistaAdmin #ingresosCard>div:nth-of-type(2){max-height:460px!important;border-radius:10px}
 #vistaAdmin ::-webkit-scrollbar{width:8px;height:8px}#vistaAdmin ::-webkit-scrollbar-thumb{background:#C5D5EA;border-radius:8px}#vistaAdmin ::-webkit-scrollbar-thumb:hover{background:#A9C0E2}
 #vistaAdmin #ingresosCard,#vistaAdmin #ingresosCard + .panel-app__card{grid-column:1/-1}
+#vistaAdmin #actividadCard,#vistaAdmin #actividadCard + .panel-app__card{grid-column:1/-1}
+#vistaAdmin #actividadCard table{width:100%}#vistaAdmin #actividadCard td{vertical-align:top;white-space:normal!important}#vistaAdmin #actividadCard td:nth-child(6),#vistaAdmin #actividadCard td:nth-child(7){min-width:200px}#vistaAdmin .act-mod{display:inline-block;margin:0 6px 4px 0;padding:2px 9px;border-radius:999px;background:#EAF2FD;color:#1F4E96;font-size:.8rem;white-space:normal}#vistaAdmin .act-no{background:#FCE9E7;color:#B3261E}
 #vistaAdmin .panel-app__card p{margin:4px 0 0!important}
 #vistaAdmin #ingresosCard p{margin:6px 0 12px!important}
 #vistaAdmin .panel-app__toggle-btn.is-active{color:#fff}
@@ -1234,6 +1236,32 @@ img,svg,video,canvas,iframe{max-width:100%}
     <table>
       <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
       <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="panel-app__card" id="actividadCard" hidden>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
+      <h3 style="margin:0;color:#0a2540;font-size:1.062rem;">Actividad en el Portal</h3>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <select id="actividadPeriodo" aria-label="Periodo" style="height:34px;padding:0 10px;border:1px solid #C9D9EE;border-radius:10px;background:#fff;color:#1F4E96;font-size:.843rem;">
+          <option value="7">Últimos 7 días</option><option value="30" selected>Últimos 30 días</option><option value="0">Todo el historial</option>
+        </select>
+        <button type="button" class="panel-app__btn panel-app__btn--ghost" id="actividadRecargarBtn" style="padding:4px 10px;font-size:.843rem;">Actualizar</button>
+      </div>
+    </div>
+    <p style="font-size:.882rem;color:#5b6b7c;margin:6px 0 10px;">Cuánto tiempo activo tiene cada persona en el Portal (con la pestaña a la vista) y a qué módulos entra o intenta entrar. «Sin permiso» es un intento que el sistema no dejó pasar.</p>
+    <div style="max-height:380px;overflow:auto;">
+    <table>
+      <thead><tr><th>Persona</th><th>Sesiones</th><th>Tiempo total</th><th>Promedio</th><th>Última actividad</th><th>Módulos (tiempo · entradas)</th><th>Sin permiso</th></tr></thead>
+      <tbody id="actividadBody"><tr><td colspan="7">Cargando…</td></tr></tbody>
+    </table>
+    </div>
+    <h4 style="margin:18px 0 6px;color:#0B2A5B;font-size:.95rem;">Últimas sesiones</h4>
+    <div style="max-height:300px;overflow:auto;">
+    <table>
+      <thead><tr><th>Inicio</th><th>Persona</th><th>Duración</th><th>Tiempo por módulo</th></tr></thead>
+      <tbody id="sesionesBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -2423,11 +2451,12 @@ img,svg,video,canvas,iframe{max-width:100%}
   const ADMINS_BITACORA = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
   let ingresosSoloFallidos = false;
   let ingresosDatos = [];
-  async function llamarIngresos(accion, token) {
+  async function llamarIngresos(accion, token, extra, keepalive) {
     const resp = await fetch('/api/ingresos-portal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken: token, accion }),
+      body: JSON.stringify(Object.assign({ accessToken: token, accion }, extra || {})),
+      keepalive: !!keepalive,
     });
     const data = await resp.json().catch(() => ({}));
     if (!resp.ok) throw new Error(data.error || ('Error ' + resp.status));
@@ -2438,8 +2467,47 @@ img,svg,video,canvas,iframe{max-width:100%}
     try {
       const token = await adquirirToken(['User.Read'], cuenta);
       await llamarIngresos('registrar', token);
+      iniciarLatidos(cuenta);
     } catch (e) { console.warn('[PortalENAP] No se pudo anotar el ingreso', e); }
   }
+  // ---- Tiempo de sesión y módulos a los que entra cada persona (api/ingresos-portal.js: latido / modulo) ----
+  const SESION_ID = (() => {
+    const nuevo = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(16).slice(2));
+    try { let v = sessionStorage.getItem('portal.sesionId'); if (!v) { v = nuevo(); sessionStorage.setItem('portal.sesionId', v); } return v; } catch (e) { return nuevo(); }
+  })();
+  let moduloActual = 'Inicio';
+  let latidoCuenta = null, latidoTimer = null, ultimoTokenLatido = null, latidoOculto = false;
+  async function enviarLatido(opciones) {
+    if (!latidoCuenta) return;
+    try {
+      let token = ultimoTokenLatido;
+      if (!(opciones && opciones.final)) { token = await adquirirToken(['User.Read'], latidoCuenta); ultimoTokenLatido = token; }
+      if (!token) return;
+      await llamarIngresos('latido', token, { sesionId: SESION_ID, modulo: moduloActual, inicioTramo: !!(opciones && opciones.inicioTramo) }, !!(opciones && opciones.final));
+    } catch (e) { /* sin red o sesión vencida: se intenta en el siguiente latido */ }
+  }
+  function iniciarLatidos(cuenta) {
+    latidoCuenta = cuenta;
+    if (latidoTimer) return;
+    enviarLatido({ inicioTramo: true });
+    latidoTimer = setInterval(() => { if (document.visibilityState === 'visible') enviarLatido(); }, 120000);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') { latidoOculto = true; enviarLatido({ final: true }); }
+      else if (latidoOculto) { latidoOculto = false; enviarLatido({ inicioTramo: true }); }
+    });
+    window.addEventListener('pagehide', () => enviarLatido({ final: true }));
+  }
+  // Módulo al que la persona entra o intenta entrar: resultado = 'Abrió' | 'Sin permiso' | 'No disponible'
+  async function registrarModulo(nombre, resultado) {
+    try {
+      const cuentas = (await getMsal()).getAllAccounts();
+      if (!cuentas.length) return;
+      const token = await adquirirToken(['User.Read'], cuentas[0]);
+      await llamarIngresos('modulo', token, { modulo: nombre, resultado });
+    } catch (e) { /* no debe estorbar a quien usa el módulo */ }
+  }
+  window.PortalENAP = window.PortalENAP || {};
+  window.PortalENAP.actividadModulo = registrarModulo;
   // Para cuentas rechazadas: se espera (maximo 4 s) a que quede anotado antes de cerrar su sesion.
   function anotarYEsperar(cuenta) {
     return Promise.race([registrarIngresoPortal(cuenta), new Promise((r) => setTimeout(r, 4000))]);
@@ -2460,6 +2528,47 @@ img,svg,video,canvas,iframe{max-width:100%}
         + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td></tr>`;
     }).join('');
   }
+  let actividadDatos = { sesiones: [], modulos: [] };
+  function fmtDur(seg) {
+    seg = Math.max(0, Math.round(seg || 0));
+    if (seg < 60) return seg + ' s';
+    const m = Math.round(seg / 60);
+    if (m < 60) return m + ' min';
+    return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min';
+  }
+  function pintarActividad() {
+    const dias = Number(document.getElementById('actividadPeriodo').value) || 0;
+    const desde = dias ? Date.now() - dias * 86400000 : 0;
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
+    const ses = actividadDatos.sesiones.filter((x) => Date.parse(x.ultimo) >= desde);
+    const mods = actividadDatos.modulos.filter((x) => Date.parse(x.fecha) >= desde);
+    const P = {};
+    const persona = (correo, nombre) => (P[correo] = P[correo] || { correo, nombre: nombre || correo, n: 0, seg: 0, ultimo: 0, tmod: {}, entradas: {}, denegados: {} });
+    ses.forEach((x) => {
+      const p = persona(x.correo, x.nombre); p.n++; p.seg += x.seg || 0; p.ultimo = Math.max(p.ultimo, Date.parse(x.ultimo) || 0);
+      Object.keys(x.mods || {}).forEach((k) => { p.tmod[k] = (p.tmod[k] || 0) + x.mods[k]; });
+    });
+    mods.forEach((x) => {
+      const p = persona(x.correo, x.nombre); p.ultimo = Math.max(p.ultimo, Date.parse(x.fecha) || 0);
+      if (x.resultado === 'Abrió') p.entradas[x.modulo] = (p.entradas[x.modulo] || 0) + 1;
+      else { const k = x.modulo + (x.resultado === 'No disponible' ? ' (aún no disponible)' : ''); p.denegados[k] = (p.denegados[k] || 0) + 1; }
+    });
+    const filas = Object.keys(P).map((k) => P[k]).sort((a, b) => b.seg - a.seg);
+    const cuerpo = document.getElementById('actividadBody');
+    if (!filas.length) cuerpo.innerHTML = '<tr><td colspan="7">Sin actividad registrada en este periodo.</td></tr>';
+    else cuerpo.innerHTML = filas.map((p) => {
+      const nombres = Object.keys(Object.assign({}, p.tmod, p.entradas)).sort((a, b) => (p.tmod[b] || 0) - (p.tmod[a] || 0));
+      const chips = nombres.map((k) => `<span class="act-mod">${esc(k)} · ${fmtDur(p.tmod[k] || 0)} · ${p.entradas[k] || 0}</span>`).join('') || '—';
+      const no = Object.keys(p.denegados).map((k) => `<span class="act-mod act-no">${esc(k)} × ${p.denegados[k]}</span>`).join('') || '—';
+      return `<tr><td>${esc(p.nombre)}<br><span style="color:#6C86AD;font-size:.8rem">${esc(p.correo)}</span></td><td>${p.n}</td><td><b>${fmtDur(p.seg)}</b></td><td>${p.n ? fmtDur(p.seg / p.n) : '—'}</td><td>${p.ultimo ? esc(fmt.format(new Date(p.ultimo))) : '—'}</td><td>${chips}</td><td>${no}</td></tr>`;
+    }).join('');
+    const cs = document.getElementById('sesionesBody');
+    cs.innerHTML = ses.length ? ses.slice(0, 200).map((x) => {
+      const m = Object.keys(x.mods || {}).sort((a, b) => x.mods[b] - x.mods[a]).map((k) => `${esc(k)} ${fmtDur(x.mods[k])}`).join(' · ') || '—';
+      return `<tr><td>${esc(fmt.format(new Date(x.inicio)))}</td><td>${esc(x.nombre || x.correo)}</td><td><b>${fmtDur(x.seg)}</b></td><td>${m}</td></tr>`;
+    }).join('') : '<tr><td colspan="4">Sin sesiones en este periodo.</td></tr>';
+  }
   async function cargarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
     cuerpo.innerHTML = '<tr><td colspan="4">Cargando…</td></tr>';
@@ -2467,8 +2576,11 @@ img,svg,video,canvas,iframe{max-width:100%}
       const cuentas = (await getMsal()).getAllAccounts();
       if (!cuentas.length) return;
       const token = await adquirirToken(['User.Read'], cuentas[0]);
-      ingresosDatos = (await llamarIngresos('listar', token)).eventos || [];
+      const lst = await llamarIngresos('listar', token);
+      ingresosDatos = lst.eventos || [];
+      actividadDatos = { sesiones: lst.sesiones || [], modulos: lst.modulos || [] };
       pintarIngresos();
+      pintarActividad();
     } catch (e) {
       cuerpo.innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
     }
@@ -2484,6 +2596,7 @@ img,svg,video,canvas,iframe{max-width:100%}
     if (roles.includes('ADMIN')) cargarVistaAdmin();
     if (esAdminBitacora(sesion)) {
       document.getElementById('ingresosCard').hidden = false;
+      document.getElementById('actividadCard').hidden = false;
       cargarIngresos();
     }
     if (roles.includes('ADMIN') || roles.includes('SAC')) cargarSelectorCeremonias();
@@ -2942,6 +3055,8 @@ img,svg,video,canvas,iframe{max-width:100%}
     document.getElementById('adminGuardarBtn').addEventListener('click', guardarUsuarioAdmin);
     document.getElementById('adminRecargarBtn').addEventListener('click', cargarVistaAdmin);
     document.getElementById('ingresosRecargarBtn').addEventListener('click', cargarIngresos);
+    document.getElementById('actividadRecargarBtn').addEventListener('click', cargarIngresos);
+    document.getElementById('actividadPeriodo').addEventListener('change', pintarActividad);
     document.getElementById('ingresosFiltroBtn').addEventListener('click', () => {
       ingresosSoloFallidos = !ingresosSoloFallidos;
       document.getElementById('ingresosFiltroBtn').textContent = ingresosSoloFallidos ? 'Ver todos los ingresos' : 'Ver solo intentos sin éxito';
@@ -3152,7 +3267,7 @@ img,svg,video,canvas,iframe{max-width:100%}
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); registrarModulo(item.nombre, 'Sin permiso'); }
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
@@ -3163,7 +3278,7 @@ img,svg,video,canvas,iframe{max-width:100%}
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
           else if (item.status === 'link') window.location.href = item.href;
-          else showToast(`«${item.nombre}» aún no está construido — próxima fase.`);
+          else { showToast(`«${item.nombre}» aún no está construido — próxima fase.`); registrarModulo(item.nombre, 'No disponible'); }
           closeAllNav();
         });
         dd.appendChild(btn);
@@ -3234,6 +3349,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
 
   function abrirSubsistema(viewId, nombre) {
+    moduloActual = nombre; registrarModulo(nombre, 'Abrió');
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== viewId); });
     document.getElementById('navSubsistemaNombre').textContent = nombre;
     document.getElementById('navSubsistema').classList.add('show');
@@ -3244,6 +3360,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
 
   function volverAlPortal() {
+    moduloActual = 'Inicio';
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
     document.getElementById('main').classList.remove('main-full');

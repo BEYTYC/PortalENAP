@@ -2799,7 +2799,7 @@ function metaTxt(m){document.getElementById('meta').textContent=m?('Última carg
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 function iniciar(){
   api('sesion').then(function(s){
-    if(!s.rol){msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Solicítalo a la Oficina de Estadística.');return}
+    if(!s.rol){try{window.parent.PortalENAP.actividadModulo('Antigüedades ENAP','Sin permiso')}catch(_){}msg('Sin permiso','La cuenta '+s.correo+' no tiene acceso a las antigüedades. Solicítalo a la Oficina de Estadística.');return}
     return api('datos',{periodo:perElegido()}).then(function(r){
       var esAdmin=s.rol==='ADMIN';window.__adm=esAdmin;yo.correo=s.correo;
       if(!esAdmin)document.querySelector('.vt').hidden=true;
