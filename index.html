@@ -141,9 +141,9 @@
   /* escritorio: la casita queda pegada a la barra desplazadora (borde derecho) */
   @media (min-width:761px){
     nav.topnav:has(.nav-subsistema.show){ padding-right:var(--sbw,0px); }
-    .nav-subsistema.show{ flex:1 1 auto; }
+    .nav-subsistema.show{ flex:0 1 auto; }
     .nav-subsistema .name{ flex:1 1 auto; text-align:left; }
-    .nav-subsistema .tag{ order:1; margin-left:auto } .nav-subsistema .name{ order:2; flex:0 1 auto; text-align:right } .nav-subsistema .nav-home{ order:3 }
+    .nav-subsistema .tag{ order:1 } .nav-subsistema .name{ order:2; flex:0 1 auto; text-align:right } .nav-subsistema .nav-home{ order:3 }
   }
   .nav-subsistema .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted); flex-shrink:0; }
   .nav-subsistema .name{
