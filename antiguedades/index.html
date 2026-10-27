@@ -2831,7 +2831,7 @@ if(!document.documentElement.requestFullscreen)b.hidden=true})();
 <style>@media(max-width:700px){html body .stu table.gt.gt tbody td.pcl,html body .stu table.gt.gt tbody td.pcl .pg,html body .stu table.gt.gt tbody td.pcl .pg b,html body .stu table.gt.gt tbody td.pcl .pg span{font-size:11px!important;line-height:1.2!important;font-weight:400!important}html body .stu table.gt.gt tfoot td,html body .stu table.gt.gt tfoot tr td,html body .stu table.gt.gt tr.tot td{font-size:11px!important;font-weight:400!important;line-height:1.2!important}html body .stu table.gt.gt tfoot td *,html body .stu table.gt.gt tr.tot td *{font-size:11px!important;font-weight:400!important}html body .stu table.gt.gt tbody td.pcl .pa2{font-size:9px!important}}</style>
 <style>@media(max-width:700px){.sbq{touch-action:pan-y!important;overflow-x:auto!important;overflow-y:hidden!important;max-height:none!important;scrollbar-width:none;-ms-overflow-style:none;overscroll-behavior:none!important}.sbq::-webkit-scrollbar{display:none}
 .sbt{position:relative;z-index:5;height:44px;margin:0 4px;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;will-change:transform}.sbt::before{content:"";position:absolute;left:0;right:0;top:15px;height:14px;border-radius:7px;background:rgba(27,70,136,.16);box-shadow:0 1px 6px rgba(11,42,74,.18),0 0 0 3px rgba(255,255,255,.85)}
-.sbt i{position:absolute;top:15px;height:14px;border-radius:7px;background:#1B4688;min-width:44px}.sbt[hidden]{display:none}}</style>
+.sbt i{position:absolute;top:15px;height:14px;border-radius:7px;background:#1B4688;min-width:44px}.sbt[hidden]{display:none}}html body .sbq,html body .sbt{overscroll-behavior-y:auto!important}</style>
 <script>(function(){var mq=window.matchMedia('(max-width:700px)'),all=[];
 function fit(w,t){var th=t.firstChild,ov=w.scrollWidth-w.clientWidth;if(ov<=2){t.hidden=true;return}t.hidden=false;var tw=t.clientWidth,tl=Math.max(44,tw*w.clientWidth/w.scrollWidth);th.style.width=tl+'px';th.style.left=((tw-tl)*(w.scrollLeft/ov))+'px'}
 /* la barra acompaña a la pantalla mientras la tabla esté a la vista */
@@ -2848,6 +2848,11 @@ t.addEventListener('touchstart',function(e){e.preventDefault();start(e.touches[0
 t.addEventListener('touchmove',function(e){e.preventDefault();if(d)setX(e.touches[0].clientX)},{passive:false});
 t.addEventListener('touchend',end);t.addEventListener('touchcancel',end);
 t.addEventListener('mousedown',function(e){start(e.clientX);var mv=function(ev){if(d)setX(ev.clientX)},up=function(){end();document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up)};document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);e.preventDefault()});
+function rueda(e){var dx=e.deltaX,dy=e.deltaY,k=e.deltaMode===1?16:e.deltaMode===2?600:1;dx*=k;dy*=k;
+if(Math.abs(dx)>Math.abs(dy)||e.shiftKey){w.scrollLeft+=(Math.abs(dx)>Math.abs(dy)?dx:dy);e.preventDefault();return}
+var m=null;try{m=window.parent.document.querySelector('main')}catch(_){}
+if(m&&m.scrollHeight>m.clientHeight){m.scrollTop+=dy;e.preventDefault()}}
+w.addEventListener('wheel',rueda,{passive:false});t.addEventListener('wheel',rueda,{passive:false});
 w.addEventListener('scroll',upd,{passive:true});fit(w,t);place(w,t)}
 function scan(){if(!mq.matches)return;all=all.filter(function(x){return document.contains(x.w)});document.querySelectorAll('#novl .tw,.nov .tw,.totl').forEach(function(w){if(w.closest('.stu'))return;mk(w)});upd()}
 var q=0;function sch(){if(q)return;q=setTimeout(function(){q=0;scan()},120)}
