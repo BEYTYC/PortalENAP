@@ -2511,6 +2511,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
   window.PortalENAP = window.PortalENAP || {};
   window.PortalENAP.actividadModulo = registrarModulo;
+  window.PortalENAP.setModulo = (n) => { moduloActual = n; };
   // Para cuentas rechazadas: se espera (maximo 4 s) a que quede anotado antes de cerrar su sesion.
   function anotarYEsperar(cuenta) {
     return Promise.race([registrarIngresoPortal(cuenta), new Promise((r) => setTimeout(r, 4000))]);
@@ -3270,7 +3271,7 @@ img,svg,video,canvas,iframe{max-width:100%}
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); registrarModulo(item.nombre, 'Sin permiso'); }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (e) {} }
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
@@ -3281,7 +3282,7 @@ img,svg,video,canvas,iframe{max-width:100%}
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
           else if (item.status === 'link') window.location.href = item.href;
-          else { showToast(`«${item.nombre}» aún no está construido — próxima fase.`); registrarModulo(item.nombre, 'No disponible'); }
+          else { showToast(`«${item.nombre}» aún no está construido — próxima fase.`); try { window.PortalENAP.actividadModulo(item.nombre, 'No disponible'); } catch (e) {} }
           closeAllNav();
         });
         dd.appendChild(btn);
@@ -3352,7 +3353,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
 
   function abrirSubsistema(viewId, nombre) {
-    moduloActual = nombre; registrarModulo(nombre, 'Abrió');
+    try { window.PortalENAP.setModulo(nombre); window.PortalENAP.actividadModulo(nombre, 'Abrió'); } catch (e) { /* el registro no debe impedir abrir el módulo */ }
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== viewId); });
     document.getElementById('navSubsistemaNombre').textContent = nombre;
     document.getElementById('navSubsistema').classList.add('show');
@@ -3363,7 +3364,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
 
   function volverAlPortal() {
-    moduloActual = 'Inicio';
+    try { window.PortalENAP.setModulo('Inicio'); } catch (e) {}
     document.querySelectorAll('main > div[id^="view"]').forEach((v) => { v.hidden = (v.id !== 'viewHome'); });
     document.getElementById('navSubsistema').classList.remove('show');
     document.getElementById('main').classList.remove('main-full');
