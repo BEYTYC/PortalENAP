@@ -499,6 +499,8 @@
   .toast-box{ background:var(--surface); color:var(--navy-900); border-radius:14px; padding:22px 22px 16px; max-width:min(92vw,400px); text-align:center; box-shadow:var(--shadow-lg); border-top:3px solid var(--gold-500); }
   .toast-box p{ margin:0 0 16px; font-size:15px; font-weight:600; line-height:1.4; }
   .toast-ok{ background:var(--navy-800); color:#fff; border:0; border-radius:9px; padding:9px 28px; font:inherit; font-weight:600; cursor:pointer; }
+  .ing-fila{ cursor:pointer; } .ing-fila:hover td{ background:var(--navy-50); } .ing-fila.abierta td{ background:var(--navy-50); }
+  .ing-det[hidden]{ display:none; } .ing-det td{ background:#f7f9fc; font-size:12.5px; line-height:1.55; padding:10px 14px !important; border-left:3px solid var(--gold-500); }
   .toast-ok:hover{ background:var(--navy-900); }
 
   /* ---------- Modal: aviso de seguridad antes de descargar (macros) ---------- */
@@ -1247,8 +1249,8 @@ img,svg,video,canvas,iframe{max-width:100%}
     <p style="font-size:.882rem;color:#5b6b7c;margin:6px 0 10px;">Quién entró o intentó entrar y a qué hora (hora de Colombia). Una misma cuenta se anota una vez cada 10 minutos.</p>
     <div style="max-height:420px;overflow:auto;">
     <table>
-      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th><th>Duración</th><th>Módulos (tiempo)</th></tr></thead>
-      <tbody id="ingresosBody"><tr><td colspan="6">Cargando…</td></tr></tbody>
+      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
+      <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -2572,7 +2574,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   function pintarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
     const filas = ingresosDatos.filter((e) => !ingresosSoloFallidos || e.resultado !== 'Ingresó');
-    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="6">Sin registros.</td></tr>'; return; }
+    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
     // Cada ingreso se cruza con las sesiones de esa misma cuenta que empezaron desde ese ingreso
@@ -2611,10 +2613,18 @@ img,svg,video,canvas,iframe{max-width:100%}
         const todo = partes.concat(ini, sp);
         if (todo.length) mods = todo.join('<br>');
       }
-      return `<tr><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
-        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td><td>${dur}</td><td style="white-space:normal">${mods}</td></tr>`;
+      const detalle = ok ? ('<b>Tiempo en el Portal:</b> ' + (dur === '—' ? 'sin datos' : dur) + '<br><b>Módulos:</b><br>' + mods) : 'No ingresó: sin actividad.';
+      return `<tr class="ing-fila" tabindex="0" title="Clic para ver su actividad"><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
+        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td></tr>`
+        + `<tr class="ing-det" hidden><td colspan="4" style="white-space:normal">${detalle}</td></tr>`;
     }).join('');
   }
+  (function () {
+    const b = document.getElementById('ingresosBody');
+    const alt = (f) => { const d = f && f.nextElementSibling; if (d && d.classList.contains('ing-det')) { d.hidden = !d.hidden; f.classList.toggle('abierta', !d.hidden); } };
+    b.addEventListener('click', (ev) => alt(ev.target.closest('tr.ing-fila')));
+    b.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { const f = ev.target.closest('tr.ing-fila'); if (f) { ev.preventDefault(); alt(f); } } });
+  })();
   function fmtDur(seg) {
     seg = Math.max(0, Math.round(seg || 0));
     if (seg < 60) return seg + ' s';
@@ -2662,7 +2672,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
   async function cargarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
-    cuerpo.innerHTML = '<tr><td colspan="6">Cargando…</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="4">Cargando…</td></tr>';
     try {
       const cuentas = (await getMsal()).getAllAccounts();
       if (!cuentas.length) return;
@@ -2673,7 +2683,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       pintarIngresos();
       pintarActividad();
     } catch (e) {
-      cuerpo.innerHTML = `<tr><td colspan="6" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
+      cuerpo.innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
     }
   }
 
