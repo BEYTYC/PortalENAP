@@ -1259,6 +1259,13 @@ img,svg,video,canvas,iframe{max-width:100%}
       <tbody id="actividadBody"><tr><td colspan="7">Cargando…</td></tr></tbody>
     </table>
     </div>
+    <h4 style="margin:18px 0 6px;color:#0B2A5B;font-size:.95rem;">Solicitudes de acceso</h4>
+    <div style="max-height:260px;overflow:auto;">
+    <table>
+      <thead><tr><th>Fecha</th><th>Persona</th><th>Módulo</th></tr></thead>
+      <tbody id="solicitudesBody"><tr><td colspan="3">Cargando…</td></tr></tbody>
+    </table>
+    </div>
     <h4 style="margin:18px 0 6px;color:#0B2A5B;font-size:.95rem;">Últimas sesiones</h4>
     <div style="max-height:300px;overflow:auto;">
     <table>
@@ -2507,10 +2514,38 @@ img,svg,video,canvas,iframe{max-width:100%}
       if (!cuentas.length) return;
       const token = await adquirirToken(['User.Read'], cuentas[0]);
       await llamarIngresos('modulo', token, { modulo: nombre, resultado });
-    } catch (e) { /* no debe estorbar a quien usa el módulo */ }
+      return true;
+    } catch (e) { /* no debe estorbar a quien usa el módulo */ return false; }
+  }
+  // Ventana "Solicitar acceso": para quien intenta entrar a un módulo que no tiene habilitado.
+  function ventanaSolicitarAcceso(modulo, texto) {
+    const previo = document.getElementById('accesoDlg'); if (previo) previo.remove();
+    const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const o = document.createElement('div');
+    o.id = 'accesoDlg';
+    o.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(11,42,91,.35);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)';
+    o.innerHTML = '<div role="dialog" aria-modal="true" style="max-width:420px;width:100%;background:#fff;border-radius:16px;padding:26px 24px;text-align:center;box-shadow:0 20px 50px -20px rgba(11,42,91,.55);font-family:inherit">'
+      + '<div style="font-size:.72rem;letter-spacing:.18em;color:#6C86AD;font-weight:600;text-transform:uppercase">Acceso restringido</div>'
+      + '<h3 style="margin:8px 0 6px;color:#0B2A5B;font-size:1.15rem">' + esc(modulo) + '</h3>'
+      + '<p id="accesoTxt" style="margin:0 0 18px;color:#3F5876;font-size:.93rem;line-height:1.5">' + esc(texto || 'Tu cuenta no tiene acceso a este módulo.') + '</p>'
+      + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      + '<button type="button" id="accesoSolicitar" style="height:40px;padding:0 20px;border:0;border-radius:10px;background:linear-gradient(180deg,#1F4E96,#163C78);color:#fff;font-weight:600;cursor:pointer">Solicitar acceso</button>'
+      + '<button type="button" id="accesoCerrar" style="height:40px;padding:0 18px;border:1px solid #C9D9EE;border-radius:10px;background:#fff;color:#1F4E96;font-weight:600;cursor:pointer">Cerrar</button></div></div>';
+    document.body.appendChild(o);
+    o.addEventListener('click', (e) => { if (e.target === o) o.remove(); });
+    o.querySelector('#accesoCerrar').addEventListener('click', () => o.remove());
+    const b = o.querySelector('#accesoSolicitar');
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Enviando…';
+      const ok = await registrarModulo(modulo, 'Solicitó acceso');
+      o.querySelector('#accesoTxt').textContent = ok ? 'Solicitud enviada. La Oficina de Estadística la revisará y te dará acceso si corresponde.' : 'No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.';
+      if (ok) b.style.display = 'none'; else { b.disabled = false; b.textContent = 'Reintentar'; }
+    });
   }
   window.PortalENAP = window.PortalENAP || {};
   window.PortalENAP.actividadModulo = registrarModulo;
+  window.PortalENAP.solicitarAcceso = (modulo) => registrarModulo(modulo, 'Solicitó acceso');
+  window.PortalENAP.ventanaAcceso = ventanaSolicitarAcceso;
   window.PortalENAP.setModulo = (n) => { moduloActual = n; };
   // Para cuentas rechazadas: se espera (maximo 4 s) a que quede anotado antes de cerrar su sesion.
   function anotarYEsperar(cuenta) {
@@ -2554,6 +2589,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       Object.keys(x.mods || {}).forEach((k) => { p.tmod[k] = (p.tmod[k] || 0) + x.mods[k]; });
     });
     mods.forEach((x) => {
+      if (x.resultado === 'Solicitó acceso') return;
       const p = persona(x.correo, x.nombre); p.ultimo = Math.max(p.ultimo, Date.parse(x.fecha) || 0);
       if (x.resultado === 'Abrió') p.entradas[x.modulo] = (p.entradas[x.modulo] || 0) + 1;
       else { const k = x.modulo + (x.resultado === 'No disponible' ? ' (aún no disponible)' : ''); p.denegados[k] = (p.denegados[k] || 0) + 1; }
@@ -2567,6 +2603,10 @@ img,svg,video,canvas,iframe{max-width:100%}
       const no = Object.keys(p.denegados).map((k) => `<span class="act-mod act-no">${esc(k)} × ${p.denegados[k]}</span>`).join('') || '—';
       return `<tr><td>${esc(p.nombre)}<br><span style="color:#6C86AD;font-size:.8rem">${esc(p.correo)}</span></td><td>${p.n}</td><td><b>${fmtDur(p.seg)}</b></td><td>${p.n ? fmtDur(p.seg / p.n) : '—'}</td><td>${p.ultimo ? esc(fmt.format(new Date(p.ultimo))) : '—'}</td><td>${chips}</td><td>${no}</td></tr>`;
     }).join('');
+    const sol = mods.filter((x) => x.resultado === 'Solicitó acceso');
+    document.getElementById('solicitudesBody').innerHTML = sol.length
+      ? sol.slice(0, 100).map((x) => `<tr><td>${esc(fmt.format(new Date(x.fecha)))}</td><td>${esc(x.nombre || x.correo)}<br><span style="color:#6C86AD;font-size:.8rem">${esc(x.correo)}</span></td><td>${esc(x.modulo)}</td></tr>`).join('')
+      : '<tr><td colspan="3">Nadie ha solicitado acceso en este periodo.</td></tr>';
     const cs = document.getElementById('sesionesBody');
     cs.innerHTML = ses.length ? ses.slice(0, 200).map((x) => {
       const m = Object.keys(x.mods || {}).sort((a, b) => x.mods[b] - x.mods[a]).map((k) => `${esc(k)} ${fmtDur(x.mods[k])}`).join(' · ') || '—';
@@ -3271,7 +3311,7 @@ img,svg,video,canvas,iframe{max-width:100%}
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { showToast('Este módulo es solo para la cuenta autorizada.'); try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (e) {} }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para una cuenta autorizada.'); } catch (e) { showToast('Este módulo es solo para la cuenta autorizada.'); } }
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
