@@ -138,6 +138,13 @@
     min-width:0; flex:0 1 auto;
   }
   .nav-subsistema.show{ display:flex; }
+  /* escritorio: la casita queda pegada a la barra desplazadora (borde derecho) */
+  @media (min-width:761px){
+    nav.topnav:has(.nav-subsistema.show){ padding-right:var(--sbw,0px); }
+    .nav-subsistema.show{ flex:1 1 auto; }
+    .nav-subsistema .name{ flex:1 1 auto; text-align:left; }
+    .nav-subsistema .tag{ order:1 } .nav-subsistema .name{ order:2 } .nav-subsistema .nav-home{ order:3; margin-left:auto }
+  }
   .nav-subsistema .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted); flex-shrink:0; }
   .nav-subsistema .name{
     font-size:13.5px; font-weight:600; color:var(--navy-800);
@@ -481,13 +488,20 @@
   footer .copyright{ display:block; font-size:10.5px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
 
-  .toast{
+  .toast-old{
     position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0;
     background:var(--navy-900); color:#fff; padding:9px 16px; border-radius:10px; font-size:13.5px; font-weight:600;
     box-shadow:var(--shadow-lg); transition:opacity .2s ease, transform .2s ease; pointer-events:none; z-index:60;
     max-width:min(90vw,440px); text-align:center;
   }
-  .toast.show{opacity:1; transform:translate(-50%,0);}
+  .toast{ position:fixed; inset:0; z-index:200; display:grid; place-items:center; padding:20px; background:rgba(7,28,60,.45); }
+  .toast[hidden]{ display:none; }
+  .toast-box{ background:var(--surface); color:var(--navy-900); border-radius:14px; padding:22px 22px 16px; max-width:min(92vw,400px); text-align:center; box-shadow:var(--shadow-lg); border-top:3px solid var(--gold-500); }
+  .toast-box p{ margin:0 0 16px; font-size:15px; font-weight:600; line-height:1.4; }
+  .toast-ok{ background:var(--navy-800); color:#fff; border:0; border-radius:9px; padding:9px 28px; font:inherit; font-weight:600; cursor:pointer; }
+  .ing-fila{ cursor:pointer; } .ing-fila:hover td{ background:var(--navy-50); } .ing-fila.abierta td{ background:var(--navy-50); }
+  .ing-det[hidden]{ display:none; } .ing-det td{ background:#f7f9fc; font-size:12.5px; line-height:1.55; padding:10px 14px !important; border-left:3px solid var(--gold-500); }
+  .toast-ok:hover{ background:var(--navy-900); }
 
   /* ---------- Modal: aviso de seguridad antes de descargar (macros) ---------- */
   /* [hidden] (display:none, sin animar) es solo el estado inicial en el
@@ -806,7 +820,6 @@
     footer .copyright{ display:none; }
 
     input, select, textarea{ font-size:16px !important; }
-    .toast{ bottom:calc(16px + env(safe-area-inset-bottom)); }
   }
 
   @media (max-width:640px){
@@ -1236,8 +1249,8 @@ img,svg,video,canvas,iframe{max-width:100%}
     <p style="font-size:.882rem;color:#5b6b7c;margin:6px 0 10px;">Quién entró o intentó entrar y a qué hora (hora de Colombia). Una misma cuenta se anota una vez cada 10 minutos.</p>
     <div style="max-height:420px;overflow:auto;">
     <table>
-      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th><th>Duración</th><th>Módulos (tiempo)</th></tr></thead>
-      <tbody id="ingresosBody"><tr><td colspan="6">Cargando…</td></tr></tbody>
+      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
+      <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -1599,7 +1612,9 @@ img,svg,video,canvas,iframe{max-width:100%}
   </div>
 </footer>
 
-<div class="toast" id="toast">Este módulo aún no está disponible.</div>
+<div class="toast" id="toast" role="alertdialog" aria-live="assertive" aria-modal="true" hidden>
+  <div class="toast-box"><p id="toastMsg"></p><button type="button" id="toastOk" class="toast-ok">Aceptar</button></div>
+</div>
 
 <!-- Aviso de seguridad previo a la descarga de balances con macros (.xlsm/
      .xltm): Windows marca estos archivos como "bloqueados" al bajarlos de
@@ -2559,7 +2574,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   function pintarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
     const filas = ingresosDatos.filter((e) => !ingresosSoloFallidos || e.resultado !== 'Ingresó');
-    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="6">Sin registros.</td></tr>'; return; }
+    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
     // Cada ingreso se cruza con las sesiones de esa misma cuenta que empezaron desde ese ingreso
@@ -2598,10 +2613,18 @@ img,svg,video,canvas,iframe{max-width:100%}
         const todo = partes.concat(ini, sp);
         if (todo.length) mods = todo.join('<br>');
       }
-      return `<tr><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
-        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td><td>${dur}</td><td style="white-space:normal">${mods}</td></tr>`;
+      const detalle = ok ? ('<b>Tiempo en el Portal:</b> ' + (dur === '—' ? 'sin datos' : dur) + '<br><b>Módulos:</b><br>' + mods) : 'No ingresó: sin actividad.';
+      return `<tr class="ing-fila" tabindex="0" title="Clic para ver su actividad"><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
+        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td></tr>`
+        + `<tr class="ing-det" hidden><td colspan="4" style="white-space:normal">${detalle}</td></tr>`;
     }).join('');
   }
+  (function () {
+    const b = document.getElementById('ingresosBody');
+    const alt = (f) => { const d = f && f.nextElementSibling; if (d && d.classList.contains('ing-det')) { d.hidden = !d.hidden; f.classList.toggle('abierta', !d.hidden); } };
+    b.addEventListener('click', (ev) => alt(ev.target.closest('tr.ing-fila')));
+    b.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { const f = ev.target.closest('tr.ing-fila'); if (f) { ev.preventDefault(); alt(f); } } });
+  })();
   function fmtDur(seg) {
     seg = Math.max(0, Math.round(seg || 0));
     if (seg < 60) return seg + ' s';
@@ -2649,7 +2672,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   }
   async function cargarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
-    cuerpo.innerHTML = '<tr><td colspan="6">Cargando…</td></tr>';
+    cuerpo.innerHTML = '<tr><td colspan="4">Cargando…</td></tr>';
     try {
       const cuentas = (await getMsal()).getAllAccounts();
       if (!cuentas.length) return;
@@ -2660,7 +2683,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       pintarIngresos();
       pintarActividad();
     } catch (e) {
-      cuerpo.innerHTML = `<tr><td colspan="6" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
+      cuerpo.innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${String(e.message || e).replace(/</g, '&lt;')}</td></tr>`;
     }
   }
 
@@ -3214,15 +3237,6 @@ img,svg,video,canvas,iframe{max-width:100%}
       ],
     },
     {
-      key: 'secretaria', nombre: 'Secretaría Académica', icon: 'secretaria',
-      items: [
-        { nombre: 'Sistema de Alertas Docente - SAD', status: 'soon' },
-        // Solo visible para SAC/ADMIN ya con sesion iniciada (ver el
-        // filtro por rolesPermitidos en renderNav, mas abajo).
-        { nombre: 'Gestión de Ceremonias de Grado', status: 'ok', rolesPermitidos: ['SAC', 'ADMIN'] },
-      ],
-    },
-    {
       key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
@@ -3623,10 +3637,12 @@ img,svg,video,canvas,iframe{max-width:100%}
   let toastTimer = null;
   function showToast(msg) {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+    document.getElementById('toastMsg').textContent = msg;
+    t.hidden = false;
+    const ok = document.getElementById('toastOk');
+    ok.onclick = () => { t.hidden = true; };
+    t.onclick = (e) => { if (e.target === t) t.hidden = true; };
+    try { ok.focus(); } catch (e) {}
   }
 
   // ---------------------------------------------------------------
@@ -3697,4 +3713,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   });
 
   renderNav();
+
+  // ancho real de la barra desplazadora (0 si es flotante) -> --sbw
+  (function(){ try { const d=document.createElement('div'); d.style.cssText='position:absolute;top:-999px;width:100px;height:100px;overflow:scroll;visibility:hidden'; document.body.appendChild(d); const w=d.offsetWidth-d.clientWidth; document.body.removeChild(d); document.documentElement.style.setProperty('--sbw', w+'px'); } catch (e) {} })();
 </script>
