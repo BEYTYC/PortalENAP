@@ -111,13 +111,16 @@ const ACCESO_TOTAL = ['sac@enap.edu.co'];
 
 function rolDe(correo, accesos) {
   if (ADMINS.includes(correo)) return 'ADMIN';
-  if (ACCESO_TOTAL.includes(correo)) return 'CONSULTA';
+  if (ACCESO_TOTAL.includes(correo) || DESCARGA_EXTRA.includes(correo)) return 'CONSULTA';
   if ((accesos.consulta || []).some((x) => x.correo === correo)) return 'CONSULTA';
   return null;
 }
 
+/* Cuentas a las que se les permite descargar el Excel (además de entrar como consulta). */
+const DESCARGA_EXTRA = ['ssac@enap.edu.co'];
+
 function puedeDescargar(correo, accesos) {
-  if (ADMINS.includes(correo) || ACCESO_TOTAL.includes(correo)) return true;
+  if (ADMINS.includes(correo) || ACCESO_TOTAL.includes(correo) || DESCARGA_EXTRA.includes(correo)) return true;
   const x = (accesos.consulta || []).find((c) => c.correo === correo);
   return !!(x && x.descarga === true);
 }
