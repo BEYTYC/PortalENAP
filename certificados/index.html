@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Certificados · Portal de servicios digitales Estadística</title>
+<link rel="icon" href="assets/favicon.ico">
+<style>
+  :root{
+    --azul:#0b3d66;
+    --azul-hondo:#062a4a;
+    --dorado:#c9a227;
+    --texto:#212529;
+    --gris:#6c757d;
+    --borde:#d9e2ec;
+    --fondo:#f4f6f8;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--fondo);
+    color:var(--texto);
+    font-family:'Aptos Display','Aptos','Segoe UI',Tahoma,sans-serif;
+  }
+
+  header{
+    background:linear-gradient(118deg, var(--azul-hondo) 0%, var(--azul) 46%, #0e4a7d 100%);
+    border-bottom:3px solid var(--dorado);
+    color:#fff;
+  }
+  .cabecera{
+    max-width:1240px; margin:0 auto; padding:14px 20px;
+    display:flex; align-items:center; gap:16px;
+  }
+  .cabecera img{ height:48px; width:auto; display:block; }
+  .cabecera .titulos{ line-height:1.3; }
+  .cabecera .institucion{ margin:0; font-size:12.5px; opacity:.85; }
+  .cabecera h1{ margin:0; font-size:19px; font-weight:600; }
+  .volver{
+    margin-left:auto;
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.35);
+    color:#fff; padding:7px 14px; border-radius:8px;
+    font:inherit; font-size:13px; text-decoration:none; white-space:nowrap;
+  }
+  .volver:hover{ background:rgba(255,255,255,.22); }
+
+  /* El marco. Nace con un alto de arranque y el portal le dice el suyo:
+     mientras tanto, que no salte. */
+  #marco{
+    display:block; width:100%; height:900px; border:0; overflow:hidden;
+    background:transparent;
+  }
+
+  #respaldo{
+    display:none; max-width:1240px; margin:0 auto; padding:24px 20px;
+    font-size:14px; color:var(--texto);
+  }
+  #respaldo a{ color:var(--azul); }
+
+  /* Crédito institucional: a la derecha, pequeño y junto. */
+  .credito{
+    max-width:1240px; margin:0 auto; padding:14px 20px 28px;
+    text-align:right; line-height:1.35;
+  }
+  .credito .linea1{ font-size:12px; color:var(--gris); }
+  .credito .linea2{ font-size:11.5px; color:#8d949b; font-style:italic; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="cabecera">
+    <img src="assets/logo-enap.png" alt="Escuela Naval de Cadetes &ldquo;Almirante Padilla&rdquo;">
+    <div class="titulos">
+      <p class="institucion">Escuela Naval de Cadetes &ldquo;Almirante Padilla&rdquo;</p>
+      <h1>Certificados</h1>
+    </div>
+    <a class="volver" href="../index.html">Volver al portal</a>
+  </div>
+</header>
+
+<iframe id="marco"
+        title="Portal de Certificados"
+        scrolling="no"
+        loading="eager"
+        allow="clipboard-write"></iframe>
+
+<p id="respaldo">
+  El m&oacute;dulo de certificados no carg&oacute; dentro de esta p&aacute;gina.
+  <a id="enlaceDirecto" href="#" target="_blank" rel="noopener">&Aacute;bralo en una pesta&ntilde;a nueva</a>.
+</p>
+
+<div class="credito">
+  <div class="linea1">Desarrollado por Oficina de Estad&iacute;stica</div>
+  <div class="linea2">PD02 Beyty Camargo Mart&iacute;nez &middot; Jefe de Estad&iacute;stica</div>
+</div>
+
+<script>
+(function () {
+  // La direccion /exec de la aplicacion publicada. Es lo unico que hay que
+  // cambiar si algun dia se republica en otra cuenta.
+  var BASE = 'https://script.google.com/macros/s/AKfycbz-YHYhG_6wmv2AwV2SOsjkQfpdhrdybrgXbBmZMEH8_JT1IiWJPIg3GRyhvs9zSxuXLQ/exec';
+
+  // "admin=1" abre el acceso interno en vez de la pantalla publica. Este modulo
+  // del Portal es la puerta de la oficina; la de los estudiantes vive en el
+  // sitio institucional y no lleva este parametro.
+  //
+  // Lo que venga despues del "?" en esta pagina se conserva: es lo que hace que
+  // un codigo QR abra la verificacion y no la pantalla de inicio.
+  var extra = window.location.search.replace(/^\?/, '');
+  var marco = document.getElementById('marco');
+  marco.src = BASE + '?admin=1' + (extra ? '&' + extra : '');
+
+  // Si el marco no da señales en diez segundos, se ofrece el enlace directo.
+  // Cuando Google rechaza la incrustacion no hay ningun evento de error que
+  // escuchar: el marco se queda con el mensaje de Google y la persona no tiene
+  // a donde ir. Esto no arregla la causa —eso se corrige en la publicacion—
+  // pero evita dejarla sin salida.
+  var vivo = false;
+  setTimeout(function () {
+    if (vivo) return;
+    document.getElementById('enlaceDirecto').href = marco.src;
+    document.getElementById('respaldo').style.display = 'block';
+  }, 10000);
+
+  window.addEventListener('message', function (evento) {
+    // Solo se atiende a Google: cualquier otra pagina puede mandar mensajes.
+    if (!/^https:\/\/([a-z0-9-]+\.)*(google|googleusercontent)\.com$/.test(evento.origin)) return;
+
+    var dato = evento.data;
+    if (!dato || dato.portalCertificados !== true) return;
+
+    vivo = true;
+    document.getElementById('respaldo').style.display = 'none';
+
+    // El portal crecio o encogio: el marco lo sigue, y asi no hay dos barras de
+    // desplazamiento ni rueda de raton atrapada.
+    if (dato.alto) {
+      marco.style.height = dato.alto + 'px';
+      // Se le confirma que aqui SI se esta ajustando el alto. Sin esta
+      // respuesta el portal conserva su propia barra, para que nunca quede una
+      // pagina por la que no se pueda bajar.
+      marco.contentWindow.postMessage(
+        { portalCertificados: true, ajustaAlto: true }, '*');
+    }
+
+    // El portal cambio de pantalla o abrio una ventana. Dentro del marco no
+    // puede subir el, asi que lo pide.
+    if (dato.arriba) {
+      var y = marco.getBoundingClientRect().top + window.pageYOffset - 12;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
