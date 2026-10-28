@@ -931,7 +931,8 @@ svg .cnt{font-weight:700}
 :root:fullscreen .pbr,:root.fsx .pbr{padding:0 10px!important}
 .chips .chip.sub{align-self:center;min-height:34px;padding:6px 14px!important;font-size:14px!important;font-weight:600!important;letter-spacing:0!important;border-radius:10px;line-height:1.2;transform:none!important}
 .chips .chip.sub{position:relative;top:2px}
-.chips [data-k="ESC"]+.chip.sub{margin-left:12px}
+.chips [data-k="ESCT"]+.chip.sub{margin-left:12px}
+.chip.sub{white-space:nowrap}
 .chips .chip.sub{top:3px!important}
 .chips .chip.sub+.chip.sub{margin-left:4px}
 :root:fullscreen #pub>#prem:not([hidden]),:root.fsx #pub>#prem:not([hidden]){flex:0 0 auto!important}
@@ -1449,7 +1450,7 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
   .chip[disabled],.chip.off{display:none!important}
   .wrap{zoom:.88}
 }
-@media(max-width:700px){.chip[data-k="ESC"]{display:none!important}}
+@media(max-width:700px){.chip[data-k="ESCT"]{display:none!important}}
 @media(max-width:700px){.stu .hd{padding-top:0!important;margin-top:0!important}.stu .hd .back{margin:0 0 6px auto!important}.stu{padding-top:8px!important}}
 @media(max-width:700px){.stu>.pfc{margin-top:4px!important;padding:0 4px!important}}
 @media (max-width:700px){
@@ -1518,6 +1519,7 @@ html body .stu table.gt.gt tbody tr td,html body .stu table.gt.gt tbody tr:last-
 </style>
 <script type="text/plain" id="app-src">
 const D=window.__D;
+['MRE','MER'].forEach(k=>(D.sheets&&D.sheets[k]||[]).forEach(s=>{s.g='PLT'}));
 [...(D.esc||[]),...Object.values(D.sheets||{}).flat()].forEach(s=>{if(s.e==='Salió')s.e='Retirado'});
 const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado';
 const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
@@ -1559,16 +1561,21 @@ const TRC=[['#FFD23F','#F2A900','#FFF1A8'],['#D5DDE6','#98A5B5','#FFFFFF'],['#F0
 const trofeo=x=>{const[m,d,l]=TRC[x],K='#62748F',n=x+1,hd='M10 11H4c-1 8 2 14 9 15M38 11h6c1 8-2 14-9 15';return `<svg class="trf" viewBox="0 0 48 54" width="25" height="28" role="img" aria-label="${['Oro','Plata','Bronce'][x]}"><path d="${hd}" fill="none" stroke="${K}" stroke-width="4.8" stroke-linecap="round"/><path d="${hd}" fill="none" stroke="${d}" stroke-width="2.8" stroke-linecap="round"/><rect x="19.5" y="34" width="9" height="9" fill="${d}" stroke="${K}" stroke-width="1"/><rect x="11" y="43" width="26" height="8" rx="2.5" fill="${m}" stroke="${K}" stroke-width="1"/><path d="M9 5h30v15c0 10-7 16-15 16S9 30 9 20z" fill="${m}" stroke="${K}" stroke-width="1" stroke-linejoin="round"/><path d="M9 5h30v5H9z" fill="${l}" stroke="${K}" stroke-width="1"/><path d="M13 15v6c0 4 2 8 5 10" fill="none" stroke="#fff" stroke-opacity=".85" stroke-width="2.4" stroke-linecap="round"/><text x="24" y="28" text-anchor="middle" font-family="Fredoka,Baloo 2,Arial Rounded MT Bold,Arial Black,sans-serif" font-weight="800" style="font-size:17px" fill="#fff" stroke="${K}" stroke-width="1.5" paint-order="stroke" stroke-linejoin="round">${n}</text></svg>`};
 let EDIT=false;
 let cur=null,sel=null,q='';
-const isE=k=>k==='ESC'||k==='PR'||k==='CDP'||k==='CDPRIM'||k==='MRE',eLab=k=>k==='ESC'?'4.2 escalafonamiento':k==='PR'?'4.2 adaptación profesional (PR)':k==='CDP'?'4.2 CDPRON':k==='CDPRIM'?'4.2 CDPRIM':k==='MRE'?'4.2 mercantes':null;const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>eLab(k)||LBM[k]||k;
+const isE=k=>k==='ESC'||k==='ESCT'||k==='PR'||k==='CDP'||k==='CDPRIM'||k==='MRE',eLab=k=>k==='ESCT'?'4.2 escalafonamiento · todos':k==='ESC'?'4.2 NAV-IM':k==='PR'?'4.2 adaptación profesional (PR)':k==='CDP'?'4.2 CDPRON':k==='CDPRIM'?'4.2 CDPRIM':k==='MRE'?'4.2 mercantes':null;const LBM={'1.2':'1.1','2.1':'1.2','2.2':'2.1','3.1':'2.2','3.2':'3.1','4.1':'3.2','4.2':'4.1','MER':'Mercantes'};const lab=k=>eLab(k)||LBM[k]||k;
 let msem=null;
 const semOf=s=>{const m=String(s.cu||'').match(/^(\d)\.(\d)/);return m?(+m[1]-1)*2+(+m[2]):null};
-const ls=k=>k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[]).filter(s=>semOf(s)===msem):D.sheets[k]||[];
+const ESCT_K=['PR','CDPRIM','CDP','MRE'],ESCT_L={PR:'PR',CDPRIM:'CDPRIM',CDP:'CDPRON',MRE:'Mercantes'};
+let _et=null;
+function etAll(){if(_et)return _et;const L=[],cat=new Map();(D.esc||[]).forEach(s=>{L.push(s);cat.set(s,'ESC')});ESCT_K.forEach(k=>(D.sheets[k]||[]).forEach(s=>{L.push(s);cat.set(s,k)}));
+  L.sort((a,b)=>(b.f??-1)-(a.f??-1));const rk=new Map();let n=0;L.forEach(s=>{if(!OUT(s)&&s.f!=null)rk.set(s,++n)});_et={L,cat,rk};return _et}
+const catOf=s=>etAll().cat.get(s)||'ESC',catLab=k=>k==='ESC'?'NAV-IM':(ESCT_L[k]||k);
+const ls=k=>k==='ESCT'?etAll().L:k==='ESC'?D.esc:(k==='MER'&&msem!=null&&!q&&!sel)?(D.sheets.MER||[]).filter(s=>semOf(s)===msem):D.sheets[k]||[];
 const title={ESC:'Escalafonamiento '+PER};
 function chips(){
   const c=document.getElementById('chips');
-  const GSUB=(isE(cur)||D.solo)?[['ESC','4.2'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON'],['MRE','Mercantes']].filter(g=>g[0]==='ESC'||(D.sheets[g[0]]||[]).length):[];
+  const GSUB=(isE(cur)||D.solo)?[['ESCT','Todos'],['ESC','NAV-IM'],['PR','PR'],['CDPRIM','CDPRIM'],['CDP','CDPRON'],['MRE','Mercantes']].filter(g=>g[0]==='ESC'||g[0]==='ESCT'||(D.sheets[g[0]]||[]).length):[];
   const SUBH=GSUB.length>1?GSUB.map(g=>`<button class="chip sub" aria-pressed="${cur===g[0]}" data-sg="${g[0]}">${g[1]}</button>`).join(''):'';
-  c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESC">Escalafonamiento</button>`+SUBH+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
+  c.innerHTML=(D.solo?['1.1','1.2','2.1','2.2','3.1','3.2','4.1'].map(k=>`<button class="chip esc off" disabled>${k}</button>`).join(''):ORD.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${lab(k)}</button>`).join(''))+`<button class="chip esc off" disabled data-tip="Se habilita cuando se carguen las notas finales del 4.2">4.2</button><button class="chip" aria-pressed="${isE(cur)}" data-k="ESCT">Escalafonamiento</button>`+SUBH+(D.sheets.MER?`<button class="chip" aria-pressed="${cur==='MER'}" data-k="MER">Mercantes</button>`:'')+'<span class="cpe">Periodo Académico <select id="pv2" aria-label="Periodo académico"></select></span>';
   try{window.selPer&&window.selPer(window.__PERS||[],window.__PER)}catch(e){}
   const ms=document.getElementById('msub');
   if(ms){ms.hidden=cur!=='MER';if(cur==='MER'){const M=D.sheets.MER||[];ms.innerHTML=`<button class="chip" aria-pressed="${msem==null}" data-s="">Todos</button>`+[1,2,3,4,5,6,7,8].map(n=>{const c=M.filter(s=>semOf(s)===n).length;return `<button class="chip${c?'':' off'}" aria-pressed="${msem===n}" data-s="${n}"${c?'':' disabled'}>Sem ${n}</button>`}).join('');
@@ -1604,7 +1611,7 @@ function row(s,k,i){
   const h=s.h[s.h.length-1]||[];
   const lo=(v,t=6)=>v!=null&&v<t?' lo':'';
   const w=Math.max(0,Math.min(100,((s.f??6)-6)/4*100));
-  return `<tr class="r${sel&&sel.c===s.c?' sel':''}" tabindex="0" data-i="${i}" data-k="${k}"><td class="pu">${OUT(s)?'':(s.p??'—')}</td><td class="nm"><span class="gr">${s.g}</span> ${s.n}${AST(s)}${ic(s)}${nvb(s)}</td><td>${s.cu??''}</td><td class="n${lo(h[1])}">${f3(h[1])}</td><td class="n${lo(h[2],8)}">${f3(h[2])}</td><td class="n${lo(h[3])}">${f3(h[3])}</td><td class="n${lo(h[4],7)}">${f3(h[4])}</td><td><div class="fb"><i><b style="width:${w}%"></b><u style="left:${mp(k)}%"></u></i><span>${f3(s.f)}</span></div></td></tr>`;
+  return `<tr class="r${sel&&sel.c===s.c?' sel':''}" tabindex="0" data-i="${i}" data-k="${k}"><td class="pu">${OUT(s)?'':(k==='ESCT'?(etAll().rk.get(s)??'—'):(s.p??'—'))}</td><td class="nm"><span class="gr">${s.g}</span> ${s.n}${k==='ESCT'?`<span class="tag" style="margin-left:6px">${catLab(catOf(s))}</span>`:''}${AST(s)}${ic(s)}${nvb(s)}</td><td>${s.cu??''}</td><td class="n${lo(h[1])}">${f3(h[1])}</td><td class="n${lo(h[2],8)}">${f3(h[2])}</td><td class="n${lo(h[3])}">${f3(h[3])}</td><td class="n${lo(h[4],7)}">${f3(h[4])}</td><td><div class="fb"><i><b style="width:${w}%"></b><u style="left:${mp(k)}%"></u></i><span>${f3(s.f)}</span></div></td></tr>`;
 }
 
 const _pv={};
@@ -1795,7 +1802,7 @@ function totRender(){
 function render(){
   if(window.__lc!==undefined&&window.__lc!==cur){try{const _p=document.getElementById('pub');if(_p&&!matchMedia('(prefers-reduced-motion:reduce)').matches)_p.animate([{opacity:0},{opacity:1}],{duration:380,easing:'ease-out'})}catch(e){}}window.__lc=cur;
   chips();
-  document.getElementById('h1').textContent=cur==='ESC'?'Escalafonamiento '+PER:isE(cur)?lab(cur)+' '+PER:'Antigüedades '+PER;
+  document.getElementById('h1').textContent=(cur==='ESC'||cur==='ESCT')?'Escalafonamiento '+PER:isE(cur)?lab(cur)+' '+PER:'Antigüedades '+PER;
   let list,k=cur,rows;
   if(q){
     rows=buscar(q).slice(0,80);
@@ -1806,7 +1813,7 @@ function render(){
     totRender();
   }else{
     list=ls(cur);
-    const ranked=list.filter(s=>!OUT(s)).sort((a,b)=>(a.p??1e9)-(b.p??1e9));
+    const ranked=list.filter(s=>!OUT(s)).sort(cur==='ESCT'?((a,b)=>(etAll().rk.get(a)??1e9)-(etAll().rk.get(b)??1e9)):((a,b)=>(a.p??1e9)-(b.p??1e9)));
     const apl=list.filter(s=>OUT(s)&&!(isE(cur)&&s.e==='Retirado'));
     {const top=(cur==='1.1'||(cur==='MER'&&msem==null))?[]:ranked.slice(0,5),ord=[0,1,2,3,4].filter(x=>top[x]);const f1=top.length?top[0].f:0,fl=top.length?top[top.length-1].f:0,pbh=s=>f1>fl?Math.round(52+(s.f-fl)/(f1-fl)*52):104;document.getElementById('pod').innerHTML=!top.length?'':'<h3>Podio · semestre '+(eLab(cur)||lab(cur))+'</h3><div class="podio">'+ord.map(x=>{const s=top[x];return `<div class="pd p${x+1}" tabindex="0" data-i="${list.indexOf(s)}" data-k="${cur}"><div class="pi">${isE(cur)&&x<3?trofeo(x):''}<span class="mdw">${ic(s)}</span>${s.e&&s.e!=='Normal'?`<span class="pnv">${s.e}</span>`:''}<span class="pn">${s.g}</span><b class="nm1" title="${s.n}">${corto(s.n)}</b><span class="pf">${f3(s.f)}</span><small>${s.cu||''}</small></div><div class="pb" style="height:${pbh(s)}px!important"><span>${x+1}</span></div></div>`}).join('')+'</div>'}
     document.getElementById('tb').innerHTML=ranked.map(s=>row(s,cur,list.indexOf(s))).join('');
@@ -1820,7 +1827,7 @@ function render(){
       document.getElementById('kpi').innerHTML=`<div class="k"><span>Estudiantes</span><b>${ranked.length}</b></div>`+tile('Promedio final semestre',av('f'),'f')+`<div class="k"><span>Mejor promedio</span><b>${f3(Math.max(...fv))}</b><small class="dl eq">${(ranked.find(s=>s.f===Math.max(...fv))||{g:'',n:''}).g||''} ${(ranked.find(s=>s.f===Math.max(...fv))||{n:''}).n}</small></div>`+[['Prom. académico','ac'],['Prom. disciplina','di'],['Prom. apt. naval','an'],['Prom. cultura física','cf']].map(([n,f])=>tile(n,av(f),f)).join('')}
     document.getElementById('apl').innerHTML=apl.length?`<div class="sec">Fuera del orden · aplazados, en comisión y retirados</div><div class="tw"><table><tbody>${apl.map(s=>row(s,cur,list.indexOf(s))).join('')}</tbody></table></div>`:'';
   }
-  document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
+  document.querySelectorAll('tr.r,.pd').forEach(e=>{const go=()=>{sel=ls(e.dataset.k)[+e.dataset.i];selK=e.dataset.k==='ESCT'?catOf(sel):e.dataset.k;render2();window.scrollTo({top:0,behavior:'smooth'})};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter')go()}});
   stuRender();side();chartsRender();mrRender();novRender();merRender();premRender();grpRender();salvRender();countUp();mkSort();centerLg();fitK();{const _p=document.getElementById('pod');if(_p)_p.classList.toggle('pr',cur==='PR')}
 }
 
@@ -2171,7 +2178,7 @@ function editor(el,s){
 document.getElementById('q').addEventListener('input',e=>{const q0=q;q=e.target.value.trim();if(q&&!q0)window.__pre={cur,msem,totSel,nk,y:window.scrollY};if(!q)window.__pre=null;sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
 {const th=document.getElementById('thc');if(th)th.textContent='Curso '+PER}
-if(D.solo){cur='ESC';window.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>render(),0)}else render();
+if(D.solo){cur='ESCT';window.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>render(),0)}else render();
 /* ===== Movimiento de puestos y riesgo ===== */
 function lastB(s){return s.h[s.h.length-1]||[]}
 function sumyRender(){
@@ -2255,7 +2262,7 @@ function premRender(){
   const leg=PCAT.map(([cn],k)=>CT.some(x=>x[0]===cn)?`<span><b class="ptk v-icon" style="--c:${PCOL[k]}"><svg viewBox="0 0 24 24">${GL[k]}</svg></b>${cn}</span>`:'').join('');
   const one=L.length===1,so=one?L[0]:L.find(o=>o.s.c===premSel);
   const det=so?`<div class="pdt pgrid pone"><div class="pst"><div class="ph"><span class="pp">${so.s.p??'—'}</span><span class="pn"><span class="gr">${so.s.g||''}</span> ${so.s.n}${ic(so.s)}</span><span class="pc">${so.x.length} ${so.x.length===1?'premio':'premios'} · Promedio final ${f3(so.s.f)} · ${so.s.cu||''}</span></div>${catOf(so).map(c=>`<h6 class="pcat">${c.cn} (${c.xs.length})</h6><ul>${c.xs.map(z=>`<li><b>${flag(z.a.o)}${z.a.t}</b><em>${z.m}</em><span>${z.a.r||z.a.o}</span></li>`).join('')}</ul>`).join('')}</div></div>`:'';
-  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3>'+(one?'':'<div class="pbars" role="list">'+rowsH+'</div>')+det;
+  el.innerHTML='<h3>Premios · '+(isE(cur)&&cur!=='ESC'&&cur!=='ESCT'?eLab(cur):'escalafonamiento 4.2')+' · '+L.length+(L.length===1?' estudiante':' estudiantes')+'</h3>'+(one?'':'<div class="pbars" role="list">'+rowsH+'</div>')+det;
   if(pw){pw.innerHTML=leg;pw.hidden=false}
   {const g=el.querySelector('.pbfn'),l=null;if(g&&l)l.style.paddingLeft=(g.getBoundingClientRect().left-l.getBoundingClientRect().left)/(parseFloat(getComputedStyle(document.body).zoom)||1)+'px'}
   el.querySelectorAll('.pbr').forEach(b=>b.onclick=()=>{premSel=premSel===+b.dataset.c?null:+b.dataset.c;premRender();if(premSel!=null){const d=el.querySelector('.pdt');if(d){const q=d.getBoundingClientRect();if(q.bottom>innerHeight)scrollBy({top:q.bottom-innerHeight+16,behavior:'smooth'});else if(q.top<0)scrollBy({top:q.top-16,behavior:'smooth'})}}});
@@ -2268,7 +2275,7 @@ function mrRender(){
   const nm=s=>`<span class="gr">${s.g}</span> ${s.n}${AST(s)}${ic(s)}${nvb(s)}`;
   // movimiento
   const PO2=['2022-2','2023-1','2023-2','2024-1','2024-2','2025-1','2025-2','2026-1'].concat(PER==='2026-2'?['2026-2']:[]);
-  const mv=list.map(s=>{if(s.p==null||k==='ESC'||!(s.hp&&s.hp.length))return null;const cu=s.hp[s.hp.length-1];const pr=s.hp.slice(0,-1).filter(e=>e[4]===''&&typeof e[2]==='number'&&PO2.indexOf(e[0])<PO2.indexOf(cu[0])).pop();if(!pr||String(s.e)==='Repitente'&&false)return null;const nNow=list.filter(x=>typeof x.p==='number').length,rel=(q,n)=>n>1?(q-1)/(n-1):0;return{s,d:Math.round((rel(pr[2],pr[3])-rel(s.p,nNow))*100),pp:pr[2],pn:pr[3],nn:nNow,pl:pr[1]}}).filter(Boolean);
+  const mv=list.map(s=>{if(s.p==null||k==='ESC'||k==='ESCT'||!(s.hp&&s.hp.length))return null;const cu=s.hp[s.hp.length-1];const pr=s.hp.slice(0,-1).filter(e=>e[4]===''&&typeof e[2]==='number'&&PO2.indexOf(e[0])<PO2.indexOf(cu[0])).pop();if(!pr||String(s.e)==='Repitente'&&false)return null;const nNow=list.filter(x=>typeof x.p==='number').length,rel=(q,n)=>n>1?(q-1)/(n-1):0;return{s,d:Math.round((rel(pr[2],pr[3])-rel(s.p,nNow))*100),pp:pr[2],pn:pr[3],nn:nNow,pl:pr[1]}}).filter(Boolean);
   const ups=mv.filter(x=>x.d>0).sort((a,b)=>b.d-a.d).slice(0,5),dns=mv.filter(x=>x.d<0).sort((a,b)=>a.d-b.d).slice(0,5);
   const li=(x,c,ar)=>`<li data-k="${k}" data-i="${all.indexOf(x.s)}"><b class="${c}">${ar} ${Math.abs(x.d)}%</b><span class="nx">${nm(x.s)}</span><small>${(()=>{const r=x.pp-x.s.p;return r===0?'igual puesto':(r>0?'sube ':'baja ')+Math.abs(r)+(Math.abs(r)===1?' puesto':' puestos')})()} · puesto ${x.s.p}/${x.nn} · antes ${x.pp}/${x.pn} (${String(x.pl).replace(/A$/,' reprobado')})</small></li>`;
   const nU=mv.filter(x=>x.d>0).length,nD=mv.filter(x=>x.d<0).length,nS=mv.filter(x=>x.d===0).length;
