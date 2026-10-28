@@ -1585,7 +1585,7 @@ function chips(){
     ms.querySelectorAll('button').forEach(b=>b.onclick=()=>{msem=b.dataset.s===''?null:+b.dataset.s;sel=null;q='';nk=null;document.getElementById('q').value='';render()})}}
   if(ms&&isE(cur)){ms.hidden=true;ms.innerHTML=''}
   c.querySelectorAll('button[data-k]').forEach(b=>b.onclick=()=>{cur=(b.dataset.k===cur&&!D.solo&&b.dataset.k!=='ESCT')?null:b.dataset.k;msem=null;totSel=null;sel=null;q='';nk=null;document.getElementById('q').value='';render()});
-  c.querySelectorAll('button[data-sg]').forEach(b=>b.onclick=()=>{cur=b.dataset.sg;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';if(cur==='CDP'&&(D.sheets.CDP||[]).length===1){sel=D.sheets.CDP[0];selK='CDP'}render()});
+  c.querySelectorAll('button[data-sg]').forEach(b=>b.onclick=()=>{cur=b.dataset.sg;sel=null;selK=null;q='';nk=null;document.getElementById('q').value='';render()});
 }
 function pv(s){
   if(!s.pv) return s.e&&s.e!=='Normal'?`<span class="tag">${s.e}</span>`:'';
