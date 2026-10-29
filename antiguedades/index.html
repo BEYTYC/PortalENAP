@@ -2472,7 +2472,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
     if (/<w:sz [^>]*\/>/.test(rpr)) return rpr.replace(/(<w:sz [^>]*\/>)/, '$1' + HLC);
     return rpr + HLC;
   }
-  function run(rpr, t, hl) { return '<w:r><w:rPr>' + conHl(rpr, hl) + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>'; }
+  function run(rpr, t, hl) { return '<w:r><w:rPr>' + conHl(rpr, hl && tipo !== 'PR') + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>'; }
   function runsDe(p) {
     var out = [], re = /<w:r(?: [^>]*)?>([\s\S]*?)<\/w:r>/g, m;
     while ((m = re.exec(p))) {
