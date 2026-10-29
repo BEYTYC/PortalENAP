@@ -2545,7 +2545,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
   var ORDK = ['di', 'sa', 'cf', 'ac'];
   var PRIO = ['di', 'sa', 'cf', 'ac'];
   function principal(s) { var c = cats(s); for (var k = 0; k < PRIO.length; k++) if (c.indexOf(PRIO[k]) >= 0) return PRIO[k]; return null; }
-  function marcas(s) { var p = principal(s); return tipo === 'NAV-IM' ? (p ? MK[p] : '') : (cats(s).length ? '*' : ''); }
+  function marcas(s) { var p = principal(s); return tipo === 'NAV-IM' ? (p ? MK[p] : '') : (cats(s).length ? MK.cf : ''); }
   var DIRECTOR = 'DARÍO EDUARDO SANABRIA GAITÁN';
   var per = cfg.periodo || '2026-2', anio = per.split('-')[0], sem = per.split('-')[1];
   var fAsc = cfg.fechaAscenso || 'diciembre de ' + anio;
