@@ -2587,7 +2587,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         var lugar = s.lx || '';
         if (esExt) {
           var ce = String(s.ce == null ? '' : s.ce).replace(/\D/g, ''), cex = ce.length > 7 ? ce.slice(0, ce.length - 7) + '-' + ce.slice(-7, -4) + '-' + ce.slice(-4) : ce;
-          vals = ['1', s.g || 'GM', '', 'ESP', sinTildes(s.n), cex, String(s.pais || '').toUpperCase(), f3(s.f)];
+          vals = ['1', s.g || 'GM', s.ct || 'PR-61', 'ESP', sinTildes(s.n), cex, String(s.pais || '').toUpperCase(), f3(s.f)];
           if (!s.pais) faltan[6] = 1;
         } else if (esNav) {
           vals = [String(s.p), s.g || '', s.ct || '', 'ESP', sinTildes(s.n) + marcas(s), cedula(s.ce), sinTildes(lugar), f3(s.f)];
