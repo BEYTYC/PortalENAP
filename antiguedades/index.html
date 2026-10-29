@@ -2464,8 +2464,8 @@ function sinCarpetas(z) { Object.keys(z.files).forEach(function (n) { if (z.file
 /* Áreas de conocimiento con tilde, como en la plantilla de la Escuela (ODONTOLOGÍA, PSICOLOGÍA…). */
 var AREAS_TIL = { 'INGENIERO ELECTRONICO': 'INGENIERO ELECTRÓNICO', 'INGENIERO ELECTRICO': 'INGENIERO ELÉCTRICO', 'INGENIERO AERONAUTICO': 'INGENIERO AERONÁUTICO', 'MEDICO': 'MÉDICO', 'COMUNICACION SOCIAL Y PERIODISMO': 'COMUNICACIÓN SOCIAL Y PERIODISMO', 'INGENIERO DE SISTEMAS O INFORMATICA': 'INGENIERO DE SISTEMAS O INFORMÁTICA', 'ODONTOLOGIA': 'ODONTOLOGÍA', 'PSICOLOGIA': 'PSICOLOGÍA' };
 function areaTil(a) { var k = String(a || '').toUpperCase().trim(); return AREAS_TIL[k] || k; }
-/* Especialidad que se imprime en el certificado: SPA, SPE y SPO son ESP; ING es EIN; LA es LADM. */
-function espCert(sp) { var k = String(sp || '').toUpperCase().trim(); return { SPA: 'ESP', SPE: 'ESP', SPO: 'ESP', ING: 'EIN', LA: 'LADM' }[k] || k; }
+/* Especialidad que se imprime en el certificado: SPA, SPE y SPO son ESP; ING es EIN; LA es LADM; IM es CIM. */
+function espCert(sp) { var k = String(sp || '').toUpperCase().trim(); return { SPA: 'ESP', SPE: 'ESP', SPO: 'ESP', ING: 'EIN', LA: 'LADM', IM: 'CIM' }[k] || k; }
 function armarCert(JSZip, bytes, tipo, D, cfg) {
   var HLC = '<w:highlight w:val="yellow"/>';
   function xe(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
