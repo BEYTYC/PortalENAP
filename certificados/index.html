@@ -109,7 +109,9 @@
   // un codigo QR abra la verificacion y no la pantalla de inicio.
   var extra = window.location.search.replace(/^\?/, '');
   var marco = document.getElementById('marco');
-  marco.src = BASE + '?admin=1' + (extra ? '&' + extra : '');
+  // "simple=1" le dice al portal que no dibuje su cabecera ni su pie: esta
+  // pagina ya los tiene, y dos encabezados uno dentro de otro se ven mal.
+  marco.src = BASE + '?admin=1&simple=1' + (extra ? '&' + extra : '');
 
   // Si el marco no da señales en diez segundos, se ofrece el enlace directo.
   // Cuando Google rechaza la incrustacion no hay ningun evento de error que
