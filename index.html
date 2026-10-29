@@ -3262,7 +3262,6 @@ img,svg,video,canvas,iframe{max-width:100%}
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
         { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
-        { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
     {
@@ -3369,7 +3368,7 @@ img,svg,video,canvas,iframe{max-width:100%}
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.innerHTML = item.status === 'ok'
-          ? `<span class="label">${item.nombre}</span><span class="dot-ok" title="Disponible"></span>`
+          ? `<span class="label">${item.nombre}</span>`
           : item.status === 'link'
           ? `<span class="label">${item.nombre}</span><span class="tag" title="Sale del Portal, a la vista pública del estudiante">Enlace</span>`
           : `<span class="label">${item.nombre}</span><span class="tag">${STATUS_LABEL[item.status]}</span>`;
