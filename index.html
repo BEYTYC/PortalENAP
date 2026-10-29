@@ -378,7 +378,7 @@
   .cde-note{ margin-top:9px; font-size:11.5px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt{
+  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt, #viewCertificados{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -395,7 +395,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden], #viewCertificados[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -622,8 +622,8 @@
     /* El área de contenido empieza justo debajo de la barra de la casita y termina justo encima del pie:
        main no puede crecer más que su celda (min-height:0) y recorta lo que sobre; el pie va por encima. */
     main{ min-height:0; position:relative; }
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:hidden !important; }
-    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:hidden !important; }
+    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
     footer{ position:relative; z-index:5; }
     /* Barra del módulo (casita + nombre): más baja y la casita sin círculo. */
     .nav-subsistema{ padding:0 8px 0 4px !important; min-height:0 !important; gap:6px !important; }
@@ -633,7 +633,7 @@
     .nav-subsistema .name{ font-size:14px !important; }
     /* Un módulo abierto no debe poder moverse dentro de main (ni siquiera por scrollIntoView desde el iframe):
        así el módulo siempre queda debajo de la barra de la casita y termina sobre el pie. */
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro):not([hidden])){ overflow:clip !important; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:clip !important; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
        el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
@@ -1519,6 +1519,18 @@ img,svg,video,canvas,iframe{max-width:100%}
       title="Antigüedades ENAP"
       allow="fullscreen"
       allowfullscreen
+    ></iframe>
+  </div>
+
+  <div id="viewCertificados" hidden>
+    <!-- Aprobación de Certificados: ingreso administrativo del Portal de
+         Certificados (Apps Script). El iframe se carga la primera vez que se
+         abre; el propio módulo pide usuario y clave. -->
+    <iframe
+      id="certificadosFrame"
+      class="registro-iframe"
+      title="Aprobación de Certificados"
+      allow="clipboard-write; downloads"
     ></iframe>
   </div>
 
@@ -3244,7 +3256,7 @@ img,svg,video,canvas,iframe{max-width:100%}
         { nombre: 'Antigüedades ENAP', status: 'ok' },
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
-        { nombre: 'Aprobación de Certificados', status: 'soon' },
+        { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
         { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
@@ -3365,6 +3377,10 @@ img,svg,video,canvas,iframe{max-width:100%}
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
+          else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
+            else { abrirSubsistema('viewCertificados', 'Aprobación de Certificados'); cargarCertificados(); }
+          }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Concesiones') { abrirSubsistema('viewConcesiones', 'Aprobación de Concesiones'); cargarConcesiones(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
           else if (item.status === 'ok' && item.nombre === 'Protocolo Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Protocolo · Antigüedades ENAP'); cargarProtocoloAnt(); }
@@ -3534,6 +3550,16 @@ img,svg,video,canvas,iframe{max-width:100%}
     const f = document.getElementById('antiguedadesFrame');
     if (f.dataset.cargado) return;
     f.src = 'antiguedades/index.html?embedded=1';
+    f.dataset.cargado = '1';
+  }
+
+  // Aprobación de Certificados: ingreso administrativo del portal de certificados
+  // (Apps Script). Se carga la primera vez que se abre.
+  const CERTIFICADOS_URL = 'https://script.google.com/macros/s/AKfycbz-YHYhG_6wmv2AwV2SOsjkQfpdhrdybrgXbBmZMEH8_JT1IiWJPIg3GRyhvs9zSxuXLQ/exec';
+  function cargarCertificados() {
+    const f = document.getElementById('certificadosFrame');
+    if (f.dataset.cargado) return;
+    f.src = CERTIFICADOS_URL + '?admin=1&simple=1';
     f.dataset.cargado = '1';
   }
 
