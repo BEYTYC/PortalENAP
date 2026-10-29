@@ -387,6 +387,10 @@
   #concesionesCarga.on{ display:flex; }
   #concesionesCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
   @keyframes concCargaGira{ to{ transform:rotate(360deg); } }
+  /* Aprobación de Certificados: pantalla de carga, igual a la de Concesiones */
+  #certificadosCarga{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:transparent; color:#0a2540; font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; text-align:center; }
+  #certificadosCarga.on{ display:flex; }
+  #certificadosCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
   /* Registro Cursos de Extension: el modulo entra subiendo y apareciendo */
   @keyframes moduloSube{ from{ opacity:0; transform:translateY(28px); } to{ opacity:1; transform:none; } }
   #viewRegistro:not([hidden]){ animation:moduloSube .65s cubic-bezier(.22,.8,.3,1) both; }
@@ -1526,6 +1530,7 @@ img,svg,video,canvas,iframe{max-width:100%}
     <!-- Aprobación de Certificados: ingreso administrativo del Portal de
          Certificados (Apps Script). El iframe se carga la primera vez que se
          abre; el propio módulo pide usuario y clave. -->
+    <div id="certificadosCarga" role="status" aria-live="polite"><i></i><span>Cargando sesión…</span></div>
     <iframe
       id="certificadosFrame"
       class="registro-iframe"
@@ -3257,6 +3262,7 @@ img,svg,video,canvas,iframe{max-width:100%}
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
         { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
+        { nombre: 'Generación de Promedios Académicos', status: 'soon' },
       ],
     },
     {
@@ -3363,7 +3369,7 @@ img,svg,video,canvas,iframe{max-width:100%}
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.innerHTML = item.status === 'ok'
-          ? `<span class="label">${item.nombre}</span>`
+          ? `<span class="label">${item.nombre}</span><span class="dot-ok" title="Disponible"></span>`
           : item.status === 'link'
           ? `<span class="label">${item.nombre}</span><span class="tag" title="Sale del Portal, a la vista pública del estudiante">Enlace</span>`
           : `<span class="label">${item.nombre}</span><span class="tag">${STATUS_LABEL[item.status]}</span>`;
@@ -3558,6 +3564,8 @@ img,svg,video,canvas,iframe{max-width:100%}
   function cargarCertificados() {
     const f = document.getElementById('certificadosFrame');
     if (f.dataset.cargado) return;
+    const cg = document.getElementById('certificadosCarga');
+    if (cg) { cg.classList.add('on'); clearTimeout(window.__certCargaT); window.__certCargaT = setTimeout(() => cg.classList.remove('on'), 25000); }
     f.src = CERTIFICADOS_URL + '?admin=1&simple=1';
     f.dataset.cargado = '1';
   }
@@ -3621,7 +3629,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   window.addEventListener('message', async (event) => {
     const d = event.data;
     const tiposValidos = ['concesiones:token-request', 'concesiones:pantalla-completa', 'concesiones:listo', 'concesiones:alto',
-                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request', 'certificados:token-request'];
+                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request', 'certificados:token-request', 'certificados:listo'];
     if (!d || tiposValidos.indexOf(d.type) === -1) return;
     let host = '';
     try { host = new URL(event.origin).hostname; } catch (e) { return; }
@@ -3633,6 +3641,10 @@ img,svg,video,canvas,iframe{max-width:100%}
     }
     if (d.type === 'concesiones:listo') {
       const cg = document.getElementById('concesionesCarga'); if (cg) cg.classList.remove('on');
+      return;
+    }
+    if (d.type === 'certificados:listo') {
+      const cgc = document.getElementById('certificadosCarga'); if (cgc) cgc.classList.remove('on');
       return;
     }
     if (d.type === 'titulacion:listo') return;
