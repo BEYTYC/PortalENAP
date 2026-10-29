@@ -2461,6 +2461,9 @@ function cargaJSZip(){return new Promise(function(ok,no){if(window.JSZip)return 
    revisar o cambiar sale resaltado en amarillo. */
 /* Word (y su vista previa) rechaza el .docx si trae entradas de carpeta (p. ej. "word/"): se quitan antes de generar. */
 function sinCarpetas(z) { Object.keys(z.files).forEach(function (n) { if (z.files[n].dir) delete z.files[n]; }); return z; }
+/* Áreas de conocimiento con tilde, como en la plantilla de la Escuela (ODONTOLOGÍA, PSICOLOGÍA…). */
+var AREAS_TIL = { 'INGENIERO ELECTRONICO': 'INGENIERO ELECTRÓNICO', 'INGENIERO ELECTRICO': 'INGENIERO ELÉCTRICO', 'INGENIERO AERONAUTICO': 'INGENIERO AERONÁUTICO', 'MEDICO': 'MÉDICO', 'COMUNICACION SOCIAL Y PERIODISMO': 'COMUNICACIÓN SOCIAL Y PERIODISMO', 'INGENIERO DE SISTEMAS O INFORMATICA': 'INGENIERO DE SISTEMAS O INFORMÁTICA', 'ODONTOLOGIA': 'ODONTOLOGÍA', 'PSICOLOGIA': 'PSICOLOGÍA' };
+function areaTil(a) { var k = String(a || '').toUpperCase().trim(); return AREAS_TIL[k] || k; }
 function armarCert(JSZip, bytes, tipo, D, cfg) {
   var HLC = '<w:highlight w:val="yellow"/>';
   function xe(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
@@ -2592,7 +2595,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           if (!s.ct) faltan[2] = 1;
           if (esMre && !s.ct) vals[2] = 'MC-55';
         } else {
-          vals = [String(s.p), s.g || 'GM', s.ec || '', sinTildes(s.ae || ''), sinTildes(s.n) + marcas(s), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          vals = [String(s.p), s.g || 'GM', s.ec || '', areaTil(s.ae), sinTildes(s.n) + marcas(s), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!s.ec) faltan[2] = 1;
           if (!s.ae) faltan[3] = 1;
           if (!lugar) faltan[6] = 1;
