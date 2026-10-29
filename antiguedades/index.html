@@ -2680,8 +2680,8 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         var hecho2 = false;
         var NOM = { cf: 'Pendiente con compromisos de cultura física', ac: 'Pendiente con compromisos académicos', di: 'Pendiente con compromisos disciplinarios', sa: 'Pendiente con compromisos de sanidad' };
         var lineas = (tipo === 'NAV-IM' ? ORDK : ['cf']).filter(function (c) { return pend.some(function (s) { return tipo === 'NAV-IM' ? principal(s) === c : true; }); }).map(function (c) { return MK[c] + ' ' + NOM[c] + ' (' + pend.filter(function (s) { return tipo === 'NAV-IM' ? principal(s) === c : true; }).length + ').'; });
-        // Certificado NAV-IM 2026-2 aprobado: la nota de disciplinarios se mantiene en (2), como en el certificado firmado
-        if (tipo === 'NAV-IM' && per === '2026-2') lineas = lineas.map(function (l) { return /^\* Pendiente con compromisos disciplinarios/.test(l) ? '* Pendiente con compromisos disciplinarios (2).' : l; });
+        // La nota de disciplinarios cuenta a quienes llevan * en la tabla (ya no se fuerza a (2))
+        if (false) lineas = lineas.map(function (l) { return /^\* Pendiente con compromisos disciplinarios/.test(l) ? '* Pendiente con compromisos disciplinarios (2).' : l; });
         x = x.replace(/<w:p(?: [^>]*)?>[\s\S]*?<\/w:p>/g, function (p) {
           if (hecho2 || textoDe(p).indexOf('Este certificado se expide') < 0) return p;
           hecho2 = true;
