@@ -3622,7 +3622,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   window.addEventListener('message', async (event) => {
     const d = event.data;
     const tiposValidos = ['concesiones:token-request', 'concesiones:pantalla-completa', 'concesiones:listo', 'concesiones:alto',
-                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request'];
+                          'titulacion:token-request', 'titulacion:pantalla-completa', 'titulacion:listo', 'balances:token-request', 'certificados:token-request'];
     if (!d || tiposValidos.indexOf(d.type) === -1) return;
     let host = '';
     try { host = new URL(event.origin).hostname; } catch (e) { return; }
