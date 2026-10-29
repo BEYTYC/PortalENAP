@@ -448,7 +448,7 @@
   .cred-fijo{ display:none; }
   @media (max-width:760px){ .navcat[data-key="secretaria"]{ display:none !important; } }
   @media (max-width:760px){
-    body:has(#viewHome:not([hidden])) .cred-fijo{ display:block; position:fixed; left:0; right:0; bottom:22px; z-index:20; text-align:center; font-size:10px; line-height:1.35; color:#4A5568; letter-spacing:.02em; pointer-events:none; }
+    body:has(#viewHome:not([hidden])) .cred-fijo{ display:block; position:fixed; left:0; right:0; bottom:12px; z-index:20; text-align:center; font-size:10px; line-height:1.35; color:#4A5568; letter-spacing:.02em; pointer-events:none; }
   }
   #viewHome .wrap{ max-width:none; height:100%; margin:0; }
   .cdi-home{ position:absolute; inset:0; margin:0; background:transparent; }
@@ -706,8 +706,9 @@
   @keyframes login-gate-spin{ to{ transform:rotate(360deg); } }
   .login-gate__foot{ margin-top:24px; font-size:13px; color:var(--text-muted); line-height:1.6; text-align:center; }
   .cred-n{font-style:italic;font-weight:400;opacity:.72}
+  footer .right .line2{ font-style:italic; }
   .login-gate__credito{
-    position:absolute; right:20px; bottom:16px; z-index:1;
+    position:absolute; right:20px; bottom:5px; z-index:1;
     font-size:11.5px; font-weight:400; color:var(--text-muted); opacity:1; text-align:right; line-height:1.15; text-align:right; line-height:1.15;
   }
   @media (max-width:860px){
@@ -949,7 +950,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       </button>
       <p class="login-gate__foot">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
     </div>
-    <p class="login-gate__credito">Desarrollado por la Oficina de Estadística<br>PD02 Beyty Camargo Martínez - Jefe de Estadística 2026</p>
+    <p class="login-gate__credito">Desarrollado por la Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez - Jefe de Estadística 2026</em></p>
   </div>
 </div>
 
@@ -1587,7 +1588,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   </div>
 </main>
 
-<div class="cred-fijo">Desarrollado por la Oficina de Estadística<br>PD02 Beyty Camargo Martínez - Jefe de Estadística 2026</div>
+<div class="cred-fijo">Desarrollado por la Oficina de Estadística<br><em class="cred-n">PD02 Beyty Camargo Martínez - Jefe de Estadística 2026</em></div>
 <footer>
   <div class="deco" aria-hidden="true">
     <svg viewBox="0 0 900 60" preserveAspectRatio="xMidYMid slice">
