@@ -258,7 +258,7 @@
   }
   .watermark img{
     width:min(60vw,660px); height:auto;
-    opacity:.045; filter:none;   /* colores originales del escudo: azul grisáceo */
+    opacity:.02; filter:none;   /* colores originales del escudo: azul grisáceo */
   }
   /* La marca de agua de "Solicitud de Grado" se ve mas oscura que en el
      resto del Portal porque ahi queda sobre el fondo blanco propio de la
@@ -269,7 +269,7 @@
   /* Solicitud de Grado: una sola marca de agua (la propia de este modulo).
      La general del Portal se oculta mientras este modulo esta abierto para
      que no se vean dos escudos superpuestos. */
-  #viewTitulacion .watermark img{ width:min(75vw,820px); opacity:.045; filter:none; }
+  #viewTitulacion .watermark img{ width:min(75vw,820px); opacity:.02; filter:none; }
   main:has(> #viewTitulacion:not([hidden])) > .watermark{ display:none; }
 
   .wrap{max-width:960px; margin:0 auto; width:100%; position:relative; z-index:1;}
