@@ -2590,7 +2590,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
           vals = ['1', s.g || 'GM', '', 'ESP', sinTildes(s.n), cex, String(s.pais || '').toUpperCase(), f3(s.f)];
           if (!s.pais) faltan[6] = 1;
         } else if (esNav) {
-          vals = [String(s.p), s.g || '', s.ct || '', s.sp || '', sinTildes(s.n) + marcas(s), cedula(s.ce), sinTildes(lugar), f3(s.f)];
+          vals = [String(s.p), s.g || '', s.ct || '', 'ESP', sinTildes(s.n) + marcas(s), cedula(s.ce), sinTildes(lugar), f3(s.f)];
           if (!lugar) faltan[6] = 1;
           if (!s.ct) faltan[2] = 1;
           if (esMre && !s.ct) vals[2] = 'MC-55';
