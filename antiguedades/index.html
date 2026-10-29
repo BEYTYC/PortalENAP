@@ -2643,7 +2643,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
         x = editarParrafo(x, 'PROMOCIÓN DE INFANTERÍA DE MARINA No.', function (rs) {
           var b = rs[0].rpr;
           if (esMre || esExt) return armar([]);
-          return armar([{ t: 'PROMOCIÓN DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.promIM || '92', rpr: b, hl: false }, { t: ' - CONTINGENTE DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.contIM || '116', rpr: b, hl: false }]);
+          return armar([{ t: 'PROMOCIÓN DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.promIM || '92', rpr: b, hl: false }, { t: ' - CONTINGENTE DE INFANTERÍA DE MARINA No. ', rpr: b }, { t: cfg.contIM || '117', rpr: b, hl: false }]);
         });
         x = editarParrafo(x, 'Este certificado se expide', function (rs) {
           var o = [], i = 0;
