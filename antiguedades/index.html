@@ -2477,7 +2477,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
     if (/<w:sz [^>]*\/>/.test(rpr)) return rpr.replace(/(<w:sz [^>]*\/>)/, '$1' + HLC);
     return rpr + HLC;
   }
-  function run(rpr, t, hl) { return '<w:r><w:rPr>' + conHl(rpr, hl && tipo !== 'PR' && tipo !== 'MRE') + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>'; }
+  function run(rpr, t, hl) { return '<w:r><w:rPr>' + conHl(rpr, hl && (t === 'COMPLETAR' || (tipo !== 'PR' && tipo !== 'MRE'))) + '</w:rPr><w:t xml:space="preserve">' + xe(t) + '</w:t></w:r>'; }
   function runsDe(p) {
     var out = [], re = /<w:r(?: [^>]*)?>([\s\S]*?)<\/w:r>/g, m;
     while ((m = re.exec(p))) {
@@ -2586,7 +2586,7 @@ function armarCert(JSZip, bytes, tipo, D, cfg) {
       var out = [enc];
       lista.forEach(function (s, n) {
         var vals, faltan = {};
-        var lugar = s.lx || '';
+        var lugar = ''; /* el lugar de expedición no se guarda en el módulo: sale vacío y en amarillo para completarlo */
         if (esExt) {
           var ce = String(s.ce == null ? '' : s.ce).replace(/\D/g, ''), cex = ce.length > 7 ? ce.slice(0, ce.length - 7) + '-' + ce.slice(-7, -4) + '-' + ce.slice(-4) : ce;
           vals = ['1', s.g || 'GM', s.ct || 'PR-61', 'ESP', sinTildes(s.n), cex, String(s.pais || '').toUpperCase(), f3(s.f)];
