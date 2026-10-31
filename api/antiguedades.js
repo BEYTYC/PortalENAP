@@ -253,6 +253,33 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    /* ---- fuentes en el OneDrive de jestadisticaplen: comprueba que la app puede leerlas ---- */
+    if (accion === 'fuentes') {
+      const dueno = 'jestadisticaplen@enap.edu.co';
+      const FUENTES = [
+        { clave: 'conglomerado', nombre: 'CONGLOMERADO', ruta: 'Estadística/Bases de Datos/B.D Ingresos/CONGLOMERADO.xlsm' },
+        { clave: 'bajas', nombre: 'Bajas y Ascensos', ruta: 'Estadística/Bases de Datos/B.D Retiros y Ascensos/Bajas y Ascensos.xlsm' },
+      ];
+      const salida = [];
+      for (const f of FUENTES) {
+        const url = `${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/root:/${f.ruta.split('/').map(encodeURIComponent).join('/')}`;
+        try {
+          const r = await fetch(url, { headers: { Authorization: `Bearer ${appToken}` } });
+          if (r.ok) {
+            const m = await r.json();
+            salida.push({ clave: f.clave, nombre: f.nombre, ok: true, bytes: m.size, modificado: m.lastModifiedDateTime, por: m.lastModifiedBy && m.lastModifiedBy.user && m.lastModifiedBy.user.displayName });
+          } else {
+            const t = (await r.text()).slice(0, 200);
+            salida.push({ clave: f.clave, nombre: f.nombre, ok: false, estado: r.status, detalle: r.status === 403 ? 'La aplicación no tiene permiso de lectura sobre ese OneDrive.' : r.status === 404 ? 'No se encontró el archivo en esa ruta.' : t });
+          }
+        } catch (e) {
+          salida.push({ clave: f.clave, nombre: f.nombre, ok: false, detalle: String(e.message || e).slice(0, 200) });
+        }
+      }
+      res.status(200).json({ fuentes: salida });
+      return;
+    }
+
     if (accion === 'accesos') {
       const intentos = (await leerJson('intentos.json')) || {};
       res.status(200).json({
