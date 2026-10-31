@@ -258,13 +258,14 @@ module.exports = async function handler(req, res) {
       const dueno = 'jestadisticaplen@enap.edu.co';
       const FUENTES = [
         { clave: 'conglomerado', nombre: 'CONGLOMERADO', ruta: 'Estadística/Bases de Datos/B.D Ingresos/CONGLOMERADO.xlsm' },
-        { clave: 'bajas', nombre: 'Bajas y Ascensos', ruta: 'Estadística/Bases de Datos/B.D Retiros y Ascensos/Bajas y Ascensos.xlsm' },
+        { clave: 'bajas', nombre: 'Bajas y Ascensos', ruta: 'Estadística/Bases de Datos/B.D Retiros y Ascensos/Bajas y Ascensos.xlsx', alterna: 'Estadística/Bases de Datos/B.D Retiros y Ascensos/Bajas y Ascensos.xlsm' },
       ];
       const salida = [];
       for (const f of FUENTES) {
-        const url = `${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/root:/${f.ruta.split('/').map(encodeURIComponent).join('/')}`;
+        const url = (ruta) => `${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/root:/${ruta.split('/').map(encodeURIComponent).join('/')}`;
         try {
-          const r = await fetch(url, { headers: { Authorization: `Bearer ${appToken}` } });
+          let r = await fetch(url(f.ruta), { headers: { Authorization: `Bearer ${appToken}` } });
+          if (r.status === 404 && f.alterna) r = await fetch(url(f.alterna), { headers: { Authorization: `Bearer ${appToken}` } });
           if (r.ok) {
             const m = await r.json();
             salida.push({ clave: f.clave, nombre: f.nombre, ok: true, bytes: m.size, modificado: m.lastModifiedDateTime, por: m.lastModifiedBy && m.lastModifiedBy.user && m.lastModifiedBy.user.displayName });

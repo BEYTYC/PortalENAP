@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="es" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registro de bajas — ENAP</title>
+<style>
+:root{--n9:#071C3C;--n8:#0B2A5B;--n7:#123A73;--n1:#E8EEF7;--gold:#A8861D;--gold2:#C9A227;--bg:#F8FAFC;--line:#E2E8F0;--line2:#CBD5E1;--mut:#64748B;--mut2:#94A3B8;--warn:#B45309;--warnbg:#FEF6E7;--ok:#166534;--okbg:#EAF6EE}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:var(--n9);background:var(--bg);font-size:14px;line-height:1.45;overflow:hidden}
+body:before{content:"";position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center 55%/auto 92vh no-repeat;opacity:.06;pointer-events:none;z-index:0}
+.app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:12px 24px 16px}
+.hd{text-align:center;margin:0 0 10px}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.18em;color:var(--gold)}
+h1{margin:4px 0 2px;font-size:28px;font-weight:600;letter-spacing:-.01em}
+.sub{color:#475569;font-size:14px}
+.tabs{display:flex;justify-content:center;gap:6px;margin-bottom:14px}
+.tab{font-family:inherit;font-size:13px;font-weight:600;padding:8px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--mut);cursor:pointer;display:flex;gap:8px;align-items:center}
+.tab.on{background:var(--n8);color:#fff;border-color:var(--n8)}
+.cnt{font-size:11px;background:var(--gold2);color:#fff;border-radius:999px;padding:1px 7px}
+.tab:not(.on) .cnt{background:#F3E9C6;color:#7A5F0E}
+.main{flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;max-width:1240px;width:100%;margin:0 auto}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px #071c3c0f,0 8px 24px -12px #071c3c38}
+.search{padding:12px 14px;position:relative;z-index:3;display:flex;align-items:center;gap:14px}.search .sbox{flex:1}
+.sbox{position:relative}
+.sbox svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut2)}
+.field{width:100%;font-family:inherit;font-size:14px;color:var(--n9);background:#fff;border:1px solid var(--line2);border-radius:8px;padding:8px 11px;outline:none;transition:border .15s,box-shadow .15s}
+.field:focus{border-color:var(--n7);box-shadow:0 0 0 3px #123A7322}
+.sbox .field{padding-left:36px;height:42px}
+.meta{font-size:12px;color:var(--mut);white-space:nowrap}
+.list{position:absolute;left:14px;right:14px;top:calc(100% - 4px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px -12px #071c3c55;max-height:300px;overflow:auto;padding:6px;display:none}.list.on{display:block}.it{display:flex;justify-content:space-between;align-items:center}
+.it{padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;margin-bottom:4px}
+.it:hover{background:var(--bg)}
+.it.sel{background:var(--n1);border-color:#C4D2E7}
+.it b{display:block;font-weight:600;font-size:13.5px}
+.it span{font-size:12px;color:var(--mut)}
+.form{display:flex;flex-direction:column;min-height:0;flex:1}
+.fh{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+.fh h2{margin:0;font-size:17px;font-weight:600}
+.fh small{color:var(--mut);font-size:12px}
+.badge{font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--okbg);color:var(--ok)}
+.fb{padding:6px 20px 4px;overflow:auto;flex:1}
+.sec{display:flex;align-items:center;gap:10px;margin:12px 0 8px;font-size:11.5px;font-weight:600;letter-spacing:.12em;color:var(--gold)}
+.sec:after{content:"";flex:1;height:1px;background:var(--line)}
+.g{display:grid;grid-template-columns:repeat(4,1fr);gap:10px 14px}
+.s2{grid-column:span 2}.s4{grid-column:span 4}.g{grid-template-columns:repeat(6,1fr)}.s2{grid-column:span 2}.s4{grid-column:span 4}.s6{grid-column:span 6}
+label{display:block;font-size:11.5px;font-weight:600;color:var(--mut);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.req label:after{content:" *";color:var(--gold)}
+.need .field{border-color:#E7C46A;background:var(--warnbg)}
+.hint{font-size:11px;color:var(--warn);margin-top:3px}
+.ro .field{background:var(--bg);color:#475569;border-style:solid;border-color:var(--line)}
+.ff{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;border-top:1px solid var(--line)}
+.ff span{font-size:12px;color:var(--mut)}
+.btn{font-family:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:10px 22px;cursor:pointer;border:1px solid transparent}
+.btn-p{background:var(--n8);color:#fff}
+.btn-p:hover{background:var(--n7)}
+.btn-g{background:#fff;color:var(--n7);border-color:var(--line2);margin-right:8px}
+.empty{flex:1;display:grid;place-items:center;text-align:center;color:var(--mut);padding:30px}
+.empty .ic{width:56px;height:56px;border-radius:50%;background:var(--n1);display:grid;place-items:center;margin:0 auto 12px;color:var(--n7)}
+.pend{max-width:1240px;width:100%;margin:0 auto;flex:1;min-height:0;display:none;flex-direction:column}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:600;padding:12px 16px;border-bottom:1px solid var(--line);background:#FBFCFE}
+td{padding:11px 16px;border-bottom:1px solid var(--line)}
+.d{font-weight:600;font-size:12px;padding:3px 10px;border-radius:999px}
+.d.w{background:var(--warnbg);color:var(--warn)}.d.o{background:var(--n1);color:var(--n7)}
+.ov{position:fixed;inset:0;background:#071c3c59;display:none;align-items:center;justify-content:center;z-index:4;padding:20px}
+.ov.on{display:flex}
+.md{width:min(880px,100%)}
+.x{border:0;background:none;font-size:24px;line-height:1;color:var(--mut);cursor:pointer}
+.sum{display:grid;grid-template-columns:2fr 1fr .7fr 1.4fr 1fr;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.sum b{font-weight:600;font-size:13px}
+.err .field{border-color:#D9B44A!important;background:#FFFBEF!important;box-shadow:0 0 0 3px #C9A22722}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--n9);color:#fff;padding:10px 18px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:5}
+.toast.on{opacity:1;transform:translateX(-50%)}
+@media (max-width:900px){body{overflow:auto}.app{height:auto}.main{grid-template-columns:1fr}.g{grid-template-columns:repeat(2,1fr)}.s4{grid-column:span 2}}
+.gate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:var(--bg)}
+.gate[hidden]{display:none}
+.gbox{max-width:460px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px 26px;box-shadow:0 6px 24px -14px #071c3c66}
+.gbox b{display:block;font-size:17px;margin-bottom:6px;font-weight:600}.gbox span{color:var(--mut);font-size:14px}
+.spin{width:30px;height:30px;margin:0 auto 14px;border:3px solid var(--line);border-top-color:var(--n8);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.banner{max-width:1240px;margin:0 auto 10px;width:100%;background:var(--warnbg);color:#7A4A06;border:1px solid #F1D9A8;border-radius:10px;padding:10px 14px;font-size:13px}
+.banner[hidden]{display:none}
+.vac{text-align:center;color:var(--mut);padding:28px}
+.btn:disabled{opacity:.6;cursor:default}
+.it small{font-size:11px;color:var(--gold);font-weight:600;margin-left:8px}
+</style>
+</head>
+<body>
+<div class="gate" id="gate" role="status"><div class="gbox"><div class="spin" id="gsp"></div><b id="gt">Verificando acceso</b><span id="gm">Comprobando tu sesión del Portal.</span></div></div>
+<div class="app">
+  <div class="hd">
+    <div class="eyebrow">OFICINA DE ESTADÍSTICA</div>
+    <h1>Registro de bajas</h1>
+    <div class="sub">Busque al estudiante, registre su retiro y haga seguimiento a la documentación pendiente.</div>
+  </div>
+  <div class="tabs">
+    <button class="tab on" data-t="reg">Registrar baja</button>
+    <button class="tab" data-t="pend">Pendientes de resolución <span class="cnt" id="npend">0</span></button>
+  </div>
+  <div class="banner" id="banner" hidden></div>
+
+  <div class="main" id="reg">
+    <div class="card search">
+      <div class="sbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" class="field" placeholder="Apellidos, nombres o cédula" autocomplete="off" aria-label="Buscar estudiante" disabled></div>
+      <div class="meta" id="nres">Cargando estudiantes…</div>
+      <div class="list" id="list" role="listbox"></div>
+    </div>
+
+    <div class="card form" id="form">
+      <div class="empty" id="empty"><div><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></div><b style="color:var(--n9);font-weight:600">Seleccione un estudiante</b><br><span style="font-size:13px">Sus datos se cargarán automáticamente y podrá corregirlos antes de guardar.</span></div></div>
+      <div id="fill" style="display:none;flex-direction:column;min-height:0;flex:1">
+        <div class="fh"><div><h2 id="fname">—</h2><small id="fsub">—</small></div><span class="badge">Activo</span></div>
+        <div class="fb">
+          <div class="sec">IDENTIFICACIÓN</div>
+          <div class="g">
+            <div class="req s2"><label for="ap">Apellidos</label><input class="field" id="ap"></div>
+            <div class="req s2"><label for="no">Nombres</label><input class="field" id="no"></div>
+            <div class="req"><label for="ce">Cédula</label><input class="field" id="ce"></div>
+            <div class="req" id="sxw"><label for="sx">Sexo</label><select class="field" id="sx"><option value="">Seleccione</option><option>M</option><option>F</option></select><div class="hint" id="sxh" style="display:none">Sin dato registrado: selecciónelo</div></div>
+          </div>
+          <div class="sec">INGRESO</div>
+          <div class="g">
+            <div class="req"><label for="si">Sigla</label><input class="field" id="si"></div>
+            <div class="req"><label for="co">Contingente</label><input class="field" id="co"></div>
+            <div class="req"><label for="ai">Año de ingreso</label><input class="field" id="ai" inputmode="numeric" maxlength="4"></div>
+            <div class="req"><label for="fi">Fecha de ingreso</label><input class="field" id="fi" placeholder="dd/mm/aaaa"></div>
+            <div class="req s2"><label for="na">Nacionalidad</label><input class="field" id="na"></div>
+          </div>
+          <div class="sec">SITUACIÓN ACADÉMICA</div>
+          <div class="g">
+            <div class="req"><label for="cu">Curso de retiro</label><input class="field" id="cu"></div>
+            <div class="req"><label for="gr">Grado</label><select class="field" id="gr"><option value="">Seleccione</option><option>ASP</option><option>CD</option><option>GM</option><option>ALF</option></select></div>
+            <div class="ro s4"><label for="pr">Programa</label><input class="field" id="pr" readonly tabindex="-1"></div>
+          </div>
+          <div class="sec">CAUSA DEL RETIRO</div>
+          <div class="g">
+            <div class="req s2"><label for="ca">Primera causal de retiro</label><select class="field" id="ca"><option value="">Seleccione</option><option>CONSEJO ACADÉMICO</option><option>CONSEJO DISCIPLINARIO</option><option>APTITUD NAVAL</option><option>SOLICITUD PROPIA</option><option>APTITUD PSICOFÍSICA</option></select></div>
+            <div class="req s2"><label for="nm">Causal (norma aplicada)</label><input class="field" id="nm" placeholder="Ej.: Reglamento Académico, Cap. 3, Art. 13, lit. a) num. 1"></div>
+            <div class="s2"><label for="ob">Observación</label><input class="field" id="ob" placeholder="Opcional"></div>
+          </div>
+          <div style="height:10px"></div>
+        </div>
+        <div class="ff"><span>Registrado por <span id="yo">—</span> · <span id="today"></span></span><div><button class="btn btn-g" id="cancel">Cancelar</button><button class="btn btn-p" id="save">Registrar baja</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pend" id="pend">
+    <div class="card" style="overflow:auto">
+      <table>
+        <thead><tr><th>Estudiante</th><th>Cédula</th><th>Curso</th><th>Causal</th><th>Registrado</th><th>Días</th><th></th></tr></thead>
+        <tbody id="tb"><tr><td colspan="7" class="vac">Cargando…</td></tr></tbody>
+      </table>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--mut);margin-top:12px">Desde el día 5 llega un recordatorio diario a sea@enap.edu.co. Al añadir la resolución, el estudiante sale de esta lista y se detienen los recordatorios.</p>
+  </div>
+</div>
+
+<div class="ov" id="ov"><div class="card md" role="dialog" aria-modal="true" aria-labelledby="mt">
+  <div class="fh"><div><h2 id="mt">Añadir resolución de retiro</h2><small>Complete la fecha y el documento con que se formalizó el retiro.</small></div><button class="x" id="mx" aria-label="Cerrar">&times;</button></div>
+  <div style="padding:14px 20px 4px">
+    <div class="sum">
+      <div><label>Estudiante</label><b id="mn">—</b></div>
+      <div><label>Cédula</label><b id="mc">—</b></div>
+      <div><label>Curso</label><b id="mcu">—</b></div>
+      <div><label>Causal</label><b id="mca">—</b></div>
+      <div><label>Registrado</label><b id="mr">—</b></div>
+    </div>
+    <div class="sec">DOCUMENTO DE RETIRO</div>
+    <div class="g" style="grid-template-columns:1.2fr 2fr 1fr .8fr .8fr">
+      <div class="req"><label for="mf">Fecha de retiro</label><input class="field" type="date" id="mf"></div>
+      <div class="req"><label for="md">Documento primer retiro</label><input class="field" id="md" placeholder="RES. 000000 MES DD/AAAA"></div>
+      <div class="ro"><label for="mnr">Núm. resolución</label><input class="field" id="mnr" readonly tabindex="-1" placeholder="Automático"></div>
+      <div class="ro"><label for="msr">Semestre</label><input class="field" id="msr" readonly tabindex="-1" placeholder="Auto"></div>
+      <div class="ro"><label for="mar">Año retiro</label><input class="field" id="mar" readonly tabindex="-1" placeholder="Auto"></div>
+    </div>
+  </div>
+  <div class="ff" style="margin-top:14px"><span>Lo registra <span id="yo2">—</span></span><div><button class="btn btn-g" id="mcan">Cancelar</button><button class="btn btn-p" id="msave">Guardar resolución</button></div></div>
+</div></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+(function(){
+'use strict';
+var $=function(i){return document.getElementById(i)};
+var EST=[],PEND=[],YO=null,SEL=null;
+var norm=function(s){return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase()};
+var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
+var fdmy=function(iso){var d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})};
+
+function tok(){var P=window.parent&&window.parent!==window?window.parent.PortalENAP:null;
+  if(!P||!P.tokenMicrosoft)return Promise.reject(new Error('Este módulo se abre desde el Portal (Estadística › Registro de bajas).'));
+  return Promise.race([P.tokenMicrosoft(),new Promise(function(_,rj){setTimeout(function(){rj(new Error('No se pudo obtener tu sesión de Microsoft del Portal. Cierra sesión, vuelve a entrar y abre de nuevo el módulo.'))},25000)})])}
+function api(accion,extra){return tok().then(function(t){var ac=new AbortController();setTimeout(function(){ac.abort()},55000);
+  return fetch('/api/bajas',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))})
+  .catch(function(e){throw new Error(e&&e.name==='AbortError'?'El servidor tardó demasiado en responder. Intente de nuevo.':'No se pudo conectar con el servidor.')})})
+  .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})})}
+
+function gate(on,titulo,msg,spin){var g=$('gate');g.hidden=!on;if(on){$('gt').textContent=titulo;$('gm').textContent=msg||'';$('gsp').style.display=spin?'block':'none'}}
+function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},2800)}
+function banner(m){var b=$('banner');b.hidden=!m;b.textContent=m||''}
+
+/* ---------- búsqueda ---------- */
+function render(q){var Q=norm(q).trim();
+  if(Q.length<3){$('list').classList.remove('on');$('nres').textContent=EST.length+' estudiantes activos';return}
+  var r=EST.filter(function(d){return d._k.indexOf(Q)>=0}).slice(0,60);
+  $('list').innerHTML=r.length?r.map(function(d){return '<div class="it" role="option" data-i="'+d._i+'"><b>'+esc(d.ap+' '+d.no)+(d.nuevo?'<small>Nuevo ingreso</small>':'')+'</b><span>C.C. '+esc(d.ce)+(d.cu?' · '+esc(d.cu):'')+(d.co?' · '+esc(d.co):'')+'</span></div>'}).join(''):'<div class="vac" style="padding:14px">No se encontró ningún estudiante activo con esa búsqueda.</div>';
+  $('nres').textContent=r.length+' coincidencia'+(r.length===1?'':'s');
+  $('list').classList.add('on');
+  Array.prototype.forEach.call(document.querySelectorAll('.it'),function(e){e.onclick=function(){pick(+e.dataset.i)}})}
+function pick(i){var d=EST[i];SEL=d;$('list').classList.remove('on');$('q').value=d.ap+' '+d.no;$('nres').textContent='Estudiante seleccionado';
+  $('empty').style.display='none';$('fill').style.display='flex';
+  $('fname').textContent=d.ap+' '+d.no;$('fsub').textContent='C.C. '+d.ce+(d.co?' · '+d.co:'');
+  ['ap','no','ce','na','si','co','ai','fi','cu'].forEach(function(k){$(k).value=d[k]||''});
+  $('sx').value=d.sx||'';$('gr').value=d.gr||'';$('ca').value='';$('nm').value='';$('ob').value='';
+  $('pr').value=(d.ps?d.ps+' · ':'')+(d.pr||'');
+  Array.prototype.forEach.call(document.querySelectorAll('#fill .err,#fill .need'),function(x){x.classList.remove('err','need')});
+  $('sxw').classList.toggle('need',!d.sx);$('sxh').style.display=d.sx?'none':'block';
+  ['gr','cu','ai','fi','na','si','co'].forEach(function(k){if(!$(k).value)$(k).parentElement.classList.add('need')});
+  $('fill').querySelector('.fb').scrollTop=0}
+function limpiar(){SEL=null;$('fill').style.display='none';$('empty').style.display='grid';$('q').value='';render('')}
+
+document.addEventListener('input',function(e){var p=e.target.closest&&e.target.closest('.req');if(p&&e.target.value)p.classList.remove('err','need');if(e.target.id==='sx')$('sxh').style.display=e.target.value?'none':'block'});
+document.addEventListener('change',function(e){var p=e.target.closest&&e.target.closest('.req');if(p&&e.target.value)p.classList.remove('err','need');if(e.target.id==='sx')$('sxh').style.display=e.target.value?'none':'block'});
+$('q').oninput=function(e){render(e.target.value)};$('q').onfocus=function(e){render(e.target.value)};
+document.addEventListener('click',function(e){if(!e.target.closest('.search'))$('list').classList.remove('on')});
+$('cancel').onclick=limpiar;
+
+$('save').onclick=function(){var n=0;
+  Array.prototype.forEach.call(document.querySelectorAll('#fill .req'),function(w){var f=w.querySelector('.field');var bad=!String(f.value).trim();w.classList.toggle('err',bad);if(bad)n++});
+  if(!n&&!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($('fi').value.trim())){$('fi').parentElement.classList.add('err');toast('La fecha de ingreso debe ir como dd/mm/aaaa');return}
+  if(!n&&!/^\d{4}$/.test($('ai').value.trim())){$('ai').parentElement.classList.add('err');toast('El año de ingreso debe tener 4 dígitos');return}
+  if(n){toast('Faltan '+n+' campo'+(n>1?'s':'')+' obligatorio'+(n>1?'s':''));var f=document.querySelector('#fill .err .field');if(f)f.focus();return}
+  var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','nm','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
+  var b=$('save');b.disabled=true;b.textContent='Registrando…';banner('');
+  api('registrar',{datos:datos}).then(function(r){
+    EST=EST.filter(function(x){return x!==SEL});EST.forEach(function(x,i){x._i=i});
+    limpiar();cargarPend();toast('Baja registrada correctamente');if(r.aviso)banner(r.aviso)})
+  .catch(function(e){toast(e.message);banner(e.message)})
+  .then(function(){b.disabled=false;b.textContent='Registrar baja'})};
+
+/* ---------- pendientes ---------- */
+function cargarPend(){return api('pendientes').then(function(r){PEND=r.lista||[];pintarPend()}).catch(function(e){$('tb').innerHTML='<tr><td colspan="7" class="vac">'+esc(e.message)+'</td></tr>'})}
+function pintarPend(){$('npend').textContent=PEND.length;
+  $('tb').innerHTML=PEND.length?PEND.slice().sort(function(a,b){return b.dias-a.dias}).map(function(p){var d=p.datos;
+    return '<tr><td><b style="font-weight:600">'+esc(d.ap+' '+d.no)+'</b>'+(p.excel?'':'<div style="font-size:11px;color:var(--warn)">Aún no está en el Excel; se reintenta a diario</div>')+'</td><td>'+esc(d.ce)+'</td><td>'+esc(d.cu)+'</td><td>'+esc(d.ca)+'</td><td>'+fdmy(p.fecha)+'</td><td><span class="d '+(p.dias>=5?'w':'o')+'">'+p.dias+' día'+(p.dias===1?'':'s')+'</span></td><td style="text-align:right"><button class="btn btn-p addres" style="padding:7px 14px;font-size:13px" data-id="'+esc(p.id)+'">Añadir resolución</button></td></tr>'}).join('')
+    :'<tr><td colspan="7" class="vac">No hay retiros pendientes de resolución.</td></tr>';
+  Array.prototype.forEach.call(document.querySelectorAll('.addres'),function(b){b.onclick=function(){abrirRes(b.dataset.id)}})}
+var RES=null;
+function abrirRes(id){var p=PEND.find(function(x){return x.id===id});if(!p)return;RES=p;var d=p.datos;
+  $('mn').textContent=d.ap+' '+d.no;$('mc').textContent=d.ce;$('mcu').textContent=d.cu;$('mca').textContent=d.ca;$('mr').textContent=fdmy(p.fecha);
+  ['mf','md','mnr','msr','mar'].forEach(function(k){$(k).value=''});Array.prototype.forEach.call(document.querySelectorAll('#ov .err'),function(x){x.classList.remove('err')});
+  $('ov').classList.add('on');setTimeout(function(){$('mf').focus()},50)}
+$('mf').oninput=function(){var v=$('mf').value;if(!v){$('msr').value=$('mar').value='';return}var a=v.split('-');$('mar').value=a[0];$('msr').value=+a[1]<=6?1:2};
+$('md').oninput=function(){var v=$('md').value.toUpperCase();$('mnr').value=v.length>=9?v.slice(0,9).slice(-4):''};
+function cerrarRes(){$('ov').classList.remove('on');RES=null}
+$('mx').onclick=cerrarRes;$('mcan').onclick=cerrarRes;
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&$('ov').classList.contains('on'))cerrarRes()});
+$('msave').onclick=function(){var n=0;['mf','md'].forEach(function(i){var bad=!$(i).value.trim();$(i).parentElement.classList.toggle('err',bad);if(bad)n++});
+  if(n){toast('Complete la fecha y el documento');return}
+  var b=$('msave');b.disabled=true;b.textContent='Guardando…';
+  api('resolucion',{id:RES.id,fecha:$('mf').value,documento:$('md').value.trim()}).then(function(){cerrarRes();toast('Resolución guardada en Bajas y Ascensos');return cargarPend()})
+  .catch(function(e){toast(e.message)}).then(function(){b.disabled=false;b.textContent='Guardar resolución'})};
+
+/* ---------- pestañas ---------- */
+Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('on')});b.classList.add('on');var p=b.dataset.t==='pend';$('reg').style.display=p?'none':'flex';$('pend').style.display=p?'flex':'none';if(p)cargarPend()}});
+
+/* ---------- arranque ---------- */
+$('today').textContent=new Date().toLocaleDateString('es-CO');
+gate(true,'Verificando acceso','Comprobando tu sesión del Portal.',true);
+api('sesion').then(function(s){YO=s;$('yo').textContent=s.correo;$('yo2').textContent=s.correo;gate(false);
+  cargarPend();
+  return api('vigentes').then(function(r){EST=(r.lista||[]).map(function(d,i){d._i=i;d._k=norm(d.ap+' '+d.no+' '+d.ce);return d});
+    $('q').disabled=false;$('q').focus();$('nres').textContent=EST.length+' estudiantes activos'+(r.periodo?' · antigüedades '+r.periodo:'')})
+  .catch(function(e){$('nres').textContent='No se pudieron cargar los estudiantes';banner(e.message)})})
+.catch(function(e){gate(true,/solo para/i.test(e.message)?'Sin permiso':'No se pudo abrir el módulo',e.message,false)});
+})();
+</script>
+</body>
+</html>
