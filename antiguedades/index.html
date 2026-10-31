@@ -1501,6 +1501,12 @@ html body .stu table.gt.gt tfoot tr td,html body .stu table.gt.gt tfoot tr td:fi
 <button class="btn" id="up" style="margin-top:8px">Cargar datos</button><div class="err" id="um" style="margin-top:8px;color:var(--mute)"></div></section>
 <section class="card ac"><h3>Fuentes de datos</h3><p>Archivos que el módulo leerá directamente del OneDrive de la Oficina de Estadística: CONGLOMERADO y Bajas y Ascensos. Este botón solo comprueba que el Portal puede leerlos (no cambia nada).</p><button class="btn" id="fu">Probar lectura</button><div id="fum" style="margin-top:8px;font-size:13px;color:var(--mute)" role="status"></div></section>
 <section class="card ac"><h3>Certificados de escalafonamiento</h3><p>Genera en Word los certificados con los estudiantes escalafonados: uno para Guardiamarinas y Alféreces (NAV-IM) y otro para Programa Profesional Administrativo (PR). Salen con el formato de la Escuela; lo que debes revisar o cambiar queda resaltado en amarillo.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="cnav">Certificado NAV-IM</button><button class="btn" id="cpr">Certificado PR</button><button class="btn" id="ccd">Certificado CDPRON (extranjero)</button><button class="btn" id="cmr">Certificado Mercantes (Reserva Activa)</button><button class="btn" id="cpm">Cuadro de adjudicación de premios</button></div><div class="err" id="cm" style="margin-top:8px;color:var(--mute)"></div></section>
+<section class="card ac" id="vfin"><h3>Validación final de escalafonamiento</h3><p>Cuando ya no quede nadie "En riesgo", este botón agrega a todos los escalafonados del periodo a la hoja <b>Ascensos</b> de Bajas y Ascensos (puesto, promedio, contingente, especialidad y CIENCIAS cruzado con Graduados). Se hace una sola vez por periodo. La fecha y la resolución de ascenso se añaden después; si al mes no están, llega un aviso a sea@enap.edu.co.</p>
+<div id="vfst" style="font-size:13px;color:var(--mute);margin:6px 0">Revisando…</div>
+<div id="vfpr" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin:6px 0"></div>
+<button class="btn" id="vfbtn" disabled>Validación final</button>
+<div id="vfres" hidden style="margin-top:10px"><div class="frm"><input id="vffe" type="date" aria-label="Fecha de ascenso" style="max-width:170px"><input id="vfdo" type="text" placeholder="RES. 000000 MES DD/AAAA" aria-label="Resolución de ascenso"></div><button class="btn" id="vfrb" style="margin-top:8px">Añadir resolución de ascenso</button></div>
+<div class="err" id="vfm" style="margin-top:8px;color:var(--mute)" role="status"></div></section>
 <section class="card ac"><h3>Descargar para compartir</h3><p>El sistema arma el Excel "BD Antigüedades" con los datos cargados, con la fecha y la hora de descarga y quién lo descargó. En la lista de accesos marcas quién puede descargarlo; los administradores siempre pueden.</p><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn" id="dl2">Descargar Excel</button></div><div class="err" id="dm" style="margin-top:8px;color:var(--mute)"></div><h3 style="margin-top:14px">Últimas descargas</h3><div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Fecha y hora</th></tr></thead><tbody id="dls"></tbody></table></div></section>
 </div></div></div>
 <div id="gate" class="wait" role="status"><div class="gbox"><i class="gsp" aria-hidden="true"></i><b id="gt">Verificando acceso</b><span id="gm">Comprobando tu sesión del Portal ENAP.</span></div></div>
@@ -2807,6 +2813,53 @@ function admin(){
     api('fuentes').then(function(r){m.innerHTML=r.fuentes.map(function(f){return f.ok?('<div>✔ <b>'+esc(f.nombre)+'</b>: se puede leer ('+Math.round(f.bytes/1024)+' KB, modificado '+fh(f.modificado)+(f.por?' por '+esc(f.por):'')+')</div>'):('<div>✘ <b>'+esc(f.nombre)+'</b>: '+esc(f.detalle||'no se pudo leer')+(f.estado?' ('+f.estado+')':'')+'</div>')}).join('')}).catch(function(e){m.textContent=e.message})};
   window.__recargarAdmin=cargar;cargar();
 }
+/* ---- Validación final de escalafonamiento -> hoja Ascensos (api/bajas) ---- */
+function apiB(accion,extra){return tok().then(function(t){var ac=new AbortController();setTimeout(function(){ac.abort()},55000);return fetch('/api/bajas',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))})}).then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})})}
+function vfGrupos(){var D=window.__D;if(!D)return[];
+  var fuera=function(s){return s.e==='Aplazado'||s.e==='Retirado'||s.e==='Comisión'||s.nv==='CDPRON'};
+  var rk=function(s){return !!(s.rk&&s.rk.length)};
+  var reRank=function(L){return L.slice().sort(function(a,b){return b.f-a.f}).map(function(s,i){var c={};for(var k in s)c[k]=s[k];c.p=i+1;return c})};
+  var ultimoPR=function(L){var m=0;L.forEach(function(s){var x=String(s.cu||'').match(/^PR-(\d+)/);if(x&&+x[1]>m)m=+x[1]});return m?'PR-'+m:null};
+  var G=[];
+  var nav=(D.esc||[]).filter(function(s){return !fuera(s)&&s.p!=null&&s.f!=null}).sort(function(a,b){return a.p-b.p});
+  if(nav.length)G.push({clave:'NAV-IM',nombre:'NAV-IM',L:nav,esp:function(s){var c=String(s.ct||'').toUpperCase();return /^IM/.test(c)||s.sp==='IM'?'IM':'NAV'},sp:function(s){return s.sp||''}});
+  var prL=(D.sheets&&D.sheets.PR)||[],cPR=ultimoPR(prL);
+  var pr=reRank(prL.filter(function(s){return s.f!=null&&s.p!=null&&!fuera(s)&&(!cPR||s.cu===cPR)}));
+  if(pr.length)G.push({clave:'PR',nombre:'PR',L:pr,esp:function(){return 'PR'},sp:function(){return 'PR'}});
+  var cdpi=(D.sheets&&D.sheets.CDPRIM)||[];
+  var cp=reRank(cdpi.filter(function(s){return s.f!=null&&!fuera(s)}));
+  if(cp.length)G.push({clave:'CDPRIM',nombre:'CDPRIM',L:cp,esp:function(){return 'CDPRIM'},sp:function(){return 'CDPRIM'}});
+  var cdp=((D.sheets&&D.sheets.CDP)||[]).filter(function(s){return s.f!=null&&s.e!=='Retirado'&&s.e!=='Aplazado'});
+  cdp=cdp.some(function(s){return s.p==null})?reRank(cdp):cdp.slice().sort(function(a,b){return a.p-b.p});
+  if(cdp.length)G.push({clave:'CDPRON',nombre:'CDPRON',L:cdp,esp:function(){return 'CDPRON'},sp:function(){return 'CDPRON'}});
+  var mre=((D.sheets&&D.sheets.MRE)||[]).filter(function(s){return s.f!=null&&s.p!=null&&s.e!=='Retirado'&&s.e!=='Aplazado'}).sort(function(a,b){return a.p-b.p});
+  if(mre.length)G.push({clave:'MC',nombre:'Mercantes',L:mre,esp:function(){return 'MC'},sp:function(){return 'MC'}});
+  G.forEach(function(g){g.riesgo=g.L.filter(rk)});
+  return G}
+function vfInit(){var st=document.getElementById('vfst'),pr=document.getElementById('vfpr'),bt=document.getElementById('vfbtn'),m=document.getElementById('vfm'),rs=document.getElementById('vfres');
+  if(!st)return;var per=window.__PER;
+  var G=vfGrupos();
+  if(!window.__D||!G.length){st.textContent='No hay escalafonamiento en el periodo cargado.';bt.disabled=true;return}
+  var enR=[];G.forEach(function(g){g.riesgo.forEach(function(s){enR.push(s.n+' ('+g.nombre+')')})});
+  var tot=G.reduce(function(a,g){return a+g.L.length},0);
+  pr.innerHTML=G.map(function(g){return '<label style="font-size:12px;color:var(--mute)">Promoción '+esc(g.nombre)+' ('+g.L.length+')<input type="text" data-vp="'+g.clave+'" placeholder="Ej. NAV-146" style="width:100%;margin-top:3px"></label>'}).join('');
+  apiB('ascensos-estado',{periodo:per}).then(function(r){var v=r.validacion;
+    if(v){pr.innerHTML='';bt.hidden=true;
+      st.innerHTML='Validado el '+fh(v.fecha)+' por '+esc(v.por)+': '+v.total+' estudiantes en la hoja Ascensos (filas '+v.desde+' a '+v.hasta+').'+(v.completo?'<br>Resolución: '+esc(v.resolucion||'cargada en el Excel')+'.':'<br>Falta la fecha y la resolución de ascenso.');
+      rs.hidden=!!v.completo;return}
+    bt.hidden=false;
+    if(enR.length){bt.disabled=true;st.innerHTML='Periodo '+esc(per)+' · '+tot+' escalafonados. <b>Aún hay '+enR.length+' en riesgo</b>: '+esc(enR.slice(0,8).join(', '))+(enR.length>8?'…':'')+'. La validación se habilita cuando no quede ninguno.'}
+    else{bt.disabled=false;st.textContent='Periodo '+per+' · '+tot+' escalafonados · nadie en riesgo. Listo para la validación final.'}
+  }).catch(function(e){st.textContent=e.message;bt.disabled=true});
+  bt.onclick=function(){
+    if(!confirm('¿Agregar los '+tot+' escalafonados de '+per+' a la hoja Ascensos? Solo se puede hacer una vez por periodo.'))return;
+    var grupos=G.map(function(g){var i=pr.querySelector('[data-vp="'+g.clave+'"]');return{clave:g.clave,promocion:i?i.value.trim().toUpperCase():'',filas:g.L.map(function(s){return{n:s.n,ce:s.ce,ct:s.ct||'',esp:g.esp(s),sp:g.sp(s),p:s.p,tot:g.L.length,f:s.f,riesgo:!!(s.rk&&s.rk.length)}})}});
+    bt.disabled=true;m.textContent='Escribiendo en la hoja Ascensos…';
+    apiB('validar-ascensos',{periodo:per,grupos:grupos}).then(function(r){m.textContent='Listo: '+r.total+' estudiantes agregados a Ascensos (filas '+r.desde+' a '+r.hasta+').';vfInit()}).catch(function(e){m.textContent=e.message;bt.disabled=false})};
+  document.getElementById('vfrb').onclick=function(){var fe=document.getElementById('vffe').value,dc=document.getElementById('vfdo').value.trim();
+    if(!fe||!dc){m.textContent='Escribe la fecha y la resolución de ascenso.';return}
+    m.textContent='Guardando…';apiB('ascensos-resolucion',{periodo:per,fecha:fe,resolucion:dc}).then(function(){m.textContent='Resolución de ascenso guardada en la hoja Ascensos.';vfInit()}).catch(function(e){m.textContent=e.message})};
+}
 function perElegido(){try{return sessionStorage.getItem('antPer')||localStorage.getItem('antPer')||undefined}catch(e){return undefined}}
 function selPer(l,act){var a=document.getElementById('pv'),b=document.getElementById('pv2');
   l=(l&&l.length)?l:(act?[act]:[]);
@@ -2823,7 +2876,7 @@ function cambiarPer(v){var pub=document.getElementById('pub');pub.style.opacity=
     ['q','em'].forEach(function(id){var o=document.getElementById(id);if(o){var n=o.cloneNode(true);n.value='';o.parentNode.replaceChild(n,o)}});
     window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo)||v;window.__PERS=r.periodos||window.__PERS;
     if(window.__adm)metaTxt(r.meta);
-    arrancar(document.getElementById('app-src').textContent);window.scrollTo(0,0)
+    arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0);window.scrollTo(0,0)
   }).catch(function(e){var m=document.getElementById('um');if(m)m.textContent=e.message}).then(function(){pub.style.opacity='';pub.style.pointerEvents='';cargando(false)})}
 function metaTxt(m){document.getElementById('meta').textContent=m?('Última carga: '+fh(m.actualizado)+' · '+m.por+(m.periodo?' · periodo '+m.periodo:'')):'Aún no se han cargado datos.'}
 var MS=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
@@ -2844,7 +2897,7 @@ function iniciar(){
         document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
       window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);window.__PERS=r.periodos||[];selPer(window.__PERS,window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
-      document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);
+      document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0);
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
   }).catch(function(e){

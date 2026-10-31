@@ -378,7 +378,7 @@
   .cde-note{ margin-top:9px; font-size:11px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt, #viewCertificados{
+  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewBajas, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt, #viewCertificados{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -399,7 +399,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden], #viewCertificados[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewBajas[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden], #viewCertificados[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -626,8 +626,8 @@
     /* El área de contenido empieza justo debajo de la barra de la casita y termina justo encima del pie:
        main no puede crecer más que su celda (min-height:0) y recorta lo que sobre; el pie va por encima. */
     main{ min-height:0; position:relative; }
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:hidden !important; }
-    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:hidden !important; }
+    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
     footer{ position:relative; z-index:5; }
     /* Barra del módulo (casita + nombre): más baja y la casita sin círculo. */
     .nav-subsistema{ padding:0 8px 0 4px !important; min-height:0 !important; gap:6px !important; }
@@ -637,11 +637,11 @@
     .nav-subsistema .name{ font-size:13.5px !important; }
     /* Un módulo abierto no debe poder moverse dentro de main (ni siquiera por scrollIntoView desde el iframe):
        así el módulo siempre queda debajo de la barra de la casita y termina sobre el pie. */
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:clip !important; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:clip !important; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
        el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewAprobacionSac,#viewCDE):not([hidden])){
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewAprobacionSac,#viewCDE):not([hidden])){
       padding:0 !important; overflow:hidden !important;
     }
   }
@@ -1175,14 +1175,14 @@ img,svg,video,canvas,iframe{max-width:100%}
   .nav-subsistema .name{ font-size:12px !important; font-weight:600 !important; letter-spacing:.01em !important; color:var(--navy-800) !important; font-family:inherit !important; flex:1 1 auto; text-align:left !important }
   .nav-home{ width:34px !important; height:34px !important }
   /* Antigüedades: UN solo desplazamiento (el de la página), el marco se estira a la altura de su contenido */
-  main:has(> :is(#viewAntiguedades,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  main > :is(#viewAntiguedades,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
+  main:has(> :is(#viewAntiguedades,#viewBajas,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  main > :is(#viewAntiguedades,#viewBajas,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
   /* móvil: la marca de agua del escudo queda fija y centrada en la pantalla (no se mueve al desplazarse) */
   main > .watermark{ position:fixed !important; inset:auto !important; left:0 !important; right:0 !important; top:var(--wmt,0px) !important; height:var(--wmh,100dvh) !important; z-index:0 !important; }
   main > .watermark img{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
   .cdi-tab{ background:transparent !important; }
   header.masthead, nav.topnav, footer{ position:relative; z-index:3; }
-  #antiguedadesFrame,#concesionesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
+  #antiguedadesFrame,#bajasFrame,#concesionesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
   #viewCDE .cdi-tab{ height:auto !important; min-height:100% !important; overflow:visible !important; flex:none !important; }
   #cdeFrame{ position:static !important; display:block; height:100%; min-height:100%; }
 }
@@ -1524,6 +1524,12 @@ img,svg,video,canvas,iframe{max-width:100%}
       allow="fullscreen"
       allowfullscreen
     ></iframe>
+  </div>
+
+  <div id="viewBajas" hidden>
+    <!-- Registro de bajas (bajas/index.html, mismo origen). Solo sea@ y
+         jestadisticaplen@; /api/bajas valida el token y escribe en Bajas y Ascensos. -->
+    <iframe id="bajasFrame" class="registro-iframe" title="Registro de bajas" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewCertificados" hidden>
@@ -3259,6 +3265,8 @@ img,svg,video,canvas,iframe{max-width:100%}
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Antigüedades ENAP', status: 'ok' },
+        // Solo Estadística (sea@ y jestadisticaplen@): registra los retiros en Bajas y Ascensos.
+        { nombre: 'Registro de bajas', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
         { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
@@ -3381,6 +3389,10 @@ img,svg,video,canvas,iframe{max-width:100%}
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
+          else if (item.status === 'ok' && item.nombre === 'Registro de bajas') {
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
+            else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
+          }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
             else { abrirSubsistema('viewCertificados', 'Aprobación de Certificados'); cargarCertificados(); }
@@ -3501,7 +3513,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   // vez que se abre, ya con sesión iniciada, para que el módulo pueda pedir
   // el token de Microsoft de inmediato.
   // Móvil: el marco de Antigüedades toma la altura de su contenido y la página (main) es lo único que se desplaza.
-  ['antiguedadesFrame','registroFrame','protocoloConcFrame','protocoloAntFrame','cdeFrame'].forEach(function (fid) {
+  ['antiguedadesFrame','bajasFrame','registroFrame','protocoloConcFrame','protocoloAntFrame','cdeFrame'].forEach(function (fid) {
     const f = document.getElementById(fid); if (!f) return;
     const mq = window.matchMedia('(max-width:760px)');
     let ro = null, mo = null;
@@ -3550,6 +3562,12 @@ img,svg,video,canvas,iframe{max-width:100%}
     if (window.ResizeObserver) new ResizeObserver(wm).observe(m);
     new MutationObserver(wm).observe(document.body, { attributes: true, subtree: false });
   })();
+  function cargarBajas() {
+    const f = document.getElementById('bajasFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'bajas/index.html?embedded=1';
+    f.dataset.cargado = '1';
+  }
   function cargarAntiguedades() {
     const f = document.getElementById('antiguedadesFrame');
     if (f.dataset.cargado) return;
