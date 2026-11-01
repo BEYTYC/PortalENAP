@@ -139,8 +139,7 @@ body.sel:not(.pendtab) .tabs{margin-top:2px}
           <div class="sec">CAUSA DEL RETIRO</div>
           <div class="g">
             <div class="req s2"><label for="ca">Primera causal de retiro</label><select class="field" id="ca"><option value="">Seleccione</option><option>CONSEJO ACADÉMICO</option><option>CONSEJO DISCIPLINARIO</option><option>APTITUD NAVAL</option><option>SOLICITUD PROPIA</option><option>APTITUD PSICOFÍSICA</option></select></div>
-            <div class="req s2"><label for="nm">Causal (norma aplicada)</label><input class="field" id="nm" placeholder="Ej.: Reglamento Académico, Cap. 3, Art. 13, lit. a) num. 1"></div>
-            <div class="s2"><label for="ob">Observación</label><input class="field" id="ob" placeholder="Opcional"></div>
+            <div class="s4"><label for="ob">Observación</label><input class="field" id="ob" placeholder="Opcional"></div>
           </div>
           <div style="height:10px"></div>
         </div>
@@ -215,7 +214,7 @@ function pick(i){var d=EST[i];SEL=d;document.body.classList.add('sel');$('list')
   $('empty').style.display='none';$('fill').style.display='flex';
   $('fname').textContent=d.ap+' '+d.no;$('fsub').textContent='C.C. '+d.ce+(d.co?' · '+d.co:'');
   ['ap','no','ce','na','si','co','ai','fi','cu'].forEach(function(k){$(k).value=d[k]||''});
-  $('sx').value=d.sx||'';$('gr').value=d.gr||'';$('ca').value='';$('nm').value='';$('ob').value='';
+  $('sx').value=d.sx||'';$('gr').value=d.gr||'';$('ca').value='';$('ob').value='';
   $('pr').value=(d.ps?d.ps+' · ':'')+(d.pr||'');
   Array.prototype.forEach.call(document.querySelectorAll('#fill .err,#fill .need'),function(x){x.classList.remove('err','need')});
   $('sxw').classList.toggle('need',!d.sx);$('sxh').style.display=d.sx?'none':'block';
@@ -234,7 +233,7 @@ $('save').onclick=function(){var n=0;
   if(!n&&!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($('fi').value.trim())){$('fi').parentElement.classList.add('err');toast('La fecha de ingreso debe ir como dd/mm/aaaa');return}
   if(!n&&!/^\d{4}$/.test($('ai').value.trim())){$('ai').parentElement.classList.add('err');toast('El año de ingreso debe tener 4 dígitos');return}
   if(n){toast('Faltan '+n+' campo'+(n>1?'s':'')+' obligatorio'+(n>1?'s':''));var f=document.querySelector('#fill .err .field');if(f)f.focus();return}
-  var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','nm','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
+  var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
   var b=$('save');b.disabled=true;b.textContent='Registrando…';banner('');
   api('registrar',{datos:datos}).then(function(r){
     EST=EST.filter(function(x){return x!==SEL});EST.forEach(function(x,i){x._i=i});
