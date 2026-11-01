@@ -286,7 +286,7 @@ async function escribirBaja(r) {
   Object.assign(fila, {
     0: N, 1: 'RETIRO', 2: d.si, 3: d.co, 4: `${d.ap} ${d.no}`.trim(), 5: numCed(d.ce), 6: d.ai ? +d.ai || d.ai : '', 7: serialDe(d.fi),
     8: new Date().getFullYear(), 9: d.sx, 10: d.na, 11: d.cu, 12: p.sinLetra, 13: d.gr, 18: p.siglas, 19: p.programa,
-    20: d.ca, 21: d.nm, 22: d.ob || '', 32: 'RETIRO',
+    20: d.ca, 22: d.ob || '', 32: 'RETIRO',
   });
   if (tabla.columnCount >= 35) { fila[33] = r.fecha.slice(0, 10).split('-').reverse().join('/'); fila[34] = r.por; }
   const res = await gj(`${wb(it)}/tables('${TABLA_BAJAS}')/rows/add`, { method: 'POST', body: { index: null, values: [fila] } }, 'Agregar fila en Bajas');
@@ -464,7 +464,7 @@ async function identificar(accessToken) {
 }
 
 function validarDatos(d) {
-  const req = { ap: 'Apellidos', no: 'Nombres', ce: 'Cédula', sx: 'Sexo', si: 'Sigla', co: 'Contingente', ai: 'Año de ingreso', fi: 'Fecha de ingreso', na: 'Nacionalidad', cu: 'Curso de retiro', gr: 'Grado', ca: 'Primera causal de retiro', nm: 'Causal (norma aplicada)' };
+  const req = { ap: 'Apellidos', no: 'Nombres', ce: 'Cédula', sx: 'Sexo', si: 'Sigla', co: 'Contingente', ai: 'Año de ingreso', fi: 'Fecha de ingreso', na: 'Nacionalidad', cu: 'Curso de retiro', gr: 'Grado', ca: 'Primera causal de retiro' };
   const out = {};
   for (const k of Object.keys(req).concat(['ob'])) out[k] = String(d[k] == null ? '' : d[k]).trim().replace(/\s+/g, ' ');
   ['ap', 'no', 'na', 'si', 'co', 'cu'].forEach((k) => { out[k] = out[k].toUpperCase(); });
