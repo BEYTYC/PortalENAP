@@ -1,0 +1,33 @@
+# Hoja de vida del estudiante
+
+Pantalla única con toda la trayectoria de un estudiante por la ENAP. Se abre desde
+**Estadística › Hoja de vida del estudiante** (incrustada, `?embedded=1`). Solo lectura.
+
+Acceso (por ahora): `sea@enap.edu.co` y `jestadisticaplen@enap.edu.co`.
+
+## Qué muestra (solo lo que exista en las bases)
+Ingreso, semestres con sus notas (académica, aptitud naval, disciplina, cultura física; < 6 en rojo),
+semestres perdidos sombreados en rojo, alumno distinguido y excelencia, puesto de escalafón,
+grado, retiro y su motivo, cursos de extensión (dentro del semestre), complementación y cursos de ley.
+Lo que no hay no se muestra. Lo cruzado solo por nombre sale como "coincidencia por nombre, por verificar".
+
+## Fuentes
+| Dato | Fuente |
+|---|---|
+| Ingreso | CONGLOMERADO |
+| Retiro, motivo | Bajas y Ascensos › Bajas desde 1935 |
+| Escalafón y puesto | Bajas y Ascensos › Ascensos |
+| Graduado | Graduados en la ENAP |
+| Notas, puesto, distinguido, excelencia | Antigüedades (todos los periodos) |
+| Extensión, complementación | Base de Datos Cursos de Extensión |
+| Cursos de ley | Control Curso de Capacitación para Ascenso |
+
+Pendientes: medallas/premios (Caldas) y concesiones (viven en la app de Concesiones).
+El panel "Estado de las fuentes" al final de cada hoja dice qué se conectó y qué no.
+
+## Reglas
+- Semestre perdido: fila con sufijo A en Antigüedades ("Reprobado" en el Portal) o nota bajo el mínimo (6; cultura física 7).
+- Promedio del semestre: 50 % académica, 20 % aptitud naval, 20 % disciplina, 10 % cultura física (igual que Antigüedades).
+- Los archivos de cursos se leen por nombre de encabezado (CEDULA, CURSO, TIPO, FECHA…); si no se reconocen, no se muestra nada.
+
+Archivos: `api/hoja-de-vida.js` (servidor), `hoja-de-vida/index.html` (pantalla).
