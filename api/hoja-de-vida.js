@@ -394,9 +394,10 @@ function procesarMedallas(libro) {
         fecha: ['FECHA', 'FECHA SOLICITUD', 'FECHA DE SOLICITUD', 'FECHA OTORGAMIENTO', 'FECHA ENTREGA', 'FECHA RESOLUCION'],
         estado: ['ESTADO', 'OTORGADA', 'APROBADA', 'RESULTADO', 'OTORGADO', 'APROBADO', 'RESPUESTA'],
         programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'ESPECIALIDAD', 'CARRERA', 'CURSO'],
-        curso: ['CURSO ESPECIFICO'],
+        curso: ['CURSO ESPECIFICO'], general: ['CURSO GENERAL'],
       });
       if (t.curso < 0) t.curso = (F[i] || []).map((x) => sinTildes(x)).findIndex((x) => /CURSO/.test(x) && /ESPECIF/.test(x));
+      if (t.general < 0) t.general = (F[i] || []).map((x) => sinTildes(x)).findIndex((x) => /CURSO/.test(x) && /GENERAL/.test(x));
       if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
     }
     if (!c) { hojas.push({ hoja, usada: false }); continue; }
@@ -411,7 +412,7 @@ function procesarMedallas(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
-      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 && c.programa !== c.curso ? nom(r[c.programa]) : '', curso: c.curso >= 0 ? nom(r[c.curso]) : '', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
+      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 && c.programa !== c.curso && c.programa !== c.general ? nom(r[c.programa]) : '', curso: (c.curso >= 0 && txt(r[c.curso]) ? nom(r[c.curso]) : (c.general >= 0 ? nom(r[c.general]) : '')), fecha: f, periodo: per, estado: c.estado >= 0, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
