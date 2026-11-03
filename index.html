@@ -1420,7 +1420,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 
 <nav class="topnav">
   <div class="navcats" id="navcats"></div>
-  <!-- Contenedor derecho del menú (vacío: "Manuales de uso" va a la izquierda). -->
+  <!-- Contenedor derecho del menú (vacío: "Manuales" va a la izquierda). -->
   <div class="navcats navcats--der" id="navcatsDer"></div>
   <div class="nav-subsistema" id="navSubsistema" hidden>
     <button type="button" class="nav-home" id="navInicioBtn" title="Volver al inicio del Portal ENAP" aria-label="Volver al inicio del Portal ENAP">
@@ -1505,14 +1505,14 @@ img,svg,video,canvas,iframe{max-width:100%}
     <iframe
       id="protocoloConcFrame"
       class="registro-iframe"
-      title="Protocolo Solicitud Concesiones Especiales"
+      title="Manual Uso Solicitud Concesiones Especiales"
       allow="fullscreen"
       allowfullscreen
     ></iframe>
   </div>
 
   <div id="viewProtocoloAnt" hidden>
-    <iframe id="protocoloAntFrame" class="registro-iframe" title="Protocolo Antigüedades ENAP" allow="fullscreen" allowfullscreen></iframe>
+    <iframe id="protocoloAntFrame" class="registro-iframe" title="Manual Uso Antigüedades ENAP" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewAntiguedades" hidden>
@@ -3277,11 +3277,11 @@ img,svg,video,canvas,iframe{max-width:100%}
       ],
     },
     {
-      key: 'protocolos', nombre: 'Manuales de uso', icon: 'protocolos',
+      key: 'protocolos', nombre: 'Manuales', icon: 'protocolos',
       items: [
-        { nombre: 'Protocolo Solicitud de Grado', status: 'soon' },
-        { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'ok' },
-        { nombre: 'Protocolo Antigüedades ENAP', status: 'ok' },
+        { nombre: 'Manual Uso Solicitud de Grado', status: 'soon' },
+        { nombre: 'Manual Uso Solicitud Concesiones Especiales', status: 'ok' },
+        { nombre: 'Manual Uso Antigüedades ENAP', status: 'ok' },
       ],
     },
   ];
@@ -3298,7 +3298,7 @@ img,svg,video,canvas,iframe{max-width:100%}
     navIzq.innerHTML = '';
     if (navDer) navDer.innerHTML = '';
     for (const cat of MENU) {
-      // "Manuales de uso" va a la izquierda, junto a los demás menús.
+      // "Manuales" va a la izquierda, junto a los demás menús.
       const aLaDerecha = false;
       const nav = aLaDerecha ? navDer : navIzq;
       const wrap = document.createElement('div');
@@ -3402,8 +3402,8 @@ img,svg,video,canvas,iframe{max-width:100%}
             else { abrirSubsistema('viewCertificados', 'Aprobación de Certificados'); cargarCertificados(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Concesiones') { abrirSubsistema('viewConcesiones', 'Aprobación de Concesiones'); cargarConcesiones(); }
-          else if (item.status === 'ok' && item.nombre === 'Protocolo Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Protocolo · Concesiones Especiales'); cargarProtocoloConc(); }
-          else if (item.status === 'ok' && item.nombre === 'Protocolo Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Protocolo · Antigüedades ENAP'); cargarProtocoloAnt(); }
+          else if (item.status === 'ok' && item.nombre === 'Manual Uso Solicitud Concesiones Especiales') { abrirSubsistema('viewProtocoloConc', 'Manual Uso · Concesiones Especiales'); cargarProtocoloConc(); }
+          else if (item.status === 'ok' && item.nombre === 'Manual Uso Antigüedades ENAP') { abrirSubsistema('viewProtocoloAnt', 'Manual Uso · Antigüedades ENAP'); cargarProtocoloAnt(); }
           else if (item.status === 'ok' && item.nombre === 'Gestión de Ceremonias de Grado') abrirSubsistema('viewAprobacionSac', 'Gestión de Ceremonias de Grado');
           else if (item.status === 'ok' && item.nombre === 'Centro de Datos ENAP') abrirSubsistema('viewCDE', 'Centro de Datos ENAP');
           else if (item.status === 'ok') showToast(`Abriendo «${item.nombre}»…`);
