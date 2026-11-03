@@ -105,7 +105,7 @@ async function itemBajas() {
   const pick = (ext) => L.filter((x) => es(x, ext)).sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)))[0];
   const m = pick('.XLSX') || pick('.XLSM');
   if (!m) throw error(`No se encontró Bajas y Ascensos en ${CARPETA_BAJAS}.`, 404);
-  return { id: m.id, eTag: m.eTag, nombre: m.name };
+  return { id: m.id, eTag: m.eTag, nombre: m.name, mod: m.lastModifiedDateTime };
 }
 async function itemConcesiones() {
   const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(CARPETA_CONC)}:/children?$select=id,name,eTag,lastModifiedDateTime,file&$top=200`);
@@ -113,14 +113,14 @@ async function itemConcesiones() {
   const L = ((await r.json()).value || []).filter((x) => x.file && /\.xls[xm]$/i.test(x.name) && normNom(x.name).startsWith('BASECONCESIONES') && !x.name.startsWith('~$'));
   L.sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)));
   if (!L[0]) throw error(`No se encontró "Base Concesiones" en ${CARPETA_CONC}.`, 404);
-  return { id: L[0].id, eTag: L[0].eTag, nombre: L[0].name };
+  return { id: L[0].id, eTag: L[0].eTag, nombre: L[0].name, mod: L[0].lastModifiedDateTime };
 }
 async function item(clave) {
   if (clave === 'bajas') return itemBajas();
   if (clave === 'concesiones') return itemConcesiones();
   for (const ruta of RUTAS[clave]) {
     const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(ruta)}`);
-    if (r.ok) { const m = await r.json(); return { id: m.id, eTag: m.eTag, nombre: m.name }; }
+    if (r.ok) { const m = await r.json(); return { id: m.id, eTag: m.eTag, nombre: m.name, mod: m.lastModifiedDateTime }; }
     if (r.status !== 404) throw error(`No se pudo abrir ${ruta} (${r.status}).`, 502);
   }
   throw error(`No se encontró el archivo en el OneDrive de Estadística (${RUTAS[clave][0]}).`, 404);
@@ -130,12 +130,14 @@ async function descargar(it) {
   if (!r.ok) throw error(`No se pudo descargar ${it.nombre} (${r.status}).`, 502);
   return Buffer.from(await r.arrayBuffer());
 }
+const MODS = {}; // última modificación de cada archivo (para "datos actualizados al")
 const CACHE = {}; // por instancia de la función, vigente mientras no cambie el eTag
 const TTL_FUENTE = 2 * 60000;
 async function fuente(clave, procesar) {
   const c = CACHE[clave];
   if (c && Date.now() - c.t < TTL_FUENTE) return c.valor; // reciente: no consulta nada
   const it = await item(clave);
+  if (it.mod) MODS[clave] = it.mod;
   if (c && c.eTag === it.eTag) { c.t = Date.now(); return c.valor; }
   const valor = procesar(X.abrir(await descargar(it)), it);
   CACHE[clave] = { eTag: it.eTag, valor, t: Date.now() };
@@ -343,7 +345,7 @@ function procesarConcesiones(libro) {
       c.periodo = j;
     }
     { const HH = (F[h0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
-      c.honor = HH.findIndex((x) => /GRADO DE HONOR/.test(x)); c.prog = HH.findIndex((x) => x === 'PROGRAMA'); c.anog = HH.findIndex((x) => x === 'ANOG'); c.cursoSem = HH.findIndex((x) => x === 'CURSO' || x === 'CURSO ACTUAL');
+      c.honor = HH.findIndex((x) => /GRADO DE HONOR/.test(x)); c.prog = HH.findIndex((x) => x === 'PROGRAMA'); c.anog = HH.findIndex((x) => x === 'ANOG'); c.cursoSem = HH.findIndex((x) => x === 'CURSO' || x === 'CURSO ACTUAL'); c.dist = HH.findIndex((x) => /^TIPO DISTINT/.test(x)); c.trab = HH.findIndex((x) => /TRABAJO DE GRADO/.test(x));
       const ia = HH.findIndex((x) => x === 'APELLIDOS'), inn = HH.findIndex((x) => x === 'NOMBRES'); c.apeNom = ia >= 0 && inn >= 0 && !HH.some((x) => /^APELLIDOS Y NOMBRES?/.test(x)) ? [ia, inn] : null; }
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
@@ -373,9 +375,18 @@ function procesarConcesiones(libro) {
       const motivo = c.motivo >= 0 ? txt(r[c.motivo]) : '';
       const resol = c.resol >= 0 ? txt(r[c.resol]) : '';
       const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo])].filter(Boolean).join(' · ');
-      const honorTxt = c.honor >= 0 ? txt(r[c.honor]) : '';
+      // Meritorios: TIPO DISTINCIÓN dice si fue Meritorio, Laureado, Cum Laude, Magna Cum Laude o Summa Cum Laude.
+      let claseR = cl[0];
+      if (cl[0] === 'merito' && c.dist >= 0 && txt(r[c.dist])) {
+        const d = sinTildes(r[c.dist]);
+        if (/LAUREAD/.test(d)) { claseR = 'laureado'; titulo = 'Laureado'; }
+        else if (/MERIT/.test(d)) titulo = 'Meritorio';
+        else titulo = nom(r[c.dist]);
+      }
+      const trabajo = c.trab >= 0 ? txt(r[c.trab]).replace(/^["“”']+|["“”']+$/g, '').trim() : '';
+      const honorTxt = '';
       const honor = /^(-|#N\/A|#NAME\?|NO|NA|N\/A|0)?$/i.test(honorTxt) ? '' : honorTxt;
-      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre, honor: honor ? (/^S[IÍ]$/i.test(honor) ? 'Grado de honor' : nom(honor)) : '', programa: c.prog >= 0 ? nom(r[c.prog]) : '', curso: c.cursoSem >= 0 ? txt(r[c.cursoSem]) : '' };
+      const reg = { clase: claseR, trabajo, concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre, honor: honor ? (/^S[IÍ]$/i.test(honor) ? 'Grado de honor' : nom(honor)) : '', programa: c.prog >= 0 ? nom(r[c.prog]) : '', curso: c.cursoSem >= 0 ? txt(r[c.cursoSem]) : '' };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -645,7 +656,7 @@ function armarFicha(id, S) {
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
     linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
-  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
+  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
     const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
@@ -698,6 +709,7 @@ function armarFicha(id, S) {
     const titulo = x.concesion + (x.honor ? ' · ' + x.honor : '');
     g.distinciones = g.distinciones || [];
     if (!g.distinciones.some((d) => d.titulo === titulo)) g.distinciones.push({ titulo });
+    if (x.trabajo && !g.trabajo) g.trabajo = x.trabajo;
   });
   // Logros: cuántos distinguidos, becas y excelencias académicas (solo lo que exista).
   // Distinguido / excelencia por periodo: de las listas históricas del registro (dst/exa) y de las marcas de cada periodo (dis/exc) en todos los archivos de Antigüedades.
@@ -865,7 +877,7 @@ module.exports = async function handler(req, res) {
     const fuentes = yo.correo === 'jestadisticaplen@enap.edu.co' ? fuentesTodas : [];
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }
-    if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes })); return; }
+    if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes, actualizado: Object.values(MODS).sort().slice(-1)[0] || '' })); return; }
     throw error(`Acción desconocida: ${a}`, 400);
   } catch (e) {
     res.status(e.status || 500).json({ error: e instanceof Error ? e.message : String(e) });
