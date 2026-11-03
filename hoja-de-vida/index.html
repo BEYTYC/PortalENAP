@@ -7,17 +7,20 @@
 <style>
 :root{--ink:#14263D;--mut:#55657A;--pri:#1F4E8C;--bg:#EEF2F7;--red:#C0392B;--redbg:#FDECEA}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%}
-body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px;line-height:1.45;overflow:auto}
-body:before{content:"";position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center 55%/auto 92vh no-repeat;opacity:.06;pointer-events:none;z-index:0}
+html,body{margin:0;height:100%;background:transparent}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:var(--ink);background:transparent;font-size:14px;line-height:1.45;overflow:auto}
 .wrap{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:28px 20px 48px;display:flex;flex-direction:column;gap:22px}
 .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.rise{animation:none}}
-.bus{display:flex;gap:10px}
+.bus{display:flex;gap:10px;position:relative}
+.sug{position:absolute;left:0;right:0;top:50px;z-index:10;background:#fff;border-radius:14px;box-shadow:0 12px 32px rgba(20,50,90,.18);overflow:hidden}
+.sug button{display:flex;gap:12px;align-items:center;justify-content:space-between;width:100%;text-align:left;border:0;background:none;font:inherit;color:inherit;padding:10px 16px;border-bottom:1px solid #E6EEF8;cursor:pointer}
+.sug button:last-child{border-bottom:0}.sug button:hover,.sug button.on{background:#EAF1FA}
+.sug small{color:var(--mut)}
 .bus input{flex:1;min-width:0;height:44px;border:1px solid #C9D9EC;border-radius:12px;padding:0 14px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
-.bus button{height:44px;border:0;border-radius:12px;padding:0 22px;background:var(--pri);color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
-.bus button:disabled{opacity:.6;cursor:wait}
+.bus #bt{height:44px;border:0;border-radius:12px;padding:0 22px;background:var(--pri);color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.bus #bt:disabled{opacity:.6;cursor:wait}
 .card{background:#fff;border-radius:18px;box-shadow:0 1px 2px rgba(20,50,90,.06),0 10px 28px rgba(20,50,90,.08)}
 .msg{padding:18px 20px;color:var(--mut);text-align:center}
 .msg.err{color:var(--red)}
@@ -90,7 +93,8 @@ body:before{content:"";position:fixed;inset:0;background:url(../assets/escudo-ma
 <div class="wrap">
   <form class="bus" id="f" autocomplete="off">
     <label for="q" style="position:absolute;left:-9999px">Cédula o nombre</label>
-    <input id="q" type="text" placeholder="Cédula (1.000.000.000) o nombre (GÓMEZ PÉREZ)">
+    <input id="q" type="text" placeholder="Cédula (1.000.000.000) o nombre (GÓMEZ PÉREZ)" aria-autocomplete="list" aria-controls="sug">
+    <div class="sug" id="sug" role="listbox" hidden></div>
     <button type="submit" id="bt">Buscar</button>
   </form>
   <div id="out"></div>
@@ -119,8 +123,24 @@ function ced(c){var s=String(c||'').replace(/\D/g,'');return s&&s===String(c).re
 function ini(n){var t=String(n||'').split(' ').filter(Boolean);return ((t[0]||'')[0]||'')+((t[1]||t[0]||'')[0]||'')}
 function pvTag(e){return e.pv?'<div style="margin-top:8px"><span class="pv">Coincidencia por nombre, por verificar</span></div>':''}
 
+/* ---------- Autocompletar (nombres de CONGLOMERADO, mientras se escribe) ---------- */
+var sq=0,st=null,sel=-1;
+function cerrar(){$('sug').hidden=true;$('sug').innerHTML='';sel=-1}
+$('q').addEventListener('input',function(){clearTimeout(st);var q=$('q').value.trim();if(q.length<3){cerrar();return}
+  st=setTimeout(function(){var n=++sq;api('sugerir',{q:q}).then(function(r){if(n!==sq)return;
+    if(!r.lista.length){cerrar();return}
+    $('sug').innerHTML=r.lista.map(function(p){return '<button type="button" role="option" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span></button>'}).join('')+(r.total>r.lista.length?'<div class="msg" style="padding:8px">Hay '+r.total+' coincidencias; siga escribiendo para afinar.</div>':'');
+    $('sug').hidden=false;sel=-1;
+    Array.prototype.forEach.call($('sug').querySelectorAll('button'),function(b){b.addEventListener('mousedown',function(e){e.preventDefault();var id=b.getAttribute('data-id');cerrar();abrir(id)})});
+  }).catch(function(){})},220)});
+$('q').addEventListener('keydown',function(e){var bs=$('sug').querySelectorAll('button');if(!bs.length||$('sug').hidden)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;Array.prototype.forEach.call(bs,function(b,i){b.classList.toggle('on',i===sel)})}
+  else if(e.key==='Enter'&&sel>=0){e.preventDefault();var id=bs[sel].getAttribute('data-id');cerrar();abrir(id)}
+  else if(e.key==='Escape')cerrar()});
+$('q').addEventListener('blur',function(){setTimeout(cerrar,150)});
+
 /* ---------- Búsqueda ---------- */
-$('f').addEventListener('submit',function(ev){ev.preventDefault();var q=$('q').value.trim();if(q.length<3){msg('Escriba al menos 3 caracteres (cédula o nombre).',1);return}
+$('f').addEventListener('submit',function(ev){ev.preventDefault();sq++;cerrar();var q=$('q').value.trim();if(q.length<3){msg('Escriba al menos 3 caracteres (cédula o nombre).',1);return}
   $('bt').disabled=true;gate(true,'Buscando…');
   api('buscar',{q:q}).then(function(r){
     if(!r.lista.length){msg('No hay coincidencias para “'+ESC(q)+'”.');return}
