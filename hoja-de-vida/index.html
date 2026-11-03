@@ -139,6 +139,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 /* aire entre cabecera y trayectoria */
 .tit{margin:34px 0 30px}
 .phase{margin:14px 0 26px}
+.tl-card .t .d{font-size:15.5px;padding:5px 14px}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -310,6 +311,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+ESCT(e.jerarquia)+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
+      (e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+(m.programa?'<div>Programa: '+TT(m.programa)+'</div>':'')+'</div></div>'});
     }else if(e.tipo==='grado'){
       titulo='Titulación académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
