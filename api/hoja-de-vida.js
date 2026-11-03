@@ -596,20 +596,15 @@ function armarFicha(id, S) {
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
-  // La medalla se obtiene dentro de un programa: de cadete -> en su último semestre; de complementación -> con el grado de complementación.
-  const ultSem = sems.filter((x) => x.periodo).sort((a, b) => (a.t || 0) - (b.t || 0)).pop() || null;
+  // La medalla Caldas está asociada a un programa: va dentro de la tarjeta del grado de ese programa.
   medallas.forEach((x) => {
     const kp = kt(x.programa);
-    const gComp = kp ? grados.find((g) => esGradoComp(g, cursos) && kt(g.programa) && (kt(g.programa).includes(kp) || kp.includes(kt(g.programa)))) : null;
-    const esComp = !!gComp || (kp && cursos.some((c) => c.clase === 'complementacion' && kt(c.tipo || '').includes(kp)));
-    const base = { tipo: 'medalla', titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', detalle: '', pv: x.pv };
-    if (esComp && gComp && tFecha(gComp.fecha) != null) {
-      linea.push(Object.assign(base, { t: tFecha(gComp.fecha) + 0.001, fecha: gComp.fecha, anio: anioDe(gComp.fecha) }));
-    } else if (!esComp && ultSem) {
-      linea.push(Object.assign(base, { t: ultSem.t + 0.02, periodo: ultSem.periodo, anio: +ultSem.periodo.slice(0, 4), enSemestre: ultSem.periodo }));
-    } else {
-      linea.push(Object.assign(base, { t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha) }));
-    }
+    const evGrados = linea.filter((e) => e.tipo === 'grado');
+    let g = kp ? evGrados.find((e) => { const a = kt(e.programa || ''), b = kt(e.tituloAcad || ''); return (a && (a.includes(kp) || kp.includes(a))) || (b && (b.includes(kp) || kp.includes(b))); }) : null;
+    if (!g && !kp && evGrados.length === 1) g = evGrados[0];
+    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', pv: x.pv };
+    if (g) { (g.medallas = g.medallas || []).push(m); return; }
+    linea.push(Object.assign({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.

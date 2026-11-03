@@ -117,6 +117,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .yr-m{display:block}
 }
 .flag{height:15px;width:auto;border-radius:2px;margin-left:8px;vertical-align:-2px;box-shadow:0 0 0 1px rgba(20,50,90,.15)}
+.medbox{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 14px;border-radius:12px;background:#F8EBC8;color:#5E4408;font-size:14px;line-height:1.35}.medbox b{color:#5E4408}.medbox svg{flex:none;margin-top:1px}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -216,7 +217,6 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(!sc&&e.anioSolo)sc=sems.filter(function(x){return x.semestre.periodo&&+x.semestre.periodo.slice(0,4)===e.anio})[0];
       if(!sc){(sinSem=sinSem||[]).push(e);return false}
       (sc.extras=sc.extras||[]).push(e);return false}
-    if(e.tipo==='medalla'&&e.enSemestre){var sm=sems.filter(function(x){return x.semestre.periodo===e.enSemestre})[0];if(sm){(sm.extras=sm.extras||[]).push(e);return false}}
     if(e.tipo!=='extension'||!e.fecha)return true;
     var y=+e.fecha.slice(0,4),h=+e.fecha.slice(5,7)<=6?1:2,per=y+'-'+h;
     var s=sems.filter(function(x){return x.semestre.periodo===per})[0];
@@ -256,7 +256,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e.tipo==='posgrado')return 'pos';
     if(e.tipo==='grado'&&!e.comp)return 'for';
     if(e.tipo==='complementacion'||e.tipo==='grado'||e.tipo==='medalla')return 'com';
-    if(e.tipo==='extension'&&tEsc!=null&&e.t!=null&&e.t>tEsc)return 'com';
+    if(e.tipo==='extension')return 'com';
     return 'for'}
   var G={};L.forEach(function(e){var g=grupo(e);(G[g]=G[g]||[]).push(e)});
   var mt=function(g){var t=G[g].filter(function(x){return x.t!=null}).map(function(x){return x.t});return t.length?Math.min.apply(null,t):null};
@@ -289,7 +289,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
     }else if(e.tipo==='grado'){
-      titulo='Titulación académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';
+      titulo='Titulación académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
       titulo=e.titulo;chipD=fch(e.fecha)||(e.anio?String(e.anio):'');if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';
     }else if(e.tipo==='retiro'){
