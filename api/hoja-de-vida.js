@@ -469,6 +469,18 @@ function reunir(fu, ck, nks) {
 /* Significado de cada categoría de la Medalla Caldas, según Estadística. */
 const MOTIVO_CALDAS = { 'A LA CONSAGRACION': 'Por haber obtenido el primer puesto en su promoción' };
 
+/* Quita repetidos (misma clave); entre dos iguales se queda el que trae más datos y, si empatan, el de cédula exacta. */
+function sinRepetidos(lista, clave) {
+  const mapa = new Map();
+  lista.forEach((x) => {
+    const k = clave(x);
+    const peso = (y) => Object.values(y).filter((v) => v !== '' && v != null && v !== false).length + (y.pv ? 0 : 0.5);
+    if (!mapa.has(k) || peso(x) > peso(mapa.get(k))) mapa.set(k, x);
+  });
+  return Array.from(mapa.values());
+}
+const kt = (v) => sinTildes(v).replace(/[^A-Z0-9]/g, '');
+
 function armarFicha(id, S) {
   const avisos = [];
   const m = String(id || '').match(/^([cn]):(.+)$/);
@@ -509,7 +521,7 @@ function armarFicha(id, S) {
 
   /* ---- Graduado ---- */
   const gr = pick(S.grad, 'graduado');
-  const grados = gr.exactas.map((x) => Object.assign({ pv: false }, x)).concat(gr.nombre.map((x) => Object.assign({ pv: true }, x)));
+  const grados = sinRepetidos(gr.exactas.map((x) => Object.assign({ pv: false }, x)).concat(gr.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [kt(x.programa), x.fecha].join('|'));
 
   /* ---- Escalafón ---- */
   const asr = pick(S.baj && S.baj.asc, 'escalafón');
@@ -527,14 +539,16 @@ function armarFicha(id, S) {
   /* ---- Extensión / complementación / ascenso ---- */
   const cursos = [];
   [S.ext, S.ccp, S.ley].forEach((fu) => { const ex = pick(fu, 'cursos'); ex.exactas.forEach((x) => cursos.push(Object.assign({ pv: false }, x))); ex.nombre.forEach((x) => cursos.push(Object.assign({ pv: true }, x))); });
+  const cursosU = sinRepetidos(cursos, (x) => [kt(x.curso), x.fin || x.inicio || '', x.clase === 'complementacion' ? 'c' : ''].join('|'));
+  cursos.length = 0; cursosU.forEach((x) => cursos.push(x));
 
   /* ---- Concesiones especiales (otorgadas) ---- */
   const cn = pick(S.conc, 'concesiones');
-  const concesiones = cn.exactas.map((x) => Object.assign({ pv: false }, x)).concat(cn.nombre.map((x) => Object.assign({ pv: true }, x)));
+  const concesiones = sinRepetidos(cn.exactas.map((x) => Object.assign({ pv: false }, x)).concat(cn.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [x.clase, kt(x.concesion), x.periodo || x.anio || ''].join('|'));
 
   /* ---- Medallas Caldas ---- */
   const md = pick(S.med, 'medallas');
-  const medallas = md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x)));
+  const medallas = sinRepetidos(md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [kt(x.medalla), x.periodo || x.fecha].join('|'));
 
   /* ---- Estado ---- */
   let estado = '';
@@ -692,4 +706,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { procesarMedallas, procesarConcesiones, normPeriodo, armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
+module.exports._test = { sinRepetidos, procesarMedallas, procesarConcesiones, normPeriodo, armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
