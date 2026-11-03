@@ -41,7 +41,7 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .fs:hover{background:#EAF1FA}
 html:fullscreen{background:#EEF2F7}
 html:fullscreen body{background:transparent}
-html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('../escudo-marca-agua.png') center/min(78vh,78vw) no-repeat;opacity:.09}
+html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('../assets/escudo-marca-agua-sm.webp') center/min(78vh,78vw) no-repeat;opacity:.035}
 @media (max-width:1060px){.volver{right:60px}}
 .volver{position:absolute;top:14px;right:16px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.18)}
 .volver:hover{background:#fff}
@@ -118,6 +118,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 }
 .flag{height:15px;width:auto;border-radius:2px;margin-left:8px;vertical-align:-2px;box-shadow:0 0 0 1px rgba(20,50,90,.15)}
 </style>
+<link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
 <body class="ini">
 <button type="button" class="fs" id="fs" title="Pantalla completa" aria-label="Pantalla completa"></button>
