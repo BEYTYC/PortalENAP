@@ -96,7 +96,23 @@ async function leerJsonAnt(n) { const r = await g(`/sites/${SITE}/drive/root:/An
 
 /* OneDrive de jestadisticaplen */
 const enc = (ruta) => ruta.split('/').map(encodeURIComponent).join('/');
+const CARPETA_BAJAS = RUTA_BD + 'B.D Retiros y Ascensos';
+const normNom = (n) => sinTildes(n).replace(/[^A-Z0-9.]/g, '');
+let VISTOS_BAJAS = [];
+/* Bajas y Ascensos: busca en la carpeta cualquier "Bajas y Ascensos" .xlsx (prefiere el más reciente); si no hay, el .xlsm. */
+async function itemBajas() {
+  const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(CARPETA_BAJAS)}:/children?$select=id,name,eTag,lastModifiedDateTime,file&$top=200`);
+  if (!r.ok) throw error(`No se pudo abrir la carpeta ${CARPETA_BAJAS} (${r.status}).`, 502);
+  const L = ((await r.json()).value || []).filter((x) => x.file);
+  VISTOS_BAJAS = L.map((x) => x.name);
+  const es = (x, ext) => normNom(x.name).startsWith('BAJASYASCENSOS') && normNom(x.name).endsWith(ext);
+  const pick = (ext) => L.filter((x) => es(x, ext)).sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)))[0];
+  const m = pick('.XLSX') || pick('.XLSM');
+  if (!m) throw error(`No se encontró Bajas y Ascensos en ${CARPETA_BAJAS}. Archivos en la carpeta: ${VISTOS_BAJAS.join(', ') || 'ninguno'}.`, 404);
+  return { id: m.id, eTag: m.eTag, nombre: m.name, modificado: m.lastModifiedDateTime, xlsx: /\.xlsx$/i.test(m.name) };
+}
 async function item(clave) {
+  if (clave === 'bajas') return itemBajas();
   for (const ruta of RUTAS[clave]) {
     const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(ruta)}`);
     if (r.ok) { const m = await r.json(); return { id: m.id, eTag: m.eTag, nombre: m.name, modificado: m.lastModifiedDateTime, xlsx: /\.xlsx$/i.test(m.name) }; }
@@ -265,7 +281,7 @@ async function vigentes() {
 
 async function bajasXlsx() {
   const it = await item('bajas');
-  if (!it.xlsx) throw error('Bajas y Ascensos sigue en .xlsm. Para que el Portal pueda escribir, guárdelo como "Bajas y Ascensos.xlsx" en la misma carpeta.', 409);
+  if (!it.xlsx) throw error(`En el OneDrive de jestadisticaplen, carpeta "${CARPETA_BAJAS}", solo está "${it.nombre}" (archivos que veo: ${VISTOS_BAJAS.join(', ')}). Guarde ahí una copia como "Bajas y Ascensos.xlsx" (Archivo › Guardar como › Libro de Excel).`, 409);
   return it;
 }
 
@@ -522,6 +538,47 @@ module.exports = async function handler(req, res) {
     if (a === 'pendientes') {
       const regs = (await leerJson('registros.json')) || [];
       res.status(200).json({ lista: regs.filter((r) => r.estado !== 'completo').map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) })) });
+      return;
+    }
+
+    if (a === 'registros') {
+      const regs = (await leerJson('registros.json')) || [];
+      const sinExcel = regs.filter((r) => !r.excel).slice(0, 5);
+      if (sinExcel.length) {
+        let cambio = false;
+        try {
+          await bajasXlsx();
+          for (const r of sinExcel) { try { const w = await escribirBaja(r); r.excel = true; r.N = w.N; r.fila = w.fila; delete r.errorExcel; cambio = true; } catch (e) { r.errorExcel = e.message; } }
+        } catch (e) { sinExcel.forEach((r) => { r.errorExcel = e.message; }); }
+        if (cambio) await escribirJson('registros.json', regs);
+      }
+      res.status(200).json({ lista: regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) })) });
+      return;
+    }
+
+    if (a === 'deshacer') {
+      const regs = (await leerJson('registros.json')) || [];
+      const i = regs.findIndex((x) => x.id === body.id);
+      if (i < 0) throw error('No se encontró el registro.', 404);
+      const r = regs[i];
+      let borradaFila = null;
+      if (r.excel) {
+        const it = await bajasXlsx();
+        const fila = await filaDeBaja(it, r.datos.ce, r.fila);
+        if (fila) {
+          const v = await gj(`${hojaUrl(it, HOJA_BAJAS)}/range(address='E${fila}:F${fila}')?$select=values`, null, 'Bajas');
+          const [nom] = v.values[0];
+          if (sinTildes(nom) !== sinTildes(`${r.datos.ap} ${r.datos.no}`)) throw error(`La fila ${fila} del Excel tiene otro nombre (${nom}); no se borró nada. Corríjalo directamente en el Excel.`, 409);
+          await gj(`${wb(it)}/tables('${TABLA_BAJAS}')/rows/itemAt(index=${fila - 2})`, { method: 'DELETE' }, 'Borrar fila en Bajas');
+          borradaFila = fila;
+        }
+      }
+      regs.splice(i, 1);
+      await escribirJson('registros.json', regs);
+      const hist = (await leerJson('deshechos.json')) || [];
+      hist.push(Object.assign({}, r, { deshecho: ahora(), deshechoPor: yo.correo, filaBorrada: borradaFila }));
+      await escribirJson('deshechos.json', hist.slice(-500));
+      res.status(200).json({ ok: true, filaBorrada: borradaFila });
       return;
     }
 
