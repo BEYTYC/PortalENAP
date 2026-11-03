@@ -216,13 +216,11 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   if(P.curso)h+='<span class="chip">Curso '+ESC(P.curso)+'</span>';
   if(P.nac&&P.nac!=='COLOMBIA')h+='<span class="chip">'+ESC(P.nac)+'</span>';
   h+='</div></div></div>';
-  F.alertas.forEach(function(a){h+='<div class="alerta">'+ESC(a)+'</div>'});
 
   /* tarjetas de resumen: solo las que tienen dato */
   var R=F.resumen,st=[];
   var ing=F.ingreso&&F.ingreso.fecha?+F.ingreso.fecha.slice(0,4):(F.ingreso&&F.ingreso.anio)||null;
   var fin=null;L.forEach(function(e){if((e.tipo==='retiro'||e.tipo==='grado')&&e.anio)fin=e.anio});
-  if(ing&&fin&&fin>=ing)st.push(['Permanencia',(fin-ing)+(fin-ing===1?' año':' años')]);
   if(R.puesto)st.push(['Puesto de escalafón',R.puesto+(R.total?' de '+R.total:'')]);
   var pr=sems.filter(function(s){return s.semestre.ac!=null}).map(function(s){return s.semestre.ac});
   if(pr.length)st.push(['Promedio académico',f3(pr.reduce(function(a,b){return a+b},0)/pr.length)]);
