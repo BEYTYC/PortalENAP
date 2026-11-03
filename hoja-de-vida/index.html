@@ -24,6 +24,13 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .bus input:focus{border-color:var(--pri);box-shadow:0 0 0 3px rgba(31,78,140,.15)}
 .bus #bt{height:48px;border:0;border-radius:14px;padding:0 24px;background:var(--pri);color:#fff;font:inherit;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 4px 12px rgba(31,78,140,.25)}
 .bus #bt:disabled{opacity:.55;cursor:wait;box-shadow:none}
+.sug{position:absolute;left:0;right:0;top:54px;z-index:10;background:#fff;border-radius:14px;box-shadow:0 12px 32px rgba(20,50,90,.18);overflow:hidden;text-align:left}
+.sug button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;text-align:left;border:0;background:none;font:inherit;color:var(--ink);padding:10px 16px;border-bottom:1px solid #E6EEF8;cursor:pointer}
+.sug button:last-child{border-bottom:0}.sug button:hover,.sug button.on{background:#EAF1FA}
+.sug button b{font-weight:700;font-size:14px}.sug button small{color:var(--mut);font-size:12.5px}
+.ficha .top{display:none}
+.volver{position:absolute;top:14px;right:16px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.18)}
+.volver:hover{background:#fff}
 .ayuda{font-size:12px;color:var(--mut);margin-top:8px}
 .vacio{text-align:center;padding:44px 24px}
 .vacio .big{width:64px;height:64px;border-radius:20px;background:#DCE9F7;display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
@@ -48,11 +55,11 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .pers .cu{padding:0 24px 22px}
 .pers .fila{position:relative;z-index:2;display:flex;align-items:flex-end;gap:16px;margin-top:-36px}
 .av{width:76px;height:76px;flex:none;border-radius:50%;background:var(--pri);color:#fff;border:4px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
-.pers .nm{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;min-width:0;padding-bottom:4px}.pers .cc{font-size:15px;font-weight:600;color:var(--mut);white-space:nowrap}
+.pers .nm{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;min-width:0;padding-bottom:4px}.pers .cc{font-size:15px;font-weight:500;color:var(--mut);white-space:nowrap}
 .pers h1{margin:0;font-size:22px;font-weight:700;min-width:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chip{background:#EAF1FA;color:#17406F;padding:5px 12px;border-radius:999px;font-size:14px}
-.chip.est{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#EAF1FA;color:#17406F;padding:6px 13px;border-radius:999px;font-size:14px;font-weight:500;line-height:1.2}
+.chip.est{font-weight:600}
 .stats{display:flex;flex-wrap:wrap;gap:14px}
 .stat{flex:1 1 150px;min-width:0;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(20,50,90,.06),0 8px 24px rgba(20,50,90,.06)}
 .stat .l{font-size:13px;color:var(--mut)}.stat .v{font-size:24px;font-weight:700;color:var(--pri);margin-top:2px}
@@ -100,8 +107,7 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 <body>
 <div class="wrap">
   <div class="top">
-    <div class="ttl"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 11a4 4 0 1 0 0.01 0 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-      <div><h2>Hoja de vida del estudiante</h2><p>Trayectoria completa por la institución</p></div></div>
+    <div class="ttl"><div><h2>Hoja de vida del estudiante</h2><p>Trayectoria completa por la institución</p></div></div>
     <form class="bus" id="f" autocomplete="off">
       <label for="q" style="position:absolute;left:-9999px">Cédula o nombre</label>
       <div class="in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7C93" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
@@ -128,7 +134,7 @@ function SKL(){var b=function(w,h,x){return '<div class="sk" style="width:'+w+';
   return '<div class="skc" style="padding:0;overflow:hidden"><div class="sk" style="height:92px;border-radius:0"></div><div style="padding:0 24px 22px"><div style="display:flex;gap:16px;align-items:flex-end;margin-top:-36px">'+b('76px','76px','border-radius:50%;border:4px solid #fff')+b('46%','24px','margin-bottom:6px')+'</div><div style="display:flex;gap:8px;margin-top:16px">'+b('110px','28px','border-radius:999px')+b('90px','28px','border-radius:999px')+b('130px','28px','border-radius:999px')+'</div></div></div>'
   +'<div class="stats" style="margin-top:22px">'+[0,1,2,3].map(function(){return '<div class="stat">'+b('60%','12px')+b('40%','24px','margin-top:8px')+'</div>'}).join('')+'</div>'
   +[0,1,2].map(function(){return '<div class="skc" style="margin:22px 0 0 182px">'+b('40%','18px')+b('70%','12px','margin-top:12px')+b('100%','7px','margin-top:16px')+'</div>'}).join('')}
-function gate(on,t){if(on){$('out').innerHTML='<div class="est">'+ESC(t||'Cargando…')+'</div><div style="height:14px"></div>'+SKL()}$('bt').disabled=!!on}
+function gate(on,t){if(on){document.body.classList.remove('ficha');$('out').innerHTML='<div class="est">'+ESC(t||'Cargando…')+'</div><div style="height:14px"></div>'+SKL()}$('bt').disabled=!!on}
 
 var PAL={ingreso:['#2F6FB5','#DCE9F7','#17406F'],semestre:['#4A82C4','#DCE9F7','#17406F'],escalafon:['#1F4E8C','#DCE9F7','#17406F'],grado:['#2E8B57','#DDF1E4','#1B5E34'],
   extension:['#1E8C7E','#D5F0EB','#0E4F46'],complementacion:['#C0562F','#FBE3D8','#6B2A12'],ley:['#C0562F','#FBE3D8','#6B2A12'],regreso:['#C0562F','#FBE3D8','#6B2A12'],concesion:['#6B5BC4','#E5E1F8','#3A2F84'],medalla:['#A97A12','#F8EBC8','#5E4408'],reconocimiento:['#A97A12','#F8EBC8','#5E4408'],retiro:['#6B7280','#E5E7EB','#374151'],perdido:['#C0392B','#FBD9D5','#7A1F16']};
@@ -163,10 +169,10 @@ $('f').addEventListener('submit',function(ev){ev.preventDefault();sq++;cerrar();
   api('buscar',{q:q}).then(function(r){
     if(!r.lista.length){msg('No hay coincidencias para “'+ESC(q)+'”.');return}
     if(r.lista.length===1){abrir(r.lista[0].id);return}
-    $('out').innerHTML='<div class="card rise lista">'+r.lista.map(function(p){return '<button type="button" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span>'+(p.sinCedula?'<span class="pv">sin cédula</span>':'')+'</button>'}).join('')+(r.total>r.lista.length?'<div class="msg">Hay '+r.total+' coincidencias; se muestran 30. Escriba más del nombre para afinar.</div>':'')+'</div>';
+    document.body.classList.remove('ficha');$('out').innerHTML='<div class="card rise lista">'+r.lista.map(function(p){return '<button type="button" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span>'+(p.sinCedula?'<span class="pv">sin cédula</span>':'')+'</button>'}).join('')+(r.total>r.lista.length?'<div class="msg">Hay '+r.total+' coincidencias; se muestran 30. Escriba más del nombre para afinar.</div>':'')+'</div>';
     Array.prototype.forEach.call($('out').querySelectorAll('button[data-id]'),function(b){b.addEventListener('click',function(){abrir(b.getAttribute('data-id'))})});
   }).catch(function(e){msg(e.message,1)}).then(function(){$('bt').disabled=false;gate(false)})});
-function msg(t,err){$('out').innerHTML='<div class="card msg'+(err?' err':'')+'">'+t+'</div>'}
+function msg(t,err){document.body.classList.remove('ficha');$('out').innerHTML='<div class="card msg'+(err?' err':'')+'">'+t+'</div>'}
 function abrir(id){gate(true,'Armando la hoja de vida…');api('ficha',{id:id}).then(pintar).catch(function(e){msg(e.message,1)}).then(function(){gate(false);$('bt').disabled=false})}
 
 /* ---------- Ficha ---------- */
@@ -177,7 +183,7 @@ function fase(e,ya){ // formación / escalafón y grado / después / retiro
   return ya.esc?'des':'for'}
 var FASES={for:['Formación','#1F4E8C'],esc:['Escalafón y grado','#2E8B57'],des:['Después del escalafón','#C0562F'],ret:['Retiro','#6B7280']};
 
-function pintar(F){
+function pintar(F){document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
   /* Cursos de extensión con fecha dentro de un semestre van DENTRO de su tarjeta */
   var sems=L.filter(function(e){return e.tipo==='semestre'});
@@ -189,7 +195,7 @@ function pintar(F){
     if(!s)return true;(s.extras=s.extras||[]).push(e);return false});
   var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FBE3D8','#6B2A12','out'],'SALIÓ':['#FBE3D8','#6B2A12','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
   var h='';
-  h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
+  h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',20,'#1F4E8C')+'</button></div>';
   h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+'</span>':'')+'</div></div><div class="chips">';
   if(ES)h+='<span class="chip est" style="background:'+ES[0]+';color:'+ES[1]+'">'+svg(IC[ES[2]],16,ES[1])+ESC(({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est)+'</span>';
   if(F.escalafonado&&est!=='ESCALAFONADO')h+='<span class="chip est" style="background:#DCE9F7;color:#17406F">'+svg(IC.bars,16,'#17406F')+'Escalafonado</span>';
@@ -267,12 +273,12 @@ function pintar(F){
   h+='<details class="fuentes card" style="padding:12px 16px"><summary>Estado de las fuentes</summary><ul>'+(F.fuentes||[]).map(function(x){return '<li class="'+(x.ok?'':'no')+'"><b>'+ESC(x.nombre)+'</b> — '+(x.ok?'conectada'+(x.filas!=null?' ('+x.filas+' filas)':''):'sin datos')+(x.nota?'. '+ESC(x.nota):'')+'</li>'}).join('')+'</ul></details>';
   h+='<div class="pie">Fuente: Oficina de Estadística</div>';
   $('out').innerHTML=h;
+  $('vlv').addEventListener('click',function(){document.body.classList.remove('ficha');$('out').innerHTML='';$('q').focus();$('q').select();try{window.scrollTo(0,0)}catch(e){}});
   try{window.scrollTo(0,0);document.scrollingElement.scrollTop=0}catch(e){}
 }
 
 /* Acceso: verifica la sesión al abrir y deja el cursor en el buscador. */
-var VACIO='<div class="card vacio rise"><div class="big"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#1F4E8C" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></div><h3>Busque un estudiante</h3><p>Escriba una cédula, o las primeras letras de un apellido o nombre: las sugerencias salen de CONGLOMERADO mientras escribe.</p><div class="qs"><span class="chip">Ingreso y salida</span><span class="chip">Notas por semestre</span><span class="chip">Distinciones</span><span class="chip">Escalafón y grado</span><span class="chip">Retiro</span><span class="chip">Cursos</span></div></div>';
-$('out').innerHTML=VACIO;
+
 api('sesion').then(function(){$('q').disabled=false;$('bt').disabled=false;$('ay').textContent='Cédula completa o al menos 3 letras del nombre.';$('q').focus();
   api('calentar').catch(function(){}) /* precarga las bases para que la primera consulta sea rápida */
 }).catch(function(e){$('ay').textContent='';msg(ESC(e.message),1)});
