@@ -663,14 +663,14 @@ function armarFicha(id, S) {
   }
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
   const orden = { ingreso: 0, regreso: 1, logros: 1.5, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
-  linea.forEach((e, i) => { e.i = i; });
+  linea.forEach((e, i) => { e.i = i; e.o = (e.tipo === 'grado' && /ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/.test(sinTildes(e.programa || ''))) ? 5.5 : orden[e.tipo]; });
   linea.sort((a, b) => {
     if (a.tipo === 'ingreso' || b.tipo === 'ingreso') return (a.tipo === 'ingreso' ? 0 : 1) - (b.tipo === 'ingreso' ? 0 : 1);
     if (a.t != null && b.t != null && a.t !== b.t) return a.t - b.t;
-    if (orden[a.tipo] !== orden[b.tipo]) return orden[a.tipo] - orden[b.tipo];
+    if (a.o !== b.o) return a.o - b.o;
     return a.i - b.i;
   });
-  linea.forEach((e) => { delete e.i; });
+  linea.forEach((e) => { delete e.i; delete e.o; });
 
   // Nombre más completo entre las fuentes (si el corto está contenido en el largo): evita ver el segundo nombre en unas partes y en otras no.
   {
