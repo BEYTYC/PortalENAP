@@ -643,8 +643,26 @@ function armarFicha(id, S) {
     linea.push(Object.assign({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
+  // Grado de honor / meritorio / laureado: van en la tarjeta de la titulación académica (la primera que no es de complementación).
+  const gAcad = linea.find((e) => e.tipo === 'grado' && !e.comp) || linea.find((e) => e.tipo === 'grado');
+  const honores = concesiones.filter((x) => ['mencion', 'merito', 'laureado'].includes(x.clase));
+  if (gAcad && honores.length) gAcad.distinciones = Array.from(new Set(honores.map((x) => x.concesion))).map((t) => ({ titulo: t }));
+  // Logros: cuántos distinguidos, becas y excelencias académicas (solo lo que exista).
+  const setDist = new Set(sems.filter((x) => x.dist && x.periodo).map((x) => x.periodo));
+  concesiones.filter((x) => x.clase === 'distinguido').forEach((x) => setDist.add(x.periodo || ('a' + x.anio)));
+  const nBecas = new Set(concesiones.filter((x) => x.clase === 'beca').map((x) => (x.periodo || ('a' + x.anio)) + '|' + kt(x.concesion))).size;
+  const nExc = new Set(sems.filter((x) => x.exc && x.periodo).map((x) => x.periodo)).size;
+  const items = [];
+  if (setDist.size) items.push({ k: 'distinguido', label: setDist.size === 1 ? 'Alumno distinguido' : 'Alumno distinguido', n: setDist.size });
+  if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
+  if (nExc) items.push({ k: 'excelencia', label: 'Excelencia académica', n: nExc });
+  if (items.length) {
+    const ing = linea.find((e) => e.tipo === 'ingreso');
+    const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
+    linea.push({ tipo: 'logros', t: ti, anio: ing ? ing.anio : null, titulo: 'Logros', items });
+  }
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
-  const orden = { ingreso: 0, regreso: 1, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
+  const orden = { ingreso: 0, regreso: 1, logros: 1.5, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
   linea.forEach((e, i) => { e.i = i; });
   linea.sort((a, b) => {
     if (a.tipo === 'ingreso' || b.tipo === 'ingreso') return (a.tipo === 'ingreso' ? 0 : 1) - (b.tipo === 'ingreso' ? 0 : 1);

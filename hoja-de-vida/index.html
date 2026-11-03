@@ -144,6 +144,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .tl-card .t b .sub{font-size:14px;font-weight:500;color:#4A5B70}
 .tit.tit-top{margin:6px 0 16px}
 .tl{margin-top:8px}
+.logros{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.lg{background:#F8EBC8;color:#5E4408;border-radius:14px;padding:10px 16px;min-width:130px}.lg b{display:block;font-size:26px;line-height:1.1;font-weight:800}.lg span{font-size:13.5px;font-weight:600}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -180,7 +181,7 @@ function SKL(){var b=function(w,h,x){return '<div class="sk" style="width:'+w+';
   +[0,1,2].map(function(){return '<div class="skc" style="margin:22px 0 0 182px">'+b('40%','18px')+b('70%','12px','margin-top:12px')+b('100%','7px','margin-top:16px')+'</div>'}).join('')}
 function gate(on,t,keep){if(on){document.body.classList.remove('ini');if(!keep)document.body.classList.remove('ficha');$('out').innerHTML='<div class="est">'+ESC(t||'Cargando…')+'</div><div style="height:14px"></div>'+SKL()}$('bt').disabled=!!on}
 
-var PAL={ingreso:['#2F6FB5','#DCE9F7','#17406F'],semestre:['#4A82C4','#DCE9F7','#17406F'],escalafon:['#1F4E8C','#DCE9F7','#17406F'],grado:['#2E8B57','#DDF1E4','#1B5E34'],
+var PAL={logros:['#A97A12','#F8EBC8','#5E4408'],ingreso:['#2F6FB5','#DCE9F7','#17406F'],semestre:['#4A82C4','#DCE9F7','#17406F'],escalafon:['#1F4E8C','#DCE9F7','#17406F'],grado:['#2E8B57','#DDF1E4','#1B5E34'],
   extension:['#1E8C7E','#D5F0EB','#0E4F46'],complementacion:['#2A7FA8','#DCEEF7','#124B66'],ley:['#6B5BC4','#E5E1F8','#3A2F84'],regreso:['#2A7FA8','#DCEEF7','#124B66'],concesion:['#6B5BC4','#E5E1F8','#3A2F84'],medalla:['#A97A12','#F8EBC8','#5E4408'],reconocimiento:['#A97A12','#F8EBC8','#5E4408'],retiro:['#6B7280','#E5E7EB','#374151'],perdido:['#C0392B','#FBD9D5','#7A1F16']};
 var IC={flag:'M5 21V4 M5 4h11l-2 4l2 4H5',book:'M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0 M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0 M3 6v13 M12 6v13 M21 6v13',anchor:'M12 3a2.5 2.5 0 1 0 0.01 0 M12 8v13 M5 13a7 7 0 0 0 14 0 M8 11h8',medal:'M12 14a4 4 0 1 0 0.01 0 M8.5 11.5L6 3h4l2 4 M15.5 11.5L18 3h-4l-2 4',cap:'M22 9l-10-4l-10 4l10 4l10-4v6 M6 10.6v5.4a6 3 0 0 0 12 0v-5.4',bars:'M4 20h4v-6H4z M10 20h4V8h-4z M16 20h4V4h-4z',scroll:'M8 3h8a2 2 0 0 1 2 2v14l-3-2l-3 2l-3-2l-3 2V5a2 2 0 0 1 2-2z M9 8h6 M9 12h6',layers:'M12 3l9 5l-9 5l-9-5z M3 13l9 5l9-5',up:'M12 19V5 M6 11l6-6l6 6',out:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5l-5-5 M21 12H9',alert:'M12 9v4 M12 17h.01 M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',check:'M20 6L9 17l-5-5',tag:'M3 12V5a2 2 0 0 1 2-2h7l9 9l-9 9z M8 8h.01'};
 var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -296,7 +297,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e._fase){var rg=[];G[e._fase].forEach(function(x){if(x.anio)rg.push(x.anio)});
       h+='<div class="phase rise" style="animation-delay:'+(n*50)+'ms"><span style="background:'+FASES[e._fase][1]+'">'+FASES[e._fase][0]+(rg.length?'<em>'+Math.min.apply(null,rg)+(Math.max.apply(null,rg)!==Math.min.apply(null,rg)?' – '+Math.max.apply(null,rg):'')+'</em>':'')+'</span></div>';n++;lastY=null;return}
     var key=e.tipo==='semestre'&&e.semestre.perdido?'perdido':(e.tipo==='semestre'?'semestre':e.tipo),p=PAL[key]||PAL.semestre;
-    var icon={ingreso:'flag',regreso:'flag',semestre:'book',escalafon:'bars',grado:'scroll',extension:'layers',complementacion:'flag',ley:'up',concesion:'tag',medalla:'medal',reconocimiento:'medal',retiro:'out'}[e.tipo];
+    var icon={logros:'medal',ingreso:'flag',regreso:'flag',semestre:'book',escalafon:'bars',grado:'scroll',extension:'layers',complementacion:'flag',ley:'up',concesion:'tag',medalla:'medal',reconocimiento:'medal',retiro:'out'}[e.tipo];
     if(key==='perdido')icon='alert';
     var anio=e.anio||'';var ys=(anio&&anio!==lastY)?anio:'';if(anio)lastY=anio;
     var body='',titulo='',chipD='',chip='';
@@ -312,6 +313,9 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       (e.extras||[]).forEach(function(x){if(x.tipo==='reconocimiento')bs.push([x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:'')+(x.detalle&&!x.pct&&!x.motivo?' · '+x.detalle:'')+(x.anioSolo?' (año '+x.anio+', semestre por confirmar)':'')+(x.pv?' (por verificar)':''),x.clase==='beca'?'tag':(x.clase==='distinguido'?'anchor':'medal'),x.clase==='beca'?'#E5E1F8':'#F8EBC8',x.clase==='beca'?'#3A2F84':'#5E4408']);else if(x.tipo==='medalla')bs.push([x.titulo+(x.detalle?' ('+x.detalle+')':''),'medal','#F8EBC8','#5E4408']);else if(x.tipo==='concesion')bs.push(['Concesión · '+x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:'')+(x.anioSolo?' (año '+x.anio+', semestre por confirmar)':'')+(x.pv?' (por verificar)':''),'tag','#E5E1F8','#3A2F84']);else bs.push(['Curso de extensión · '+x.titulo,'layers','#D5F0EB','#0E4F46'])});
       if(bs.length)body+='<div class="bds">'+bs.map(function(b){return '<span class="bd" style="background:'+b[2]+';color:'+b[3]+'">'+svg(IC[b[1]],15,b[3])+ESCT(b[0])+'</span>'}).join('')+'</div>';
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
+    }else if(e.tipo==='logros'){
+      titulo='Logros';
+      body+='<div class="logros">'+(e.items||[]).map(function(x){return '<div class="lg"><b>'+x.n+'</b><span>'+ESC(x.label)+'</span></div>'}).join('')+'</div>';
     }else if(e.tipo==='escalafon'){
       titulo='Escalafonamiento';chipD=e.fecha?fch(e.fecha):(e.periodo?'Escalafonamiento '+e.periodo:'');
       var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+TT(e.jerarquia)+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);
@@ -319,7 +323,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
       (e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+(m.programa?'<div>Programa: '+TT(m.programa)+'</div>':'')+'</div></div>'});
     }else if(e.tipo==='grado'){
-      titulo='Titulación Académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
+      titulo='Titulación Académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';(e.distinciones||[]).forEach(function(d){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+TT(d.titulo)+'</b></div></div>'});(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
       titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';
     }else if(e.tipo==='retiro'){
