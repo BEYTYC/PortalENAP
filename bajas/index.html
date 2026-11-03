@@ -204,6 +204,13 @@ body.cargando .app{visibility:hidden}
   <div style="padding:16px 20px;font-size:14px;line-height:1.5" id="dtx"></div>
   <div class="ff"><span></span><div><button class="btn btn-g" id="dcan">Cancelar</button><button class="btn btn-p" id="dok">Deshacer baja</button></div></div>
 </div></div>
+<div class="ov" id="ovr"><div class="card" role="dialog" aria-modal="true" aria-live="polite" style="width:min(440px,100%);padding:30px 28px;text-align:center">
+  <div id="rsp" class="spin" style="width:40px;height:40px;border-width:4px;margin:0 auto 16px"></div>
+  <div id="rok" style="display:none;width:52px;height:52px;border-radius:50%;background:#E7F4EC;color:#1E6B3A;margin:0 auto 14px;place-items:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
+  <h2 id="rt" style="margin:0 0 6px;font-size:18px;font-weight:600">Registrando baja…</h2>
+  <div id="rm" style="font-size:14px;color:var(--mut);line-height:1.5">Un momento, por favor.</div>
+  <div style="margin-top:20px"><button class="btn btn-p" id="rbtn" style="display:none;margin:0">Aceptar</button></div>
+</div></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
 (function(){
@@ -258,12 +265,18 @@ $('save').onclick=function(){var n=0;
   if(!n&&!/^\d{4}$/.test($('ai').value.trim())){$('ai').parentElement.classList.add('err');toast('El año de ingreso debe tener 4 dígitos');return}
   if(n){toast('Faltan '+n+' campo'+(n>1?'s':'')+' obligatorio'+(n>1?'s':''));var f=document.querySelector('#fill .err .field');if(f)f.focus();return}
   var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
-  var b=$('save');b.disabled=true;b.textContent='Registrando…';banner('');
+  var b=$('save');b.disabled=true;banner('');
+  var nom=datos.ap+' '+datos.no;
+  resModal('work','Registrando baja…','Un momento, por favor.');
   api('registrar',{datos:datos}).then(function(r){
     EST=EST.filter(function(x){return x!==SEL});EST.forEach(function(x,i){x._i=i});
-    limpiar();cargarPend();toast('Baja registrada correctamente');if(r.aviso)banner(r.aviso)})
-  .catch(function(e){toast(e.message);banner(e.message)})
-  .then(function(){b.disabled=false;b.textContent='Registrar baja'})};
+    cargarPend();
+    resModal('ok','Baja registrada','<b>'+esc(nom)+'</b><br>Pendiente resolución de retiro.'+(r.aviso?'<br><span style="font-size:13px;color:#7A4A06">'+esc(r.aviso)+'</span>':''),function(){limpiar()})})
+  .catch(function(e){resModal('err','No se pudo registrar',esc(e.message))})
+  .then(function(){b.disabled=false})};
+var RFIN=null;
+function resModal(est,t,m,fin){RFIN=fin||null;$('ovr').classList.add('on');$('rsp').style.display=est==='work'?'block':'none';$('rok').style.display=est==='ok'?'grid':'none';$('rt').textContent=t;$('rm').innerHTML=m;$('rbtn').style.display=est==='work'?'none':'inline-block';$('rbtn').textContent=est==='ok'?'Aceptar':'Cerrar'}
+$('rbtn').onclick=function(){$('ovr').classList.remove('on');var f=RFIN;RFIN=null;if(f)f()};
 
 /* ---------- pendientes ---------- */
 var ALL=[];
