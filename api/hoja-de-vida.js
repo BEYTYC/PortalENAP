@@ -12,7 +12,8 @@
  *   - Graduados en la ENAP  quién se graduó (hoja "Grados").
  *   - Antigüedades ........ (SharePoint, carpeta Antiguedades/, todos los periodos): notas por semestre,
  *                           puesto, alumno distinguido y excelencia académica.
- *   - Base de Datos Cursos de Extensión: extensión y complementación; Control Curso de Capacitación para Ascenso: cursos de ley.
+ *   - Base Concesiones.xlsm (B.D Distinguidos, Becados, Mérito y Laureado): hoja Concesiones (col. D = Sí, col. O = concesión) y las hojas de becas, mención de honor, meritorios, laureados y distinguidos.
+ *   - Base de Datos Cursos de Extensión: extensión; BASE DE DATOS CCP 1970 - ACTUALIDAD: complementación profesional; Control Curso de Capacitación para Ascenso: cursos de ley.
  *
  * Regla de oro: lo que no existe en las bases NO se muestra ni se inventa.
  * Lo que se cruza solo por nombre (bases viejas sin cédula) sale marcado
@@ -30,9 +31,12 @@ const RUTAS = {
   conglomerado: [RUTA_BD + 'B.D Ingresos/CONGLOMERADO.xlsx', RUTA_BD + 'B.D Ingresos/CONGLOMERADO.xlsm'],
   graduados: [RUTA_BD + 'B.D Grados - Balances Académicos/Graduados en la ENAP.xlsx'],
   extension: [RUTA_BD + 'BD Cursos de Ley - Cursos de Extensión/Base de Datos Cursos de Extensión.xlsx'],
+  ccp: [RUTA_BD + 'B.D Registro CCP/BASE DE DATOS CCP 1970 - ACTUALIDAD.xlsx'],
+  medallas: [RUTA_BD + 'B.D Medalla Caldas/Base Datos Solicitud Caldas.xlsx'],
   ley: [RUTA_BD + 'BD Cursos de Ley - Cursos de Extensión/Control Curso de Capacitación para Ascenso.xlsx'],
 };
 const CARPETA_BAJAS = RUTA_BD + 'B.D Retiros y Ascensos';
+const CARPETA_CONC = RUTA_BD + 'B.D Concesiones, Becas, Distintivos y Resoluciones/B.D Distinguidos, Becados, Mérito y Laureado';
 const HOJA_BAJAS = 'Bajas desde 1935';
 const HOJA_ASC = 'Ascensos';
 const PESOS = [0.5, 0.2, 0.2, 0.1]; // académica, aptitud naval, disciplina, cultura física (igual que Antigüedades)
@@ -87,8 +91,17 @@ async function itemBajas() {
   if (!m) throw error(`No se encontró Bajas y Ascensos en ${CARPETA_BAJAS}.`, 404);
   return { id: m.id, eTag: m.eTag, nombre: m.name };
 }
+async function itemConcesiones() {
+  const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(CARPETA_CONC)}:/children?$select=id,name,eTag,lastModifiedDateTime,file&$top=200`);
+  if (!r.ok) throw error(`No se pudo abrir la carpeta ${CARPETA_CONC} (${r.status}).`, 502);
+  const L = ((await r.json()).value || []).filter((x) => x.file && /\.xls[xm]$/i.test(x.name) && normNom(x.name).startsWith('BASECONCESIONES') && !x.name.startsWith('~$'));
+  L.sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)));
+  if (!L[0]) throw error(`No se encontró "Base Concesiones" en ${CARPETA_CONC}.`, 404);
+  return { id: L[0].id, eTag: L[0].eTag, nombre: L[0].name };
+}
 async function item(clave) {
   if (clave === 'bajas') return itemBajas();
+  if (clave === 'concesiones') return itemConcesiones();
   for (const ruta of RUTAS[clave]) {
     const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(ruta)}`);
     if (r.ok) { const m = await r.json(); return { id: m.id, eTag: m.eTag, nombre: m.name }; }
@@ -102,12 +115,14 @@ async function descargar(it) {
   return Buffer.from(await r.arrayBuffer());
 }
 const CACHE = {}; // por instancia de la función, vigente mientras no cambie el eTag
+const TTL_FUENTE = 2 * 60000;
 async function fuente(clave, procesar) {
-  const it = await item(clave);
   const c = CACHE[clave];
-  if (c && c.eTag === it.eTag) return c.valor;
+  if (c && Date.now() - c.t < TTL_FUENTE) return c.valor; // reciente: no consulta nada
+  const it = await item(clave);
+  if (c && c.eTag === it.eTag) { c.t = Date.now(); return c.valor; }
   const valor = procesar(X.abrir(await descargar(it)), it);
-  CACHE[clave] = { eTag: it.eTag, valor };
+  CACHE[clave] = { eTag: it.eTag, valor, t: Date.now() };
   return valor;
 }
 
@@ -214,6 +229,7 @@ function procesarGraduados(libro) {
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
 const procesarExtension = (libro) => procesarCursos(libro, 'extension');
 const procesarLey = (libro) => procesarCursos(libro, 'ley');
+const procesarCcp = (libro) => procesarCursos(libro, 'ccp');
 function procesarCursos(libro, base) {
   const porCed = {}, porNom = {};
   const hojas = [];
@@ -231,21 +247,22 @@ function procesarCursos(libro, base) {
         inicio: ['FECHA INICIO', 'FECHA DE INICIO', 'INICIO'],
         fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA'],
         nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO'],
+        promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
       });
-      if (t.curso >= 0 && (t.ced >= 0 || t.nombre >= 0)) { h0 = i; c = t; break; }
+      if ((t.curso >= 0 || base === 'ccp') && (t.ced >= 0 || t.nombre >= 0)) { h0 = i; c = t; break; }
     }
     if (!c) { hojas.push({ hoja: nombreHoja, usada: false }); continue; }
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
       const r = F[i];
-      if (!txt(r[c.curso])) continue;
+      if (base !== 'ccp' && !txt(r[c.curso])) continue;
       const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
       const nom = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
       if (!ck && !nom) continue;
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
-        curso: sinTildes(r[c.curso]), clase: base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
-        tipo: c.tipo >= 0 ? txt(r[c.tipo]) : '', hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
+        curso: base === 'ccp' ? ('COMPLEMENTACIÓN PROFESIONAL' + (c.promo >= 0 && txt(r[c.promo]) ? ' · ' + sinTildes(r[c.promo]) : '')) : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
+        tipo: [c.tipo >= 0 && txt(r[c.tipo]), base === 'ccp' && c.curso >= 0 && txt(r[c.curso]), base === 'ccp' && c.espec >= 0 && txt(r[c.espec])].filter(Boolean).join(' · '), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
         nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nom,
       };
       k++; n++;
@@ -254,6 +271,100 @@ function procesarCursos(libro, base) {
     hojas.push({ hoja: nombreHoja, usada: true, filas: k });
   }
   return { porCed, porNom, filas: n, hojas };
+}
+
+/* Base Concesiones.xlsx, hoja "Concesiones": D = otorgada (Sí/Si), O = nombre de la concesión (según Estadística). Solo se muestran las otorgadas. */
+function normPeriodo(v) {
+  const t = String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '');
+  const m = t.match(/(\d{4})\D*(II|I|1|2)$/);
+  if (m) return `${m[1]}-${m[2] === 'II' || m[2] === '2' ? 2 : 1}`;
+  return '';
+}
+const CLASES_HOJA = [[/BECA/, 'beca', 'Beca'], [/MENCION|HONOR/, 'mencion', 'Mención de honor'], [/MERIT/, 'merito', 'Meritorio'], [/LAUREAD/, 'laureado', 'Laureado'], [/DISTINGUID/, 'distinguido', 'Alumno distinguido']];
+function procesarConcesiones(libro) {
+  const porCed = {}, porNom = {}, hojas = [];
+  let n = 0;
+  for (const hoja of libro.hojas) {
+    const nh = sinTildes(hoja);
+    const cl = /^CONCESIONES$/.test(nh) ? ['concesion', 'Concesión'] : (CLASES_HOJA.filter((x) => x[0].test(nh))[0] || []).slice(1);
+    if (!cl.length) { hojas.push({ hoja, usada: false }); continue; }
+    let F;
+    try { F = libro.leer(hoja, { maxCols: 40, maxRows: 60000 }); } catch (e) { continue; }
+    let h0 = -1, c = null;
+    for (let i = 0; i < Math.min(F.length, 8); i++) {
+      const t = indiceCols(F[i] || [], {
+        ced: ['CEDULA', 'CC', 'DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO'],
+        nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'ESTUDIANTE', 'NOMBRE COMPLETO'],
+        periodo: ['PERIODO', 'PERIODO ACADEMICO', 'PERIODO CONCESION', 'SEMESTRE'],
+        valor: ['DESCUENTO', 'PORCENTAJE', 'VALOR DESCUENTO', 'PORCENTAJE DESCUENTO', 'VALOR'],
+        tipo: ['TIPO', 'TIPO DE BECA', 'TIPO BECA', 'CLASE', 'DESCRIPCION', 'CATEGORIA', 'CONCESION'],
+        fecha: ['FECHA', 'FECHA RESOLUCION', 'FECHA DE RESOLUCION', 'FECHA OTORGAMIENTO'],
+      });
+      if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
+    }
+    if (!c) { hojas.push({ hoja, usada: false }); continue; }
+    let k = 0;
+    for (let i = h0 + 1; i < F.length; i++) {
+      const r = F[i];
+      let titulo = cl[1];
+      if (cl[0] === 'concesion') { // D = otorgada (Sí/Si), O = nombre de la concesión
+        if (!/^s[ií]$/i.test(txt(r[3]))) continue;
+        titulo = nom(r[14]); if (!titulo) continue;
+      }
+      const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
+      const nombre = c.nombre >= 0 ? nom(r[c.nombre]) : '';
+      if (!ck && !nombre) continue;
+      const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
+      let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
+      if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
+      const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo]), c.valor >= 0 && txt(r[c.valor])].filter(Boolean).join(' · ');
+      const reg = { clase: cl[0], concesion: titulo, periodo: per, valor: det, nombre };
+      k++; n++;
+      if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
+    }
+    hojas.push({ hoja, usada: true, filas: k });
+  }
+  return { porCed, porNom, filas: n, hojas };
+}
+
+/* Medallas Caldas (Base Datos Solicitud Caldas.xlsx): columnas por encabezado. Si hay columna de estado, solo las otorgadas/aprobadas. */
+function procesarMedallas(libro) {
+  const porCed = {}, porNom = {}, hojas = [];
+  let n = 0, sinEstado = false;
+  for (const hoja of libro.hojas) {
+    let F;
+    try { F = libro.leer(hoja, { maxCols: 40, maxRows: 60000 }); } catch (e) { continue; }
+    let h0 = -1, c = null;
+    for (let i = 0; i < Math.min(F.length, 8); i++) {
+      const t = indiceCols(F[i] || [], {
+        ced: ['CEDULA', 'CC', 'DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO'],
+        nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'ESTUDIANTE', 'NOMBRE COMPLETO'],
+        medalla: ['MEDALLA', 'TIPO MEDALLA', 'TIPO DE MEDALLA', 'PREMIO', 'CONDECORACION', 'DISTINCION', 'CATEGORIA'],
+        periodo: ['PERIODO', 'PERIODO ACADEMICO', 'SEMESTRE'],
+        fecha: ['FECHA', 'FECHA SOLICITUD', 'FECHA DE SOLICITUD', 'FECHA OTORGAMIENTO', 'FECHA ENTREGA', 'FECHA RESOLUCION'],
+        estado: ['ESTADO', 'OTORGADA', 'APROBADA', 'RESULTADO', 'OTORGADO', 'APROBADO', 'RESPUESTA'],
+      });
+      if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
+    }
+    if (!c) { hojas.push({ hoja, usada: false }); continue; }
+    if (c.estado < 0) sinEstado = true;
+    let k = 0;
+    for (let i = h0 + 1; i < F.length; i++) {
+      const r = F[i];
+      const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
+      const nombre = c.nombre >= 0 ? nom(r[c.nombre]) : '';
+      if (!ck && !nombre) continue;
+      if (c.estado >= 0) { const e = sinTildes(r[c.estado]); if (!/OTORG|APROB|ENTREG|CONCED|^SI$|^S$/.test(e) || /NO OTORG|NO APROB|RECHAZ|NIEGA|NEGAD/.test(e)) continue; }
+      const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
+      let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
+      if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
+      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : 'MEDALLA CALDAS', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
+      k++; n++;
+      if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
+    }
+    hojas.push({ hoja, usada: true, filas: k });
+  }
+  return { porCed, porNom, filas: n, hojas, sinEstado };
 }
 
 /* Antigüedades: todos los periodos cargados en el Portal. */
@@ -390,7 +501,15 @@ function armarFicha(id, S) {
 
   /* ---- Extensión / complementación / ascenso ---- */
   const cursos = [];
-  [S.ext, S.ley].forEach((fu) => { const ex = pick(fu, 'cursos'); ex.exactas.forEach((x) => cursos.push(Object.assign({ pv: false }, x))); ex.nombre.forEach((x) => cursos.push(Object.assign({ pv: true }, x))); });
+  [S.ext, S.ccp, S.ley].forEach((fu) => { const ex = pick(fu, 'cursos'); ex.exactas.forEach((x) => cursos.push(Object.assign({ pv: false }, x))); ex.nombre.forEach((x) => cursos.push(Object.assign({ pv: true }, x))); });
+
+  /* ---- Concesiones especiales (otorgadas) ---- */
+  const cn = pick(S.conc, 'concesiones');
+  const concesiones = cn.exactas.map((x) => Object.assign({ pv: false }, x)).concat(cn.nombre.map((x) => Object.assign({ pv: true }, x)));
+
+  /* ---- Medallas Caldas ---- */
+  const md = pick(S.med, 'medallas');
+  const medallas = md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x)));
 
   /* ---- Estado ---- */
   let estado = '';
@@ -417,9 +536,11 @@ function armarFicha(id, S) {
     const f = x.fin || x.inicio;
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
+  concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : null, periodo: x.periodo, anio: x.periodo ? +x.periodo.slice(0, 4) : null, titulo: x.concesion, detalle: x.valor, pv: x.pv }));
+  medallas.forEach((x) => linea.push({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), titulo: x.medalla, detalle: x.estado ? '' : 'Solicitud registrada', pv: x.pv }));
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
-  const orden = { ingreso: 0, regreso: 1, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, retiro: 6 };
+  const orden = { ingreso: 0, regreso: 1, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
   linea.forEach((e, i) => { e.i = i; });
   linea.sort((a, b) => {
     if (a.tipo === 'ingreso' || b.tipo === 'ingreso') return (a.tipo === 'ingreso' ? 0 : 1) - (b.tipo === 'ingreso' ? 0 : 1);
@@ -438,7 +559,7 @@ function armarFicha(id, S) {
     resumen: {
       semestres: sems.length,
       perdidos: sems.filter((s) => s.perdido).length, distinguido: sems.filter((s) => s.dist).length, excelencia: sems.filter((s) => s.exc).length,
-      cursos: cursos.length, puesto: e0 ? e0.puesto : null, total: e0 ? e0.total : null,
+      medallas: medallas.length, concesiones: concesiones.filter((x) => x.clase === 'concesion').length, reconocimientos: concesiones.filter((x) => x.clase !== 'concesion' && x.clase !== 'distinguido').length, cursos: cursos.length, puesto: e0 ? e0.puesto : null, total: e0 ? e0.total : null,
     },
     linea, alertas, avisos,
   };
@@ -489,20 +610,22 @@ async function cargar() {
   const fuentes = [];
   const S = {};
   const intenta = async (clave, nombre, fn, detalle) => {
-    try { const v = await fn(); fuentes.push({ clave, nombre, ok: true, filas: v.filas, nota: detalle ? detalle(v) : '' }); return v; }
-    catch (e) { fuentes.push({ clave, nombre, ok: false, nota: e.message }); return null; }
+    const t0 = Date.now();
+    try { const v = await fn(); fuentes.push({ clave, nombre, ok: true, filas: v.filas, ms: Date.now() - t0, nota: detalle ? detalle(v) : '' }); return v; }
+    catch (e) { fuentes.push({ clave, nombre, ok: false, ms: Date.now() - t0, nota: e.message }); return null; }
   };
-  const [cong, baj, grad, ant, ext, ley] = await Promise.all([
+  const [cong, baj, grad, ant, ext, ley, ccp, conc, med] = await Promise.all([
     intenta('conglomerado', 'CONGLOMERADO (ingresos)', () => fuente('conglomerado', procesarConglomerado)),
     intenta('bajas', 'Bajas y Ascensos', () => fuente('bajas', procesarBajas), (v) => (v.asc.error ? 'Hoja Ascensos: ' + v.asc.error : `Ascensos: ${v.asc.filas} filas`)),
     intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => (v.columnas.fecha ? '' : 'Sin columna de fecha de grado: se muestra solo que se graduó y el programa.')),
     intenta('antiguedades', 'Antigüedades (notas, distinguido, excelencia)', cargarAntiguedades, (v) => `Periodos: ${v.periodos.join(', ')}`),
-    intenta('extension', 'Cursos de extensión y complementación', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('ccp', 'Complementación profesional (CCP 1970 – actualidad)', () => fuente('ccp', procesarCcp), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('concesiones', 'Concesiones, becas, mención de honor, meritorios y laureados (Base Concesiones)', () => fuente('concesiones', procesarConcesiones), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (no usada)')).join(' · ')),
+    intenta('medallas', 'Medallas Caldas (Solicitud Caldas)', () => fuente('medallas', procesarMedallas), (v) => (v.sinEstado ? 'Sin columna de estado: se muestran todas las solicitudes registradas. ' : 'Solo otorgadas/aprobadas. ') + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
   ]);
-  S.cong = cong; S.baj = baj; S.grad = grad; S.ant = ant; S.ext = ext; S.ley = ley;
-  fuentes.push({ clave: 'medallas', nombre: 'Medallas y premios (Caldas)', ok: false, nota: 'Pendiente: aún no se ha cargado el archivo de medallas.' });
-  fuentes.push({ clave: 'concesiones', nombre: 'Concesiones especiales', ok: false, nota: 'Pendiente: vive en la aplicación de Concesiones (Google); falta conectarla.' });
+  S.cong = cong; S.baj = baj; S.grad = grad; S.ant = ant; S.ext = ext; S.ley = ley; S.ccp = ccp; S.conc = conc; S.med = med;
   return { S, fuentes };
 }
 
@@ -525,6 +648,9 @@ module.exports = async function handler(req, res) {
     const a = body.accion;
     if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre }); return; }
     await ctx();
+    if (a === 'calentar') { // precarga todas las fuentes en la memoria de la función (se llama al abrir el módulo)
+      const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
+    }
     if (a === 'sugerir') { // solo CONGLOMERADO: rápido, para el autocompletar mientras se escribe
       const cong = await fuente('conglomerado', procesarConglomerado);
       const r = buscar({ cong, solo: true }, body.q);
@@ -533,7 +659,7 @@ module.exports = async function handler(req, res) {
     }
     const { S, fuentes } = await cargar();
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
-    if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && f.clave !== 'medallas' && f.clave !== 'concesiones') })); return; }
+    if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }
     if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes })); return; }
     throw error(`Acción desconocida: ${a}`, 400);
   } catch (e) {
@@ -541,4 +667,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
+module.exports._test = { procesarMedallas, procesarConcesiones, normPeriodo, armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
