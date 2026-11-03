@@ -145,8 +145,10 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .pers .chip{height:32px;font-size:12px;padding:0 12px}
 @media (max-width:700px){.pers .cu{padding:14px 64px 14px 14px}}
 /* Cabecera D: una línea de texto bajo el nombre */
+.pers .cu{position:relative}.pers .act{position:absolute;right:22px;top:50%;transform:translateY(-50%);text-align:right;font-size:11px;line-height:1.35;color:#6B7C93}.pers .act b{display:block;font-size:12px;font-weight:600;color:#2F4560}
+@media (max-width:700px){.pers .cu{padding:14px}.pers .act{position:static;transform:none;text-align:left;margin:0 0 8px}}
 .pers .nmw{min-width:0}
-.pers .cu{padding:16px 74px 16px 20px;display:block}
+.pers .cu{padding:16px 190px 16px 20px;display:block}
 .pers .fila{margin-top:0;align-items:center}
 .pers .ln{font-size:13px;color:#4A5B70;margin-top:6px}.pers .ln i{font-style:normal;font-weight:700}.pers .ln s{text-decoration:none;color:#B8C6D8;margin:0 10px}
 /* aire entre cabecera y trayectoria */
@@ -201,6 +203,7 @@ function gate(on,t,keep){if(on){document.body.classList.remove('ini');if(!keep)d
 var PAL={logros:['#A97A12','#F8EBC8','#5E4408'],ingreso:['#2F6FB5','#DCE9F7','#17406F'],semestre:['#4A82C4','#DCE9F7','#17406F'],escalafon:['#1F4E8C','#DCE9F7','#17406F'],grado:['#2E8B57','#DDF1E4','#1B5E34'],
   extension:['#1E8C7E','#D5F0EB','#0E4F46'],complementacion:['#2A7FA8','#DCEEF7','#124B66'],ley:['#6B5BC4','#E5E1F8','#3A2F84'],regreso:['#2A7FA8','#DCEEF7','#124B66'],concesion:['#6B5BC4','#E5E1F8','#3A2F84'],medalla:['#A97A12','#F8EBC8','#5E4408'],reconocimiento:['#A97A12','#F8EBC8','#5E4408'],retiro:['#C0392B','#FDECEA','#8E2A20'],perdido:['#C0392B','#FBD9D5','#7A1F16']};
 var IC={flag:'M5 21V4 M5 4h11l-2 4l2 4H5',book:'M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0 M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0 M3 6v13 M12 6v13 M21 6v13',anchor:'M12 3a2.5 2.5 0 1 0 0.01 0 M12 8v13 M5 13a7 7 0 0 0 14 0 M8 11h8',medal:'M12 14a4 4 0 1 0 0.01 0 M8.5 11.5L6 3h4l2 4 M15.5 11.5L18 3h-4l-2 4',cap:'M22 9l-10-4l-10 4l10 4l10-4v6 M6 10.6v5.4a6 3 0 0 0 12 0v-5.4',bars:'M4 20h4v-6H4z M10 20h4V8h-4z M16 20h4V4h-4z',scroll:'M8 3h8a2 2 0 0 1 2 2v14l-3-2l-3 2l-3-2l-3 2V5a2 2 0 0 1 2-2z M9 8h6 M9 12h6',layers:'M12 3l9 5l-9 5l-9-5z M3 13l9 5l9-5',up:'M12 19V5 M6 11l6-6l6 6',out:'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4 M16 17l5-5l-5-5 M21 12H9',alert:'M12 9v4 M12 17h.01 M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z',check:'M20 6L9 17l-5-5',tag:'M3 12V5a2 2 0 0 1 2-2h7l9 9l-9 9z M8 8h.01'};
+function actHtml(iso){if(!iso)return '';var d=new Date(iso);if(isNaN(d))return '';var h=d.getHours(),m=d.getMinutes(),ap=h>=12?'p. m.':'a. m.';h=h%12||12;return '<div class="act">Datos actualizados al<b>'+d.getDate()+' '+MES[d.getMonth()]+' '+d.getFullYear()+' · '+h+':'+(m<10?'0':'')+m+' '+ap+'</b></div>'}
 var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 function fch(f){var m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(+m[3]+' '+MES[+m[2]-1]+' '+m[1]):''}
 function f3(v){return v==null?'—':Number(v).toFixed(3)}
@@ -242,7 +245,7 @@ function abrir(id){document.body.classList.add('ficha');gate(true,'Armando la ho
 var FASES={for:['Formación Académica y Militar','#1F4E8C'],com:['Formación Complementaria','#1E8C7E'],ccp:['Complementación Profesional','#2A7FA8'],ley:['Cursos de Ley - Ascenso','#6B5BC4'],pos:['Estudios de Posgrado','#0F766E'],ret:['Retiro','#C0392B']};
 
 /* Texto en MAYÚSCULAS sostenidas -> minúsculas con inicial mayúscula (siglas conocidas se respetan) */
-var SIG={ENAP:1,CCP:1,SNIES:1,ARC:1,PR:1,II:1,III:1,IV:1,VI:1,VII:1,VIII:1,IX:1,XI:1,XII:1};
+var SIG={SAP:1,ISO:1,TIC:1,TICS:1,SST:1,NIIF:1,NIC:1,ERP:1,PMI:1,PMP:1,SIG:1,GPS:1,SIATH:1,OEA:1,ONU:1,OTAN:1,CIDENAV:1,COTECMAR:1,DIMAR:1,ENAP:1,CCP:1,SNIES:1,ARC:1,PR:1,II:1,III:1,IV:1,VI:1,VII:1,VIII:1,IX:1,XI:1,XII:1};
 function ESCT(t){t=String(t==null?'':t);var L=t.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g,'');var U=L.replace(/[^A-ZÁÉÍÓÚÜÑ]/g,'');
   if(L.length>3&&U.length/L.length>0.7){t=t.toLowerCase().replace(/[a-záéíóúüñ]+/g,function(w){return SIG[w.toUpperCase()]?w.toUpperCase():w}).replace(/^([^a-záéíóúüñA-Z]*)([a-záéíóúüñ])/,function(m,x,y){return x+y.toUpperCase()})}
   return ESC(tilFix(t))}
@@ -272,13 +275,13 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     var y=+e.fecha.slice(0,4),h=+e.fecha.slice(5,7)<=6?1:2,per=y+'-'+h;
     var s=sems.filter(function(x){return x.semestre.periodo===per})[0];
     if(!s)return true;(s.extras=s.extras||[]).push(e);return false});
-  var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#E5E7EB','#4A5B70','out'],'SALIÓ':['#E5E7EB','#4A5B70','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
+  var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FDECEA','#C0392B','out'],'SALIÓ':['#E5E7EB','#4A5B70','out'],ESCALAFONADO:['#DDF1E4','#1B5E34','bars']}[est];
   var h='';
   h+='<div class="tit tit-top"><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',16,'#1F4E8C')+'Atrás</button><b>Trayectoria en la institución</b><span>Desde el ingreso hasta hoy, todo lo que consiguió</span></div>';
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
-  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
+  h+='<div class="cu">'+actHtml(F.actualizado)+'<div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
   var ls=[];
-  if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('Escalafonado');
+  if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
   if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
   if(P.cont)ls.push('Contingente '+ESC(P.cont));
   if(P.curso)ls.push('Curso '+ESC(P.curso));
