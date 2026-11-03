@@ -246,6 +246,7 @@ function procesarCursos(libro, base) {
         tipo: ['TIPO', 'TIPO CURSO', 'TIPO DE CURSO', 'CLASE', 'MODALIDAD', 'CATEGORIA'],
         inicio: ['FECHA INICIO', 'FECHA DE INICIO', 'INICIO'],
         fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA'],
+        ape: ['APELLIDOS'],
         nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO', 'PUESTO OCUPADO'],
         promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
         programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA', 'CARRERA', 'TITULO', 'PROFESION', 'ESPECIALIZACION'],
@@ -258,7 +259,8 @@ function procesarCursos(libro, base) {
       const r = F[i];
       if (base !== 'ccp' && !txt(r[c.curso])) continue;
       const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
-      const nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
+      let nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
+      if (c.ape >= 0 && c.nombre >= 0) { const ap = sinTildes(r[c.ape]); if (ap && !nm.includes(ap)) nm = (ap + ' ' + nm).trim(); }
       if (!ck && !nm) continue;
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
