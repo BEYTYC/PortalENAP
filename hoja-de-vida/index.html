@@ -194,7 +194,7 @@ function msg(t,err){document.body.classList.remove('ini');document.body.classLis
 function abrir(id){document.body.classList.add('ficha');gate(true,'Armando la hoja de vida…',true);api('ficha',{id:id}).then(pintar).catch(function(e){msg(e.message,1)}).then(function(){gate(false);$('bt').disabled=false})}
 
 /* ---------- Ficha ---------- */
-var FASES={for:['Formación académica y militar','#1F4E8C'],com:['Formación complementaria','#C0562F'],ley:['Cursos de ley','#6B5BC4'],pos:['Estudios de posgrado','#0F766E'],ret:['Retiro','#6B7280']};
+var FASES={for:['Formación académica y militar','#1F4E8C'],com:['Formación complementaria','#C0562F'],ccp:['Complementación profesional','#B4531A'],ley:['Cursos de ley','#6B5BC4'],pos:['Estudios de posgrado','#0F766E'],ret:['Retiro','#6B7280']};
 
 /* Texto en MAYÚSCULAS sostenidas -> minúsculas con inicial mayúscula (siglas conocidas se respetan) */
 var SIG={ENAP:1,CCP:1,SNIES:1,ARC:1,PR:1,II:1,III:1,IV:1,VI:1,VII:1,VIII:1,IX:1,XI:1,XII:1};
@@ -255,12 +255,13 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e.tipo==='ley')return 'ley';
     if(e.tipo==='posgrado')return 'pos';
     if(e.tipo==='grado'&&!e.comp)return 'for';
-    if(e.tipo==='complementacion'||e.tipo==='grado'||e.tipo==='medalla')return 'com';
+    if(e.tipo==='complementacion'||e.tipo==='grado')return 'ccp';
+    if(e.tipo==='medalla')return 'for';
     if(e.tipo==='extension')return 'com';
     return 'for'}
   var G={};L.forEach(function(e){var g=grupo(e);(G[g]=G[g]||[]).push(e)});
   var mt=function(g){var t=G[g].filter(function(x){return x.t!=null}).map(function(x){return x.t});return t.length?Math.min.apply(null,t):null};
-  var DEF=['com','ley','pos'],mid=DEF.filter(function(g){return G[g]}).sort(function(a,b){var x=mt(a),y=mt(b);return x!=null&&y!=null&&x!==y?x-y:DEF.indexOf(a)-DEF.indexOf(b)});
+  var DEF=['com','ccp','ley','pos'],mid=DEF.filter(function(g){return G[g]}).sort(function(a,b){var x=mt(a),y=mt(b);return x!=null&&y!=null&&x!==y?x-y:DEF.indexOf(a)-DEF.indexOf(b)});
   var Lo=[];(G.for?['for']:[]).concat(mid).concat(G.ret?['ret']:[]).forEach(function(g){Lo.push({_fase:g});G[g].forEach(function(e){Lo.push(e)})});
   var lastY=null,n=0;
   Lo.forEach(function(e){
