@@ -39,7 +39,9 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .ini #out{display:none}
 .fs{position:fixed;top:12px;right:14px;z-index:30;width:36px;height:36px;border-radius:50%;border:0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.2)}
 .fs:hover{background:#EAF1FA}
-html:fullscreen,html:fullscreen body{background:#EEF2F7}
+html:fullscreen{background:#EEF2F7}
+html:fullscreen body{background:transparent}
+html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background:url('../escudo-marca-agua.png') center/min(78vh,78vw) no-repeat;opacity:.09}
 @media (max-width:1060px){.volver{right:60px}}
 .volver{position:absolute;top:14px;right:16px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.18)}
 .volver:hover{background:#fff}
