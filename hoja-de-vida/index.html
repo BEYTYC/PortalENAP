@@ -130,7 +130,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .yr-m{display:block}
 }
 .flag{height:15px;width:auto;border-radius:2px;margin-left:8px;vertical-align:-2px;box-shadow:0 0 0 1px rgba(20,50,90,.15)}
-.medbox{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 14px;border-radius:12px;background:#F8EBC8;color:#5E4408;font-size:13px;line-height:1.35}.medbox b{color:#5E4408}.medbox svg{flex:none;margin-top:1px}
+.medbox{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 14px;border-radius:12px;background:#DDF1E4;color:#1B5E34;font-size:13px;line-height:1.35}.medbox b{color:#1B5E34}.medbox svg{flex:none;margin-top:1px}
 /* Cabecera compacta: sin banda azul, todo en una fila */
 .pers{position:relative}
 .pers .ban{position:static;height:0;background:none;overflow:visible}
@@ -138,7 +138,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .pers .volver{top:50%;margin-top:-20px;right:18px;background:#EEF3FA;box-shadow:none}
 .pers .cu{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:16px 74px 16px 20px}
 .pers .fila{margin-top:0;align-items:center;gap:14px;flex:0 1 auto}
-.pers .av{width:52px;height:52px;border:0;font-size:17px}
+.pers .av{width:64px;height:64px;border:0;font-size:22px}
 .pers .nm{padding-bottom:0}
 .pers .nm h1{margin:0;font-size:21px}
 .pers .chips{margin-top:0;gap:8px}
@@ -347,9 +347,9 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+TT(e.jerarquia)+'</div>';if(e.cambioEsp)body+='<div class="ds">Cambio de especialidad: ingresó en '+ESC(e.cambioEsp.de==='NAV'?'Navales':e.cambioEsp.de==='IM'?'Infantería de Marina':'Mercantes')+' y se escalafonó en '+ESC(e.cambioEsp.a==='NAV'?'Navales':e.cambioEsp.a==='IM'?'Infantería de Marina':'Mercantes')+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
-      (e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+(m.programa?'<div>Programa: '+TT(m.programa)+'</div>':'')+'</div></div>'});
+      (e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+(m.programa?'<div>Programa: '+TT(m.programa)+'</div>':'')+'</div></div>'});
     }else if(e.tipo==='grado'){
-      titulo='Titulación Académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=tituloDe(e.programa)||e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';if(e.trabajo)body+='<div class="ds"><b>Trabajo de grado:</b> '+ESCT(e.trabajo)+'</div>';(e.distinciones||[]).forEach(function(d){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+TT(d.titulo)+'</b></div></div>'});(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
+      titulo='Titulación Académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=tituloDe(e.programa)||e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';if(e.trabajo)body+='<div class="ds"><b>Trabajo de grado:</b> '+ESCT(e.trabajo)+'</div>';(e.distinciones||[]).forEach(function(d){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+TT(d.titulo)+'</b></div></div>'});(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
       titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';
     }else if(e.tipo==='retiro'){
@@ -367,7 +367,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(e.tipo==='complementacion'){if(e.detalle)body+='<div class="ds"><b>Programa de ingreso:</b> '+TT(e.detalle)+'</div>';d3=[];if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);if(d3.length)body+='<div class="ds">'+ESC(d3.join(' · '))+'</div>'}else if(d3.length){if(e.tipo==='ley'||e.tipo==='extension')titulo+=' <span class="sub">· '+TT(d3.join(' · '))+'</span>';else body+='<div class="ds">'+TT(d3.join(' · '))+'</div>'}
       chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',complementacion:'Ingreso'}[e.tipo]||'';
     }
-    if(e.medallas&&(e.tipo==='ley'||e.tipo==='complementacion'||e.tipo==='extension'))e.medallas.forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#5E4408')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
+    if(e.medallas&&(e.tipo==='ley'||e.tipo==='complementacion'||e.tipo==='extension'))e.medallas.forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
     body+=pvTag(e)||(e.semestre&&e.pv?pvTag({pv:1}):'');
     h+='<div class="tl-row rise" style="animation-delay:'+(n*50)+'ms"><div class="tl-year">'+ys+'</div><div class="tl-axis"><div class="tl-node" style="background:'+p[0]+';box-shadow:0 0 0 7px '+p[1]+',0 6px 14px rgba(20,50,90,.2)">'+svg(IC[icon],22,'#fff')+'</div></div>'
       +'<div class="tl-card'+(key==='perdido'?' perdido perd':'')+'">'+(anio?'<div class="yr-m">'+anio+'</div>':'')+'<div class="t"><b>'+titulo+'</b>'+(chipD?'<span class="d" style="background:'+p[1]+';color:'+p[2]+'">'+ESCT(chipD)+'</span>':'')+'</div>'+body+(chip?'<div><span class="cp" style="background:'+p[0]+'">'+ESCT(chip)+'</span></div>':'')+'</div></div>';
