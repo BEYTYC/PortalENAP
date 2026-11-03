@@ -70,7 +70,7 @@ html:fullscreen,html:fullscreen body{background:#EEF2F7}
 .pers .nm{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;min-width:0;padding-bottom:4px}.pers .cc{font-size:15px;font-weight:500;color:var(--mut);white-space:nowrap}
 .pers h1{margin:0;font-size:22px;font-weight:700;min-width:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.chip{display:inline-flex;align-items:center;gap:6px;background:#EAF1FA;color:#17406F;padding:6px 13px;border-radius:999px;font-size:14px;font-weight:500;line-height:1.2}
+.chip{display:inline-flex;align-items:center;gap:6px;box-sizing:border-box;height:36px;background:#EAF1FA;color:#17406F;padding:0 14px;border-radius:999px;font-size:14px;font-weight:500;line-height:1}
 .chip.est{font-weight:600}
 .stats{display:flex;flex-wrap:wrap;gap:14px}
 .stat{flex:1 1 150px;min-width:0;background:#fff;border-radius:16px;padding:14px 16px;box-shadow:0 1px 2px rgba(20,50,90,.06),0 8px 24px rgba(20,50,90,.06)}
@@ -307,7 +307,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   h+='</div>';
   if(!L.length)h+='<div class="card msg">No hay información de la trayectoria de este estudiante en las bases conectadas.</div>';
   /* estado de las fuentes */
-  h+='<details class="fuentes card" style="padding:12px 16px"><summary>Estado de las fuentes</summary><ul>'+(F.fuentes||[]).map(function(x){return '<li class="'+(x.ok?'':'no')+'"><b>'+ESC(x.nombre)+'</b> — '+(x.ok?'conectada'+(x.filas!=null?' ('+x.filas+' filas)':''):'sin datos')+(x.nota?'. '+ESC(x.nota):'')+'</li>'}).join('')+'</ul></details>';
+  if(F.fuentes&&F.fuentes.length)h+='<details class="fuentes card" style="padding:12px 16px"><summary>Estado de las fuentes</summary><ul>'+(F.fuentes||[]).map(function(x){return '<li class="'+(x.ok?'':'no')+'"><b>'+ESC(x.nombre)+'</b> — '+(x.ok?'conectada'+(x.filas!=null?' ('+x.filas+' filas)':''):'sin datos')+(x.nota?'. '+ESC(x.nota):'')+'</li>'}).join('')+'</ul></details>';
   h+='<div class="pie">Fuente: Oficina de Estadística</div>';
   $('out').innerHTML=h;
   $('vlv').addEventListener('click',function(){document.body.classList.remove('ficha');document.body.classList.add('ini');$('out').innerHTML='';$('q').focus();$('q').select();try{window.scrollTo(0,0)}catch(e){}});

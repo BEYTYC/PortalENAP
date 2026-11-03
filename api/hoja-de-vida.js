@@ -724,7 +724,8 @@ module.exports = async function handler(req, res) {
       res.status(200).json({ total: r.total, lista: r.lista.slice(0, 8) });
       return;
     }
-    const { S, fuentes } = await cargar();
+    const { S, fuentes: fuentesTodas } = await cargar();
+    const fuentes = yo.correo === 'jestadisticaplen@enap.edu.co' ? fuentesTodas : [];
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }
     if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes })); return; }
