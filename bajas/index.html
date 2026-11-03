@@ -8,8 +8,7 @@
 :root{--n9:#071C3C;--n8:#0B2A5B;--n7:#123A73;--n1:#E8EEF7;--gold:#A8861D;--gold2:#C9A227;--bg:#F8FAFC;--line:#E2E8F0;--line2:#CBD5E1;--mut:#64748B;--mut2:#94A3B8;--warn:#B45309;--warnbg:#FEF6E7;--ok:#166534;--okbg:#EAF6EE}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:var(--n9);background:var(--bg);font-size:14px;line-height:1.45;overflow:hidden}
-body:before{content:"";position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center 55%/auto 92vh no-repeat;opacity:.06;pointer-events:none;z-index:0}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI","Libre Franklin",system-ui,sans-serif;color:var(--n9);background:transparent;font-size:14px;line-height:1.45;overflow:hidden}
 .app{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:12px 24px 16px}
 .hd{text-align:center;margin:0 0 10px}
 .eyebrow{font-size:12px;font-weight:600;letter-spacing:.18em;color:var(--gold)}
@@ -83,7 +82,7 @@ body:not(.sel):not(.pendtab) #reg{flex:none}
 body.sel .form{display:flex}
 body.sel .meta{display:none}
 body.sel:not(.pendtab) .tabs,body.sel:not(.pendtab) .search{display:none}
-.gate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:var(--bg)}
+.gate{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:transparent}
 .gate[hidden]{display:none}
 .gate.load{background:transparent}
 body.cargando .app{visibility:hidden}
