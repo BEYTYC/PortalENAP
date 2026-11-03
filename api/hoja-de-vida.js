@@ -613,6 +613,10 @@ function armarFicha(id, S) {
   // La medalla Caldas está asociada a un programa: va dentro de la tarjeta del grado de ese programa.
   medallas.forEach((x) => {
     const kp = kt(x.programa);
+    const evEsc = linea.find((e) => e.tipo === 'escalafon');
+    const m0 = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', pv: x.pv };
+    // La medalla "A la consagración" siempre se otorga con el escalafonamiento.
+    if (evEsc && /CONSAGRACION/.test(sinTildes(x.medalla))) { (evEsc.medallas = evEsc.medallas || []).push(m0); return; }
     const evGrados = linea.filter((e) => e.tipo === 'grado');
     let g = kp ? evGrados.find((e) => { const a = kt(e.programa || ''), b = kt(e.tituloAcad || ''); return (a && (a.includes(kp) || kp.includes(a))) || (b && (b.includes(kp) || kp.includes(b))); }) : null;
     if (!g && !kp && evGrados.length === 1) g = evGrados[0];
