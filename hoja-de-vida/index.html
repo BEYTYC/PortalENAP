@@ -145,6 +145,10 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .tit.tit-top{margin:6px 0 16px}
 .tl{margin-top:8px}
 .logros{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}.lg{background:#F8EBC8;color:#5E4408;border-radius:14px;padding:10px 16px;min-width:130px}.lg b{display:block;font-size:25px;line-height:1.1;font-weight:800}.lg span{font-size:12.5px;font-weight:600}
+.tit-top{position:relative}
+.tit-top .volver{position:absolute;top:50%;right:0;margin-top:-18px;width:auto;height:36px;padding:0 14px 0 11px;gap:6px;border-radius:999px;background:#fff;color:#1F4E8C;font:inherit;font-size:13px;font-weight:600;box-shadow:0 1px 3px rgba(20,50,90,.14)}
+.tit-top .volver:hover{background:#EEF3FA}
+@media (max-width:1060px){.tit-top .volver{right:48px}}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -252,8 +256,8 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(!s)return true;(s.extras=s.extras||[]).push(e);return false});
   var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#E5E7EB','#4A5B70','out'],'SALIÓ':['#E5E7EB','#4A5B70','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
   var h='';
-  h+='<div class="tit tit-top"><b>Trayectoria en la institución</b><span>Desde el ingreso hasta hoy, todo lo que consiguió</span></div>';
-  h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',20,'#1F4E8C')+'</button></div>';
+  h+='<div class="tit tit-top"><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',16,'#1F4E8C')+'Atrás</button><b>Trayectoria en la institución</b><span>Desde el ingreso hasta hoy, todo lo que consiguió</span></div>';
+  h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
   h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
   var ls=[];
   if(ES){var et=({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
