@@ -75,7 +75,9 @@ td{padding:11px 16px;border-bottom:1px solid var(--line)}
 .toast.on{opacity:1;transform:translateX(-50%)}
 @media (max-width:900px){body{overflow:auto}.app{height:auto}.main{grid-template-columns:1fr}.g{grid-template-columns:repeat(2,1fr)}.s4{grid-column:span 2}}
 body.sel:not(.pendtab) .hd{display:none}
-.search{max-width:1100px;width:100%;margin:0 auto}
+.search{max-width:620px;width:100%;margin:0 auto}
+body:not(.sel) #reg{justify-content:center;padding-bottom:12vh}
+.meta:empty{display:none}
 .form{display:none;max-width:1100px;width:100%;margin:0 auto}
 body.sel .form{display:flex}
 body.sel .meta{display:none}
@@ -110,7 +112,7 @@ body.sel:not(.pendtab) .tabs{margin-top:2px}
   <div class="main" id="reg">
     <div class="card search">
       <div class="sbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" class="field" placeholder="Apellidos, nombres o cédula" autocomplete="off" aria-label="Buscar estudiante" disabled></div>
-      <div class="meta" id="nres">Cargando estudiantes…</div>
+      <div class="meta" id="nres"></div>
       <div class="list" id="list" role="listbox"></div>
     </div>
 
@@ -220,7 +222,7 @@ function banner(m){var b=$('banner');b.hidden=!m;b.textContent=m||''}
 
 /* ---------- búsqueda ---------- */
 function render(q){var Q=norm(q).trim();
-  if(Q.length<3){$('list').classList.remove('on');$('nres').textContent=EST.length+' estudiantes activos';return}
+  if(Q.length<3){$('list').classList.remove('on');$('nres').textContent='';return}
   var r=EST.filter(function(d){return d._k.indexOf(Q)>=0}).slice(0,60);
   $('list').innerHTML=r.length?r.map(function(d){return '<div class="it" role="option" data-i="'+d._i+'"><b>'+esc(d.ap+' '+d.no)+(d.nuevo?'<small>Nuevo ingreso</small>':'')+'</b><span>C.C. '+esc(d.ce)+(d.cu?' · '+esc(d.cu):'')+(d.co?' · '+esc(d.co):'')+'</span></div>'}).join(''):'<div class="vac" style="padding:14px">No se encontró ningún estudiante activo con esa búsqueda.</div>';
   $('nres').textContent=r.length+' coincidencia'+(r.length===1?'':'s');
@@ -303,7 +305,7 @@ $('msave').onclick=function(){var n=0;['mf','md'].forEach(function(i){var bad=!$
 Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('on')});b.classList.add('on');var p=b.dataset.t==='pend';document.body.classList.toggle('pendtab',p);$('reg').style.display=p?'none':'flex';$('pend').style.display=p?'flex':'none';if(p)cargarPend()}});
 
 function cargarEst(foco){return api('vigentes').then(function(r){EST=(r.lista||[]).map(function(d,i){d._i=i;d._k=norm(d.ap+' '+d.no+' '+d.ce);return d});
-    $('q').disabled=false;if(foco)$('q').focus();$('nres').textContent=EST.length+' estudiantes activos'+(r.periodo?' · antigüedades '+r.periodo:'')})
+    $('q').disabled=false;if(foco)$('q').focus();$('nres').textContent=''})
   .catch(function(e){$('nres').textContent='No se pudieron cargar los estudiantes';banner(e.message)})}
 /* ---------- arranque ---------- */
 $('today').textContent=new Date().toLocaleDateString('es-CO');
