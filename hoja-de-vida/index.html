@@ -254,6 +254,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e.tipo==='retiro')return 'ret';
     if(e.tipo==='ley')return 'ley';
     if(e.tipo==='posgrado')return 'pos';
+    if(e.tipo==='grado'&&!e.comp)return 'for';
     if(e.tipo==='complementacion'||e.tipo==='grado'||e.tipo==='medalla')return 'com';
     if(e.tipo==='extension'&&tEsc!=null&&e.t!=null&&e.t>tEsc)return 'com';
     return 'for'}
