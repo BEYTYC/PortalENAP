@@ -515,6 +515,7 @@ const kt = (v) => sinTildes(v).replace(/[^A-Z0-9]/g, '');
 /* Jerarquía con la que se escalafona según la especialidad (y si es extranjero naval, honorario). */
 function claseEsp(txt0) {
   const e = sinTildes(txt0);
+  if (/\bIM\b|INFANTERIA/.test(e) && /\bNAV\b|NAVAL/.test(e)) return ''; // 'NAV - IM' es el nombre del grupo, no distingue
   if (/\bIM\b|INFANTERIA/.test(e)) return 'IM';
   if (/\b(MER|MC|MM)\b|MERCANTE/.test(e)) return 'MER';
   if (/\bNAV\b|NAVAL/.test(e)) return 'NAV';
@@ -630,8 +631,8 @@ function armarFicha(id, S) {
   let tEsc = null;
   if (e0) {
     // La jerarquía depende de la promoción en que se escalafonó (no de la especialidad de ingreso); si cambió de especialidad se indica.
-    const escTxt = [e0.promocion, e0.cont, e0.especialidad].find((v) => claseEsp(v)) || (ing0 && (ing0.sigla || ing0.cont)) || '';
-    const claseEsc = claseEsp(escTxt), claseIng = claseEsp((ing0 && (ing0.sigla + ' ' + ing0.cont)) || '');
+    const escTxt = [e0.cont, e0.promocion, e0.especialidad].find((v) => claseEsp(v)) || (ing0 && [ing0.cont, ing0.sigla].find((v) => claseEsp(v))) || '';
+    const claseEsc = claseEsp(escTxt), claseIng = (ing0 && (claseEsp(ing0.cont) || claseEsp(ing0.sigla))) || '';
     const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
     linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
