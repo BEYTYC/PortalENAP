@@ -655,8 +655,10 @@ function armarFicha(id, S) {
     const evCcp = linea.filter((e) => e.tipo === 'complementacion');
     const tM = x.periodo ? perNum(x.periodo) : tFecha(x.fecha);
     const coincide = (a, b) => a && b && (a.includes(b) || b.includes(a));
-    // 1. Consagración: siempre con el escalafonamiento.
-    if (evEsc && /CONSAGRACION/.test(tipoM)) return poner(evEsc);
+    // 1. Consagración: con el escalafonamiento, salvo que el curso o programa específico diga otra cosa (p. ej. una Caldas obtenida en otro programa).
+    const claveM = kc || kp;
+    const otroDestino = claveM && (evGrados.some((e) => coincide(kt(e.programa || ''), claveM) || coincide(kt(e.tituloAcad || ''), claveM)) || evLey.some((e) => coincide(kt(e.titulo), claveM)));
+    if (evEsc && /CONSAGRACION/.test(tipoM) && !otroDestino) return poner(evEsc);
     // 2. Curso específico que nombra un curso de ley (Básico, Comando…): esa tarjeta, la más cercana al periodo.
     if (kc) {
       const L = evLey.filter((e) => coincide(kt(e.titulo), kc));
