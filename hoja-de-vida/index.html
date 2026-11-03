@@ -48,7 +48,8 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .pers .cu{padding:0 24px 22px}
 .pers .fila{position:relative;z-index:2;display:flex;align-items:flex-end;gap:16px;margin-top:-36px}
 .av{width:76px;height:76px;flex:none;border-radius:50%;background:var(--pri);color:#fff;border:4px solid #fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700}
-.pers h1{margin:0 0 4px;font-size:22px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.pers .nm{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;min-width:0;padding-bottom:4px}.pers .cc{font-size:15px;font-weight:600;color:var(--mut);white-space:nowrap}
+.pers h1{margin:0;font-size:22px;font-weight:700;min-width:0}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .chip{background:#EAF1FA;color:#17406F;padding:5px 12px;border-radius:999px;font-size:14px}
 .chip.est{display:inline-flex;align-items:center;gap:6px;font-weight:600}
@@ -189,12 +190,10 @@ function pintar(F){
   var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FBE3D8','#6B2A12','out'],'SALIÓ':['#FBE3D8','#6B2A12','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
   var h='';
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
-  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1></div><div class="chips">';
-  if(ES)h+='<span class="chip est" style="background:'+ES[0]+';color:'+ES[1]+'">'+svg(IC[ES[2]],16,ES[1])+ESC(est==='RETIRADO'&&F.retiro&&F.retiro.causal?'RETIRADO · '+F.retiro.causal:est)+'</span>';
-  if(F.escalafonado&&est!=='ESCALAFONADO')h+='<span class="chip" style="background:#DCE9F7">Escalafonado</span>';
-  if(P.cedula)h+='<span class="chip">C.C. '+ESC(ced(P.cedula))+'</span>';
+  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+'</span>':'')+'</div></div><div class="chips">';
+  if(ES)h+='<span class="chip est" style="background:'+ES[0]+';color:'+ES[1]+'">'+svg(IC[ES[2]],16,ES[1])+ESC(({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est)+'</span>';
+  if(F.escalafonado&&est!=='ESCALAFONADO')h+='<span class="chip est" style="background:#DCE9F7;color:#17406F">'+svg(IC.bars,16,'#17406F')+'Escalafonado</span>';
   if(P.cont)h+='<span class="chip">Contingente '+ESC(P.cont)+'</span>';
-  if(P.sigla)h+='<span class="chip">Especialidad '+ESC(P.sigla)+'</span>';
   if(P.curso)h+='<span class="chip">Curso '+ESC(P.curso)+'</span>';
   if(P.nac&&P.nac!=='COLOMBIA')h+='<span class="chip">'+ESC(P.nac)+'</span>';
   h+='</div></div></div>';
