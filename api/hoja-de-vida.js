@@ -240,13 +240,13 @@ function procesarCursos(libro, base) {
     let h0 = -1, c = null;
     for (let i = 0; i < Math.min(F.length, 8); i++) {
       const t = indiceCols(F[i] || [], {
-        ced: ['CEDULA', 'CC', 'DOCUMENTO', 'NUMERO DE DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE IDENTIFICACION'],
+        ced: ['CEDULA', 'CC', 'C C', 'DOCUMENTO', 'DOCUMENTO DE IDENTIDAD', 'DOCUMENTO IDENTIDAD', 'NUMERO DE DOCUMENTO', 'NUMERO DOCUMENTO', 'NO DOCUMENTO', 'CEDULA DE CIUDADANIA', 'IDENTIFICACION', 'NUMERO DE IDENTIFICACION', 'NUMERO DE IDENTIDAD'],
         nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'NOMBRE COMPLETO', 'ALUMNO', 'ESTUDIANTE'],
         curso: ['CURSO', 'NOMBRE CURSO', 'NOMBRE DEL CURSO', 'PROGRAMA', 'NOMBRE PROGRAMA'],
         tipo: ['TIPO', 'TIPO CURSO', 'TIPO DE CURSO', 'CLASE', 'MODALIDAD', 'CATEGORIA'],
         inicio: ['FECHA INICIO', 'FECHA DE INICIO', 'INICIO'],
         fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA'],
-        nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO'],
+        nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO', 'PUESTO OCUPADO'],
         promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
         programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA', 'CARRERA', 'TITULO', 'PROFESION', 'ESPECIALIZACION'],
       });
@@ -735,4 +735,4 @@ module.exports = async function handler(req, res) {
   }
 };
 
-module.exports._test = { sinRepetidos, procesarMedallas, procesarConcesiones, normPeriodo, armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
+module.exports._test = { procesarLey, procesarCcp, sinRepetidos, procesarMedallas, procesarConcesiones, normPeriodo, armarFicha, buscar, semestres, procesarExtension, procesarGraduados, cedKey, nomKey, fechaCelda, listaPersonas };
