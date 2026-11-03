@@ -232,12 +232,13 @@ function tilFix(t){return t.replace(/[a-záéíóúüñ]+/gi,function(w){var k=w
 function pintar(F){document.body.classList.remove('ini');document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
   /* Cursos de extensión con fecha dentro de un semestre van DENTRO de su tarjeta */
-  var sems=L.filter(function(e){return e.tipo==='semestre'}),sinSem=null;
+  L=L.filter(function(e){return e.tipo!=='semestre'});
+  var sems=[],sinSem=null;
   L=L.filter(function(e){
     if(e.tipo==='concesion'||e.tipo==='reconocimiento'){if(e.clase==='distinguido'&&e.periodo&&sems.some(function(x){return x.semestre.periodo===e.periodo&&x.semestre.dist}))return false;
       var sc=sems.filter(function(x){return e.periodo&&x.semestre.periodo===e.periodo})[0];
       if(!sc&&e.anioSolo)sc=sems.filter(function(x){return x.semestre.periodo&&+x.semestre.periodo.slice(0,4)===e.anio})[0];
-      if(!sc){(sinSem=sinSem||[]).push(e);return false}
+      return false;
       (sc.extras=sc.extras||[]).push(e);return false}
     if(e.tipo!=='extension'||!e.fecha)return true;
     var y=+e.fecha.slice(0,4),h=+e.fecha.slice(5,7)<=6?1:2,per=y+'-'+h;
