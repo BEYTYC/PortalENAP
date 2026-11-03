@@ -248,6 +248,7 @@ function procesarCursos(libro, base) {
         fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA'],
         nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO'],
         promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
+        programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA', 'CARRERA', 'TITULO', 'PROFESION', 'ESPECIALIZACION'],
       });
       if ((t.curso >= 0 || base === 'ccp') && (t.ced >= 0 || t.nombre >= 0)) { h0 = i; c = t; break; }
     }
@@ -261,14 +262,14 @@ function procesarCursos(libro, base) {
       if (!ck && !nom) continue;
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
-        curso: base === 'ccp' ? ('COMPLEMENTACIÓN PROFESIONAL' + (c.promo >= 0 && txt(r[c.promo]) ? ' · ' + sinTildes(r[c.promo]) : '')) : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
-        tipo: [c.tipo >= 0 && txt(r[c.tipo]), base === 'ccp' && c.curso >= 0 && txt(r[c.curso]), base === 'ccp' && c.espec >= 0 && txt(r[c.espec])].filter(Boolean).join(' · '), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
+        curso: base === 'ccp' ? 'CURSO DE COMPLEMENTACIÓN PROFESIONAL' : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
+        tipo: base === 'ccp' ? [c.programa >= 0 ? nom(r[c.programa]) : [c.curso >= 0 && nom(r[c.curso]), c.espec >= 0 && nom(r[c.espec])].filter(Boolean).join(' · '), c.promo >= 0 && nom(r[c.promo])].filter(Boolean).join(' · ') : (c.tipo >= 0 ? txt(r[c.tipo]) : ''), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
         nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nom,
       };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nom), reg);
     }
-    hojas.push({ hoja: nombreHoja, usada: true, filas: k });
+    hojas.push({ hoja: nombreHoja, usada: true, filas: k, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean) });
   }
   return { porCed, porNom, filas: n, hojas };
 }
@@ -354,6 +355,7 @@ function procesarMedallas(libro) {
         periodo: ['PERIODO', 'PERIODO ACADEMICO', 'SEMESTRE'],
         fecha: ['FECHA', 'FECHA SOLICITUD', 'FECHA DE SOLICITUD', 'FECHA OTORGAMIENTO', 'FECHA ENTREGA', 'FECHA RESOLUCION'],
         estado: ['ESTADO', 'OTORGADA', 'APROBADA', 'RESULTADO', 'OTORGADO', 'APROBADO', 'RESPUESTA'],
+        programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'ESPECIALIDAD', 'CARRERA', 'CURSO'],
       });
       if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
     }
@@ -369,11 +371,11 @@ function procesarMedallas(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
-      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : 'MEDALLA CALDAS', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
+      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 ? nom(r[c.programa]) : '', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
-    hojas.push({ hoja, usada: true, filas: k });
+    hojas.push({ hoja, usada: true, filas: k, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean) });
   }
   return { porCed, porNom, filas: n, hojas, sinEstado };
 }
@@ -454,6 +456,9 @@ function reunir(fu, ck, nks) {
   nks.forEach((nk) => (((fu && fu.porNom && fu.porNom[nk]) || []).forEach((r) => porNombre.push(r))));
   return { exactas, porNombre };
 }
+
+/* Significado de cada categoría de la Medalla Caldas, según Estadística. */
+const MOTIVO_CALDAS = { 'A LA CONSAGRACION': 'Por haber obtenido el primer puesto en su promoción' };
 
 function armarFicha(id, S) {
   const avisos = [];
@@ -548,7 +553,7 @@ function armarFicha(id, S) {
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : null, periodo: x.periodo, anio: x.periodo ? +x.periodo.slice(0, 4) : null, titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
-  medallas.forEach((x) => linea.push({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), titulo: x.medalla, detalle: x.estado ? '' : 'Solicitud registrada', pv: x.pv }));
+  medallas.forEach((x) => linea.push({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', detalle: '', pv: x.pv }));
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
   const orden = { ingreso: 0, regreso: 1, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
@@ -630,11 +635,11 @@ async function cargar() {
     intenta('bajas', 'Bajas y Ascensos', () => fuente('bajas', procesarBajas), (v) => (v.asc.error ? 'Hoja Ascensos: ' + v.asc.error : `Ascensos: ${v.asc.filas} filas`)),
     intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => (v.columnas.fecha ? '' : 'Sin columna de fecha de grado: se muestra solo que se graduó y el programa.')),
     intenta('antiguedades', 'Antigüedades (notas, distinguido, excelencia)', cargarAntiguedades, (v) => `Periodos: ${v.periodos.join(', ')}`),
-    intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
-    intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
-    intenta('ccp', 'Complementación profesional (CCP 1970 – actualidad)', () => fuente('ccp', procesarCcp), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('ccp', 'Complementación profesional (CCP 1970 – actualidad)', () => fuente('ccp', procesarCcp), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('concesiones', 'Concesiones, becas, mención de honor, meritorios y laureados (Base Concesiones)', () => fuente('concesiones', procesarConcesiones), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (no usada)')).join(' · ')),
-    intenta('medallas', 'Medallas Caldas (Solicitud Caldas)', () => fuente('medallas', procesarMedallas), (v) => (v.sinEstado ? 'Sin columna de estado: se muestran todas las solicitudes registradas. ' : 'Solo otorgadas/aprobadas. ') + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
+    intenta('medallas', 'Medallas Caldas (Solicitud Caldas)', () => fuente('medallas', procesarMedallas), (v) => (v.sinEstado ? 'Sin columna de estado: se muestran todas las solicitudes registradas. ' : 'Solo otorgadas/aprobadas. ') + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
   ]);
   S.cong = cong; S.baj = baj; S.grad = grad; S.ant = ant; S.ext = ext; S.ley = ley; S.ccp = ccp; S.conc = conc; S.med = med;
   return { S, fuentes };
