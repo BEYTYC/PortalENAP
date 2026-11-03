@@ -53,7 +53,7 @@ const cedKey = (v) => {
   t = t.replace(/^\d+[.,]0+$/, (m) => m.replace(/[.,]0+$/, ''));
   t = t.replace(/^(C\.?\s?C\.?|C\.?\s?E\.?|T\.?\s?I\.?|NUIP|CEDULA|CÉDULA|DOC(UMENTO)?\.?)\s*[:#.\-]?\s*(?=\d)/, '');
   t = t.replace(/[^0-9A-Z]/g, '').replace(/^0+(?=\d)/, '');
-  return t;
+  return /\d/.test(t) ? t : ''; // 'NR', 'N/A', '-' no son cédula: se cruza por nombre
 };
 /* Llave de nombre: palabras ordenadas, sin tildes ni signos (sirve aunque cambie el orden apellidos/nombres). */
 const nomKey = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
