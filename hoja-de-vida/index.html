@@ -118,6 +118,19 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 }
 .flag{height:15px;width:auto;border-radius:2px;margin-left:8px;vertical-align:-2px;box-shadow:0 0 0 1px rgba(20,50,90,.15)}
 .medbox{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px 14px;border-radius:12px;background:#F8EBC8;color:#5E4408;font-size:14px;line-height:1.35}.medbox b{color:#5E4408}.medbox svg{flex:none;margin-top:1px}
+/* Cabecera compacta: sin banda azul, todo en una fila */
+.pers{position:relative}
+.pers .ban{position:static;height:0;background:none;overflow:visible}
+.pers .ban i{display:none}
+.pers .volver{top:50%;margin-top:-20px;right:18px;background:#EEF3FA;box-shadow:none}
+.pers .cu{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;padding:16px 74px 16px 20px}
+.pers .fila{margin-top:0;align-items:center;gap:14px;flex:0 1 auto}
+.pers .av{width:52px;height:52px;border:0;font-size:18px}
+.pers .nm{padding-bottom:0}
+.pers .nm h1{margin:0;font-size:22px}
+.pers .chips{margin-top:0;gap:8px}
+.pers .chip{height:32px;font-size:13px;padding:0 12px}
+@media (max-width:700px){.pers .cu{padding:14px 64px 14px 14px}}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -284,7 +297,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
     }else if(e.tipo==='escalafon'){
       titulo='Escalafonamiento';chipD=e.fecha?fch(e.fecha):(e.periodo?'Escalafonamiento '+e.periodo:'');
-      var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+ESCT(e.jerarquia)+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);if(e.resolucion)d.push('Resolución '+e.resolucion);
+      var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+ESCT(e.jerarquia)+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
     }else if(e.tipo==='grado'){
