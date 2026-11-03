@@ -299,17 +299,24 @@ function procesarConcesiones(libro) {
         valor: ['DESCUENTO', 'PORCENTAJE', 'VALOR DESCUENTO', 'PORCENTAJE DESCUENTO', 'VALOR'],
         tipo: ['TIPO', 'TIPO DE BECA', 'TIPO BECA', 'CLASE', 'DESCRIPCION', 'CATEGORIA', 'CONCESION'],
         fecha: ['FECHA', 'FECHA RESOLUCION', 'FECHA DE RESOLUCION', 'FECHA OTORGAMIENTO'],
+        concesion: ['CONCESION', 'NOMBRE CONCESION', 'NOMBRE DE LA CONCESION', 'TIPO CONCESION', 'TIPO DE CONCESION', 'CONCESION OTORGADA'],
+        otorgada: ['OTORGADA', 'OTORGADO', 'CONCEDIDA', 'SE OTORGA', 'SE OTORGO', 'APROBADA'],
+        pct: ['PORCENTAJE', '% DESCUENTO', 'PORCENTAJE DESCUENTO', 'PORCENTAJE DE DESCUENTO', 'DESCUENTO', 'PORCENT'],
+        motivo: ['MOTIVO', 'CAUSAL', 'JUSTIFICACION', 'OBSERVACION', 'OBSERVACIONES', 'RAZON'],
+        resol: ['RESOLUCION', 'NUMERO RESOLUCION', 'NO RESOLUCION'],
       });
       if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
     }
     if (!c) { hojas.push({ hoja, usada: false }); continue; }
+    const cols = (F[h0] || []).map((x) => txt(x)).filter(Boolean);
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
       const r = F[i];
       let titulo = cl[1];
-      if (cl[0] === 'concesion') { // D = otorgada (Sí/Si), O = nombre de la concesión
-        if (!/^s[ií]$/i.test(txt(r[3]))) continue;
-        titulo = nom(r[14]); if (!titulo) continue;
+      if (cl[0] === 'concesion') { // otorgada: columna por encabezado o, si no, D (Sí/Si); nombre: por encabezado o, si no, O
+        if (!/^s[ií]$/i.test(txt(r[c.otorgada >= 0 ? c.otorgada : 3]))) continue;
+        const v = nom(r[c.concesion >= 0 ? c.concesion : 14]);
+        titulo = v && !/^\d{1,4}$/.test(v) ? v : 'Concesión especial';
       }
       const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
       const nombre = c.nombre >= 0 ? nom(r[c.nombre]) : '';
@@ -317,12 +324,16 @@ function procesarConcesiones(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
-      const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo]), c.valor >= 0 && txt(r[c.valor])].filter(Boolean).join(' · ');
-      const reg = { clase: cl[0], concesion: titulo, periodo: per, valor: det, nombre };
+      const pr = c.pct >= 0 ? r[c.pct] : (c.valor >= 0 ? r[c.valor] : '');
+      const pct = typeof pr === 'number' ? (pr > 0 && pr <= 1 ? Math.round(pr * 100) : Math.round(pr * 100) / 100) + ' %' : txt(pr);
+      const motivo = c.motivo >= 0 ? txt(r[c.motivo]) : '';
+      const resol = c.resol >= 0 ? txt(r[c.resol]) : '';
+      const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo])].filter(Boolean).join(' · ');
+      const reg = { clase: cl[0], concesion: titulo, periodo: per, valor: det, pct, motivo, resol, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
-    hojas.push({ hoja, usada: true, filas: k });
+    hojas.push({ hoja, usada: true, filas: k, cols });
   }
   return { porCed, porNom, filas: n, hojas };
 }
@@ -536,7 +547,7 @@ function armarFicha(id, S) {
     const f = x.fin || x.inicio;
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
-  concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : null, periodo: x.periodo, anio: x.periodo ? +x.periodo.slice(0, 4) : null, titulo: x.concesion, detalle: x.valor, pv: x.pv }));
+  concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : null, periodo: x.periodo, anio: x.periodo ? +x.periodo.slice(0, 4) : null, titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
   medallas.forEach((x) => linea.push({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), titulo: x.medalla, detalle: x.estado ? '' : 'Solicitud registrada', pv: x.pv }));
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
@@ -622,7 +633,7 @@ async function cargar() {
     intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ccp', 'Complementación profesional (CCP 1970 – actualidad)', () => fuente('ccp', procesarCcp), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
-    intenta('concesiones', 'Concesiones, becas, mención de honor, meritorios y laureados (Base Concesiones)', () => fuente('concesiones', procesarConcesiones), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (no usada)')).join(' · ')),
+    intenta('concesiones', 'Concesiones, becas, mención de honor, meritorios y laureados (Base Concesiones)', () => fuente('concesiones', procesarConcesiones), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (no usada)')).join(' · ')),
     intenta('medallas', 'Medallas Caldas (Solicitud Caldas)', () => fuente('medallas', procesarMedallas), (v) => (v.sinEstado ? 'Sin columna de estado: se muestran todas las solicitudes registradas. ' : 'Solo otorgadas/aprobadas. ') + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas})` : ' (sin columnas reconocidas)')).join(' · ')),
   ]);
   S.cong = cong; S.baj = baj; S.grad = grad; S.ant = ant; S.ext = ext; S.ley = ley; S.ccp = ccp; S.conc = conc; S.med = med;
