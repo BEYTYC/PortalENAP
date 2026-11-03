@@ -201,6 +201,8 @@ function ESCT(t){t=String(t==null?'':t);var L=t.replace(/[^A-Za-zÁÉÍÓÚÜÑ�
   return ESC(t)}
 var ISO={ARGENTINA:'ar',BOLIVIA:'bo',BRASIL:'br',CHILE:'cl',ECUADOR:'ec',PARAGUAY:'py',PERU:'pe',URUGUAY:'uy',VENEZUELA:'ve',PANAMA:'pa','COSTA RICA':'cr',GUATEMALA:'gt',HONDURAS:'hn','EL SALVADOR':'sv',NICARAGUA:'ni',MEXICO:'mx',CUBA:'cu','REPUBLICA DOMINICANA':'do',HAITI:'ht','ESTADOS UNIDOS':'us',EEUU:'us','ESTADOS UNIDOS DE AMERICA':'us',CANADA:'ca',ESPANA:'es',FRANCIA:'fr',ITALIA:'it',ALEMANIA:'de','REINO UNIDO':'gb',PORTUGAL:'pt',JAPON:'jp',CHINA:'cn','COREA DEL SUR':'kr',COREA:'kr',INDIA:'in',ISRAEL:'il',TURQUIA:'tr',RUSIA:'ru',HOLANDA:'nl','PAISES BAJOS':'nl',BELGICA:'be',SUIZA:'ch',GRECIA:'gr',POLONIA:'pl',UCRANIA:'ua',AUSTRALIA:'au',SURINAM:'sr',GUYANA:'gy','TRINIDAD Y TOBAGO':'tt',JAMAICA:'jm',BELICE:'bz'};
 function bandera(n){var k=String(n||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();var c=ISO[k];return c?'<img class="flag" alt="'+ESC(n)+'" title="'+ESC(n)+'" src="https://flagcdn.com/w40/'+c+'.png" onerror="this.remove()">':''}
+var MIN={DE:1,DEL:1,LA:1,LAS:1,EL:1,LOS:1,PARA:1,Y:1,E:1,EN:1,A:1,CON:1,POR:1,AL:1,O:1,U:1};
+function TT(t){t=String(t==null?'':t).toLowerCase();var i=0;t=t.replace(/[a-záéíóúüñ]+/g,function(w){var up=w.toUpperCase();var r=SIG[up]?up:(i>0&&MIN[up]?w:w.charAt(0).toUpperCase()+w.slice(1));i++;return r});return ESC(t)}
 function pintar(F){document.body.classList.remove('ini');document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
   /* Cursos de extensión con fecha dentro de un semestre van DENTRO de su tarjeta */
@@ -284,7 +286,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
     }else if(e.tipo==='grado'){
-      titulo='Grado';chipD=fch(e.fecha);if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';chip='Graduado';
+      titulo='Titulación académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
       titulo=e.titulo;chipD=fch(e.fecha)||(e.anio?String(e.anio):'');if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';if(e.tipo==='ingreso')chip='Ingreso';
     }else if(e.tipo==='retiro'){
