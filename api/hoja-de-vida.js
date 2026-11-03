@@ -127,7 +127,7 @@ async function fuente(clave, procesar) {
 }
 
 function indiceCols(encab, nombres) {
-  const H = encab.map((h) => sinTildes(h).replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
+  const H = encab.map((h) => sinTildes(h).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
   const out = {};
   for (const [k, alts] of Object.entries(nombres)) {
     out[k] = -1;
@@ -298,9 +298,10 @@ function procesarConcesiones(libro) {
     let h0 = -1, c = null;
     for (let i = 0; i < Math.min(F.length, 8); i++) {
       const t = indiceCols(F[i] || [], {
-        ced: ['CEDULA', 'CC', 'DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO'],
+        ced: ['CEDULA', 'CC', 'C C', 'DOCUMENTO', 'DOCUMENTO DE IDENTIDAD', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO', 'NUMERO DE IDENTIDAD'],
         nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'ESTUDIANTE', 'NOMBRE COMPLETO'],
-        periodo: ['PERIODO', 'PERIODO ACADEMICO', 'PERIODO CONCESION', 'SEMESTRE'],
+        periodo: ['PERIODO', 'PERIODO ACADEMICO', 'PERIODO CONCESION', 'SEMESTRE', 'SEM'],
+        ano: ['AÑO', 'ANO', 'ANIO', 'AÑO CONCESION', 'AÑO DE LA CONCESION', 'AÑO ACADEMICO'],
         valor: ['DESCUENTO', 'PORCENTAJE', 'VALOR DESCUENTO', 'PORCENTAJE DESCUENTO', 'VALOR'],
         tipo: ['TIPO', 'TIPO DE BECA', 'TIPO BECA', 'CLASE', 'DESCRIPCION', 'CATEGORIA', 'CONCESION'],
         fecha: ['FECHA', 'FECHA RESOLUCION', 'FECHA DE RESOLUCION', 'FECHA OTORGAMIENTO'],
@@ -316,7 +317,7 @@ function procesarConcesiones(libro) {
     const cols = (F[h0] || []).map((x) => txt(x)).filter(Boolean);
     if (c.periodo < 0) { // cualquier encabezado que hable de periodo, semestre o año
       const H = (F[h0] || []).map((x) => sinTildes(x));
-      let j = H.findIndex((x) => /PERIODO/.test(x)); if (j < 0) j = H.findIndex((x) => /SEMESTRE/.test(x)); if (j < 0) j = H.findIndex((x) => /^(ANO|ANO .*|.* ANO)$/.test(x));
+      let j = H.findIndex((x) => /PERIODO/.test(x)); if (j < 0) j = H.findIndex((x) => /SEMESTRE/.test(x)); if (j < 0 && c.ano < 0) j = H.findIndex((x) => /^(ANO|AÑO|(ANO|AÑO) .*|.* (ANO|AÑO))$/.test(x));
       c.periodo = j;
     }
     let k = 0;
@@ -332,10 +333,16 @@ function procesarConcesiones(libro) {
       const nombre = c.nombre >= 0 ? nom(r[c.nombre]) : '';
       if (!ck && !nombre) continue;
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
+      const ym0 = (v) => { const t = txt(v).match(/^(\d{4})(?:\.0+)?$/); return t ? +t[1] : null; };
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
+      let anioCol = c.ano >= 0 ? ym0(r[c.ano]) : null;
+      if (!per && c.periodo >= 0 && c.periodo !== c.ano) { // periodo = 1/2/I/II y el año en su propia columna
+        const sm = txt(r[c.periodo]).toUpperCase().match(/^(II|I|1|2)$/);
+        if (sm && anioCol) per = `${anioCol}-${sm[1] === 'II' || sm[1] === '2' ? 2 : 1}`;
+      }
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
       const ym = (v) => { const t = txt(v).match(/^(\d{4})(?:\.0+)?$/); return t ? +t[1] : null; };
-      const anio = per ? null : (c.periodo >= 0 ? ym(r[c.periodo]) : null) || ym(r[c.concesion >= 0 ? c.concesion : 14]);
+      const anio = per ? null : anioCol || (c.periodo >= 0 ? ym(r[c.periodo]) : null) || ym(r[c.concesion >= 0 ? c.concesion : 14]);
       const pr = c.pct >= 0 ? r[c.pct] : (c.valor >= 0 ? r[c.valor] : '');
       const pct = typeof pr === 'number' ? (pr > 0 && pr <= 1 ? Math.round(pr * 100) : Math.round(pr * 100) / 100) + ' %' : txt(pr);
       const motivo = c.motivo >= 0 ? txt(r[c.motivo]) : '';
@@ -360,7 +367,7 @@ function procesarMedallas(libro) {
     let h0 = -1, c = null;
     for (let i = 0; i < Math.min(F.length, 8); i++) {
       const t = indiceCols(F[i] || [], {
-        ced: ['CEDULA', 'CC', 'DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO'],
+        ced: ['CEDULA', 'CC', 'C C', 'DOCUMENTO', 'DOCUMENTO DE IDENTIDAD', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO', 'NUMERO DE IDENTIDAD'],
         nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'ESTUDIANTE', 'NOMBRE COMPLETO'],
         medalla: ['MEDALLA', 'TIPO MEDALLA', 'TIPO DE MEDALLA', 'PREMIO', 'CONDECORACION', 'DISTINCION', 'CATEGORIA'],
         periodo: ['PERIODO', 'PERIODO ACADEMICO', 'SEMESTRE'],
