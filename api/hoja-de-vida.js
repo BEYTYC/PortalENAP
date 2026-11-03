@@ -258,16 +258,16 @@ function procesarCursos(libro, base) {
       const r = F[i];
       if (base !== 'ccp' && !txt(r[c.curso])) continue;
       const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
-      const nom = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
-      if (!ck && !nom) continue;
+      const nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
+      if (!ck && !nm) continue;
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
         curso: base === 'ccp' ? 'CURSO DE COMPLEMENTACIÓN PROFESIONAL' : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
         tipo: base === 'ccp' ? [c.programa >= 0 ? nom(r[c.programa]) : [c.curso >= 0 && nom(r[c.curso]), c.espec >= 0 && nom(r[c.espec])].filter(Boolean).join(' · '), c.promo >= 0 && nom(r[c.promo])].filter(Boolean).join(' · ') : (c.tipo >= 0 ? txt(r[c.tipo]) : ''), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
-        nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nom,
+        nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nm,
       };
       k++; n++;
-      if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nom), reg);
+      if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nm), reg);
     }
     hojas.push({ hoja: nombreHoja, usada: true, filas: k, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean) });
   }
