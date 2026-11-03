@@ -343,7 +343,7 @@ function procesarConcesiones(libro) {
       c.periodo = j;
     }
     { const HH = (F[h0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
-      c.honor = HH.findIndex((x) => /GRADO DE HONOR/.test(x)); c.prog = HH.findIndex((x) => x === 'PROGRAMA'); c.anog = HH.findIndex((x) => x === 'ANOG');
+      c.honor = HH.findIndex((x) => /GRADO DE HONOR/.test(x)); c.prog = HH.findIndex((x) => x === 'PROGRAMA'); c.anog = HH.findIndex((x) => x === 'ANOG'); c.cursoSem = HH.findIndex((x) => x === 'CURSO' || x === 'CURSO ACTUAL');
       const ia = HH.findIndex((x) => x === 'APELLIDOS'), inn = HH.findIndex((x) => x === 'NOMBRES'); c.apeNom = ia >= 0 && inn >= 0 && !HH.some((x) => /^APELLIDOS Y NOMBRES?/.test(x)) ? [ia, inn] : null; }
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
@@ -375,7 +375,7 @@ function procesarConcesiones(libro) {
       const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo])].filter(Boolean).join(' · ');
       const honorTxt = c.honor >= 0 ? txt(r[c.honor]) : '';
       const honor = /^(-|#N\/A|#NAME\?|NO|NA|N\/A|0)?$/i.test(honorTxt) ? '' : honorTxt;
-      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre, honor: honor ? (/^S[IÍ]$/i.test(honor) ? 'Grado de honor' : nom(honor)) : '', programa: c.prog >= 0 ? nom(r[c.prog]) : '' };
+      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre, honor: honor ? (/^S[IÍ]$/i.test(honor) ? 'Grado de honor' : nom(honor)) : '', programa: c.prog >= 0 ? nom(r[c.prog]) : '', curso: c.cursoSem >= 0 ? txt(r[c.cursoSem]) : '' };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -709,8 +709,16 @@ function armarFicha(id, S) {
   const setExc = periodosMarca('exa', 'exc');
   sems.filter((x) => x.exc && x.periodo).forEach((x) => setExc.add(x.periodo));
   const nExc = setExc.size;
+  // Semestre (1.1, 1.2, 2.1…) en que fue distinguido: del curso del periodo en Antigüedades o, si no, del curso en la hoja Distinguido.
+  const semDe = (c0) => { const m = String(c0 || '').match(/^\s*(\d)\.(\d)/); return m ? m[1] + '.' + m[2] : ''; };
+  const semsDist = Array.from(setDist).map((per) => {
+    const sm = sems.find((x) => x.periodo === per);
+    const cd = concesiones.find((x) => x.clase === 'distinguido' && (x.periodo === per));
+    return { per, sem: semDe(sm && sm.label) || semDe(cd && cd.curso) };
+  }).filter((x) => x.sem || /^\d{4}-\d$/.test(x.per)).sort((a, b) => (perNum(a.per) || 0) - (perNum(b.per) || 0));
+  const semestresDist = Array.from(new Set(semsDist.map((x) => x.sem).filter(Boolean)));
   const items = [];
-  if (setDist.size) items.push({ k: 'distinguido', label: setDist.size === 1 ? 'Alumno distinguido' : 'Alumno distinguido', n: setDist.size });
+  if (setDist.size) items.push({ k: 'distinguido', label: 'Alumno distinguido', n: setDist.size, semestres: semsDist.map((x) => x.sem).filter(Boolean) });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
   if (nExc) items.push({ k: 'excelencia', label: 'Excelencia académica', n: nExc });
   if (items.length) {

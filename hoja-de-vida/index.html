@@ -338,7 +338,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
     }else if(e.tipo==='logros'){
       titulo='Logros';
-      body+='<div class="logros">'+(e.items||[]).map(function(x){return '<div class="lg"><b>'+x.n+'</b><span>'+ESC(x.label)+'</span></div>'}).join('')+'</div>';
+      body+='<div class="logros">'+(e.items||[]).map(function(x){return '<div class="lg"><b>'+x.n+'</b><span>'+ESC(x.label)+'</span></div>'}).join('')+'</div>';(e.items||[]).forEach(function(x){if(x.k==='distinguido'&&x.semestres&&x.semestres.length)body+='<div class="ds"><b>Alumno distinguido en los semestres:</b> '+ESC(x.semestres.join(' · '))+'</div>'});
     }else if(e.tipo==='escalafon'){
       titulo='Escalafonamiento';chipD=e.fecha?fch(e.fecha):(e.periodo?'Escalafonamiento '+e.periodo:'');
       var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+TT(e.jerarquia)+'</div>';if(e.cambioEsp)body+='<div class="ds">Cambio de especialidad: ingresó en '+ESC(e.cambioEsp.de==='NAV'?'Navales':e.cambioEsp.de==='IM'?'Infantería de Marina':'Mercantes')+' y se escalafonó en '+ESC(e.cambioEsp.a==='NAV'?'Navales':e.cambioEsp.a==='IM'?'Infantería de Marina':'Mercantes')+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);
