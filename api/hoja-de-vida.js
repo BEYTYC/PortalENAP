@@ -42,9 +42,11 @@ const sinTildes = (s) => String(s == null ? '' : s).replace(/[ñÑ]/g, '\u0001')
 const cedKey = (v) => String(v == null ? '' : v).toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/^0+(?=\d)/, '');
 /* Llave de nombre: palabras ordenadas, sin tildes ni signos (sirve aunque cambie el orden apellidos/nombres). */
 const nomKey = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
+/* Nombre para mostrar: mayúsculas con tildes y Ñ tal como vienen en la base. */
+const txt = (v) => String(v == null ? '' : v).trim();
+const nom = (v) => txt(v).toUpperCase().replace(/\s+/g, ' ');
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => (d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : '');
-const txt = (v) => String(v == null ? '' : v).trim();
 function fechaCelda(v) {
   if (v == null || v === '') return '';
   if (typeof v === 'number') return iso(X.serialAFecha(v));
@@ -142,7 +144,7 @@ function procesarConglomerado(libro) {
     const ext = String(r[c.ext] || '').toUpperCase().startsWith('S');
     const ck = c.cedula >= 0 ? cedKey(r[c.cedula]) : '';
     const reg = {
-      nombre: sinTildes(r[c.nombre]), cedula: ck ? txt(r[c.cedula]) : '', ck, sigla: txt(r[c.esp]), cont: txt(r[c.cont]).replace(/\s+/g, ''),
+      nombre: nom(r[c.nombre]), cedula: ck ? txt(r[c.cedula]) : '', ck, sigla: txt(r[c.esp]), cont: txt(r[c.cont]).replace(/\s+/g, ''),
       fecha: iso(d), anio: anio || null, sexo: /^[MF]$/i.test(txt(r[c.sexo])) ? txt(r[c.sexo]).toUpperCase() : '',
       nac: ext ? sinTildes(r[c.pais] || '') : (c.ext >= 0 ? 'COLOMBIA' : ''), salida: txt(r[c.salida]), anioSal: txt(r[c.anioSal]),
     };
@@ -161,7 +163,7 @@ function procesarBajas(libro) {
     const ck = cedKey(r[5]);
     if (!ck && !r[4]) continue;
     const reg = {
-      nombre: sinTildes(r[4]), ck, sigla: txt(r[2]), cont: txt(r[3]).replace(/\s+/g, ''), anioIng: r[6] || null, ingreso: fechaCelda(r[7]),
+      nombre: nom(r[4]), ck, sigla: txt(r[2]), cont: txt(r[3]).replace(/\s+/g, ''), anioIng: r[6] || null, ingreso: fechaCelda(r[7]),
       curso: txt(r[11]), grado: txt(r[13]), retiro: fechaCelda(r[14]), doc: txt(r[16]), causal: txt(r[20]), obs: txt(r[22]),
     };
     n++;
@@ -178,7 +180,7 @@ function procesarBajas(libro) {
       if (!ck && !r[6]) continue;
       const puesto = +r[9], total = +r[11];
       const reg = {
-        nombre: sinTildes(r[6]), ck, cont: txt(r[2]), sigla: txt(r[3]), promocion: txt(r[4]), especialidad: txt(r[5]),
+        nombre: nom(r[6]), ck, cont: txt(r[2]), sigla: txt(r[3]), promocion: txt(r[4]), especialidad: txt(r[5]),
         puesto: puesto > 0 ? puesto : null, total: total > 0 ? total : null, promedio: typeof r[12] === 'number' ? r[12] : null,
         periodo: txt(r[13]), fecha: fechaCelda(r[14]), resolucion: txt(r[16]),
       };
@@ -202,7 +204,7 @@ function procesarGraduados(libro) {
     const r = F[i];
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
     if (!ck && !(c.nombre >= 0 && r[c.nombre])) continue;
-    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: c.nombre >= 0 ? sinTildes(r[c.nombre]) : '' };
+    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: c.nombre >= 0 ? nom(r[c.nombre]) : '' };
     n++;
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
@@ -272,7 +274,7 @@ async function cargarAntiguedades() {
     listas.forEach((L) => (L || []).forEach((s) => {
       if (!s || !s.n) return;
       const ck = cedKey(s.ce);
-      const reg = { per: p, n: sinTildes(s.n), ce: ck ? txt(s.ce) : '', cu: txt(s.cu), g: txt(s.g), ct: txt(s.ct), e: txt(s.e), ev: txt(s.ev), p: s.p == null ? null : s.p, f: typeof s.f === 'number' ? s.f : null, h: Array.isArray(s.h) ? s.h : [], hp: Array.isArray(s.hp) ? s.hp : [], dst: Array.isArray(s.dst) ? s.dst : [], exa: Array.isArray(s.exa) ? s.exa : [], dis: !!s.dis, exc: !!s.exc };
+      const reg = { per: p, n: nom(s.n), ce: ck ? txt(s.ce) : '', cu: txt(s.cu), g: txt(s.g), ct: txt(s.ct), e: txt(s.e), ev: txt(s.ev), p: s.p == null ? null : s.p, f: typeof s.f === 'number' ? s.f : null, h: Array.isArray(s.h) ? s.h : [], hp: Array.isArray(s.hp) ? s.hp : [], dst: Array.isArray(s.dst) ? s.dst : [], exa: Array.isArray(s.exa) ? s.exa : [], dis: !!s.dis, exc: !!s.exc };
       n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(reg.n), reg);
     }));
@@ -449,7 +451,7 @@ function listaPersonas(S) {
   const add = (ck, nombre, extra) => {
     if (!nombre) return;
     const k = ck ? 'c:' + ck : 'n:' + nomKey(nombre);
-    const p = P[k] || (P[k] = { id: k, nombre: sinTildes(nombre), cedula: '', sigla: '', cont: '', anio: null, k: nomKey(nombre) });
+    const p = P[k] || (P[k] = { id: k, nombre: nom(nombre), cedula: '', sigla: '', cont: '', anio: null, k: nomKey(nombre) });
     Object.keys(extra || {}).forEach((x) => { if (extra[x] && !p[x]) p[x] = extra[x]; });
     if (ck) vistosNom.add(nomKey(nombre));
   };
@@ -461,10 +463,13 @@ function listaPersonas(S) {
   return Object.values(P);
 }
 
+const LISTAS = new WeakMap();
+function listaCache(S) { const k = S.cong || S; if (!LISTAS.has(k)) LISTAS.set(k, listaPersonas(S)); return LISTAS.get(k); }
+
 function buscar(S, q) {
   const t = String(q || '').trim();
   if (t.length < 3) throw error('Escriba al menos 3 caracteres (cédula o nombre).', 400);
-  const lista = listaPersonas(S);
+  const lista = S.solo ? listaCache(S) : listaPersonas(S);
   const soloNum = /^[\d.\s]+$/.test(t);
   let res;
   if (soloNum) {
@@ -520,6 +525,12 @@ module.exports = async function handler(req, res) {
     const a = body.accion;
     if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre }); return; }
     await ctx();
+    if (a === 'sugerir') { // solo CONGLOMERADO: rápido, para el autocompletar mientras se escribe
+      const cong = await fuente('conglomerado', procesarConglomerado);
+      const r = buscar({ cong, solo: true }, body.q);
+      res.status(200).json({ total: r.total, lista: r.lista.slice(0, 8) });
+      return;
+    }
     const { S, fuentes } = await cargar();
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && f.clave !== 'medallas' && f.clave !== 'concesiones') })); return; }
