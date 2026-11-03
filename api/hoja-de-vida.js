@@ -43,7 +43,18 @@ const PESOS = [0.5, 0.2, 0.2, 0.1]; // académica, aptitud naval, disciplina, cu
 
 function error(mensaje, status) { const e = new Error(mensaje); e.status = status || 500; return e; }
 const sinTildes = (s) => String(s == null ? '' : s).replace(/[ñÑ]/g, '\u0001').normalize('NFD').replace(/\u0001(?:̃)?/g, 'Ñ').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
-const cedKey = (v) => String(v == null ? '' : v).toUpperCase().replace(/[^0-9A-Z]/g, '').replace(/^0+(?=\d)/, '');
+/* Cédula normalizada igual en todas las bases: solo dígitos, sin ceros a la izquierda, sin prefijo (CC, C.C., CE, TI), sin decimales (.0) ni notación científica. */
+const cedKey = (v) => {
+  if (v == null || v === '') return '';
+  let t;
+  if (typeof v === 'number') t = Number.isInteger(v) ? v.toFixed(0) : String(v);
+  else t = String(v).trim().toUpperCase();
+  if (/^\d+(\.\d+)?E\+?\d+$/.test(t)) { const n = Number(t); if (Number.isFinite(n)) t = n.toFixed(0); }
+  t = t.replace(/^\d+[.,]0+$/, (m) => m.replace(/[.,]0+$/, ''));
+  t = t.replace(/^(C\.?\s?C\.?|C\.?\s?E\.?|T\.?\s?I\.?|NUIP|CEDULA|CÉDULA|DOC(UMENTO)?\.?)\s*[:#.\-]?\s*(?=\d)/, '');
+  t = t.replace(/[^0-9A-Z]/g, '').replace(/^0+(?=\d)/, '');
+  return t;
+};
 /* Llave de nombre: palabras ordenadas, sin tildes ni signos (sirve aunque cambie el orden apellidos/nombres). */
 const nomKey = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
 /* Nombre para mostrar: mayúsculas con tildes y Ñ tal como vienen en la base. */
@@ -137,6 +148,7 @@ function indiceCols(encab, nombres) {
   for (const [k, alts] of Object.entries(nombres)) {
     out[k] = -1;
     for (const a of alts) { const i = H.indexOf(a); if (i >= 0) { out[k] = i; break; } }
+    if (k === 'ced' && out[k] < 0) { const i = H.findIndex((x) => /(CEDULA|DOCUMENTO|IDENTIF|IDENTIDAD)/.test(x) && !/(TIPO|LUGAR|EXPEDI|FECHA)/.test(x)); if (i >= 0) out[k] = i; }
   }
   return out;
 }
