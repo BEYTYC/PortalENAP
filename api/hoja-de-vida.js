@@ -648,10 +648,15 @@ function armarFicha(id, S) {
   const honores = concesiones.filter((x) => ['mencion', 'merito', 'laureado'].includes(x.clase));
   if (gAcad && honores.length) gAcad.distinciones = Array.from(new Set(honores.map((x) => x.concesion))).map((t) => ({ titulo: t }));
   // Logros: cuántos distinguidos, becas y excelencias académicas (solo lo que exista).
-  const setDist = new Set(sems.filter((x) => x.dist && x.periodo).map((x) => x.periodo));
+  // Distinguido / excelencia por periodo: de las listas históricas del registro (dst/exa) y de las marcas de cada periodo (dis/exc) en todos los archivos de Antigüedades.
+  const periodosMarca = (lista, marca) => { const st = new Set(); antRows.forEach((r) => { if (r[marca]) st.add(r.per); (lista === 'dst' ? r.dst : r.exa || []).forEach((q) => st.add(q)); }); return st; };
+  const setDist = periodosMarca('dst', 'dis');
+  sems.filter((x) => x.dist && x.periodo).forEach((x) => setDist.add(x.periodo));
   concesiones.filter((x) => x.clase === 'distinguido').forEach((x) => setDist.add(x.periodo || ('a' + x.anio)));
   const nBecas = new Set(concesiones.filter((x) => x.clase === 'beca').map((x) => (x.periodo || ('a' + x.anio)) + '|' + kt(x.concesion))).size;
-  const nExc = new Set(sems.filter((x) => x.exc && x.periodo).map((x) => x.periodo)).size;
+  const setExc = periodosMarca('exa', 'exc');
+  sems.filter((x) => x.exc && x.periodo).forEach((x) => setExc.add(x.periodo));
+  const nExc = setExc.size;
   const items = [];
   if (setDist.size) items.push({ k: 'distinguido', label: setDist.size === 1 ? 'Alumno distinguido' : 'Alumno distinguido', n: setDist.size });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
