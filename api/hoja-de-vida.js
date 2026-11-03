@@ -507,10 +507,14 @@ function jerarquiaEsc(esp, nac) {
   return '';
 }
 
-/* Grado de complementación: su programa coincide con el de un curso CCP; los demás grados son la titulación académica inicial. */
-function esGradoComp(g, cursos) {
+/* Grado de complementación: su programa coincide con el de un curso CCP, o es un grado posterior al ingreso a la complementación (CCP).
+   Los demás grados son la titulación académica inicial. */
+function esGradoComp(g, cursos, fEsc) {
   const kg = kt(g.programa || g.titulo || '');
-  return !!kg && cursos.some((c) => c.clase === 'complementacion' && kt(c.tipo || '') && (kt(c.tipo).includes(kg) || kg.includes(kt(c.tipo))));
+  const ccp = cursos.filter((c) => c.clase === 'complementacion');
+  if (kg && ccp.some((c) => kt(c.tipo || '') && (kt(c.tipo).includes(kg) || kg.includes(kt(c.tipo))))) return true;
+  const fg = g.fecha || '';
+  return !!fg && ccp.some((c) => { const f = c.inicio || c.fin || ''; return f && f <= fg && (!fEsc || fg > fEsc); });
 }
 
 function armarFicha(id, S) {
@@ -604,7 +608,7 @@ function armarFicha(id, S) {
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
     linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(e0.especialidad || (ing0 && ing0.sigla) || '', ing0 && ing0.nac), puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
-  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', comp: esGradoComp(x, cursos), pv: x.pv }); });
+  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
     const f = x.fin || x.inicio;
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
@@ -618,6 +622,8 @@ function armarFicha(id, S) {
     // La medalla "A la consagración" siempre se otorga con el escalafonamiento.
     if (evEsc && /CONSAGRACION/.test(sinTildes(x.medalla))) { (evEsc.medallas = evEsc.medallas || []).push(m0); return; }
     const evGrados = linea.filter((e) => e.tipo === 'grado');
+    // "A la aplicación" es de la complementación profesional: va con ese grado.
+    if (/APLICACION/.test(sinTildes(x.medalla))) { const gc = evGrados.find((e) => e.comp); if (gc) { (gc.medallas = gc.medallas || []).push(m0); return; } }
     let g = kp ? evGrados.find((e) => { const a = kt(e.programa || ''), b = kt(e.tituloAcad || ''); return (a && (a.includes(kp) || kp.includes(a))) || (b && (b.includes(kp) || kp.includes(b))); }) : null;
     if (!g && !kp && evGrados.length === 1) g = evGrados[0];
     const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', pv: x.pv };
