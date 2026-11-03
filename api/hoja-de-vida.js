@@ -511,6 +511,13 @@ function sinRepetidos(lista, clave) {
 const kt = (v) => sinTildes(v).replace(/[^A-Z0-9]/g, '');
 
 /* Jerarquía con la que se escalafona según la especialidad (y si es extranjero naval, honorario). */
+function claseEsp(txt0) {
+  const e = sinTildes(txt0);
+  if (/\bIM\b|INFANTERIA/.test(e)) return 'IM';
+  if (/\b(MER|MC|MM)\b|MERCANTE/.test(e)) return 'MER';
+  if (/\bNAV\b|NAVAL/.test(e)) return 'NAV';
+  return '';
+}
 function jerarquiaEsc(esp, nac) {
   const e = sinTildes(esp);
   const ext = !!nac && sinTildes(nac) !== 'COLOMBIA';
@@ -620,8 +627,12 @@ function armarFicha(id, S) {
   const e0 = escal.slice().sort((a, b) => (a.periodo || '').localeCompare(b.periodo || '')).pop() || null;
   let tEsc = null;
   if (e0) {
+    // La jerarquía depende de la promoción en que se escalafonó (no de la especialidad de ingreso); si cambió de especialidad se indica.
+    const escTxt = [e0.promocion, e0.cont, e0.especialidad].find((v) => claseEsp(v)) || (ing0 && (ing0.sigla || ing0.cont)) || '';
+    const claseEsc = claseEsp(escTxt), claseIng = claseEsp((ing0 && (ing0.sigla + ' ' + ing0.cont)) || '');
+    const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(e0.especialidad || (ing0 && ing0.sigla) || '', ing0 && ing0.nac), puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
@@ -719,7 +730,16 @@ function listaPersonas(S) {
   if (S.ant) { Object.entries(S.ant.porCed).forEach(([ck, L]) => L.forEach((r) => add(ck, r.n, { cedula: r.ce, cont: r.ct }))); }
   const sinCed = (fu, campo) => { if (!fu) return; Object.entries(fu.porNom).forEach(([nk, L]) => { if (vistosNom.has(nk)) return; L.forEach((r) => add('', r[campo], { sigla: r.sigla, cont: r.cont || r.ct, anio: r.anio || null })); }); };
   sinCed(S.cong, 'nombre'); sinCed(S.baj, 'nombre'); sinCed(S.ant, 'n');
-  return Object.values(P);
+  // Mismo estudiante registrado dos veces: una fila sin cédula con el nombre abreviado (p. ej. "FRANCISCO H") frente a otra con cédula y nombre completo.
+  const todos = Object.values(P);
+  const palabras = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean);
+  const conCed = {};
+  todos.filter((p) => p.id[0] === 'c').forEach((p) => { const w = palabras(p.nombre); if (w[0]) (conCed[w[0]] = conCed[w[0]] || []).push({ p, w }); });
+  return todos.filter((p) => {
+    if (p.id[0] !== 'n') return true;
+    const w = palabras(p.nombre);
+    return !((conCed[w[0]] || []).some((c) => c.w.length >= w.length && c.w.slice(0, w.length - 1).join(' ') === w.slice(0, -1).join(' ') && c.w[w.length - 1].startsWith(w[w.length - 1]) && (!p.cont || !c.p.cont || p.cont === c.p.cont) && (!p.anio || !c.p.anio || p.anio === c.p.anio)));
+  });
 }
 
 const LISTAS = new WeakMap();
