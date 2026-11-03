@@ -383,6 +383,9 @@
     display:flex; flex-direction:column;
   }
   /* Concesiones Especiales: pantalla de carga */
+  #bajasCarga{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:transparent; color:#0a2540; font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; text-align:center; }
+  #bajasCarga.on{ display:flex; }
+  #bajasCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
   #concesionesCarga{ position:absolute; inset:0; z-index:5; display:none; flex-direction:column; align-items:center; justify-content:center; gap:14px; background:transparent; color:#0a2540; font:600 15px/1.2 system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif; text-align:center; }
   #concesionesCarga.on{ display:flex; }
   #concesionesCarga i{ width:38px; height:38px; border-radius:50%; border:4px solid #dbe4f0; border-top-color:#132F60; animation:concCargaGira .9s linear infinite; }
@@ -1527,6 +1530,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   </div>
 
   <div id="viewBajas" hidden>
+    <div id="bajasCarga" role="status" aria-live="polite"><i></i><span>Cargando sesión…</span></div>
     <!-- Registro de bajas (bajas/index.html, mismo origen). Solo sea@ y
          jestadisticaplen@; /api/bajas valida el token y escribe en Bajas y Ascensos. -->
     <iframe id="bajasFrame" class="registro-iframe" title="Registro de bajas" allow="fullscreen" allowfullscreen></iframe>
@@ -3565,6 +3569,8 @@ img,svg,video,canvas,iframe{max-width:100%}
   function cargarBajas() {
     const f = document.getElementById('bajasFrame');
     if (f.dataset.cargado) return;
+    const cg = document.getElementById('bajasCarga');
+    if (cg) { cg.classList.add('on'); f.addEventListener('load', () => cg.classList.remove('on'), { once: true }); setTimeout(() => cg.classList.remove('on'), 15000); }
     f.src = 'bajas/index.html?embedded=1';
     f.dataset.cargado = '1';
   }
