@@ -481,6 +481,18 @@ function sinRepetidos(lista, clave) {
 }
 const kt = (v) => sinTildes(v).replace(/[^A-Z0-9]/g, '');
 
+/* Jerarquía con la que se escalafona según la especialidad (y si es extranjero naval, honorario). */
+function jerarquiaEsc(esp, nac) {
+  const e = sinTildes(esp);
+  const ext = !!nac && sinTildes(nac) !== 'COLOMBIA';
+  const im = /\bIM\b|INFANTERIA/.test(e), mer = /\bMER\b|MERCANTE/.test(e), nav = /\bNAV\b|NAVAL/.test(e);
+  if (ext) return nav ? 'Teniente de Corbeta Honorario' : '';
+  if (im) return 'Subteniente del Cuerpo de Infantería de Marina';
+  if (mer) return 'Teniente de Corbeta de la Reserva Activa';
+  if (nav) return 'Teniente de Corbeta';
+  return '';
+}
+
 function armarFicha(id, S) {
   const avisos = [];
   const m = String(id || '').match(/^([cn]):(.+)$/);
@@ -570,7 +582,7 @@ function armarFicha(id, S) {
   let tEsc = null;
   if (e0) {
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(e0.especialidad || (ing0 && ing0.sigla) || '', ing0 && ing0.nac), puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, pv: x.pv }); });
   cursos.forEach((x) => {

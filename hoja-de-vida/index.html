@@ -114,6 +114,7 @@ html:fullscreen,html:fullscreen body{background:#EEF2F7}
 .tl-year{display:none}.tl-node{left:28px}
 .yr-m{display:block}
 }
+.flag{height:15px;width:auto;border-radius:2px;margin-left:8px;vertical-align:-2px;box-shadow:0 0 0 1px rgba(20,50,90,.15)}
 </style>
 </head>
 <body class="ini">
@@ -196,6 +197,8 @@ var SIG={ENAP:1,CCP:1,SNIES:1,ARC:1,PR:1,II:1,III:1,IV:1,VI:1,VII:1,VIII:1,IX:1,
 function ESCT(t){t=String(t==null?'':t);var L=t.replace(/[^A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/g,'');var U=L.replace(/[^A-ZÁÉÍÓÚÜÑ]/g,'');
   if(L.length>3&&U.length/L.length>0.7){t=t.toLowerCase().replace(/[a-záéíóúüñ]+/g,function(w){return SIG[w.toUpperCase()]?w.toUpperCase():w}).replace(/^([^a-záéíóúüñA-Z]*)([a-záéíóúüñ])/,function(m,x,y){return x+y.toUpperCase()})}
   return ESC(t)}
+var ISO={ARGENTINA:'ar',BOLIVIA:'bo',BRASIL:'br',CHILE:'cl',ECUADOR:'ec',PARAGUAY:'py',PERU:'pe',URUGUAY:'uy',VENEZUELA:'ve',PANAMA:'pa','COSTA RICA':'cr',GUATEMALA:'gt',HONDURAS:'hn','EL SALVADOR':'sv',NICARAGUA:'ni',MEXICO:'mx',CUBA:'cu','REPUBLICA DOMINICANA':'do',HAITI:'ht','ESTADOS UNIDOS':'us',EEUU:'us','ESTADOS UNIDOS DE AMERICA':'us',CANADA:'ca',ESPANA:'es',FRANCIA:'fr',ITALIA:'it',ALEMANIA:'de','REINO UNIDO':'gb',PORTUGAL:'pt',JAPON:'jp',CHINA:'cn','COREA DEL SUR':'kr',COREA:'kr',INDIA:'in',ISRAEL:'il',TURQUIA:'tr',RUSIA:'ru',HOLANDA:'nl','PAISES BAJOS':'nl',BELGICA:'be',SUIZA:'ch',GRECIA:'gr',POLONIA:'pl',UCRANIA:'ua',AUSTRALIA:'au',SURINAM:'sr',GUYANA:'gy','TRINIDAD Y TOBAGO':'tt',JAMAICA:'jm',BELICE:'bz'};
+function bandera(n){var k=String(n||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();var c=ISO[k];return c?'<img class="flag" alt="'+ESC(n)+'" title="'+ESC(n)+'" src="https://flagcdn.com/w40/'+c+'.png" onerror="this.remove()">':''}
 function pintar(F){document.body.classList.remove('ini');document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
   /* Cursos de extensión con fecha dentro de un semestre van DENTRO de su tarjeta */
@@ -214,7 +217,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FBE3D8','#6B2A12','out'],'SALIÓ':['#FBE3D8','#6B2A12','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
   var h='';
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',20,'#1F4E8C')+'</button></div>';
-  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+'</span>':'')+'</div></div><div class="chips">';
+  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div></div><div class="chips">';
   if(ES)h+='<span class="chip est" style="background:'+ES[0]+';color:'+ES[1]+'">'+svg(IC[ES[2]],16,ES[1])+ESC(({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est)+'</span>';
   if(F.escalafonado&&est!=='ESCALAFONADO')h+='<span class="chip est" style="background:#DCE9F7;color:#17406F">'+svg(IC.bars,16,'#17406F')+'Escalafonado</span>';
   if(P.cont)h+='<span class="chip">Contingente '+ESC(P.cont)+'</span>';
@@ -274,8 +277,8 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(bs.length)body+='<div class="bds">'+bs.map(function(b){return '<span class="bd" style="background:'+b[2]+';color:'+b[3]+'">'+svg(IC[b[1]],15,b[3])+ESCT(b[0])+'</span>'}).join('')+'</div>';
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
     }else if(e.tipo==='escalafon'){
-      titulo='Escalafón';chipD=e.fecha?fch(e.fecha):(e.periodo?'Escalafonamiento '+e.periodo:'');
-      var d=[];if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);if(e.resolucion)d.push('Resolución '+e.resolucion);
+      titulo='Escalafonamiento';chipD=e.fecha?fch(e.fecha):(e.periodo?'Escalafonamiento '+e.periodo:'');
+      var d=[];if(e.jerarquia)body+='<div class="ds" style="font-weight:600;color:#14263D">'+ESCT(e.jerarquia)+'</div>';if(e.puesto)d.push('Puesto '+e.puesto+(e.total?' de '+e.total:'')+' en su contingente');if(e.promedio!=null)d.push('Promedio '+f3(e.promedio));if(e.especialidad)d.push(e.especialidad);if(e.resolucion)d.push('Resolución '+e.resolucion);
       if(d.length)body+='<div class="ds">'+ESCT(d.join(' · '))+'</div>';
       if(e.puesto)chip='Puesto '+e.puesto+(e.total?' de '+e.total:'');
     }else if(e.tipo==='grado'){
