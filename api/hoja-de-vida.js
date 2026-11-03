@@ -328,6 +328,9 @@ function procesarConcesiones(libro) {
         motivo: ['MOTIVO', 'CAUSAL', 'JUSTIFICACION', 'OBSERVACION', 'OBSERVACIONES', 'RAZON'],
         resol: ['RESOLUCION', 'NUMERO RESOLUCION', 'NO RESOLUCION'],
       });
+      const HH = (F[i] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
+      let jn = HH.findIndex((x) => /^APELLIDOS Y NOMBRES?( |$)/.test(x) && !/MINUSC/.test(x)); if (jn < 0) jn = HH.findIndex((x) => /^APELLIDOS Y NOMBRES?( |$)/.test(x)); if (jn >= 0) t.nombre = jn;
+      if (t.ced >= 0 && /CODIGO/.test(HH[t.ced])) { const jc = HH.findIndex((x) => /^(CEDULA|IDENTIFICACION|DOCUMENTO)$/.test(x)); t.ced = jc; } // 'CODIGOS/ CEDULA' trae códigos estudiantiles, no cédulas
       if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
     }
     if (!c) { hojas.push({ hoja, usada: false }); continue; }
@@ -594,7 +597,7 @@ function armarFicha(id, S) {
   const cn = pick(S.conc, 'concesiones');
   const desde2019 = (x) => { const a = x.periodo ? +String(x.periodo).slice(0, 4) : (x.anio ? +x.anio : null); return a == null || a >= 2019; };
   const concesiones = sinRepetidos(cn.exactas.map((x) => Object.assign({ pv: false }, x)).concat(cn.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [x.clase, kt(x.concesion), x.periodo || x.anio || ''].join('|'));
-  for (let q = concesiones.length - 1; q >= 0; q--) if (!desde2019(concesiones[q])) concesiones.splice(q, 1);
+  for (let q = concesiones.length - 1; q >= 0; q--) if (concesiones[q].clase !== 'distinguido' && !desde2019(concesiones[q])) concesiones.splice(q, 1);
 
   /* ---- Medallas Caldas ---- */
   const md = pick(S.med, 'medallas');
