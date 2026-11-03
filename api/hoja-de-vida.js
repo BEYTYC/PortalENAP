@@ -229,18 +229,20 @@ function procesarGraduados(libro) {
   const c = indiceCols(F[0] || [], {
     ced: ['CEDULA'], prog: ['NOMBRE PROGRAMA'], nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'ESTUDIANTE'],
     fecha: ['FECHA GRADO', 'FECHA DE GRADO', 'FECHA ACTA', 'FECHA DE ACTA', 'FECHA'], titulo: ['TITULO', 'TITULO OTORGADO', 'NOMBRE TITULO'],
+    trabajo: ['TRABAJO DE GRADO', 'NOMBRE TRABAJO DE GRADO', 'TITULO TRABAJO DE GRADO', 'TITULO DEL TRABAJO DE GRADO', 'NOMBRE DEL TRABAJO DE GRADO', 'TRABAJO GRADO', 'TESIS', 'TITULO TESIS', 'NOMBRE DEL TRABAJO'],
   });
+  if (c.trabajo < 0) c.trabajo = (F[0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N')).findIndex((x) => /(TRABAJO|TESIS|MONOGRAFIA|PROYECTO DE GRADO)/.test(x) && !/(FECHA|NOTA|CALIFIC|DIRECTOR|ASESOR|JURADO|ACTA)/.test(x));
   const porCed = {}, porNom = {};
   let n = 0;
   for (let i = 1; i < F.length; i++) {
     const r = F[i];
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
     if (!ck && !(c.nombre >= 0 && r[c.nombre])) continue;
-    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: c.nombre >= 0 ? nom(r[c.nombre]) : '' };
+    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: c.nombre >= 0 ? nom(r[c.nombre]) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
     n++;
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
-  return { porCed, porNom, filas: n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0 } };
+  return { porCed, porNom, filas: n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0 } };
 }
 
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
@@ -340,6 +342,9 @@ function procesarConcesiones(libro) {
       let j = H.findIndex((x) => /PERIODO/.test(x)); if (j < 0) j = H.findIndex((x) => /SEMESTRE/.test(x)); if (j < 0 && c.ano < 0) j = H.findIndex((x) => /^(ANO|AÑO|(ANO|AÑO) .*|.* (ANO|AÑO))$/.test(x));
       c.periodo = j;
     }
+    { const HH = (F[h0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
+      c.honor = HH.findIndex((x) => /GRADO DE HONOR/.test(x)); c.prog = HH.findIndex((x) => x === 'PROGRAMA'); c.anog = HH.findIndex((x) => x === 'ANOG');
+      const ia = HH.findIndex((x) => x === 'APELLIDOS'), inn = HH.findIndex((x) => x === 'NOMBRES'); c.apeNom = ia >= 0 && inn >= 0 && !HH.some((x) => /^APELLIDOS Y NOMBRES?/.test(x)) ? [ia, inn] : null; }
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
       const r = F[i];
@@ -350,7 +355,7 @@ function procesarConcesiones(libro) {
         titulo = v && !/^\d{1,4}$/.test(v) ? v : 'Concesión especial';
       }
       const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
-      const nombre = c.nombre >= 0 ? nom(r[c.nombre]) : '';
+      const nombre = c.apeNom ? nom(txt(r[c.apeNom[0]]) + ' ' + txt(r[c.apeNom[1]])) : (c.nombre >= 0 ? nom(r[c.nombre]) : '');
       if (!ck && !nombre) continue;
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       const ym0 = (v) => { const t = txt(v).match(/^(\d{4})(?:\.0+)?$/); return t ? +t[1] : null; };
@@ -362,13 +367,15 @@ function procesarConcesiones(libro) {
       }
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
       const ym = (v) => { const t = txt(v).match(/^(\d{4})(?:\.0+)?$/); return t ? +t[1] : null; };
-      const anio = per ? null : anioCol || (c.periodo >= 0 ? ym(r[c.periodo]) : null) || ym(r[c.concesion >= 0 ? c.concesion : 14]);
+      const anio = per ? null : anioCol || (c.anog >= 0 ? ym(r[c.anog]) : null) || (c.periodo >= 0 ? ym(r[c.periodo]) : null) || ym(r[c.concesion >= 0 ? c.concesion : 14]);
       const pr = c.pct >= 0 ? r[c.pct] : (c.valor >= 0 ? r[c.valor] : '');
       const pct = typeof pr === 'number' ? (pr > 0 && pr <= 1 ? Math.round(pr * 100) : Math.round(pr * 100) / 100) + ' %' : txt(pr);
       const motivo = c.motivo >= 0 ? txt(r[c.motivo]) : '';
       const resol = c.resol >= 0 ? txt(r[c.resol]) : '';
       const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo])].filter(Boolean).join(' · ');
-      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre };
+      const honorTxt = c.honor >= 0 ? txt(r[c.honor]) : '';
+      const honor = /^(-|#N\/A|#NAME\?|NO|NA|N\/A|0)?$/i.test(honorTxt) ? '' : honorTxt;
+      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre, honor: honor ? (/^S[IÍ]$/i.test(honor) ? 'Grado de honor' : nom(honor)) : '', programa: c.prog >= 0 ? nom(r[c.prog]) : '' };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -638,7 +645,7 @@ function armarFicha(id, S) {
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
     linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
-  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
+  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
     const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
@@ -684,7 +691,14 @@ function armarFicha(id, S) {
   // Grado de honor / meritorio / laureado: van en la tarjeta de la titulación académica (la primera que no es de complementación).
   const gAcad = linea.find((e) => e.tipo === 'grado' && !e.comp) || linea.find((e) => e.tipo === 'grado');
   const honores = concesiones.filter((x) => ['mencion', 'merito', 'laureado'].includes(x.clase));
-  if (gAcad && honores.length) gAcad.distinciones = Array.from(new Set(honores.map((x) => x.concesion))).map((t) => ({ titulo: t }));
+  honores.forEach((x) => {
+    const kpH = kt(x.programa || '');
+    const g = (kpH && linea.find((e) => e.tipo === 'grado' && kt(e.programa || '') && (kt(e.programa).includes(kpH) || kpH.includes(kt(e.programa))))) || gAcad;
+    if (!g) return;
+    const titulo = x.concesion + (x.honor ? ' · ' + x.honor : '');
+    g.distinciones = g.distinciones || [];
+    if (!g.distinciones.some((d) => d.titulo === titulo)) g.distinciones.push({ titulo });
+  });
   // Logros: cuántos distinguidos, becas y excelencias académicas (solo lo que exista).
   // Distinguido / excelencia por periodo: de las listas históricas del registro (dst/exa) y de las marcas de cada periodo (dis/exc) en todos los archivos de Antigüedades.
   const periodosMarca = (lista, marca) => { const st = new Set(); antRows.forEach((r) => { if (r[marca]) st.add(r.per); (lista === 'dst' ? r.dst : r.exa || []).forEach((q) => st.add(q)); }); return st; };
