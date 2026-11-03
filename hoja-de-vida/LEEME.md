@@ -8,7 +8,7 @@ Acceso (por ahora): `sea@enap.edu.co` y `jestadisticaplen@enap.edu.co`.
 ## Qué muestra (solo lo que exista en las bases)
 Ingreso, semestres con sus notas (académica, aptitud naval, disciplina, cultura física; < 6 en rojo),
 semestres perdidos sombreados en rojo, alumno distinguido y excelencia, puesto de escalafón,
-grado, retiro y su motivo, cursos de extensión (dentro del semestre), complementación y cursos de ley.
+grado, retiro y su motivo, cursos de extensión (dentro del semestre), complementación profesional y cursos de ley.
 Lo que no hay no se muestra. Lo cruzado solo por nombre sale como "coincidencia por nombre, por verificar".
 
 ## Fuentes
@@ -19,10 +19,14 @@ Lo que no hay no se muestra. Lo cruzado solo por nombre sale como "coincidencia 
 | Escalafón y puesto | Bajas y Ascensos › Ascensos |
 | Graduado | Graduados en la ENAP |
 | Notas, puesto, distinguido, excelencia | Antigüedades (todos los periodos) |
-| Extensión, complementación | Base de Datos Cursos de Extensión |
+| Extensión | Base de Datos Cursos de Extensión |
+| Complementación profesional | B.D Registro CCP › BASE DE DATOS CCP 1970 - ACTUALIDAD |
 | Cursos de ley | Control Curso de Capacitación para Ascenso |
 
-Pendientes: medallas/premios (Caldas) y concesiones (viven en la app de Concesiones).
+| Concesiones, becas, mención de honor, meritorios, laureados | B.D Distinguidos, Becados, Mérito y Laureado › Base Concesiones.xlsm (hoja Concesiones: col. D = Sí, col. O = concesión; las demás hojas por nombre y encabezado) |
+| Medallas Caldas | B.D Medalla Caldas › Base Datos Solicitud Caldas (columnas por encabezado; si hay columna de estado, solo otorgadas) |
+
+Pendiente: ninguna fuente.
 El panel "Estado de las fuentes" al final de cada hoja dice qué se conectó y qué no.
 
 ## Reglas
