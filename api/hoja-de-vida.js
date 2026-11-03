@@ -48,7 +48,12 @@ const cedKey = (v) => String(v == null ? '' : v).toUpperCase().replace(/[^0-9A-Z
 const nomKey = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
 /* Nombre para mostrar: mayúsculas con tildes y Ñ tal como vienen en la base. */
 const txt = (v) => String(v == null ? '' : v).trim();
-const nom = (v) => txt(v).toUpperCase().replace(/\s+/g, ' ');
+/* Nombres y apellidos frecuentes: las bases a veces vienen sin tilde ni Ñ; se restituyen para mostrar. */
+const CON_TILDE = ('ÁLVAREZ ÁLVARO ÁNGEL ÁNGELA ÁNGELES ÁVILA ÁVILES ADRIÁN AGUSTÍN ALEXÁNDER ALMANZA ANÍBAL ANDRÉS AMÉRICO ARÁMBULO ARANGUREN BARRIOS BENÍTEZ BERMÚDEZ BOHÓRQUEZ CÁCERES CÁRDENAS CÉSAR CÓRDOBA CORTÉS CARRIÓN CASTAÑEDA CASTAÑO CASTAÑEDA CRISTÓBAL CHÁVEZ DÁVILA DÍAZ DOMÍNGUEZ DUEÑAS EFRAÍN ESTÉBAN ENRÍQUEZ ESCOBAR FÁBREGAS FABIÁN FERNÁNDEZ FLÓREZ FRANCISCO GÁLVEZ GARCÍA GERMÁN GÓMEZ GONZÁLEZ GUTIÉRREZ GUZMÁN HÉCTOR HENRÍQUEZ HERNÁNDEZ HERNÁN IBÁÑEZ IVÁN JESÚS JIMÉNEZ JOAQUÍN JOSÉ JULIÁN LÓPEZ LÓPEZ LUCÍA MÁRQUEZ MÓNICA MARÍA MARTÍNEZ MEJÍA MENDÉZ MUÑOZ NÁJERA NARVÁEZ NÉSTOR NICOLÁS NIÑO NÚÑEZ ORDÓÑEZ ÓSCAR OSCAR_ PÁEZ PEÑA PEÑALOZA PEÑARANDA PÉREZ PIÑEROS QUIÑONES QUIÑÓNEZ RAMÍREZ RAÚL RODRÍGUEZ ROMÁN RUBÉN RÚA SÁNCHEZ SANTAMARÍA SEBASTIÁN SERRANO_ TÁMARA TOMÁS TRUJILLO_ VÁSQUEZ VÁSQUEZ VÁZQUEZ VALDÉS VÉLEZ VELÁSQUEZ VERÓNICA VÍCTOR VIÑA ZÚÑIGA ZÁRATE JAIME_ SOFÍA ÉDGAR ÉDISON ÉRIKA ÉLIDA ÉLMER ÉMILIO HÉCTOR RAFAÉL SAMUÉL GABRIÉL_ MIGUEL_ AMPARO_ CAMILA_ JUAN_ LEÓN LEÓNIDAS MARÍN MARTÍN_ MÉNDEZ MONTAÑO MONTOYA_ NARIÑO OLAYA_ PADILLA_ PÉÑA_ QUINTERO_ RÍOS RIVERA_ ROJAS_ RUÍZ_ SALAZAR_ SUÁREZ TAPIAS_ TÉLLEZ TORRÉS_ ULLOA_ URIBE_ VALENCIA_ VARGAS_ VEGA_ VILLALOBOS_ YÁÑEZ ZAMBRANO_ ZULUAGA_').split(/\s+/).filter((w) => !w.endsWith('_'));
+const quitaTil = (w) => w.replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'N');
+const MAPA_TIL = {};
+CON_TILDE.forEach((w) => { MAPA_TIL[quitaTil(w)] = w; });
+const nom = (v) => txt(v).toUpperCase().replace(/\s+/g, ' ').replace(/[A-ZÁÉÍÓÚÜÑ]+/g, (w) => MAPA_TIL[w] || w);
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => (d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : '');
 function fechaCelda(v) {

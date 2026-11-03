@@ -131,6 +131,14 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .pers .chips{margin-top:0;gap:8px}
 .pers .chip{height:32px;font-size:13px;padding:0 12px}
 @media (max-width:700px){.pers .cu{padding:14px 64px 14px 14px}}
+/* Cabecera D: una línea de texto bajo el nombre */
+.pers .nmw{min-width:0}
+.pers .cu{padding:16px 74px 16px 20px;display:block}
+.pers .fila{margin-top:0;align-items:center}
+.pers .ln{font-size:14px;color:#4A5B70;margin-top:6px}.pers .ln i{font-style:normal;font-weight:700}.pers .ln s{text-decoration:none;color:#B8C6D8;margin:0 10px}
+/* aire entre cabecera y trayectoria */
+.tit{margin:34px 0 30px}
+.phase{margin:14px 0 26px}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
@@ -218,7 +226,7 @@ var ISO={ARGENTINA:'ar',BOLIVIA:'bo',BRASIL:'br',CHILE:'cl',ECUADOR:'ec',PARAGUA
 function bandera(n){var k=String(n||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();var c=ISO[k];return c?'<img class="flag" alt="'+ESC(n)+'" title="'+ESC(n)+'" src="https://flagcdn.com/w40/'+c+'.png" onerror="this.remove()">':''}
 var MIN={DE:1,DEL:1,LA:1,LAS:1,EL:1,LOS:1,PARA:1,Y:1,E:1,EN:1,A:1,CON:1,POR:1,AL:1,O:1,U:1};
 function TT(t){t=String(t==null?'':t).toLowerCase();var i=0;t=t.replace(/[a-záéíóúüñ]+/g,function(w){var up=w.toUpperCase();var r=SIG[up]?up:(i>0&&MIN[up]?w:w.charAt(0).toUpperCase()+w.slice(1));i++;return r});return ESC(tilFix(t))}
-var TIL={infanteria:'infantería',ingenieria:'ingeniería',electronica:'electrónica',mecanica:'mecánica',administracion:'administración',oceanografia:'oceanografía',hidrografia:'hidrografía',maritima:'marítima',maritimo:'marítimo',logistica:'logística',academica:'académica',academico:'académico',tecnica:'técnica',tecnologia:'tecnología',electrica:'eléctrica',quimica:'química',matematicas:'matemáticas',fisica:'física',biologia:'biología',economia:'economía',geografia:'geografía',cartografia:'cartografía',comunicacion:'comunicación',comunicaciones:'comunicaciones',navegacion:'navegación',operacion:'operación',operaciones:'operaciones',administrativo:'administrativo',basico:'básico',catedra:'cátedra',informatica:'informática',seguridad:'seguridad',reserva:'reserva',guardacostas:'guardacostas',capacitacion:'capacitación',formacion:'formación',complementacion:'complementación',profesional:'profesional',ambientacion:'ambientación',resolucion:'resolución'};
+var TIL={consagracion:'consagración',excelencia:'excelencia',merito:'mérito',mencion:'mención',distincion:'distinción',condecoracion:'condecoración',infanteria:'infantería',ingenieria:'ingeniería',electronica:'electrónica',mecanica:'mecánica',administracion:'administración',oceanografia:'oceanografía',hidrografia:'hidrografía',maritima:'marítima',maritimo:'marítimo',logistica:'logística',academica:'académica',academico:'académico',tecnica:'técnica',tecnologia:'tecnología',electrica:'eléctrica',quimica:'química',matematicas:'matemáticas',fisica:'física',biologia:'biología',economia:'economía',geografia:'geografía',cartografia:'cartografía',comunicacion:'comunicación',comunicaciones:'comunicaciones',navegacion:'navegación',operacion:'operación',operaciones:'operaciones',administrativo:'administrativo',basico:'básico',catedra:'cátedra',informatica:'informática',seguridad:'seguridad',reserva:'reserva',guardacostas:'guardacostas',capacitacion:'capacitación',formacion:'formación',complementacion:'complementación',profesional:'profesional',ambientacion:'ambientación',resolucion:'resolución'};
 function tilFix(t){return t.replace(/[a-záéíóúüñ]+/gi,function(w){var k=w.toLowerCase();if(TIL[k]&&TIL[k]!==k){var r=TIL[k];return w.charAt(0)===w.charAt(0).toUpperCase()&&w.charAt(0)!==w.charAt(0).toLowerCase()?r.charAt(0).toUpperCase()+r.slice(1):r}return w})}
 function pintar(F){document.body.classList.remove('ini');document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
@@ -237,13 +245,15 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FBE3D8','#6B2A12','out'],'SALIÓ':['#FBE3D8','#6B2A12','out'],ESCALAFONADO:['#DCE9F7','#17406F','bars']}[est];
   var h='';
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',20,'#1F4E8C')+'</button></div>';
-  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div></div><div class="chips">';
-  if(ES)h+='<span class="chip est" style="background:'+ES[0]+';color:'+ES[1]+'">'+svg(IC[ES[2]],16,ES[1])+ESC(({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est)+'</span>';
-  if(F.escalafonado&&est!=='ESCALAFONADO')h+='<span class="chip est" style="background:#DCE9F7;color:#17406F">'+svg(IC.bars,16,'#17406F')+'Escalafonado</span>';
-  if(P.cont)h+='<span class="chip">Contingente '+ESC(P.cont)+'</span>';
-  if(P.curso)h+='<span class="chip">Curso '+ESC(P.curso)+'</span>';
-  if(P.nac&&P.nac!=='COLOMBIA')h+='<span class="chip">'+ESC(P.nac)+'</span>';
-  h+='</div></div></div>';
+  h+='<div class="cu"><div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
+  var ls=[];
+  if(ES){var et=({GRADUADO:'Graduado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
+  if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('Escalafonado');
+  if(P.cont)ls.push('Contingente '+ESC(P.cont));
+  if(P.curso)ls.push('Curso '+ESC(P.curso));
+  if(P.nac&&P.nac!=='COLOMBIA')ls.push(ESC(P.nac));
+  h+=ls.join('<s>|</s>');
+  h+='</div></div></div></div></div>';
 
   /* tarjetas de resumen: solo las que tienen dato */
   var R=F.resumen,st=[];
@@ -316,7 +326,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     }else{ // cursos
       titulo=ESCT(e.titulo);chipD=fch(e.fin||e.fecha)||'';var d3=[];if(e.detalle)d3.push(e.detalle);if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);
       if(d3.length)body+='<div class="ds">'+ESCT(d3.join(' · '))+'</div>';
-      chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',ley:'Curso de ley',complementacion:'Ingreso',extension:'Extensión'}[e.tipo]||'';
+      chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',complementacion:'Ingreso'}[e.tipo]||'';
     }
     body+=pvTag(e)||(e.semestre&&e.pv?pvTag({pv:1}):'');
     h+='<div class="tl-row rise" style="animation-delay:'+(n*50)+'ms"><div class="tl-year">'+ys+'</div><div class="tl-axis"><div class="tl-node" style="background:'+p[0]+';box-shadow:0 0 0 7px '+p[1]+',0 6px 14px rgba(20,50,90,.2)">'+svg(IC[icon],22,'#fff')+'</div></div>'
