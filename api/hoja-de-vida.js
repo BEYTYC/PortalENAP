@@ -510,7 +510,7 @@ function armarFicha(id, S) {
   }
   const nomPorNom = (fu) => reunir(fu, ck, nks).porNombre;
   const todoCong = cong.concat(nomPorNom(S.cong));
-  const nombre = (cong[0] && cong[0].nombre) || (bajRows[0] && bajRows[0].nombre) || (antRows[0] && antRows[0].n) || (todoCong[0] && todoCong[0].nombre) || '';
+  let nombre = (cong[0] && cong[0].nombre) || (bajRows[0] && bajRows[0].nombre) || (antRows[0] && antRows[0].n) || (todoCong[0] && todoCong[0].nombre) || '';
   if (!nombre) throw error('No se encontró ese estudiante.', 404);
 
   const porVerificar = []; // etiquetas de lo que viene solo por nombre
@@ -575,8 +575,8 @@ function armarFicha(id, S) {
 
   /* ---- Línea de tiempo ---- */
   const linea = [];
-  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: 'Ingreso a la ENAP', detalle: [ing0.sigla && 'Sigla ' + ing0.sigla, ing0.cont && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), pv: ing0.pv });
-  ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Nuevo ingreso', detalle: [x.sigla && 'Sigla ' + x.sigla, x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), pv: x.pv }));
+  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: 'Ingreso a la ENAP', detalle: [ing0.cont && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), pv: ing0.pv });
+  ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Nuevo ingreso', detalle: [x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), pv: x.pv }));
   sems.forEach((s) => linea.push({ tipo: 'semestre', t: s.t, anio: s.periodo ? +s.periodo.slice(0, 4) : null, semestre: s, pv: pvAnt }));
   const e0 = escal.slice().sort((a, b) => (a.periodo || '').localeCompare(b.periodo || '')).pop() || null;
   let tEsc = null;
@@ -616,6 +616,14 @@ function armarFicha(id, S) {
     return a.i - b.i;
   });
   linea.forEach((e) => { delete e.i; });
+
+  // Nombre más completo entre las fuentes (si el corto está contenido en el largo): evita ver el segundo nombre en unas partes y en otras no.
+  {
+    const tk = (v) => sinTildes(v).split(/\s+/).filter(Boolean);
+    const cand = [nombre].concat(bajRows.map((x) => x.nombre), antRows.map((x) => x.n), todoCong.map((x) => x.nombre), grados.filter((x) => !x.pv).map((x) => x.nombre), cursos.filter((x) => !x.pv).map((x) => x.nombre), concesiones.filter((x) => !x.pv).map((x) => x.nombre), medallas.filter((x) => !x.pv).map((x) => x.nombre)).filter(Boolean);
+    const base = new Set(tk(nombre));
+    cand.forEach((c) => { const t = tk(c); if (t.length > tk(nombre).length && Array.from(base).every((w) => t.includes(w))) nombre = c; });
+  }
 
   const alertas = [];
   if (porVerificar.length) alertas.push('Coincidencia por nombre, por verificar: ' + Array.from(new Set(porVerificar)).join(', ') + '.');
