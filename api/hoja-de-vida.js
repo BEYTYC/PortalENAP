@@ -544,7 +544,9 @@ function armarFicha(id, S) {
 
   /* ---- Concesiones especiales (otorgadas) ---- */
   const cn = pick(S.conc, 'concesiones');
+  const desde2019 = (x) => { const a = x.periodo ? +String(x.periodo).slice(0, 4) : (x.anio ? +x.anio : null); return a == null || a >= 2019; };
   const concesiones = sinRepetidos(cn.exactas.map((x) => Object.assign({ pv: false }, x)).concat(cn.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [x.clase, kt(x.concesion), x.periodo || x.anio || ''].join('|'));
+  for (let q = concesiones.length - 1; q >= 0; q--) if (!desde2019(concesiones[q])) concesiones.splice(q, 1);
 
   /* ---- Medallas Caldas ---- */
   const md = pick(S.med, 'medallas');
