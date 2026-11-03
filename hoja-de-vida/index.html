@@ -283,19 +283,20 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e.tipo==='retiro')return 'ret';
     if(e.tipo==='ley')return 'ley';
     if(e.tipo==='posgrado')return 'pos';
+    if(e.tipo==='grado'&&/ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/i.test(String(e.programa||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')))return 'pos';
     if(e.tipo==='grado'&&!e.comp)return 'for';
     if(e.tipo==='complementacion'||e.tipo==='grado')return 'ccp';
     if(e.tipo==='medalla')return 'for';
     if(e.tipo==='extension')return 'com';
     return 'for'}
-  var G={};L.forEach(function(e){var g=grupo(e);(G[g]=G[g]||[]).push(e)});
-  var mt=function(g){var t=G[g].filter(function(x){return x.t!=null}).map(function(x){return x.t});return t.length?Math.min.apply(null,t):null};
-  var DEF=['com','ccp','ley','pos'],mid=DEF.filter(function(g){return G[g]}).sort(function(a,b){var x=mt(a),y=mt(b);return x!=null&&y!=null&&x!==y?x-y:DEF.indexOf(a)-DEF.indexOf(b)});
-  var Lo=[];(G.for?['for']:[]).concat(mid).concat(G.ret?['ret']:[]).forEach(function(g){Lo.push({_fase:g});G[g].forEach(function(e){Lo.push(e)})});
+  /* Siempre manda la fecha: una sola línea de tiempo; el encabezado de grupo cambia cuando cambia el tipo de formación. */
+  var ord=L.filter(function(e){return e.tipo!=='retiro'}).concat(L.filter(function(e){return e.tipo==='retiro'}));
+  var Lo=[],prevG=null,cur=null;
+  ord.forEach(function(e){var g=grupo(e);if(g!==prevG){cur={_fase:g,_items:[]};Lo.push(cur);prevG=g}cur._items.push(e);Lo.push(e)});
   var lastY=null,n=0;
   Lo.forEach(function(e){
-    if(e._fase){var rg=[];G[e._fase].forEach(function(x){if(x.anio)rg.push(x.anio)});
-      h+='<div class="phase rise" style="animation-delay:'+(n*50)+'ms"><span style="background:'+FASES[e._fase][1]+'">'+FASES[e._fase][0]+(rg.length?'<em>'+Math.min.apply(null,rg)+(Math.max.apply(null,rg)!==Math.min.apply(null,rg)?' – '+Math.max.apply(null,rg):'')+'</em>':'')+'</span></div>';n++;lastY=null;return}
+    if(e._fase){
+      h+='<div class="phase rise" style="animation-delay:'+(n*50)+'ms"><span style="background:'+FASES[e._fase][1]+'">'+FASES[e._fase][0]+'</span></div>';n++;lastY=null;return}
     var key=e.tipo==='semestre'&&e.semestre.perdido?'perdido':(e.tipo==='semestre'?'semestre':e.tipo),p=PAL[key]||PAL.semestre;
     var icon={logros:'medal',ingreso:'flag',regreso:'flag',semestre:'book',escalafon:'bars',grado:'scroll',extension:'layers',complementacion:'flag',ley:'up',concesion:'tag',medalla:'medal',reconocimiento:'medal',retiro:'out'}[e.tipo];
     if(key==='perdido')icon='alert';
@@ -337,7 +338,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       chip='Medalla';
     }else{ // cursos
       titulo=TT(e.titulo);chipD=fch(e.fin||e.fecha)||'';var d3=[];if(e.detalle)d3.push(e.detalle);if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);
-      if(d3.length){if(e.tipo==='ley'||e.tipo==='extension')titulo+=' <span class="sub">· '+TT(d3.join(' · '))+'</span>';else body+='<div class="ds">'+TT(d3.join(' · '))+'</div>'}
+      if(e.tipo==='complementacion'){if(e.detalle)body+='<div class="ds"><b>Programa:</b> '+TT(e.detalle)+'</div>';d3=[];if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);if(d3.length)body+='<div class="ds">'+ESC(d3.join(' · '))+'</div>'}else if(d3.length){if(e.tipo==='ley'||e.tipo==='extension')titulo+=' <span class="sub">· '+TT(d3.join(' · '))+'</span>';else body+='<div class="ds">'+TT(d3.join(' · '))+'</div>'}
       chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',complementacion:'Ingreso'}[e.tipo]||'';
     }
     body+=pvTag(e)||(e.semestre&&e.pv?pvTag({pv:1}):'');
