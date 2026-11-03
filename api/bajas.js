@@ -556,6 +556,12 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    if (a === 'deshechos') {
+      const hist = (await leerJson('deshechos.json')) || [];
+      res.status(200).json({ lista: hist.slice().reverse().map((r) => ({ datos: r.datos, fecha: r.fecha, por: r.por, estado: r.estado, documento: r.documento || null, deshecho: r.deshecho, deshechoPor: r.deshechoPor, filaBorrada: r.filaBorrada || null })) });
+      return;
+    }
+
     if (a === 'deshacer') {
       const regs = (await leerJson('registros.json')) || [];
       const i = regs.findIndex((x) => x.id === body.id);
