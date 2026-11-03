@@ -164,8 +164,9 @@ function procesarConglomerado(libro) {
   const c = indiceCols(F[0] || [], {
     esp: ['ESP INGRESO'], cont: ['CONTING', 'CONTINGENTE'], fecha: ['FECHA INGRESO'], periodo: ['PERIODO INGRESO'],
     nombre: ['APELLIDOS Y NOMBRES'], cedula: ['CEDULA'], sexo: ['SEXO'], ext: ['EXTRANJERO'], pais: ['PAIS'],
-    salida: ['MOTIVO SALIDA'], anioSal: ['ANO DEFINITIVO SALIDA'],
+    salida: ['MOTIVO SALIDA'], anioSal: ['ANO DEFINITIVO SALIDA'], promo: ['NUMERO PROMOCION', 'NUMERO / PROMOCION'],
   });
+  if (c.promo < 0) c.promo = (F[0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N')).findIndex((x) => /PROMOCION/.test(x) && !/(FECHA|ANO |PERIODO)/.test(x));
   if (c.nombre < 0) throw error('CONGLOMERADO no tiene la columna APELLIDOS Y NOMBRES.', 500);
   const porCed = {}, porNom = {};
   let n = 0;
@@ -180,7 +181,7 @@ function procesarConglomerado(libro) {
     const reg = {
       nombre: nom(r[c.nombre]), cedula: ck ? txt(r[c.cedula]) : '', ck, sigla: txt(r[c.esp]), cont: txt(r[c.cont]).replace(/\s+/g, ''),
       fecha: iso(d), anio: anio || null, sexo: /^[MF]$/i.test(txt(r[c.sexo])) ? txt(r[c.sexo]).toUpperCase() : '',
-      nac: ext ? sinTildes(r[c.pais] || '') : (c.ext >= 0 ? 'COLOMBIA' : ''), salida: txt(r[c.salida]), anioSal: txt(r[c.anioSal]),
+      nac: ext ? sinTildes(r[c.pais] || '') : (c.ext >= 0 ? 'COLOMBIA' : ''), salida: txt(r[c.salida]), anioSal: txt(r[c.anioSal]), promo: c.promo >= 0 ? txt(r[c.promo]) : '',
     };
     n++;
     if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(reg.nombre), reg);
@@ -540,6 +541,24 @@ function claseEsp(txt0) {
   if (/\bNAV\b|NAVAL/.test(e)) return 'NAV';
   return '';
 }
+/* Según la columna NUMERO/ PROMOCION del CONGLOMERADO: IM o CDPRIM = Infantería de Marina; NAV o NA = naval; MC o MM = mercante; cualquier otra cosa = Teniente de Corbeta. */
+function clasePromo(promo) {
+  const T = sinTildes(promo).split(/[^A-Z0-9]+/).filter(Boolean);
+  if (!T.length) return '';
+  if (T.some((x) => x === 'IM' || /CDPRIM/.test(x))) return 'IM';
+  if (T.some((x) => x === 'MC' || x === 'MM')) return 'MER';
+  if (T.some((x) => x === 'NAV' || x === 'NA')) return 'NAV';
+  return 'OTRA';
+}
+function jerarquiaPromo(promo, nac) {
+  const k = clasePromo(promo);
+  if (!k) return null;
+  const ext = !!nac && sinTildes(nac) !== 'COLOMBIA';
+  if (ext) return k === 'NAV' || k === 'OTRA' ? 'Teniente de Corbeta Honorario' : '';
+  if (k === 'IM') return 'Subteniente del Cuerpo de Infantería de Marina';
+  if (k === 'MER') return 'Teniente de Corbeta de la Reserva Activa';
+  return 'Teniente de Corbeta';
+}
 function jerarquiaEsc(esp, nac, cdprim) {
   const e = sinTildes(esp);
   if (cdprim) return 'Subteniente del Cuerpo de Infantería de Marina';
@@ -651,10 +670,11 @@ function armarFicha(id, S) {
   if (e0) {
     // La jerarquía depende de la promoción en que se escalafonó (no de la especialidad de ingreso); si cambió de especialidad se indica.
     const escTxt = [e0.cont, e0.promocion, e0.especialidad].find((v) => claseEsp(v)) || (ing0 && [ing0.cont, ing0.sigla].find((v) => claseEsp(v))) || '';
-    const claseEsc = claseEsp(escTxt), claseIng = (ing0 && (claseEsp(ing0.cont) || claseEsp(ing0.sigla))) || '';
+    const kPromo = ing0 && ing0.promo ? clasePromo(ing0.promo) : '';
+    const claseEsc = kPromo && kPromo !== 'OTRA' ? kPromo : claseEsp(escTxt), claseIng = (ing0 && (claseEsp(ing0.cont) || claseEsp(ing0.sigla))) || '';
     const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
