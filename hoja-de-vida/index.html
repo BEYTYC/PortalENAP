@@ -29,6 +29,10 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .sug button:last-child{border-bottom:0}.sug button:hover,.sug button.on{background:#EAF1FA}
 .sug button b{font-weight:700;font-size:14px}.sug button small{color:var(--mut);font-size:12.5px}
 .ficha .top{display:none}
+.fs{position:fixed;top:12px;right:14px;z-index:30;width:36px;height:36px;border-radius:50%;border:0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.2)}
+.fs:hover{background:#EAF1FA}
+html:fullscreen,html:fullscreen body{background:#EEF2F7}
+@media (max-width:1060px){.volver{right:60px}}
 .volver{position:absolute;top:14px;right:16px;z-index:3;width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.18)}
 .volver:hover{background:#fff}
 .ayuda{font-size:12px;color:var(--mut);margin-top:8px}
@@ -105,6 +109,7 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 </style>
 </head>
 <body>
+<button type="button" class="fs" id="fs" title="Pantalla completa" aria-label="Pantalla completa"></button>
 <div class="wrap">
   <div class="top">
     <div class="ttl"><div><h2>Hoja de vida del estudiante</h2><p>Trayectoria completa por la institución</p></div></div>
@@ -242,7 +247,7 @@ function pintar(F){document.body.classList.add('ficha');
       var bs=[];
       if(s.dist)bs.push(['Alumno distinguido','anchor','#F8EBC8','#5E4408']);
       if(s.exc)bs.push(['Excelencia académica','cap','#F8EBC8','#5E4408']);
-      (e.extras||[]).forEach(function(x){if(x.tipo==='reconocimiento')bs.push([x.titulo+(x.detalle?' · '+x.detalle:''),x.clase==='beca'?'tag':(x.clase==='distinguido'?'anchor':'medal'),x.clase==='beca'?'#E5E1F8':'#F8EBC8',x.clase==='beca'?'#3A2F84':'#5E4408']);else if(x.tipo==='medalla')bs.push([x.titulo+(x.detalle?' ('+x.detalle+')':''),'medal','#F8EBC8','#5E4408']);else if(x.tipo==='concesion')bs.push(['Concesión · '+x.titulo+(x.detalle?' ('+x.detalle+')':''),'tag','#E5E1F8','#3A2F84']);else bs.push(['Curso de extensión · '+x.titulo,'layers','#D5F0EB','#0E4F46'])});
+      (e.extras||[]).forEach(function(x){if(x.tipo==='reconocimiento')bs.push([x.titulo+(x.detalle?' · '+x.detalle:''),x.clase==='beca'?'tag':(x.clase==='distinguido'?'anchor':'medal'),x.clase==='beca'?'#E5E1F8':'#F8EBC8',x.clase==='beca'?'#3A2F84':'#5E4408']);else if(x.tipo==='medalla')bs.push([x.titulo+(x.detalle?' ('+x.detalle+')':''),'medal','#F8EBC8','#5E4408']);else if(x.tipo==='concesion')bs.push(['Concesión · '+x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:''),'tag','#E5E1F8','#3A2F84']);else bs.push(['Curso de extensión · '+x.titulo,'layers','#D5F0EB','#0E4F46'])});
       if(bs.length)body+='<div class="bds">'+bs.map(function(b){return '<span class="bd" style="background:'+b[2]+';color:'+b[3]+'">'+svg(IC[b[1]],15,b[3])+ESC(b[0])+'</span>'}).join('')+'</div>';
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
     }else if(e.tipo==='escalafon'){
@@ -282,6 +287,10 @@ function pintar(F){document.body.classList.add('ficha');
 api('sesion').then(function(){$('q').disabled=false;$('bt').disabled=false;$('ay').textContent='Cédula completa o al menos 3 letras del nombre.';$('q').focus();
   api('calentar').catch(function(){}) /* precarga las bases para que la primera consulta sea rápida */
 }).catch(function(e){$('ay').textContent='';msg(ESC(e.message),1)});
+var FS_IN='M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3',FS_OUT='M8 3v3a2 2 0 0 1-2 2H3 M21 8h-3a2 2 0 0 1-2-2V3 M3 16h3a2 2 0 0 1 2 2v3 M16 21v-3a2 2 0 0 1 2-2h3';
+function fsIcon(){var on=!!document.fullscreenElement;$('fs').innerHTML=svg(on?FS_OUT:FS_IN,18,'#1F4E8C');$('fs').title=$('fs').ariaLabel=on?'Salir de pantalla completa':'Pantalla completa'}
+fsIcon();document.addEventListener('fullscreenchange',fsIcon);
+$('fs').addEventListener('click',function(){try{if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen()}catch(e){}});
 window.__hv={pintar:pintar};
 })();
 </script>
