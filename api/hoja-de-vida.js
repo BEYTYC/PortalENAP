@@ -394,7 +394,9 @@ function procesarMedallas(libro) {
         fecha: ['FECHA', 'FECHA SOLICITUD', 'FECHA DE SOLICITUD', 'FECHA OTORGAMIENTO', 'FECHA ENTREGA', 'FECHA RESOLUCION'],
         estado: ['ESTADO', 'OTORGADA', 'APROBADA', 'RESULTADO', 'OTORGADO', 'APROBADO', 'RESPUESTA'],
         programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'ESPECIALIDAD', 'CARRERA', 'CURSO'],
+        curso: ['CURSO ESPECIFICO'],
       });
+      if (t.curso < 0) t.curso = (F[i] || []).map((x) => sinTildes(x)).findIndex((x) => /CURSO/.test(x) && /ESPECIF/.test(x));
       if (t.ced >= 0 || t.nombre >= 0) { h0 = i; c = t; break; }
     }
     if (!c) { hojas.push({ hoja, usada: false }); continue; }
@@ -409,7 +411,7 @@ function procesarMedallas(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
-      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 ? nom(r[c.programa]) : '', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
+      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 && c.programa !== c.curso ? nom(r[c.programa]) : '', curso: c.curso >= 0 ? nom(r[c.curso]) : '', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -518,14 +520,14 @@ function claseEsp(txt0) {
   if (/\bNAV\b|NAVAL/.test(e)) return 'NAV';
   return '';
 }
-function jerarquiaEsc(esp, nac) {
+function jerarquiaEsc(esp, nac, cdprim) {
   const e = sinTildes(esp);
+  if (cdprim) return 'Subteniente del Cuerpo de Infantería de Marina';
   const ext = !!nac && sinTildes(nac) !== 'COLOMBIA';
   const im = /\bIM\b|INFANTERIA/.test(e), mer = /\bMER\b|MERCANTE/.test(e), nav = /\bNAV\b|NAVAL/.test(e);
   if (ext) return nav ? 'Teniente de Corbeta Honorario' : '';
-  if (im) return 'Subteniente del Cuerpo de Infantería de Marina';
   if (mer) return 'Teniente de Corbeta de la Reserva Activa';
-  if (nav) return 'Teniente de Corbeta';
+  if (nav || im) return 'Teniente de Corbeta';
   return '';
 }
 
@@ -632,29 +634,47 @@ function armarFicha(id, S) {
     const claseEsc = claseEsp(escTxt), claseIng = claseEsp((ing0 && (ing0.sigla + ' ' + ing0.cont)) || '');
     const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
-    const f = x.fin || x.inicio;
+    const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
-  // La medalla Caldas está asociada a un programa: va dentro de la tarjeta del grado de ese programa.
+  // La medalla Caldas nunca va suelta: se asocia a un programa o curso (escalafonamiento, titulación, complementación o curso de ley).
+  // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
   medallas.forEach((x) => {
-    const kp = kt(x.programa);
+    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', curso: x.curso || '', pv: x.pv };
+    const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
+    const tipoM = sinTildes(x.medalla), kc = kt(x.curso), kp = kt(x.programa);
     const evEsc = linea.find((e) => e.tipo === 'escalafon');
-    const m0 = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', pv: x.pv };
-    // La medalla "A la consagración" siempre se otorga con el escalafonamiento.
-    if (evEsc && /CONSAGRACION/.test(sinTildes(x.medalla))) { (evEsc.medallas = evEsc.medallas || []).push(m0); return; }
     const evGrados = linea.filter((e) => e.tipo === 'grado');
-    // "A la aplicación" es de la complementación profesional: va con ese grado.
-    if (/APLICACION/.test(sinTildes(x.medalla))) { const gc = evGrados.find((e) => e.comp); if (gc) { (gc.medallas = gc.medallas || []).push(m0); return; } }
-    let g = kp ? evGrados.find((e) => { const a = kt(e.programa || ''), b = kt(e.tituloAcad || ''); return (a && (a.includes(kp) || kp.includes(a))) || (b && (b.includes(kp) || kp.includes(b))); }) : null;
-    if (!g && !kp && evGrados.length === 1) g = evGrados[0];
-    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', pv: x.pv };
-    if (g) { (g.medallas = g.medallas || []).push(m); return; }
-    linea.push(Object.assign({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
+    const evLey = linea.filter((e) => e.tipo === 'ley');
+    const evCcp = linea.filter((e) => e.tipo === 'complementacion');
+    const tM = x.periodo ? perNum(x.periodo) : tFecha(x.fecha);
+    const coincide = (a, b) => a && b && (a.includes(b) || b.includes(a));
+    // 1. Consagración: siempre con el escalafonamiento.
+    if (evEsc && /CONSAGRACION/.test(tipoM)) return poner(evEsc);
+    // 2. Curso específico que nombra un curso de ley (Básico, Comando…): esa tarjeta, la más cercana al periodo.
+    if (kc) {
+      const L = evLey.filter((e) => coincide(kt(e.titulo), kc));
+      if (L.length) return poner(L.sort((a, b) => Math.abs((a.t || 0) - (tM || 0)) - Math.abs((b.t || 0) - (tM || 0)))[0]);
+      if (evEsc && /ESCALAF/.test(kc)) return poner(evEsc);
+    }
+    // 3. Aplicación / complementación: grado de complementación o, si no hay, el ingreso al CCP.
+    if (/APLICACION/.test(tipoM) || /COMPLEMENT|CCP/.test(kc)) { const gc = evGrados.find((e) => e.comp) || evCcp[0]; if (gc) return poner(gc); }
+    // 4. Programa o curso que coincide con el de un grado.
+    const clave = kc || kp;
+    let g = clave ? evGrados.find((e) => coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave)) : null;
+    if (g) return poner(g);
+    // 5. Por periodo: la tarjeta de ley, grado, complementación o escalafón más cercana a esa fecha.
+    const cand = evLey.concat(evGrados, evCcp, evEsc ? [evEsc] : []).filter((e) => e.t != null);
+    if (cand.length) {
+      if (tM != null) return poner(cand.sort((a, b) => Math.abs(a.t - tM) - Math.abs(b.t - tM))[0]);
+      return poner(evGrados.find((e) => !e.comp) || cand[0]);
+    }
+    linea.push(Object.assign({ tipo: 'medalla', t: tM, periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Grado de honor / meritorio / laureado: van en la tarjeta de la titulación académica (la primera que no es de complementación).
