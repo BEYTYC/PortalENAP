@@ -279,6 +279,8 @@ function normPeriodo(v) {
   const t = String(v == null ? '' : v).toUpperCase().replace(/\s+/g, '');
   const m = t.match(/(\d{4})\D*(II|I|1|2)$/);
   if (m) return `${m[1]}-${m[2] === 'II' || m[2] === '2' ? 2 : 1}`;
+  const m2 = t.match(/^(II|I|1|2)\D+(\d{4})$/);
+  if (m2) return `${m2[2]}-${m2[1] === 'II' || m2[1] === '2' ? 2 : 1}`;
   return '';
 }
 const CLASES_HOJA = [[/BECA/, 'beca', 'Beca'], [/MENCION|HONOR/, 'mencion', 'Mención de honor'], [/MERIT/, 'merito', 'Meritorio'], [/LAUREAD/, 'laureado', 'Laureado'], [/DISTINGUID/, 'distinguido', 'Alumno distinguido']];
@@ -310,6 +312,11 @@ function procesarConcesiones(libro) {
     }
     if (!c) { hojas.push({ hoja, usada: false }); continue; }
     const cols = (F[h0] || []).map((x) => txt(x)).filter(Boolean);
+    if (c.periodo < 0) { // cualquier encabezado que hable de periodo, semestre o año
+      const H = (F[h0] || []).map((x) => sinTildes(x));
+      let j = H.findIndex((x) => /PERIODO/.test(x)); if (j < 0) j = H.findIndex((x) => /SEMESTRE/.test(x)); if (j < 0) j = H.findIndex((x) => /^(ANO|ANO .*|.* ANO)$/.test(x));
+      c.periodo = j;
+    }
     let k = 0;
     for (let i = h0 + 1; i < F.length; i++) {
       const r = F[i];
@@ -325,12 +332,14 @@ function procesarConcesiones(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
+      const ym = (v) => { const t = txt(v).match(/^(\d{4})(?:\.0+)?$/); return t ? +t[1] : null; };
+      const anio = per ? null : (c.periodo >= 0 ? ym(r[c.periodo]) : null) || ym(r[c.concesion >= 0 ? c.concesion : 14]);
       const pr = c.pct >= 0 ? r[c.pct] : (c.valor >= 0 ? r[c.valor] : '');
       const pct = typeof pr === 'number' ? (pr > 0 && pr <= 1 ? Math.round(pr * 100) : Math.round(pr * 100) / 100) + ' %' : txt(pr);
       const motivo = c.motivo >= 0 ? txt(r[c.motivo]) : '';
       const resol = c.resol >= 0 ? txt(r[c.resol]) : '';
       const det = [cl[0] !== 'concesion' && c.tipo >= 0 && txt(r[c.tipo])].filter(Boolean).join(' · ');
-      const reg = { clase: cl[0], concesion: titulo, periodo: per, valor: det, pct, motivo, resol, nombre };
+      const reg = { clase: cl[0], concesion: titulo, periodo: per, anio, valor: det, pct, motivo, resol, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -552,7 +561,7 @@ function armarFicha(id, S) {
     const f = x.fin || x.inicio;
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
-  concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : null, periodo: x.periodo, anio: x.periodo ? +x.periodo.slice(0, 4) : null, titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
+  concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
   medallas.forEach((x) => linea.push({ tipo: 'medalla', t: x.periodo ? perNum(x.periodo) + 0.02 : tFecha(x.fecha), periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', detalle: '', pv: x.pv }));
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.

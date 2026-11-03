@@ -13,7 +13,7 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .rise{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){.rise{animation:none}}
-.top{position:sticky;top:0;z-index:15;margin:-28px -20px 0;padding:18px 20px 14px;background:linear-gradient(#EEF2F7F2,#EEF2F7E6 70%,#EEF2F700);backdrop-filter:blur(6px)}
+.top{position:relative;z-index:15}
 .ttl{display:flex;align-items:center;gap:12px;margin-bottom:12px}
 .ttl .ic{width:40px;height:40px;border-radius:12px;background:var(--pri);display:flex;align-items:center;justify-content:center;flex:none}
 .ttl h2{margin:0;font-size:18px;font-weight:800;letter-spacing:-.2px}.ttl p{margin:0;font-size:13px;color:var(--mut)}
@@ -29,6 +29,11 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .sug button:last-child{border-bottom:0}.sug button:hover,.sug button.on{background:#EAF1FA}
 .sug button b{font-weight:700;font-size:14px}.sug button small{color:var(--mut);font-size:12.5px}
 .ficha .top{display:none}
+.ini .wrap{min-height:100vh;justify-content:center;padding-top:0;padding-bottom:0}
+.ini .ttl{justify-content:center;text-align:center}
+.ini .bus{max-width:760px;margin:0 auto}
+.ini .ayuda{text-align:center}
+.ini #out{display:none}
 .fs{position:fixed;top:12px;right:14px;z-index:30;width:36px;height:36px;border-radius:50%;border:0;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(20,50,90,.2)}
 .fs:hover{background:#EAF1FA}
 html:fullscreen,html:fullscreen body{background:#EEF2F7}
@@ -108,7 +113,7 @@ html:fullscreen,html:fullscreen body{background:#EEF2F7}
 }
 </style>
 </head>
-<body>
+<body class="ini">
 <button type="button" class="fs" id="fs" title="Pantalla completa" aria-label="Pantalla completa"></button>
 <div class="wrap">
   <div class="top">
@@ -139,7 +144,7 @@ function SKL(){var b=function(w,h,x){return '<div class="sk" style="width:'+w+';
   return '<div class="skc" style="padding:0;overflow:hidden"><div class="sk" style="height:92px;border-radius:0"></div><div style="padding:0 24px 22px"><div style="display:flex;gap:16px;align-items:flex-end;margin-top:-36px">'+b('76px','76px','border-radius:50%;border:4px solid #fff')+b('46%','24px','margin-bottom:6px')+'</div><div style="display:flex;gap:8px;margin-top:16px">'+b('110px','28px','border-radius:999px')+b('90px','28px','border-radius:999px')+b('130px','28px','border-radius:999px')+'</div></div></div>'
   +'<div class="stats" style="margin-top:22px">'+[0,1,2,3].map(function(){return '<div class="stat">'+b('60%','12px')+b('40%','24px','margin-top:8px')+'</div>'}).join('')+'</div>'
   +[0,1,2].map(function(){return '<div class="skc" style="margin:22px 0 0 182px">'+b('40%','18px')+b('70%','12px','margin-top:12px')+b('100%','7px','margin-top:16px')+'</div>'}).join('')}
-function gate(on,t,keep){if(on){if(!keep)document.body.classList.remove('ficha');$('out').innerHTML='<div class="est">'+ESC(t||'Cargando…')+'</div><div style="height:14px"></div>'+SKL()}$('bt').disabled=!!on}
+function gate(on,t,keep){if(on){document.body.classList.remove('ini');if(!keep)document.body.classList.remove('ficha');$('out').innerHTML='<div class="est">'+ESC(t||'Cargando…')+'</div><div style="height:14px"></div>'+SKL()}$('bt').disabled=!!on}
 
 var PAL={ingreso:['#2F6FB5','#DCE9F7','#17406F'],semestre:['#4A82C4','#DCE9F7','#17406F'],escalafon:['#1F4E8C','#DCE9F7','#17406F'],grado:['#2E8B57','#DDF1E4','#1B5E34'],
   extension:['#1E8C7E','#D5F0EB','#0E4F46'],complementacion:['#C0562F','#FBE3D8','#6B2A12'],ley:['#6B5BC4','#E5E1F8','#3A2F84'],regreso:['#C0562F','#FBE3D8','#6B2A12'],concesion:['#6B5BC4','#E5E1F8','#3A2F84'],medalla:['#A97A12','#F8EBC8','#5E4408'],reconocimiento:['#A97A12','#F8EBC8','#5E4408'],retiro:['#6B7280','#E5E7EB','#374151'],perdido:['#C0392B','#FBD9D5','#7A1F16']};
@@ -174,21 +179,25 @@ $('f').addEventListener('submit',function(ev){ev.preventDefault();sq++;cerrar();
   api('buscar',{q:q}).then(function(r){
     if(!r.lista.length){msg('No hay coincidencias para “'+ESC(q)+'”.');return}
     if(r.lista.length===1){abrir(r.lista[0].id);return}
-    document.body.classList.remove('ficha');$('out').innerHTML='<div class="card rise lista">'+r.lista.map(function(p){return '<button type="button" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span>'+(p.sinCedula?'<span class="pv">sin cédula</span>':'')+'</button>'}).join('')+(r.total>r.lista.length?'<div class="msg">Hay '+r.total+' coincidencias; se muestran 30. Escriba más del nombre para afinar.</div>':'')+'</div>';
+    document.body.classList.remove('ficha');document.body.classList.remove('ini');$('out').innerHTML='<div class="card rise lista">'+r.lista.map(function(p){return '<button type="button" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span>'+(p.sinCedula?'<span class="pv">sin cédula</span>':'')+'</button>'}).join('')+(r.total>r.lista.length?'<div class="msg">Hay '+r.total+' coincidencias; se muestran 30. Escriba más del nombre para afinar.</div>':'')+'</div>';
     Array.prototype.forEach.call($('out').querySelectorAll('button[data-id]'),function(b){b.addEventListener('click',function(){abrir(b.getAttribute('data-id'))})});
   }).catch(function(e){msg(e.message,1)}).then(function(){$('bt').disabled=false;gate(false)})});
-function msg(t,err){document.body.classList.remove('ficha');$('out').innerHTML='<div class="card msg'+(err?' err':'')+'">'+t+'</div>'}
+function msg(t,err){document.body.classList.remove('ini');document.body.classList.remove('ficha');$('out').innerHTML='<div class="card msg'+(err?' err':'')+'">'+t+'</div>'}
 function abrir(id){document.body.classList.add('ficha');gate(true,'Armando la hoja de vida…',true);api('ficha',{id:id}).then(pintar).catch(function(e){msg(e.message,1)}).then(function(){gate(false);$('bt').disabled=false})}
 
 /* ---------- Ficha ---------- */
 var FASES={for:['Formación académica y militar','#1F4E8C'],com:['Formación complementaria','#C0562F'],ley:['Cursos de ley','#6B5BC4'],pos:['Estudios de posgrado','#0F766E'],ret:['Retiro','#6B7280']};
 
-function pintar(F){document.body.classList.add('ficha');
+function pintar(F){document.body.classList.remove('ini');document.body.classList.add('ficha');
   var P=F.persona,L=F.linea.slice();
   /* Cursos de extensión con fecha dentro de un semestre van DENTRO de su tarjeta */
-  var sems=L.filter(function(e){return e.tipo==='semestre'});
+  var sems=L.filter(function(e){return e.tipo==='semestre'}),sinSem=null;
   L=L.filter(function(e){
-    if(e.tipo==='concesion'||e.tipo==='reconocimiento'){if(e.clase==='distinguido'&&e.periodo&&sems.some(function(x){return x.semestre.periodo===e.periodo&&x.semestre.dist}))return false;var sc=sems.filter(function(x){return e.periodo&&x.semestre.periodo===e.periodo})[0];if(!sc)return true;(sc.extras=sc.extras||[]).push(e);return false}
+    if(e.tipo==='concesion'||e.tipo==='reconocimiento'){if(e.clase==='distinguido'&&e.periodo&&sems.some(function(x){return x.semestre.periodo===e.periodo&&x.semestre.dist}))return false;
+      var sc=sems.filter(function(x){return e.periodo&&x.semestre.periodo===e.periodo})[0];
+      if(!sc&&e.anioSolo)sc=sems.filter(function(x){return x.semestre.periodo&&+x.semestre.periodo.slice(0,4)===e.anio})[0];
+      if(!sc){(sinSem=sinSem||[]).push(e);return false}
+      (sc.extras=sc.extras||[]).push(e);return false}
     if(e.tipo!=='extension'||!e.fecha)return true;
     var y=+e.fecha.slice(0,4),h=+e.fecha.slice(5,7)<=6?1:2,per=y+'-'+h;
     var s=sems.filter(function(x){return x.semestre.periodo===per})[0];
@@ -221,6 +230,7 @@ function pintar(F){document.body.classList.add('ficha');
   if(R.cursos)st.push(['Cursos posteriores',String(R.cursos)]);
   if(st.length)h+='<div class="stats">'+st.map(function(s,i){return '<div class="stat rise" style="animation-delay:'+(i*60)+'ms"><div class="l">'+s[0]+'</div><div class="v">'+ESC(s[1])+'</div></div>'}).join('')+'</div>';
 
+  if(sinSem&&sinSem.length)h+='<div class="card" style="padding:14px 18px"><div style="font-size:13px;color:var(--mut);margin-bottom:8px">Sin semestre identificado en la base</div><div class="bds" style="margin:0">'+sinSem.map(function(x){return '<span class="bd" style="background:'+(x.clase==='beca'||x.tipo==='concesion'?'#E5E1F8':'#F8EBC8')+';color:'+(x.clase==='beca'||x.tipo==='concesion'?'#3A2F84':'#5E4408')+'">'+ESC(x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:''))+'</span>'}).join('')+'</div></div>';
   h+='<div class="tit"><b>Trayectoria en la institución</b><span>Desde el ingreso hasta hoy, todo lo que consiguió</span></div>';
   h+='<div class="tl"><div class="tl-line"></div>';
   var tEsc=null;L.forEach(function(e){if(e.tipo==='escalafon'&&e.t!=null)tEsc=e.t});
@@ -253,7 +263,7 @@ function pintar(F){document.body.classList.add('ficha');
       var bs=[];
       if(s.dist)bs.push(['Alumno distinguido','anchor','#F8EBC8','#5E4408']);
       if(s.exc)bs.push(['Excelencia académica','cap','#F8EBC8','#5E4408']);
-      (e.extras||[]).forEach(function(x){if(x.tipo==='reconocimiento')bs.push([x.titulo+(x.detalle?' · '+x.detalle:''),x.clase==='beca'?'tag':(x.clase==='distinguido'?'anchor':'medal'),x.clase==='beca'?'#E5E1F8':'#F8EBC8',x.clase==='beca'?'#3A2F84':'#5E4408']);else if(x.tipo==='medalla')bs.push([x.titulo+(x.detalle?' ('+x.detalle+')':''),'medal','#F8EBC8','#5E4408']);else if(x.tipo==='concesion')bs.push(['Concesión · '+x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:''),'tag','#E5E1F8','#3A2F84']);else bs.push(['Curso de extensión · '+x.titulo,'layers','#D5F0EB','#0E4F46'])});
+      (e.extras||[]).forEach(function(x){if(x.tipo==='reconocimiento')bs.push([x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:'')+(x.detalle&&!x.pct&&!x.motivo?' · '+x.detalle:'')+(x.anioSolo?' (año '+x.anio+', semestre por confirmar)':'')+(x.pv?' (por verificar)':''),x.clase==='beca'?'tag':(x.clase==='distinguido'?'anchor':'medal'),x.clase==='beca'?'#E5E1F8':'#F8EBC8',x.clase==='beca'?'#3A2F84':'#5E4408']);else if(x.tipo==='medalla')bs.push([x.titulo+(x.detalle?' ('+x.detalle+')':''),'medal','#F8EBC8','#5E4408']);else if(x.tipo==='concesion')bs.push(['Concesión · '+x.titulo+(x.pct?' · '+x.pct:'')+(x.motivo?' · '+x.motivo:'')+(x.anioSolo?' (año '+x.anio+', semestre por confirmar)':'')+(x.pv?' (por verificar)':''),'tag','#E5E1F8','#3A2F84']);else bs.push(['Curso de extensión · '+x.titulo,'layers','#D5F0EB','#0E4F46'])});
       if(bs.length)body+='<div class="bds">'+bs.map(function(b){return '<span class="bd" style="background:'+b[2]+';color:'+b[3]+'">'+svg(IC[b[1]],15,b[3])+ESC(b[0])+'</span>'}).join('')+'</div>';
       if(key==='perdido')body+='<div style="margin-top:12px"><span class="cp" style="background:#C0392B">Semestre perdido</span></div>';
     }else if(e.tipo==='escalafon'){
@@ -290,7 +300,7 @@ function pintar(F){document.body.classList.add('ficha');
   h+='<details class="fuentes card" style="padding:12px 16px"><summary>Estado de las fuentes</summary><ul>'+(F.fuentes||[]).map(function(x){return '<li class="'+(x.ok?'':'no')+'"><b>'+ESC(x.nombre)+'</b> — '+(x.ok?'conectada'+(x.filas!=null?' ('+x.filas+' filas)':''):'sin datos')+(x.nota?'. '+ESC(x.nota):'')+'</li>'}).join('')+'</ul></details>';
   h+='<div class="pie">Fuente: Oficina de Estadística</div>';
   $('out').innerHTML=h;
-  $('vlv').addEventListener('click',function(){document.body.classList.remove('ficha');$('out').innerHTML='';$('q').focus();$('q').select();try{window.scrollTo(0,0)}catch(e){}});
+  $('vlv').addEventListener('click',function(){document.body.classList.remove('ficha');document.body.classList.add('ini');$('out').innerHTML='';$('q').focus();$('q').select();try{window.scrollTo(0,0)}catch(e){}});
   try{window.scrollTo(0,0);document.scrollingElement.scrollTop=0}catch(e){}
 }
 
