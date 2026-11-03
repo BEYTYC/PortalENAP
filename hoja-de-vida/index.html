@@ -31,6 +31,17 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 .ficha .top{display:none}
 .ini .wrap{min-height:100vh;justify-content:center;padding-top:0;padding-bottom:0}
 .ini .ttl{justify-content:center;text-align:center}
+.eyebrow{display:none;font-size:12px;font-weight:600;letter-spacing:.18em;color:#A8861D}
+.ini .eyebrow{display:block}
+.ini .ttl h2{margin:4px 0 2px;font-size:28px;font-weight:600;letter-spacing:-.01em;color:#071C3C}
+.ini .ttl p{font-size:14px;color:#475569}
+.ini .ttl{margin-bottom:16px}
+.ini .bus .in{background:#fff;border:1px solid #E2E8F0;border-radius:12px;padding:12px 14px;box-shadow:0 1px 2px #071c3c0f,0 8px 24px -12px #071c3c38}
+.ini .bus .in svg{left:26px}
+.ini .bus input{height:42px;border-radius:8px;border:1px solid #CBD5E1;padding-left:36px;box-shadow:none;font-size:14px}
+.ini .bus input:focus{border-color:#123A73;box-shadow:0 0 0 3px rgba(18,58,115,.15)}
+.ini .bus #bt{background:#0B2A5B;border-radius:999px;height:40px;font-size:13px;box-shadow:none}
+.ini .sug{top:64px;left:14px;right:14px;border-radius:12px}
 .ini .bus{max-width:520px;margin:0 auto}
 .ini .bus input{height:44px;font-size:13px;box-shadow:0 8px 28px rgba(20,50,90,.18),0 2px 6px rgba(20,50,90,.10)}
 .ini .bus input:focus{box-shadow:0 0 0 3px rgba(31,78,140,.15),0 10px 32px rgba(20,50,90,.22)}
@@ -158,7 +169,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 <button type="button" class="fs" id="fs" title="Pantalla completa" aria-label="Pantalla completa"></button>
 <div class="wrap">
   <div class="top">
-    <div class="ttl"><div><h2>Hoja de vida del estudiante</h2><p>Trayectoria completa por la institución</p></div></div>
+    <div class="ttl"><div><div class="eyebrow">OFICINA DE ESTADÍSTICA</div><h2>Hoja de vida del estudiante</h2><p>Trayectoria completa por la institución</p></div></div>
     <form class="bus" id="f" autocomplete="off">
       <label for="q" style="position:absolute;left:-9999px">Cédula o nombre</label>
       <div class="in"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B7C93" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
