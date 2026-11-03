@@ -1150,7 +1150,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 @media (max-width:1000px){#vistaAdmin .panel-app__inner{grid-template-columns:minmax(0,1fr);padding:24px 16px 56px}#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
 @media (max-width:560px){#vistaAdmin .panel-app__form{grid-template-columns:minmax(0,1fr)}}
 
-/* móvil: sin "Protocolos Académicos" y los tres menús en una sola línea */
+/* móvil: los menús en una sola línea */
 @media (max-width:760px){
   .navcats{flex-wrap:nowrap!important;width:100%}
   .navcat{flex:1 1 auto;min-width:0}
@@ -1417,7 +1417,7 @@ img,svg,video,canvas,iframe{max-width:100%}
 
 <nav class="topnav">
   <div class="navcats" id="navcats"></div>
-  <!-- "Protocolos Académicos": pegado a la derecha, a la izquierda de "Módulo". -->
+  <!-- Contenedor derecho del menú (vacío: "Manuales de uso" va a la izquierda). -->
   <div class="navcats navcats--der" id="navcatsDer"></div>
   <div class="nav-subsistema" id="navSubsistema" hidden>
     <button type="button" class="nav-home" id="navInicioBtn" title="Volver al inicio del Portal ENAP" aria-label="Volver al inicio del Portal ENAP">
@@ -3273,7 +3273,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       ],
     },
     {
-      key: 'protocolos', nombre: 'Protocolos Académicos', icon: 'protocolos',
+      key: 'protocolos', nombre: 'Manuales de uso', icon: 'protocolos',
       items: [
         { nombre: 'Protocolo Solicitud de Grado', status: 'soon' },
         { nombre: 'Protocolo Solicitud Concesiones Especiales', status: 'ok' },
@@ -3294,8 +3294,8 @@ img,svg,video,canvas,iframe{max-width:100%}
     navIzq.innerHTML = '';
     if (navDer) navDer.innerHTML = '';
     for (const cat of MENU) {
-      // "Protocolos Académicos" va pegado a la derecha (al lado de "Módulo").
-      const aLaDerecha = cat.key === 'protocolos' && !!navDer;
+      // "Manuales de uso" va a la izquierda, junto a los demás menús.
+      const aLaDerecha = false;
       const nav = aLaDerecha ? navDer : navIzq;
       const wrap = document.createElement('div');
       wrap.className = 'navcat' + (aLaDerecha ? ' navcat--der' : '');
