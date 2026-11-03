@@ -266,7 +266,7 @@ function procesarCursos(libro, base) {
         ape: ['APELLIDOS'],
         nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO', 'PUESTO OCUPADO'],
         promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
-        programa: ['PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA', 'CARRERA', 'TITULO', 'PROFESION', 'ESPECIALIZACION'],
+        programa: ['CCP REALIZADO', 'PROGRAMA', 'NOMBRE PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA', 'CARRERA', 'TITULO', 'PROFESION', 'ESPECIALIZACION'],
       });
       if ((t.curso >= 0 || base === 'ccp') && (t.ced >= 0 || t.nombre >= 0)) { h0 = i; c = t; break; }
     }
