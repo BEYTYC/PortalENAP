@@ -32,7 +32,7 @@ const roles = require('./roles.js');
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const DOMINIO = '@enap.edu.co';
-const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
+const ADMINS = ['jestadisticaplen@enap.edu.co'];
 const CARPETA = 'Antiguedades';
 const MAX_BYTES_DATOS = 8 * 1024 * 1024;
 const MAX_BYTES_EXCEL = 3 * 1024 * 1024; // el cuerpo de una función de Vercel admite ~4,5 MB (base64 incluido)
