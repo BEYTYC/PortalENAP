@@ -585,6 +585,7 @@ function jerarquiaEsc(esp, nac, cdprim) {
    Los demás grados son la titulación académica inicial. */
 function esGradoComp(g, cursos, fEsc) {
   const kg = kt(g.programa || g.titulo || '');
+  if (/CIENCIAS (NAVALES|NAUTICAS)/.test(sinTildes(g.programa || g.titulo || ''))) return false; // es la titulación inicial: quien la recibe es titulado
   const ccp = cursos.filter((c) => c.clase === 'complementacion');
   if (kg && ccp.some((c) => kt(c.tipo || '') && (kt(c.tipo).includes(kg) || kg.includes(kt(c.tipo))))) return true;
   const fg = g.fecha || '';
@@ -602,13 +603,16 @@ function armarFicha(id, S) {
   const cong = gather(S.cong);
   const bajRows = gather(S.baj);
   const antRows = gather(S.ant);
-  [cong, bajRows, antRows].forEach((L) => L.forEach((r) => nks.add(nomKey(r.nombre || r.n))));
+  const otrasFu = [S.grad, S.ext, S.ccp, S.ley];
+  const otras = otrasFu.map((fu) => gather(fu));
+  [cong, bajRows, antRows].concat(otras).forEach((L) => L.forEach((r) => nks.add(nomKey(r.nombre || r.n))));
   if (!ck && nkIni) { // sin cédula: se busca por nombre en todas
-    [S.cong, S.baj, S.ant].forEach((fu) => { if (!fu) return; ((fu.porCed && Object.values(fu.porCed)) || []).forEach((L) => L.forEach((r) => { if (nomKey(r.nombre || r.n) === nkIni && r.ck) ck = ck || r.ck; })); });
+    [S.cong, S.baj, S.ant, S.grad, S.ext, S.ccp, S.ley].forEach((fu) => { if (!fu) return; ((fu.porCed && Object.values(fu.porCed)) || []).forEach((L) => L.forEach((r) => { if (nomKey(r.nombre || r.n) === nkIni && r.ck) ck = ck || r.ck; })); });
   }
   const nomPorNom = (fu) => reunir(fu, ck, nks).porNombre;
   const todoCong = cong.concat(nomPorNom(S.cong));
-  let nombre = (cong[0] && cong[0].nombre) || (bajRows[0] && bajRows[0].nombre) || (antRows[0] && antRows[0].n) || (todoCong[0] && todoCong[0].nombre) || '';
+  let nombre = (cong[0] && cong[0].nombre) || (bajRows[0] && bajRows[0].nombre) || (antRows[0] && antRows[0].n) || (todoCong[0] && todoCong[0].nombre) || (otras.map((L) => L[0] && L[0].nombre).filter(Boolean)[0]) || '';
+  if (!nombre && nkIni) { [S.grad, S.ext, S.ccp, S.ley].forEach((fu) => { if (!nombre && fu && fu.porNom && fu.porNom[nkIni] && fu.porNom[nkIni][0]) nombre = fu.porNom[nkIni][0].nombre || ''; }); }
   if (!nombre) throw error('No se encontró ese estudiante.', 404);
 
   const porVerificar = []; // etiquetas de lo que viene solo por nombre
@@ -635,7 +639,12 @@ function armarFicha(id, S) {
 
   /* ---- Escalafón ---- */
   const asr = pick(S.baj && S.baj.asc, 'escalafón');
-  const escal = asr.exactas.map((x) => Object.assign({ pv: false }, x)).concat(asr.nombre.map((x) => Object.assign({ pv: true }, x)));
+  let escal = asr.exactas.map((x) => Object.assign({ pv: false }, x)).concat(asr.nombre.map((x) => Object.assign({ pv: true }, x)));
+  // Los mercantes escalafonados en 2026-2 son los últimos Tenientes de Corbeta de la Reserva Activa: de 2027-1 en adelante solo se titulan.
+  {
+    const esMer = (ing0 && (clasePromo(ing0.promo) === 'MER' || /^(MC|MM)$/.test(sinTildes(ing0.sigla || '')))) || escal.some((e) => /\bMER\b|MERCANTE|\bMC\b|\bMM\b/.test(sinTildes([e.sigla, e.especialidad, e.promocion].join(' '))));
+    if (esMer) escal = escal.filter((e) => !(e.periodo && String(e.periodo) > '2026-2'));
+  }
 
   /* ---- Notas (Antigüedades) ---- */
   const an = pick(S.ant, 'notas');
@@ -666,10 +675,14 @@ function armarFicha(id, S) {
   let estado = '';
   const POSG = /ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/;
   const titulado = grados.some((g) => !POSG.test(sinTildes(g.programa || g.titulo || '')) && !esGradoComp(g, cursos, ((escal.slice().sort((a, b) => (a.periodo || '').localeCompare(b.periodo || '')).pop()) || {}).fecha || ''));
-  if (titulado) estado = 'GRADUADO';
-  else if (retiro) estado = 'RETIRADO';
+  const hayReingreso = !!(ing0 && ing0.reingreso) || ingresos.length > 1; // si reingresó, el retiro fue anterior: no queda como Retirado
+  // Civil: solo aparece en Extensión y/o Graduados de la ENAP (sin ingreso, notas, retiro, escalafón ni cursos militares).
+  const civil = !ing0 && !retiros.length && !regsAnt.length && !escal.length && !cursos.some((c) => c.clase === 'complementacion' || c.clase === 'ley');
+  if (civil) estado = grados.length ? 'GRADUADO' : '';
+  else if (titulado) estado = 'GRADUADO';
+  else if (retiro && !hayReingreso) estado = 'RETIRADO';
   else if (!escal.length && ing0 && (ing0.salida || ing0.anioSal) && !(ultimo && ultimo.e !== 'Retirado' && ultimo.e !== 'Salió')) estado = 'SALIÓ';
-  else if (ultimo && (ultimo.e === 'Retirado' || ultimo.e === 'Salió')) estado = 'RETIRADO';
+  else if (ultimo && (ultimo.e === 'Retirado' || ultimo.e === 'Salió') && !hayReingreso) estado = 'RETIRADO';
   else if (escal.length) estado = 'EGRESADO NO GRADUADO';
   else if (ultimo) estado = 'ACTIVO';
 
@@ -803,7 +816,7 @@ function armarFicha(id, S) {
   if (porVerificar.length) alertas.push('Coincidencia por nombre, por verificar: ' + Array.from(new Set(porVerificar)).join(', ') + '.');
   return {
     persona: { nombre, cedula: (ing0 && ing0.cedula) || (cong[0] && cong[0].cedula) || (ck || ''), sigla: (ing0 && ing0.sigla) || '', cont: (ing0 && ing0.cont) || (e0 && e0.cont) || '', sexo: (ing0 && ing0.sexo) || '', nac: (ing0 && ing0.nac) || '', curso: (ultimo && ultimo.cu) || '', grado: (ultimo && ultimo.g) || '' },
-    estado, graduado: grados.length > 0, escalafonado: !!e0, retiro: retiro ? { fecha: retiro.retiro, causal: retiro.causal, doc: retiro.doc, obs: retiro.obs } : null,
+    estado, civil, graduado: grados.length > 0, escalafonado: !!e0, retiro: retiro ? { fecha: retiro.retiro, causal: retiro.causal, doc: retiro.doc, obs: retiro.obs } : null,
     ingreso: ing0 ? { fecha: ing0.fecha, anio: ing0.anio } : null,
     resumen: {
       semestres: sems.length,
@@ -828,8 +841,10 @@ function listaPersonas(S) {
   if (S.cong) { Object.entries(S.cong.porCed).forEach(([ck, L]) => L.forEach((r) => add(ck, r.nombre, { cedula: r.cedula, sigla: r.sigla, cont: r.cont, anio: r.anio }))); }
   if (S.baj) { Object.entries(S.baj.porCed).forEach(([ck, L]) => L.forEach((r) => add(ck, r.nombre, { cedula: ck, sigla: r.sigla, cont: r.cont, anio: +r.anioIng || null }))); }
   if (S.ant) { Object.entries(S.ant.porCed).forEach(([ck, L]) => L.forEach((r) => add(ck, r.n, { cedula: r.ce, cont: r.ct }))); }
+  // Civiles: quienes solo están en Extensión y/o Graduados de la ENAP también se pueden consultar.
+  [S.grad, S.ext].forEach((fu) => { if (fu) Object.entries(fu.porCed || {}).forEach(([ck, L]) => L.forEach((r) => add(ck, r.nombre, { cedula: ck }))); });
   const sinCed = (fu, campo) => { if (!fu) return; Object.entries(fu.porNom).forEach(([nk, L]) => { if (vistosNom.has(nk)) return; L.forEach((r) => add('', r[campo], { sigla: r.sigla, cont: r.cont || r.ct, anio: r.anio || null })); }); };
-  sinCed(S.cong, 'nombre'); sinCed(S.baj, 'nombre'); sinCed(S.ant, 'n');
+  sinCed(S.cong, 'nombre'); sinCed(S.baj, 'nombre'); sinCed(S.ant, 'n'); sinCed(S.grad, 'nombre'); sinCed(S.ext, 'nombre');
   // Mismo estudiante registrado dos veces: una fila sin cédula con el nombre abreviado (p. ej. "FRANCISCO H") frente a otra con cédula y nombre completo.
   const todos = Object.values(P);
   const palabras = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean);
