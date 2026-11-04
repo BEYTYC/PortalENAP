@@ -167,14 +167,6 @@ body.cargando .app{visibility:hidden}
         <tbody id="tb"><tr><td colspan="7" class="vac">Cargando…</td></tr></tbody>
       </table>
     </div>
-    <div style="text-align:center;margin-top:10px"><button class="btn btn-g" id="verdes" style="padding:7px 14px;font-size:13px;margin:0">Ver bajas deshechas</button></div>
-    <div class="card" id="desw" style="overflow:auto;margin-top:10px;display:none">
-      <table>
-        <thead><tr><th>Estudiante</th><th>Cédula</th><th>Curso</th><th>Causal</th><th>Registrada</th><th>Deshecha</th><th>Fila borrada</th></tr></thead>
-        <tbody id="tdes"></tbody>
-      </table>
-    </div>
-    <p style="text-align:center;font-size:12px;color:var(--mut);margin-top:12px">Desde el día 5 llega un recordatorio diario a sea@enap.edu.co. Al añadir la resolución se detienen los recordatorios. "Deshacer" borra la baja del Excel y el estudiante vuelve a quedar activo.</p>
   </div>
 </div>
 
@@ -289,11 +281,6 @@ function pintarPend(){$('npend').textContent=PEND.length;
     :'<tr><td colspan="7" class="vac">No hay retiros pendientes de resolución.</td></tr>';
   Array.prototype.forEach.call(document.querySelectorAll('.addres'),function(b){b.onclick=function(){abrirRes(b.dataset.id)}});
   Array.prototype.forEach.call(document.querySelectorAll('.undo'),function(b){b.onclick=function(){abrirUndo(b.dataset.id)}})}
-$('verdes').onclick=function(){var w=$('desw'),on=w.style.display==='none';w.style.display=on?'block':'none';$('verdes').textContent=on?'Ocultar bajas deshechas':'Ver bajas deshechas';
-  if(!on)return;$('tdes').innerHTML='<tr><td colspan="7" class="vac">Cargando…</td></tr>';
-  api('deshechos').then(function(r){var L=r.lista||[];$('tdes').innerHTML=L.length?L.map(function(p){var d=p.datos;
-    return '<tr><td><b style="font-weight:600">'+esc(d.ap+' '+d.no)+'</b></td><td>'+esc(d.ce)+'</td><td>'+esc(d.cu)+'</td><td>'+esc(d.ca)+'</td><td>'+fdmy(p.fecha)+'<div style="font-size:11px;color:var(--mut)">'+esc(p.por||'')+'</div></td><td>'+fdmy(p.deshecho)+'<div style="font-size:11px;color:var(--mut)">'+esc(p.deshechoPor||'')+'</div></td><td>'+(p.filaBorrada||'—')+'</td></tr>'}).join(''):'<tr><td colspan="7" class="vac">No se ha deshecho ninguna baja.</td></tr>'})
-  .catch(function(e){$('tdes').innerHTML='<tr><td colspan="7" class="vac">'+esc(e.message)+'</td></tr>'})};
 var UNDO=null;
 function abrirUndo(id){var p=ALL.find(function(x){return x.id===id});if(!p)return;UNDO=p;var d=p.datos;
   $('dtx').innerHTML='¿Deshacer la baja de <b>'+esc(d.ap+' '+d.no)+'</b> (C.C. '+esc(d.ce)+', '+esc(d.cu)+')?<br><span style="color:var(--mut);font-size:13px">'+(p.excel?'Se borrará su fila en la hoja "Bajas desde 1935"':'Todavía no estaba en el Excel; solo se quita del Portal')+(p.estado==='completo'?', incluida la resolución,':'')+' y volverá a aparecer como estudiante activo.</span>';
