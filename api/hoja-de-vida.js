@@ -240,23 +240,37 @@ function procesarBajas(libro) {
 function procesarGraduados(libro) {
   const hoja = libro.hojas.find((h) => /^grados$/i.test(h)) || libro.hojas[0];
   const F = libro.leer(hoja, { maxCols: 40 });
-  const c = indiceCols(F[0] || [], {
-    ced: ['CEDULA'], prog: ['NOMBRE PROGRAMA'], nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'ESTUDIANTE'],
-    fecha: ['FECHA GRADO', 'FECHA DE GRADO', 'FECHA ACTA', 'FECHA DE ACTA', 'FECHA'], titulo: ['TITULO', 'TITULO OTORGADO', 'NOMBRE TITULO'],
-    trabajo: ['TRABAJO DE GRADO', 'NOMBRE TRABAJO DE GRADO', 'TITULO TRABAJO DE GRADO', 'TITULO DEL TRABAJO DE GRADO', 'NOMBRE DEL TRABAJO DE GRADO', 'TRABAJO GRADO', 'TESIS', 'TITULO TESIS', 'NOMBRE DEL TRABAJO'],
-  });
-  if (c.trabajo < 0) c.trabajo = (F[0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N')).findIndex((x) => /(TRABAJO|TESIS|MONOGRAFIA|PROYECTO DE GRADO)/.test(x) && !/(FECHA|NOTA|CALIFIC|DIRECTOR|ASESOR|JURADO|ACTA)/.test(x));
+  // La fila de encabezados puede no ser la primera: se toma la primera (de las 8 primeras) que traiga cédula o nombre.
+  let h0 = 0, c = null;
+  for (let q = 0; q < Math.min(F.length, 8); q++) {
+    const t = indiceCols(F[q] || [], {
+      ced: ['CEDULA', 'CEDULA DE CIUDADANIA', 'DOCUMENTO', 'IDENTIFICACION', 'NUMERO DE DOCUMENTO', 'NUMERO DE IDENTIFICACION', 'CC', 'C C'],
+      prog: ['NOMBRE PROGRAMA', 'PROGRAMA', 'PROGRAMA ACADEMICO', 'NOMBRE DEL PROGRAMA'],
+      nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'NOMBRE COMPLETO', 'ESTUDIANTE', 'GRADUANDO', 'GRADUADO'],
+      ape: ['APELLIDOS', 'APELLIDO', 'PRIMER APELLIDO'],
+      fecha: ['FECHA GRADO', 'FECHA DE GRADO', 'FECHA ACTA', 'FECHA DE ACTA', 'FECHA'], titulo: ['TITULO', 'TITULO OTORGADO', 'NOMBRE TITULO'],
+      trabajo: ['TRABAJO DE GRADO', 'NOMBRE TRABAJO DE GRADO', 'TITULO TRABAJO DE GRADO', 'TITULO DEL TRABAJO DE GRADO', 'NOMBRE DEL TRABAJO DE GRADO', 'TRABAJO GRADO', 'TESIS', 'TITULO TESIS', 'NOMBRE DEL TRABAJO'],
+    });
+    if (t.ced >= 0 || t.nombre >= 0 || t.ape >= 0) { c = t; h0 = q; break; }
+  }
+  if (!c) c = indiceCols(F[0] || [], { ced: ['CEDULA'], prog: ['NOMBRE PROGRAMA'], nombre: ['APELLIDOS Y NOMBRES'], ape: ['APELLIDOS'], fecha: ['FECHA GRADO'], titulo: ['TITULO'], trabajo: ['TRABAJO DE GRADO'] });
+  const encab = (F[h0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N'));
+  if (c.nombre < 0) c.nombre = encab.findIndex((x) => /NOMBRE/.test(x) && !/(PROGRAMA|TRABAJO|TITULO|ACTA|ESPECIAL)/.test(x));
+  if (c.ape < 0) c.ape = encab.findIndex((x) => /^APELLIDO/.test(x));
+  if (c.trabajo < 0) c.trabajo = encab.findIndex((x) => /(TRABAJO|TESIS|MONOGRAFIA|PROYECTO DE GRADO)/.test(x) && !/(FECHA|NOTA|CALIFIC|DIRECTOR|ASESOR|JURADO|ACTA)/.test(x));
   const porCed = {}, porNom = {};
   let n = 0;
-  for (let i = 1; i < F.length; i++) {
+  for (let i = h0 + 1; i < F.length; i++) {
     const r = F[i];
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
-    if (!ck && !(c.nombre >= 0 && r[c.nombre])) continue;
-    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: c.nombre >= 0 ? nom(r[c.nombre]) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
+    let nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
+    if (c.ape >= 0 && c.ape !== c.nombre) { const ap = sinTildes(r[c.ape]); if (ap && !nm.includes(ap)) nm = (ap + ' ' + nm).trim(); }
+    if (!ck && !nm) continue;
+    const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: nm ? nom(nm) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
     n++;
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
-  return { porCed, porNom, filas: n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0 } };
+  return { porCed, porNom, filas: n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
 }
 
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
@@ -890,7 +904,7 @@ async function cargar() {
   const [cong, baj, grad, ant, ext, ley, ccp, conc, med] = await Promise.all([
     intenta('conglomerado', 'CONGLOMERADO (ingresos)', () => fuente('conglomerado', procesarConglomerado)),
     intenta('bajas', 'Bajas y Ascensos', () => fuente('bajas', procesarBajas), (v) => (v.asc.error ? 'Hoja Ascensos: ' + v.asc.error : `Ascensos: ${v.asc.filas} filas`)),
-    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => (v.columnas.fecha ? '' : 'Sin columna de fecha de grado: se muestra solo que se graduó y el programa.')),
+    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => (!v.columnas.nombre ? 'Sin columna de nombre: quienes solo están en Graduados no se pueden buscar por nombre.' : v.columnas.fecha ? '' : 'Sin columna de fecha de grado: se muestra solo que se graduó y el programa.')),
     intenta('antiguedades', 'Antigüedades (notas, distinguido, excelencia)', cargarAntiguedades, (v) => `Periodos: ${v.periodos.join(', ')}`),
     intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
