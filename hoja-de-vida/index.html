@@ -281,13 +281,13 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     var y=+e.fecha.slice(0,4),h=+e.fecha.slice(5,7)<=6?1:2,per=y+'-'+h;
     var s=sems.filter(function(x){return x.semestre.periodo===per})[0];
     if(!s)return true;(s.extras=s.extras||[]).push(e);return false});
-  var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FDECEA','#C0392B','out'],'SALIÓ':['#E5E7EB','#4A5B70','out'],ESCALAFONADO:['#DDF1E4','#1B5E34','bars']}[est];
+  var est=F.estado,ES={GRADUADO:['#DDF1E4','#1B5E34','check'],ACTIVO:['#DCE9F7','#17406F','flag'],RETIRADO:['#FDECEA','#C0392B','out'],'SALIÓ':['#E5E7EB','#4A5B70','out'],ESCALAFONADO:['#DDF1E4','#1B5E34','bars'],'EGRESADO NO GRADUADO':['#FFF3D6','#8A5A00','bars']}[est];
   var h='';
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
   h+='<div class="cu"><div class="rt"><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',16,'#1F4E8C')+'Atrás</button>'+actHtml(F.actualizado)+'</div>'+'<div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
   var ls=[];
-  if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
-  if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
+  if(F.escalafonado&&est!=='ESCALAFONADO'&&est!=='EGRESADO NO GRADUADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
+  if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado','EGRESADO NO GRADUADO':'Egresado no graduado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
   if(P.cont)ls.push('Contingente '+ESC(P.cont));
   if(P.curso)ls.push('Curso '+ESC(P.curso));
   if(P.nac&&P.nac!=='COLOMBIA')ls.push(ESC(P.nac));
@@ -373,6 +373,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',complementacion:'Ingreso'}[e.tipo]||'';
     }
     if(e.medallas&&(e.tipo==='ley'||e.tipo==='complementacion'||e.tipo==='extension'))e.medallas.forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
+    if(e.egNG)body+='<div class="ds"><b style="color:#8A5A00">Egresado no graduado'+(e.egNom?' - '+TT(e.egNom):'')+'</b></div>';
     body+=pvTag(e)||(e.semestre&&e.pv?pvTag({pv:1}):'');
     h+='<div class="tl-row rise" style="animation-delay:'+(n*50)+'ms"><div class="tl-year">'+ys+'</div><div class="tl-axis"><div class="tl-node" style="background:'+p[0]+';box-shadow:0 0 0 7px '+p[1]+',0 6px 14px rgba(20,50,90,.2)">'+svg(IC[icon],22,'#fff')+'</div></div>'
       +'<div class="tl-card'+(key==='perdido'?' perdido perd':'')+'">'+(anio?'<div class="yr-m">'+anio+'</div>':'')+'<div class="t"><b>'+titulo+'</b>'+(chipD?'<span class="d" style="background:'+p[1]+';color:'+p[2]+'">'+ESCT(chipD)+'</span>':'')+'</div>'+body+(chip?'<div><span class="cp" style="background:'+p[0]+'">'+ESCT(chip)+'</span></div>':'')+'</div></div>';
