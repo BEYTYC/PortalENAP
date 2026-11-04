@@ -684,41 +684,25 @@ function armarFicha(id, S) {
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
   // La medalla Caldas nunca va suelta: se asocia a un programa o curso (escalafonamiento, titulación, complementación o curso de ley).
   // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
+  // Se ubica solo por CURSO ESPECÍFICO (o CURSO GENERAL) y PERIODO; la categoría (consagración, aplicación…) no decide nada.
   medallas.forEach((x) => {
-    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', curso: x.curso || '', pv: x.pv };
-    // "Primer puesto en su promoción" solo aplica a la Caldas del escalafonamiento; en un programa o curso no se dice nada que no esté en la base.
-    const poner = (ev) => { if (ev.tipo !== 'escalafon') m.motivo = ''; (ev.medallas = ev.medallas || []).push(m); };
-    const tipoM = sinTildes(x.medalla), kc = kt(x.curso), kp = kt(x.programa);
-    const evEsc = linea.find((e) => e.tipo === 'escalafon');
-    const evGrados = linea.filter((e) => e.tipo === 'grado');
-    const evLey = linea.filter((e) => e.tipo === 'ley');
-    const evCcp = linea.filter((e) => e.tipo === 'complementacion');
+    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: '', programa: x.programa || '', curso: x.curso || '', pv: x.pv };
+    const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
+    const clave = kt(x.curso) || kt(x.programa);
     const tM = x.periodo ? perNum(x.periodo) : tFecha(x.fecha);
     const coincide = (a, b) => a && b && (a.includes(b) || b.includes(a));
-    // 1. Consagración: con el escalafonamiento, salvo que el curso o programa específico diga otra cosa (p. ej. una Caldas obtenida en otro programa).
-    const claveM = kc || kp;
-    const otroDestino = claveM && (evGrados.some((e) => coincide(kt(e.programa || ''), claveM) || coincide(kt(e.tituloAcad || ''), claveM)) || evLey.some((e) => coincide(kt(e.titulo), claveM)));
-    if (evEsc && /CONSAGRACION/.test(tipoM) && !otroDestino) return poner(evEsc);
-    // 2. Curso específico que nombra un curso de ley (Básico, Comando…): esa tarjeta, la más cercana al periodo.
-    if (kc) {
-      const L = evLey.filter((e) => coincide(kt(e.titulo), kc));
-      if (L.length) return poner(L.sort((a, b) => Math.abs((a.t || 0) - (tM || 0)) - Math.abs((b.t || 0) - (tM || 0)))[0]);
-      if (evEsc && /ESCALAF/.test(kc)) return poner(evEsc);
+    const cercano = (L) => (tM != null ? L.slice().sort((a, b) => Math.abs((a.t || 0) - tM) - Math.abs((b.t || 0) - tM))[0] : L[0]);
+    const evEsc = linea.filter((e) => e.tipo === 'escalafon');
+    const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'extension', 'escalafon'].includes(e.tipo) && e.t != null);
+    // 1. Tarjetas cuyo programa o curso coincide con el curso específico; si hay varias, la del periodo más cercano.
+    if (clave) {
+      const L = tarjetas.filter((e) => e.tipo === 'escalafon' ? /ESCALAF/.test(clave) : (coincide(kt(e.titulo), clave) || coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), clave))));
+      if (L.length) return poner(cercano(L));
     }
-    // 3. Aplicación / complementación: grado de complementación o, si no hay, el ingreso al CCP.
-    if (/APLICACION/.test(tipoM) || /COMPLEMENT|CCP/.test(kc)) { const gc = evGrados.find((e) => e.comp) || evCcp[0]; if (gc) return poner(gc); }
-    // 4. Programa o curso que coincide con el de un grado.
-    const clave = kc || kp;
-    const gs = clave ? evGrados.filter((e) => coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave)) : [];
-    // Si varias tarjetas coinciden, la del periodo más cercano al de la medalla.
-    const g = gs.length ? (tM != null ? gs.slice().sort((a, b) => Math.abs((a.t || 0) - tM) - Math.abs((b.t || 0) - tM))[0] : gs[0]) : null;
-    if (g) return poner(g);
-    // 5. Por periodo: la tarjeta de ley, grado, complementación o escalafón más cercana a esa fecha.
-    const cand = evLey.concat(evGrados, evCcp, evEsc ? [evEsc] : []).filter((e) => e.t != null);
-    if (cand.length) {
-      if (tM != null) return poner(cand.sort((a, b) => Math.abs(a.t - tM) - Math.abs(b.t - tM))[0]);
-      return poner(evGrados.find((e) => !e.comp) || cand[0]);
-    }
+    // 2. Sin coincidencia: la tarjeta más cercana al periodo.
+    if (tM != null && tarjetas.length) return poner(cercano(tarjetas));
+    const gA = linea.find((e) => e.tipo === 'grado' && !e.comp) || linea.find((e) => e.tipo === 'grado') || evEsc[0];
+    if (gA) return poner(gA);
     linea.push(Object.assign({ tipo: 'medalla', t: tM, periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
