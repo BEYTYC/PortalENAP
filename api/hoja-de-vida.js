@@ -290,7 +290,9 @@ function graduadosDeHoja(F, porCed, porNom) {
     const r = F[i];
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
     let nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
+    if (!/[A-Z]/.test(nm)) nm = '';
     if (c.ape >= 0 && c.ape !== c.nombre) { const ap = sinTildes(r[c.ape]); if (ap && !nm.includes(ap)) nm = (ap + ' ' + nm).trim(); }
+    if (!/[A-Z]/.test(nm)) nm = '';
     if (!nm && (iAp2 >= 0 || iNom2 >= 0)) nm = sinTildes([iAp2 >= 0 ? r[iAp2] : '', iNom2 >= 0 ? r[iNom2] : ''].filter(Boolean).join(' '));
     if (!ck && !nm) continue;
     const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: nm ? nom(nm) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
