@@ -248,7 +248,7 @@ function msg(t,err){document.body.classList.remove('ini');document.body.classLis
 function abrir(id){document.body.classList.add('ficha');gate(true,'Armando la hoja de vida…',true);api('ficha',{id:id}).then(pintar).catch(function(e){msg(e.message,1)}).then(function(){gate(false);$('bt').disabled=false})}
 
 /* ---------- Ficha ---------- */
-var FASES={for:['Formación Académica y Militar','#1F4E8C'],com:['Formación Complementaria','#1E8C7E'],ccp:['Complementación Profesional','#2A7FA8'],ley:['Cursos de Ley - Ascenso','#6B5BC4'],pos:['Estudios de Posgrado','#0F766E'],ret:['Retiro','#C0392B']};
+var FASES={for:['Formación Académica y Militar','#1F4E8C'],com:['Formación Complementaria','#1E8C7E'],ccp:['Complementación Profesional','#2A7FA8'],ley:['Cursos de Ley - Ascenso','#6B5BC4'],pos:['Estudios de Posgrado','#0F766E'],ret:['Retiro Institucional','#C0392B']};
 
 /* Texto en MAYÚSCULAS sostenidas -> minúsculas con inicial mayúscula (siglas conocidas se respetan) */
 var SIG={SAP:1,ISO:1,TIC:1,TICS:1,SST:1,NIIF:1,NIC:1,ERP:1,PMI:1,PMP:1,SIG:1,GPS:1,SIATH:1,OEA:1,ONU:1,OTAN:1,CIDENAV:1,COTECMAR:1,DIMAR:1,ENAP:1,CCP:1,SNIES:1,ARC:1,PR:1,II:1,III:1,IV:1,VI:1,VII:1,VIII:1,IX:1,XI:1,XII:1};
@@ -358,7 +358,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
       titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');if(e.detalle)body+='<div class="ds">'+ESCT(e.detalle)+'</div>';
     }else if(e.tipo==='retiro'){
-      titulo='Retiro';chipD=fch(e.fecha);var d2=[];if(e.causal)d2.push(TT(e.causal));if(e.doc)d2.push(TT(e.doc));if(e.curso)d2.push('Curso '+String(e.curso).toUpperCase());
+      titulo='Retiro Institucional';chipD=fch(e.fecha);var d2=[];if(e.causal)d2.push(TT(e.causal));if(e.doc)d2.push(TT(e.doc));if(e.curso)d2.push('Curso '+String(e.curso).toUpperCase());
       if(d2.length)body+='<div class="ds">'+ESC(d2.join(' · '))+'</div>';
       var fi=F.ingreso&&F.ingreso.fecha,ff=e.fecha;if(fi&&ff){var a=new Date(fi),b=new Date(ff),mes=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()+(b.getDate()>=a.getDate()?0:-1);if(mes>=0)body+='<div class="ds">Semestres transcurridos: '+Math.max(1,Math.round(mes/6))+'</div>'}if(e.obs)body+='<div class="ds">'+ESCT(e.obs)+'</div>';
     }else if(e.tipo==='medalla'){
