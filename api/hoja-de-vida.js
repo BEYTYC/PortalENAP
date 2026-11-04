@@ -36,7 +36,7 @@ const RUTAS = {
   ley: [RUTA_BD + 'BD Cursos de Ley - Cursos de Extensión/Control Curso de Capacitación para Ascenso.xlsx'],
 };
 const CARPETA_BAJAS = RUTA_BD + 'B.D Retiros y Ascensos';
-const CARPETA_CONC = RUTA_BD + 'B.D Concesiones';
+const CARPETA_CONC = RUTA_BD + 'B.D Concesiones/B.D Concesiones';
 const HOJA_BAJAS = 'Bajas desde 1935';
 const HOJA_ASC = 'Ascensos';
 const PESOS = [0.5, 0.2, 0.2, 0.1]; // académica, aptitud naval, disciplina, cultura física (igual que Antigüedades)
