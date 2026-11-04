@@ -286,7 +286,8 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   h+='<div class="pers rise"><div class="ban"><i style="right:-30px;top:-60px;width:220px;height:220px;background:#C3D8F0"></i><i style="right:140px;top:30px;width:110px;height:110px;background:#E9F1FB"></i><i style="left:-40px;bottom:-70px;width:160px;height:160px;background:#E9F1FB"></i></div>';
   h+='<div class="cu"><div class="rt"><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',16,'#1F4E8C')+'Atrás</button>'+actHtml(F.actualizado)+'</div>'+'<div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
   var ls=[];
-  if(F.escalafonado&&est!=='ESCALAFONADO'&&est!=='EGRESADO NO GRADUADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
+  if(F.civil)ls.push('<i style="color:#4A5B70">Civil</i>');
+  if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
   if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado','EGRESADO NO GRADUADO':'Egresado no graduado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
   if(P.cont)ls.push('Contingente '+ESC(P.cont));
   if(P.curso)ls.push('Curso '+ESC(P.curso));
@@ -328,7 +329,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     if(e._fase){
       h+='<div class="phase rise" style="animation-delay:'+(n*50)+'ms"><span style="background:'+FASES[e._fase][1]+'">'+FASES[e._fase][0]+'</span></div>';n++;lastY=null;return}
     var key=e.tipo==='semestre'&&e.semestre.perdido?'perdido':(e.tipo==='semestre'?'semestre':e.tipo),p=PAL[key]||PAL.semestre;
-    var icon={logros:'medal',ingreso:'flag',regreso:'flag',semestre:'book',escalafon:'bars',grado:'scroll',extension:'layers',complementacion:'flag',ley:'up',concesion:'tag',medalla:'medal',reconocimiento:'medal',retiro:'out'}[e.tipo];
+    var icon={logros:'medal',ingreso:'flag',regreso:'flag',semestre:'book',escalafon:'bars',grado:'cap',extension:'layers',complementacion:'flag',ley:'up',concesion:'tag',medalla:'medal',reconocimiento:'medal',retiro:'out'}[e.tipo];
     if(key==='perdido')icon='alert';
     var anio=e.anio||'';var ys=(anio&&anio!==lastY)?anio:'';if(anio)lastY=anio;
     var body='',titulo='',chipD='',chip='';
