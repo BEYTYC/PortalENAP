@@ -29,6 +29,7 @@
  */
 
 const roles = require('./roles.js');
+const XLSX = require('./_xlsx.js');
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const DOMINIO = '@enap.edu.co';
@@ -250,6 +251,35 @@ module.exports = async function handler(req, res) {
       await escribirJson('periodos.json', idx);
       await escribirJson('datos.json', { meta, datos }); // el último cargado queda como respaldo
       res.status(200).json({ ok: true, meta, periodos: idx.lista });
+      return;
+    }
+
+    /* ---- retiros: quién figura retirado en Bajas y Ascensos (hoja "Bajas desde 1935") ---- */
+    if (accion === 'retiros') {
+      const dueno = 'jestadisticaplen@enap.edu.co';
+      const carpeta = 'Estadística/Bases de Datos/B.D Retiros y Ascensos';
+      const enc = (r) => r.split('/').map(encodeURIComponent).join('/');
+      const H = { Authorization: `Bearer ${appToken}` };
+      const norm = (n) => String(n).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9.]/g, '');
+      const rl = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/root:/${enc(carpeta)}:/children?$select=id,name,lastModifiedDateTime,file&$top=200`, { headers: H });
+      if (!rl.ok) throw error(`No se pudo abrir la carpeta de Bajas y Ascensos (${rl.status}).`, 502);
+      const L = ((await rl.json()).value || []).filter((x) => x.file && !x.name.startsWith('~$') && norm(x.name).startsWith('BAJASYASCENSOS') && /\.XLS[XM]$/.test(norm(x.name)));
+      L.sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)));
+      if (!L[0]) throw error('No se encontró el archivo Bajas y Ascensos.', 404);
+      const rb = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/items/${L[0].id}/content`, { headers: H });
+      if (!rb.ok) throw error(`No se pudo descargar Bajas y Ascensos (${rb.status}).`, 502);
+      const libro = XLSX.abrir(Buffer.from(await rb.arrayBuffer()));
+      const F = libro.leer('Bajas desde 1935', { maxCols: 33 });
+      const desde = typeof body.desde === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.desde) ? body.desde : '2024-01-01';
+      const ced = (v) => { let t = typeof v === 'number' ? (Number.isInteger(v) ? v.toFixed(0) : String(v)) : String(v == null ? '' : v).trim().toUpperCase(); t = t.replace(/^(C\.?\s?C\.?|C\.?\s?E\.?|T\.?\s?I\.?)\s*[:#.\-]?\s*(?=\d)/, '').replace(/[^0-9A-Z]/g, '').replace(/^0+(?=\d)/, ''); return /\d/.test(t) ? t : ''; };
+      const iso = (v) => { if (typeof v === 'number') { const d = new Date(Math.round((v - 25569) * 86400000)); return d.toISOString().slice(0, 10); } const m = String(v || '').trim().match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/); if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; const n = String(v || '').match(/^(\d{4}-\d{2}-\d{2})/); return n ? n[1] : ''; };
+      const out = {};
+      for (let i = 1; i < F.length; i++) {
+        const r = F[i], ck = ced(r[5]), f = iso(r[14]);
+        if (!ck || !f || f < desde) continue;
+        if (!out[ck] || f > out[ck].f) out[ck] = { f, causal: String(r[20] == null ? '' : r[20]).trim(), doc: String(r[16] == null ? '' : r[16]).trim() };
+      }
+      res.status(200).json({ retiros: out, archivo: L[0].name, modificado: L[0].lastModifiedDateTime });
       return;
     }
 

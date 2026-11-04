@@ -2217,6 +2217,7 @@ function editor(el,s){
 document.getElementById('q').addEventListener('input',e=>{const q0=q;q=e.target.value.trim();if(q&&!q0)window.__pre={cur,msem,totSel,nk,y:window.scrollY};if(!q)window.__pre=null;sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
 sel=null;selK=null;
 {const th=document.getElementById('thc');if(th)th.textContent='Curso '+PER}
+if(D.rbRerank){D.rbRerank=false;rerank()}
 if(D.solo){cur='ESCT';window.addEventListener('DOMContentLoaded',()=>{});setTimeout(()=>render(),0)}else render();
 /* ===== Movimiento de puestos y riesgo ===== */
 function lastB(s){return s.h[s.h.length-1]||[]}
@@ -2916,7 +2917,13 @@ function iniciar(){
         document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
       window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);window.__PERS=r.periodos||[];selPer(window.__PERS,window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
-      document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0);
+      var seguir=function(){document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0)};
+      /* Retirados: se definen con la base Bajas y Ascensos (los cambios manuales de estado se respetan) */
+      (function(){var pr=String(window.__PER||'').match(/^(\d{4})-(\d)$/);var y=pr?+pr[1]:new Date().getFullYear(),h=pr?+pr[2]:1;var d=new Date(Date.UTC(y,h===2?6:0,1));d.setUTCMonth(d.getUTCMonth()-8);
+        api('retiros',{desde:d.toISOString().slice(0,10)}).then(function(rt){var R=rt.retiros||{},D=window.__D,man={};(D.ediciones||[]).forEach(function(e){if((e.cambios||[]).some(function(c){return /^Estado:/.test(c)}))man[e.c]=1});
+          var L=(D.esc||[]).concat(Object.keys(D.sheets||{}).reduce(function(a,k){return a.concat(D.sheets[k]||[])},[])),n=0;
+          L.forEach(function(st){if(st.ce==null||man[st.c]||st.e==='Retirado')return;var ck=String(st.ce).replace(/[^0-9]/g,'').replace(/^0+/,'');var b=R[ck];if(!b)return;st.e='Retirado';st.rb=1;if(!st.ev)st.ev='Retirado según Bajas y Ascensos'+(b.causal?' · '+b.causal:'')+' · '+b.f;n++});
+          if(n)D.rbRerank=true}).catch(function(){}).then(seguir)})();
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
   }).catch(function(e){
