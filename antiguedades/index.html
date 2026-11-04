@@ -799,6 +799,11 @@ svg .cnt{font-weight:700}
 .edb button{border:0;border-radius:6px;padding:8px 12px;background:var(--navy,#12305a);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .edn{font-size:11px;opacity:.7;margin:8px 0 0}
 
+.admv{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:14px;padding:10px 16px;margin:0 0 10px;background:rgba(255,255,255,.95);border-bottom:1px solid var(--line)}
+.admv button{font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border:1px solid var(--navy);border-radius:8px;background:#fff;color:var(--navy);cursor:pointer}
+.admv button:hover{background:var(--soft)}
+.admv span{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.04em;text-transform:uppercase}
+
 .edt{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:0;background:#fff;box-shadow:0 1px 2px rgba(31,78,150,.06),0 10px 28px -14px rgba(31,78,150,.25);overflow:hidden}
 .edt .edh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;background:var(--navy);color:#fff}
 .edt .edh h4{margin:0;font-size:15px;font-weight:700;color:#fff}.edt .edh p{margin:2px 0 0;font-size:12px;color:var(--navy-mute)}
@@ -1522,7 +1527,7 @@ html body .stu table.gt.gt tfoot tr td,html body .stu table.gt.gt tfoot tr td:fi
 <script>(function(){function u(){try{var sel=document.querySelector("#pub .bar select, .bar select");var t=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:"";var c=document.querySelector("#chips .chip[aria-pressed=true]");var e=document.getElementById("fsttp");if(e)e.textContent=t||""}catch(_){}}document.addEventListener("fullscreenchange",u);setInterval(u,1500);u()})()</script></div>
 </div>
 <div id="nodata" class="card" hidden style="padding:26px;margin-top:14px;text-align:center"><b style="display:block;font-size:16px;margin-bottom:6px">Todavía no hay antigüedades cargadas</b><span style="color:var(--mute)">Abre el engranaje de arriba (<b>Datos cargados</b>) y sube el archivo de datos para empezar.</span></div>
-<div id="admin" hidden><div class="adm"><div style="display:grid;gap:10px;min-width:0">
+<div id="admin" hidden><div class="admv"><button type="button" id="admback" onclick="document.getElementById('va').click()">← Volver a la consulta</button><span>Administración</span></div><div class="adm"><div style="display:grid;gap:10px;min-width:0">
 <section class="card ac"><h3>Accesos por correo</h3><p>Entran con su cuenta institucional del Portal. Solo los administradores y los correos de esta lista pueden abrir las antigüedades.</p>
 <div class="frm"><input id="em" type="email" placeholder="correo@enap.edu.co" aria-label="Correo"><button class="btn" id="add">Dar acceso de consulta</button></div><label class="chk"><input type="checkbox" id="emd"> Puede descargar el Excel</label><div class="err" id="er" role="alert"></div>
 <div class="tw"><table class="at"><thead><tr><th>Correo</th><th>Rol</th><th>Último ingreso</th><th title="Puede descargar el Excel">Excel</th><th></th></tr></thead><tbody id="ab"></tbody></table></div></section>
