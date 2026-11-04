@@ -4,7 +4,7 @@
  * Servidor del módulo "Hoja de vida del estudiante": toda la trayectoria de un
  * estudiante por la ENAP en una sola pantalla. Solo lectura.
  *
- * Quién puede usarlo (por ahora): sea@enap.edu.co y jestadisticaplen@enap.edu.co.
+ * Quién puede usarlo (por ahora): jestadisticaplen@enap.edu.co.
  *
  * Fuentes (OneDrive de jestadisticaplen, y SharePoint del Portal):
  *   - CONGLOMERADO ........ ingresos (sigla, contingente, fecha, motivo de salida).
@@ -24,7 +24,7 @@ const roles = require('./roles.js');
 const X = require('./_xlsx.js');
 
 const GRAPH = 'https://graph.microsoft.com/v1.0';
-const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
+const ADMINS = ['jestadisticaplen@enap.edu.co'];
 const DUENO = 'jestadisticaplen@enap.edu.co';
 const RUTA_BD = 'Estadística/Bases de Datos/';
 const RUTAS = {
@@ -901,7 +901,7 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'object' && req.body ? req.body : {};
     if (!body.accessToken || !body.accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(body.accessToken);
-    if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para sea@enap.edu.co y jestadisticaplen@enap.edu.co.', 403);
+    if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para jestadisticaplen@enap.edu.co.', 403);
     const a = body.accion;
     if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre }); return; }
     await ctx();
