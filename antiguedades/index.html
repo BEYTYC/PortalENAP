@@ -2185,7 +2185,7 @@ function rerank(){
 function editor(el,s){
   const iv=v=>v==null?'':String(Math.round(v*1000)/1000).replace('.',',');
   const sec=document.createElement('section');sec.className='edt';
-  sec.innerHTML=`<h4>Modo edición · solo administrador</h4><div class="edg"><label>Estado<select id="ed-e">${ESTS.map(x=>`<option${(s.e||'Normal')===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Detalle / observación<input id="ed-ev" type="text" value="${(s.ev||'').replace(/"/g,'&quot;')}"></label><label>Novedad financiera<input id="ed-fin" type="text" value="${(s.fin||'').replace(/"/g,'&quot;')}"></label></div><div class="tw"><table><thead><tr><th>Semestre</th><th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C.FIS</th></tr></thead><tbody>${s.h.map((r,i)=>`<tr><td>${r[0]}</td>${[1,2,3,4].map(j=>`<td><input class="ed-n" data-i="${i}" data-j="${j}" inputmode="decimal" value="${iv(r[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="edb"><button type="button" id="ed-ap">Aplicar y recalcular</button><button type="button" id="ed-sv">Guardar en el servidor</button><span id="ed-m" role="status"></span></div><p class="edn">Recalcula promedios, promedio final y puestos de todo el grupo. Los premios no se recalculan solos.</p>`;
+  sec.innerHTML=`<h4>Modo edición · solo administrador</h4><div class="edg"><label>Estado<select id="ed-e">${ESTS.map(x=>`<option${(s.e||'Normal')===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Detalle / observación<input id="ed-ev" type="text" value="${(s.ev||'').replace(/"/g,'&quot;')}"></label><label>Novedad financiera<input id="ed-fin" type="text" value="${(s.fin||'').replace(/"/g,'&quot;')}"></label></div>${(s.rk&&s.rk.length)?`<fieldset class="edr" style="border:1px solid #cfd8e3;border-radius:8px;margin:10px 0;padding:8px 12px"><legend style="font-weight:600;padding:0 6px">Motivos de riesgo · marque los que ya no aplican</legend>${s.rk.map((r,i)=>`<label style="display:flex;gap:8px;align-items:center;padding:3px 0"><input type="checkbox" class="ed-rk" data-i="${i}"><span>${String(r[0]).replace(/</g,'&lt;')}${r[1]==null?'':' · '+iv(r[1])}</span></label>`).join('')}</fieldset>`:''}<div class="tw"><table><thead><tr><th>Semestre</th><th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C.FIS</th></tr></thead><tbody>${s.h.map((r,i)=>`<tr><td>${r[0]}</td>${[1,2,3,4].map(j=>`<td><input class="ed-n" data-i="${i}" data-j="${j}" inputmode="decimal" value="${iv(r[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="edb"><button type="button" id="ed-ap">Aplicar y recalcular</button><button type="button" id="ed-sv">Guardar en el servidor</button><span id="ed-m" role="status"></span></div><p class="edn">Recalcula promedios, promedio final y puestos de todo el grupo. Los premios no se recalculan solos.</p>`;
   el.appendChild(sec);
   const m=t=>{sec.querySelector('#ed-m').textContent=t};
   const aplicar=()=>{
@@ -2197,6 +2197,10 @@ function editor(el,s){
     if((s.e||'Normal')!==e){cam.push(`Estado: ${s.e||'Normal'} → ${e}`);s.e=e}
     if((s.ev||'')!==ev){cam.push('Detalle modificado');s.ev=ev}
     if((s.fin||'')!==fin){cam.push('Novedad financiera: '+(fin||'(quitada)'));if(fin)s.fin=fin;else delete s.fin}
+    const qt=[...sec.querySelectorAll('.ed-rk:checked')].map(i=>+i.dataset.i);
+    if(qt.length){const nom=qt.map(i=>s.rk[i][0]);s.rk=s.rk.filter((_,i)=>!qt.includes(i));cam.push('Riesgo quitado: '+nom.join(', '));
+      nom.filter(x=>/Aptis/i.test(x)).forEach(x=>{const t=(s.ev||'').split(';').map(y=>y.trim()).filter(y=>y&&y!==x);t.push('Aptis aprobada');s.ev=t.join('; ')});
+      s.rkq=(s.rkq||[]).concat(nom)}
     if(!cam.length){m('Sin cambios.');return null}
     recalc(s);rerank();
     D.ediciones=(D.ediciones||[]).concat([{t:new Date().toISOString(),por:(window.__yo||{}).correo||'',c:s.c,n:s.n,cambios:cam}]);
