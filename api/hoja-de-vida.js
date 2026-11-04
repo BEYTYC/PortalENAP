@@ -257,7 +257,7 @@ function procesarGraduados(libro) {
     let F;
     try { F = libro.leer(hoja, { maxCols: 40 }); } catch (e) { return; }
     const r = graduadosDeHoja(F, porCed, porNom);
-    hojasInfo.push(r ? { hoja, usada: true, filas: r.n, cols: r.cols } : { hoja, usada: false });
+    hojasInfo.push(r ? { hoja, usada: true, filas: r.n, cols: r.cols, ultimos: r.ultimos, totalFilas: F.length } : { hoja, usada: false });
     if (r) { n += r.n; cols = cols || r.columnas; ['fecha', 'titulo', 'trabajo', 'nombre', 'cedula'].forEach((k) => { if (r.columnas[k]) cols[k] = true; }); }
   });
   return { porCed, porNom, filas: n, hojas: hojasInfo, columnas: cols || { fecha: false, titulo: false, trabajo: false, nombre: false, cedula: false } };
@@ -285,7 +285,7 @@ function graduadosDeHoja(F, porCed, porNom) {
   const iAp2 = encab.findIndex((x) => /^APELLIDOS ?2$/.test(x)), iNom2 = encab.findIndex((x) => /^NOMBRES$/.test(x));
   if (c.ced < 0 && c.nombre < 0 && c.ape < 0 && iAp2 < 0) return null;
   if (c.prog < 0 && c.fecha < 0) return null; // hoja sin programa ni fecha: no es una lista de grados
-  let n = 0;
+  let n = 0; const ultimos = [];
   for (let i = h0 + 1; i < F.length; i++) {
     const r = F[i];
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
@@ -295,9 +295,10 @@ function graduadosDeHoja(F, porCed, porNom) {
     if (!ck && !nm) continue;
     const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: nm ? nom(nm) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
     n++;
+    ultimos.push((reg.nombre || '(sin nombre)') + ' [' + (ck || 'sin cédula') + ']' + (reg.fecha ? ' ' + reg.fecha : '')); if (ultimos.length > 3) ultimos.shift();
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
-  return { n, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean), columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
+  return { n, ultimos, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean), columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
 }
 
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
@@ -941,7 +942,7 @@ async function cargar() {
   const [cong, baj, grad, ant, ext, ley, ccp, conc, med] = await Promise.all([
     intenta('conglomerado', 'CONGLOMERADO (ingresos)', () => fuente('conglomerado', procesarConglomerado)),
     intenta('bajas', 'Bajas y Ascensos', () => fuente('bajas', procesarBajas), (v) => (v.asc.error ? 'Hoja Ascensos: ' + v.asc.error : `Ascensos: ${v.asc.filas} filas`)),
-    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => `${v.filas} registros · ` + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ') + (!v.columnas.nombre ? ' · SIN columna de nombre: quienes solo están en Graduados no se pueden buscar por nombre.' : v.columnas.fecha ? '' : ' · Sin columna de fecha de grado.')),
+    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => `${v.filas} registros · ` + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')}; filas en la hoja: ${h.totalFilas}; ÚLTIMOS LEÍDOS: ${(h.ultimos || []).join(' | ')})` : ' (sin columnas reconocidas)')).join(' · ') + (!v.columnas.nombre ? ' · SIN columna de nombre: quienes solo están en Graduados no se pueden buscar por nombre.' : v.columnas.fecha ? '' : ' · Sin columna de fecha de grado.')),
     intenta('antiguedades', 'Antigüedades (notas, distinguido, excelencia)', cargarAntiguedades, (v) => `Periodos: ${v.periodos.join(', ')}`),
     intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
