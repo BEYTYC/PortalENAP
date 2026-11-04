@@ -36,7 +36,7 @@ const RUTAS = {
   ley: [RUTA_BD + 'BD Cursos de Ley - Cursos de Extensión/Control Curso de Capacitación para Ascenso.xlsx'],
 };
 const CARPETA_BAJAS = RUTA_BD + 'B.D Retiros y Ascensos';
-const CARPETA_CONC = RUTA_BD + 'B.D Concesiones, Becas, Distintivos y Resoluciones/B.D Distinguidos, Becados, Mérito y Laureado';
+const CARPETA_CONC = RUTA_BD + 'B.D Concesiones';
 const HOJA_BAJAS = 'Bajas desde 1935';
 const HOJA_ASC = 'Ascensos';
 const PESOS = [0.5, 0.2, 0.2, 0.1]; // académica, aptitud naval, disciplina, cultura física (igual que Antigüedades)
@@ -108,9 +108,19 @@ async function itemBajas() {
   return { id: m.id, eTag: m.eTag, nombre: m.name, mod: m.lastModifiedDateTime };
 }
 async function itemConcesiones() {
-  const r = await g(`/users/${encodeURIComponent(DUENO)}/drive/root:/${enc(CARPETA_CONC)}:/children?$select=id,name,eTag,lastModifiedDateTime,file&$top=200`);
-  if (!r.ok) throw error(`No se pudo abrir la carpeta ${CARPETA_CONC} (${r.status}).`, 502);
-  const L = ((await r.json()).value || []).filter((x) => x.file && /\.xls[xm]$/i.test(x.name) && normNom(x.name).startsWith('BASECONCESIONES') && !x.name.startsWith('~$'));
+  const base = `/users/${encodeURIComponent(DUENO)}/drive`;
+  const sel = '?$select=id,name,eTag,lastModifiedDateTime,file,folder&$top=200';
+  const esBase = (x) => x.file && /\.xls[xm]$/i.test(x.name) && normNom(x.name).startsWith('BASECONCESIONES') && !x.name.startsWith('~$');
+  const hijos = async (ruta) => { const r = await g(`${base}/root:/${enc(ruta)}:/children${sel}`); return r.ok ? ((await r.json()).value || []) : null; };
+  const raiz = await hijos(CARPETA_CONC);
+  if (!raiz) throw error(`No se pudo abrir la carpeta ${CARPETA_CONC}.`, 502);
+  let L = raiz.filter(esBase);
+  // Si no está en la carpeta, se busca en sus subcarpetas (un nivel y dos).
+  for (const sub of raiz.filter((x) => x.folder && !L.length)) {
+    const h1 = (await hijos(CARPETA_CONC + '/' + sub.name)) || [];
+    L = h1.filter(esBase);
+    for (const s2 of h1.filter((x) => x.folder && !L.length)) L = ((await hijos(CARPETA_CONC + '/' + sub.name + '/' + s2.name)) || []).filter(esBase);
+  }
   L.sort((a, b) => String(b.lastModifiedDateTime).localeCompare(String(a.lastModifiedDateTime)));
   if (!L[0]) throw error(`No se encontró "Base Concesiones" en ${CARPETA_CONC}.`, 404);
   return { id: L[0].id, eTag: L[0].eTag, nombre: L[0].name, mod: L[0].lastModifiedDateTime };
