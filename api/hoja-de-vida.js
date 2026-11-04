@@ -664,12 +664,14 @@ function armarFicha(id, S) {
 
   /* ---- Estado ---- */
   let estado = '';
-  if (grados.length) estado = 'GRADUADO';
+  const POSG = /ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/;
+  const titulado = grados.some((g) => !POSG.test(sinTildes(g.programa || g.titulo || '')) && !esGradoComp(g, cursos, ((escal.slice().sort((a, b) => (a.periodo || '').localeCompare(b.periodo || '')).pop()) || {}).fecha || ''));
+  if (titulado) estado = 'GRADUADO';
   else if (retiro) estado = 'RETIRADO';
   else if (!escal.length && ing0 && (ing0.salida || ing0.anioSal) && !(ultimo && ultimo.e !== 'Retirado' && ultimo.e !== 'Salió')) estado = 'SALIÓ';
   else if (ultimo && (ultimo.e === 'Retirado' || ultimo.e === 'Salió')) estado = 'RETIRADO';
+  else if (escal.length) estado = 'EGRESADO NO GRADUADO';
   else if (ultimo) estado = 'ACTIVO';
-  else if (escal.length) estado = 'ESCALAFONADO';
 
   /* ---- Línea de tiempo ---- */
   const linea = [];
@@ -694,6 +696,15 @@ function armarFicha(id, S) {
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
+  // Complementación o posgrado cursado sin grado: "Egresado no graduado - <programa>".
+  linea.forEach((e) => {
+    if (e.tipo === 'complementacion') {
+      if (!linea.some((g) => g.tipo === 'grado' && g.comp)) { e.egNG = true; e.egNom = String(e.detalle || '').split(' · ')[0]; }
+    } else if (e.tipo === 'extension' && POSG.test(sinTildes(e.titulo || ''))) {
+      const k = kt(e.titulo);
+      if (!linea.some((g) => g.tipo === 'grado' && (kt(g.programa || '') && (k.includes(kt(g.programa)) || kt(g.programa).includes(k))))) { e.egNG = true; e.egNom = e.titulo; }
+    }
+  });
   // La medalla Caldas nunca va suelta: se asocia a un programa o curso (escalafonamiento, titulación, complementación o curso de ley).
   // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
   // Se ubica por CURSO GENERAL y CURSO ESPECÍFICO y por PERIODO; la categoría (consagración, aplicación…) no decide nada.
