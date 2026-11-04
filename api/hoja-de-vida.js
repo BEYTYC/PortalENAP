@@ -431,7 +431,7 @@ function procesarMedallas(libro) {
       const f = c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '';
       let per = c.periodo >= 0 ? normPeriodo(r[c.periodo]) : '';
       if (!per && f) per = `${f.slice(0, 4)}-${+f.slice(5, 7) <= 6 ? 1 : 2}`;
-      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 && c.programa !== c.curso && c.programa !== c.general ? nom(r[c.programa]) : '', curso: (c.curso >= 0 && txt(r[c.curso]) ? nom(r[c.curso]) : (c.general >= 0 ? nom(r[c.general]) : '')), fecha: f, periodo: per, estado: c.estado >= 0, nombre };
+      const reg = { medalla: c.medalla >= 0 && txt(r[c.medalla]) ? nom(r[c.medalla]) : '', programa: c.programa >= 0 && c.programa !== c.curso && c.programa !== c.general ? nom(r[c.programa]) : '', curso: c.curso >= 0 ? nom(r[c.curso]) : '', general: c.general >= 0 ? nom(r[c.general]) : '', fecha: f, periodo: per, estado: c.estado >= 0, nombre };
       k++; n++;
       if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(nombre), reg);
     }
@@ -649,7 +649,7 @@ function armarFicha(id, S) {
 
   /* ---- Medallas Caldas ---- */
   const md = pick(S.med, 'medallas');
-  const medallas = sinRepetidos(md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [kt(x.medalla), x.periodo || x.fecha].join('|'));
+  const medallas = sinRepetidos(md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [kt(x.medalla), x.periodo || x.fecha, kt(x.general), kt(x.curso), kt(x.programa)].join('|'));
 
   /* ---- Estado ---- */
   let estado = '';
@@ -684,26 +684,28 @@ function armarFicha(id, S) {
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
   // La medalla Caldas nunca va suelta: se asocia a un programa o curso (escalafonamiento, titulación, complementación o curso de ley).
   // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
-  // Se ubica solo por CURSO ESPECÍFICO (o CURSO GENERAL) y PERIODO; la categoría (consagración, aplicación…) no decide nada.
+  // Se ubica por CURSO GENERAL y CURSO ESPECÍFICO y por PERIODO; la categoría (consagración, aplicación…) no decide nada.
+  // Una tarjeta (curso o programa) lleva a lo sumo una Caldas: si ya tiene una, la medalla busca otra tarjeta que también coincida; si no hay, es repetida y se omite.
   medallas.forEach((x) => {
-    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: '', programa: x.programa || '', curso: x.curso || '', pv: x.pv };
-    const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
-    const clave = kt(x.curso) || kt(x.programa);
+    const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: '', programa: x.programa || '', curso: x.general || x.curso || '', pv: x.pv };
+    const claves = [kt(x.general), kt(x.curso), kt(x.programa)].filter(Boolean);
     const tM = x.periodo ? perNum(x.periodo) : tFecha(x.fecha);
     const coincide = (a, b) => a && b && (a.includes(b) || b.includes(a));
-    const cercano = (L) => (tM != null ? L.slice().sort((a, b) => Math.abs((a.t || 0) - tM) - Math.abs((b.t || 0) - tM))[0] : L[0]);
-    const evEsc = linea.filter((e) => e.tipo === 'escalafon');
+    const dist = (e) => (tM != null ? Math.abs((e.t || 0) - tM) : 0);
+    const libres = (L) => L.filter((e) => !(e.medallas && e.medallas.length));
+    const mejor = (L) => { const F = libres(L); return (F.length ? F : []).sort((a, b) => dist(a) - dist(b))[0]; };
     const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'extension', 'escalafon'].includes(e.tipo) && e.t != null);
-    // 1. Tarjetas cuyo programa o curso coincide con el curso específico; si hay varias, la del periodo más cercano.
-    if (clave) {
-      const L = tarjetas.filter((e) => e.tipo === 'escalafon' ? /ESCALAF/.test(clave) : (coincide(kt(e.titulo), clave) || coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), clave))));
-      if (L.length) return poner(cercano(L));
+    const casa = (e, k) => e.tipo === 'escalafon' ? /ESCALAF/.test(k) : (coincide(kt(e.titulo), k) || coincide(kt(e.programa || ''), k) || coincide(kt(e.tituloAcad || ''), k) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), k)));
+    const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
+    // 1. Por cada clave (general primero), tarjetas que coinciden y no tienen ya una Caldas; la del periodo más cercano.
+    for (const k of claves) {
+      const L = tarjetas.filter((e) => casa(e, k));
+      if (L.length) { const e = mejor(L); if (e) return poner(e); return; } // todas ocupadas: medalla repetida
     }
-    // 2. Sin coincidencia: la tarjeta más cercana al periodo.
-    if (tM != null && tarjetas.length) return poner(cercano(tarjetas));
-    const gA = linea.find((e) => e.tipo === 'grado' && !e.comp) || linea.find((e) => e.tipo === 'grado') || evEsc[0];
+    // 2. Sin coincidencia por nombre: la tarjeta libre más cercana al periodo.
+    if (tM != null) { const e = mejor(tarjetas); if (e) return poner(e); return; }
+    const gA = linea.find((e) => e.tipo === 'grado' && !e.comp && !(e.medallas && e.medallas.length)) || linea.find((e) => e.tipo === 'escalafon' && !(e.medallas && e.medallas.length));
     if (gA) return poner(gA);
-    linea.push(Object.assign({ tipo: 'medalla', t: tM, periodo: x.periodo, fecha: x.fecha, anio: x.periodo ? +x.periodo.slice(0, 4) : anioDe(x.fecha), detalle: '' }, m));
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
   // Grado de honor / meritorio / laureado: van en la tarjeta de la titulación académica (la primera que no es de complementación).
