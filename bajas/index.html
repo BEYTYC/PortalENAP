@@ -279,11 +279,11 @@ $('rbtn').onclick=function(){$('ovr').classList.remove('on');var f=RFIN;RFIN=nul
 var ALL=[];
 function cargarPend(){return api('registros').then(function(r){ALL=r.lista||[];PEND=ALL.filter(function(x){return x.estado!=='completo'});pintarPend()}).catch(function(e){$('tb').innerHTML='<tr><td colspan="7" class="vac">'+esc(e.message)+'</td></tr>'})}
 function pintarPend(){$('npend').textContent=PEND.length;
-  var L=PEND.slice().sort(function(a,b){return b.dias-a.dias}).concat(ALL.filter(function(x){return x.estado==='completo'}));
+  var L=PEND.slice().sort(function(a,b){return (b.dias||0)-(a.dias||0)}).concat(ALL.filter(function(x){return x.estado==='completo'}));
   $('tb').innerHTML=L.length?L.map(function(p){var d=p.datos,ok=p.estado==='completo';
-    var est=ok?'<span class="d" style="background:var(--okbg);color:var(--ok)">Completo</span>':'<span class="d '+(p.dias>=5?'w':'o')+'">'+p.dias+' día'+(p.dias===1?'':'s')+'</span>';
-    var acc=(ok?'':'<button class="btn btn-p addres" style="padding:7px 14px;font-size:13px" data-id="'+esc(p.id)+'">Añadir resolución</button> ')+'<button class="btn btn-g undo" style="padding:7px 14px;font-size:13px;margin:0" data-id="'+esc(p.id)+'">Deshacer</button>';
-    return '<tr'+(ok?' style="color:var(--mut)"':'')+'><td><b style="font-weight:600">'+esc(d.ap+' '+d.no)+'</b>'+(p.excel?'':'<div style="font-size:11px;color:var(--warn)" title="'+esc(p.errorExcel||'')+'">Aún no está en el Excel; se reintenta automáticamente</div>')+(ok&&p.documento?'<div style="font-size:11px">'+esc(p.documento)+'</div>':'')+'</td><td>'+esc(d.ce)+'</td><td>'+esc(d.cu)+'</td><td>'+esc(d.ca)+'</td><td>'+fdmy(p.fecha)+'</td><td>'+est+'</td><td style="text-align:right;white-space:nowrap">'+acc+'</td></tr>'}).join('')
+    var ex=p.origen==='excel';var est=ok?'<span class="d" style="background:var(--okbg);color:var(--ok)">Completo</span>':ex?'<span class="d o" title="Cargada en el Excel, sin fecha o documento de retiro">Sin resolución</span>':'<span class="d '+(p.dias>=5?'w':'o')+'">'+p.dias+' día'+(p.dias===1?'':'s')+'</span>';
+    var acc=(ok?'':'<button class="btn btn-p addres" style="padding:7px 14px;font-size:13px" data-id="'+esc(p.id)+'">Añadir resolución</button> ')+(ex?'':'<button class="btn btn-g undo" style="padding:7px 14px;font-size:13px;margin:0" data-id="'+esc(p.id)+'">Deshacer</button>');
+    return '<tr'+(ok?' style="color:var(--mut)"':'')+'><td><b style="font-weight:600">'+esc(d.ap+' '+d.no)+'</b>'+(p.excel?'':'<div style="font-size:11px;color:var(--warn)" title="'+esc(p.errorExcel||'')+'">Aún no está en el Excel; se reintenta automáticamente</div>')+(ok&&p.documento?'<div style="font-size:11px">'+esc(p.documento)+'</div>':'')+'</td><td>'+esc(d.ce)+'</td><td>'+esc(d.cu)+'</td><td>'+esc(d.ca)+'</td><td>'+(ex?'Excel':fdmy(p.fecha))+'</td><td>'+est+'</td><td style="text-align:right;white-space:nowrap">'+acc+'</td></tr>'}).join('')
     :'<tr><td colspan="7" class="vac">Todavía no se han registrado bajas desde el Portal.</td></tr>';
   Array.prototype.forEach.call(document.querySelectorAll('.addres'),function(b){b.onclick=function(){abrirRes(b.dataset.id)}});
   Array.prototype.forEach.call(document.querySelectorAll('.undo'),function(b){b.onclick=function(){abrirUndo(b.dataset.id)}})}
@@ -303,7 +303,7 @@ $('dok').onclick=function(){var b=$('dok');b.disabled=true;b.textContent='Deshac
   .catch(function(e){toast(e.message)}).then(function(){b.disabled=false;b.textContent='Deshacer baja'})};
 var RES=null;
 function abrirRes(id){var p=PEND.find(function(x){return x.id===id});if(!p)return;RES=p;var d=p.datos;
-  $('mn').textContent=d.ap+' '+d.no;$('mc').textContent=d.ce;$('mcu').textContent=d.cu;$('mca').textContent=d.ca;$('mr').textContent=fdmy(p.fecha);
+  $('mn').textContent=d.ap+' '+d.no;$('mc').textContent=d.ce;$('mcu').textContent=d.cu;$('mca').textContent=d.ca;$('mr').textContent=p.origen==='excel'?'Excel':fdmy(p.fecha);
   ['mf','md','mnr'].forEach(function(k){$(k).value=''});Array.prototype.forEach.call(document.querySelectorAll('#ov .err'),function(x){x.classList.remove('err')});
   $('ov').classList.add('on');setTimeout(function(){$('mf').focus()},50)}
 
@@ -314,7 +314,7 @@ document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if($(
 $('msave').onclick=function(){var n=0;['mf','md'].forEach(function(i){var bad=!$(i).value.trim();$(i).parentElement.classList.toggle('err',bad);if(bad)n++});
   if(n){toast('Complete la fecha y el documento');return}
   var b=$('msave');b.disabled=true;b.textContent='Guardando…';
-  api('resolucion',{id:RES.id,fecha:$('mf').value,documento:$('md').value.trim()}).then(function(){cerrarRes();toast('Resolución guardada en Bajas y Ascensos');return cargarPend()})
+  api('resolucion',{id:RES.id,ce:RES.datos.ce,fecha:$('mf').value,documento:$('md').value.trim()}).then(function(){cerrarRes();toast('Resolución guardada en Bajas y Ascensos');return cargarPend()})
   .catch(function(e){toast(e.message)}).then(function(){b.disabled=false;b.textContent='Guardar resolución'})};
 
 /* ---------- pestañas ---------- */

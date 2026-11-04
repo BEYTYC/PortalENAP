@@ -320,6 +320,34 @@ async function filaDeBaja(it, ced, ultimaConocida) {
   return null;
 }
 
+
+/* Retiros del año en curso (o posteriores) que están en el Excel sin fecha o sin documento de retiro
+   y que no se registraron desde el Portal (p. ej. cargados directo en Excel). Los anteriores no se muestran. */
+async function pendientesExcel(regs) {
+  const it = await bajasXlsx();
+  const tabla = await gj(`${wb(it)}/tables('${TABLA_BAJAS}')/range?$select=address`, null, 'Tabla de bajas');
+  const ultima = +(String(tabla.address).match(/(\d+)$/) || [])[1];
+  const desde = Math.max(2, ultima - 1500);
+  const v = await gj(`${hojaUrl(it, HOJA_BAJAS)}/range(address='A${desde}:U${ultima}')?$select=values`, null, 'Bajas');
+  const anio = new Date().getFullYear();
+  const conocidos = new Set(regs.map((r) => cedKey(r.datos && r.datos.ce)));
+  const vistos = new Set();
+  const out = [];
+  for (let i = v.values.length - 1; i >= 0; i--) {
+    const f = v.values[i];
+    const ck = cedKey(f[5]);
+    if (!ck || conocidos.has(ck) || vistos.has(ck)) continue;
+    const a = +f[8];
+    if (!(a >= anio)) continue;
+    const sinFecha = f[14] === '' || f[14] == null, sinDoc = !String(f[16] || '').trim();
+    if (!sinFecha && !sinDoc) continue;
+    vistos.add(ck);
+    out.push({ id: 'x' + (desde + i), origen: 'excel', fila: desde + i, fecha: null, por: null, dias: null, excel: true, estado: null,
+      datos: { ap: String(f[4] || '').trim(), no: '', ce: String(f[5]), cu: String(f[11] || ''), ca: String(f[20] || '') } });
+  }
+  return out.reverse();
+}
+
 /* ---------------------------------- Correo -------------------------------- */
 
 async function enviarCorreo(asunto, html) {
@@ -552,7 +580,9 @@ module.exports = async function handler(req, res) {
         } catch (e) { sinExcel.forEach((r) => { r.errorExcel = e.message; }); }
         if (cambio) await escribirJson('registros.json', regs);
       }
-      res.status(200).json({ lista: regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) })) });
+      let extra = [];
+      try { extra = await pendientesExcel(regs); } catch (e) { /* solo se omite */ }
+      res.status(200).json({ lista: extra.concat(regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) }))) });
       return;
     }
 
@@ -590,22 +620,30 @@ module.exports = async function handler(req, res) {
 
     if (a === 'resolucion') {
       const regs = (await leerJson('registros.json')) || [];
-      const r = regs.find((x) => x.id === body.id);
+      const delExcel = /^x\d+$/.test(String(body.id || ''));
+      let r = delExcel ? { id: body.id, excel: true, fila: +String(body.id).slice(1), datos: { ce: body.ce } } : regs.find((x) => x.id === body.id);
       if (!r) throw error('No se encontró el registro.', 404);
       const m = String(body.fecha || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
       const doc = String(body.documento || '').trim().toUpperCase();
       if (!m || !doc) throw error('Escriba la fecha de retiro y el documento.', 400);
       const it = await bajasXlsx();
       if (!r.excel) { const w = await escribirBaja(r); r.excel = true; r.N = w.N; r.fila = w.fila; delete r.errorExcel; }
-      const fila = await filaDeBaja(it, r.datos.ce, r.fila);
+      let fila;
+      if (delExcel) {
+        const chk = await gj(`${hojaUrl(it, HOJA_BAJAS)}/range(address='F${r.fila}')?$select=values`, null, 'Bajas');
+        if (cedKey(chk.values[0][0]) !== cedKey(body.ce)) throw error('La fila del Excel cambió; actualice la lista e intente de nuevo.', 409);
+        fila = r.fila;
+      } else fila = await filaDeBaja(it, r.datos.ce, r.fila);
       if (!fila) throw error('No se encontró la fila de este retiro en Bajas y Ascensos (búsqueda por cédula).', 404);
       const y = +m[1], mes = +m[2], d = +m[3];
       const hu = hojaUrl(it, HOJA_BAJAS);
       await gj(`${hu}/range(address='I${fila}')`, { method: 'PATCH', body: { values: [[y]] } }, 'Bajas');
       await gj(`${hu}/range(address='O${fila}:R${fila}')`, { method: 'PATCH', body: { formulas: [[X.fechaASerial(y, mes, d), mes <= 6 ? 1 : 2, doc, `=RIGHT(LEFT(Q${fila},9),4)`]] } }, 'Bajas');
       try { await gj(`${hu}/range(address='O${fila}')`, { method: 'PATCH', body: { numberFormat: [['dd/mm/yyyy']] } }); } catch (e) { /* opcional */ }
-      Object.assign(r, { estado: 'completo', completado: ahora(), completadoPor: yo.correo, fechaRetiro: body.fecha, documento: doc, fila });
-      await escribirJson('registros.json', regs);
+      if (!delExcel) {
+        Object.assign(r, { estado: 'completo', completado: ahora(), completadoPor: yo.correo, fechaRetiro: body.fecha, documento: doc, fila });
+        await escribirJson('registros.json', regs);
+      }
       res.status(200).json({ ok: true });
       return;
     }
