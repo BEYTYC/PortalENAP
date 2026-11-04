@@ -686,7 +686,8 @@ function armarFicha(id, S) {
   // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
   medallas.forEach((x) => {
     const m = { titulo: 'Medalla “Francisco José de Caldas”', categoria: x.medalla && x.medalla !== 'MEDALLA CALDAS' ? x.medalla : '', motivo: MOTIVO_CALDAS[sinTildes(x.medalla)] || '', programa: x.programa || '', curso: x.curso || '', pv: x.pv };
-    const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
+    // "Primer puesto en su promoción" solo aplica a la Caldas del escalafonamiento; en un programa o curso no se dice nada que no esté en la base.
+    const poner = (ev) => { if (ev.tipo !== 'escalafon') m.motivo = ''; (ev.medallas = ev.medallas || []).push(m); };
     const tipoM = sinTildes(x.medalla), kc = kt(x.curso), kp = kt(x.programa);
     const evEsc = linea.find((e) => e.tipo === 'escalafon');
     const evGrados = linea.filter((e) => e.tipo === 'grado');
