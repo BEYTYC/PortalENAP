@@ -683,7 +683,12 @@ function armarFicha(id, S) {
   else if (retiro && !hayReingreso) estado = 'RETIRADO';
   else if (!escal.length && ing0 && (ing0.salida || ing0.anioSal) && !(ultimo && ultimo.e !== 'Retirado' && ultimo.e !== 'Salió')) estado = 'SALIÓ';
   else if (ultimo && (ultimo.e === 'Retirado' || ultimo.e === 'Salió') && !hayReingreso) estado = 'RETIRADO';
-  else if (escal.length) estado = 'EGRESADO NO GRADUADO';
+  else if (escal.length) {
+    // PR, CDPRIM, CDPRON y CEXTIM no son egresados sin grado: su ciclo termina en el escalafonamiento.
+    const SIN_GRADO = /^(PR|CDPRIM|CDPRON|CEXTIM)$/;
+    const progEsc = [ing0 && ing0.sigla, ...escal.map((e) => e.sigla)].map((v) => sinTildes(v || '').replace(/[^A-Z]/g, '')).filter(Boolean);
+    estado = progEsc.some((v) => SIN_GRADO.test(v)) && !progEsc.some((v) => /^(CNN|NAV|CIM|IM|MC|MM)$/.test(v)) ? 'ESCALAFONADO' : 'EGRESADO NO GRADUADO';
+  }
   else if (ultimo) estado = 'ACTIVO';
 
   /* ---- Línea de tiempo ---- */
