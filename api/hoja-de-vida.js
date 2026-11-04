@@ -900,8 +900,13 @@ function listaPersonas(S) {
   });
 }
 
-const LISTAS = new WeakMap();
-function listaCache(S) { const k = S.cong || S; if (!LISTAS.has(k)) LISTAS.set(k, listaPersonas(S)); return LISTAS.get(k); }
+/* La lista de personas se rehace si cambia CUALQUIER fuente (antes solo miraba el Conglomerado y, al actualizarse Graduados, la búsqueda seguía con la lista vieja). */
+let LISTA_C = null;
+function listaCache(S) {
+  const f = ['cong', 'baj', 'ant', 'grad', 'ext'];
+  if (!LISTA_C || f.some((k) => LISTA_C.S[k] !== S[k])) LISTA_C = { S: Object.fromEntries(f.map((k) => [k, S[k]])), lista: listaPersonas(S) };
+  return LISTA_C.lista;
+}
 
 function buscar(S, q) {
   const t = String(q || '').trim();
@@ -971,9 +976,9 @@ module.exports = async function handler(req, res) {
     if (a === 'calentar') { // precarga todas las fuentes en la memoria de la función (se llama al abrir el módulo)
       const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
     }
-    if (a === 'sugerir') { // solo CONGLOMERADO: rápido, para el autocompletar mientras se escribe
-      const cong = await fuente('conglomerado', procesarConglomerado);
-      const r = buscar({ cong, solo: true }, body.q);
+    if (a === 'sugerir') { // autocompletar mientras se escribe: TODAS las fuentes (antes solo el Conglomerado y no salían quienes están solo en Graduados/Extensión)
+      const { S: S0 } = await cargar();
+      const r = buscar(Object.assign({}, S0, { solo: true }), body.q);
       res.status(200).json({ total: r.total, lista: r.lista.slice(0, 8) });
       return;
     }
