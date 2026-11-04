@@ -321,29 +321,27 @@ async function filaDeBaja(it, ced, ultimaConocida) {
 }
 
 
-/* Retiros del año en curso (o posteriores) que están en el Excel sin fecha o sin documento de retiro
-   y que no se registraron desde el Portal (p. ej. cargados directo en Excel). Los anteriores no se muestran. */
+/* Retiros del Excel sin fecha o sin documento de retiro, desde el periodo 2026-2 en adelante, que no se
+   registraron desde el Portal (cargados directo en Excel). Se lee descargando el archivo, así funciona
+   aunque todavía sea .xlsm. Los periodos anteriores no se muestran. */
+const DESDE_ANIO = 2026, DESDE_SEM = 2;
 async function pendientesExcel(regs) {
-  const it = await bajasXlsx();
-  const tabla = await gj(`${wb(it)}/tables('${TABLA_BAJAS}')/range?$select=address`, null, 'Tabla de bajas');
-  const ultima = +(String(tabla.address).match(/(\d+)$/) || [])[1];
-  const desde = Math.max(2, ultima - 1500);
-  const v = await gj(`${hojaUrl(it, HOJA_BAJAS)}/range(address='A${desde}:U${ultima}')?$select=values`, null, 'Bajas');
-  const anio = new Date().getFullYear();
+  const it = await item('bajas');
+  const F = X.abrir(await descargar(it)).leer(HOJA_BAJAS, { maxCols: 22 });
   const conocidos = new Set(regs.map((r) => cedKey(r.datos && r.datos.ce)));
   const vistos = new Set();
   const out = [];
-  for (let i = v.values.length - 1; i >= 0; i--) {
-    const f = v.values[i];
+  for (let i = F.length - 1; i >= 1; i--) {
+    const f = F[i] || [];
     const ck = cedKey(f[5]);
     if (!ck || conocidos.has(ck) || vistos.has(ck)) continue;
-    const a = +f[8];
-    if (!(a >= anio)) continue;
+    const a = +f[8], sem = +f[15] || 0;
+    if (!(a > DESDE_ANIO || (a === DESDE_ANIO && sem >= DESDE_SEM))) continue;
     const sinFecha = f[14] === '' || f[14] == null, sinDoc = !String(f[16] || '').trim();
     if (!sinFecha && !sinDoc) continue;
     vistos.add(ck);
-    out.push({ id: 'x' + (desde + i), origen: 'excel', fila: desde + i, fecha: null, por: null, dias: null, excel: true, estado: null,
-      datos: { ap: String(f[4] || '').trim(), no: '', ce: String(f[5]), cu: String(f[11] || ''), ca: String(f[20] || '') } });
+    out.push({ id: 'x' + (i + 1), origen: 'excel', fila: i + 1, fecha: null, por: null, dias: null, excel: true, estado: null,
+      periodo: `${a}-${sem}`, datos: { ap: String(f[4] || '').trim(), no: '', ce: String(f[5]), cu: String(f[11] || ''), ca: String(f[20] || '') } });
   }
   return out.reverse();
 }
@@ -581,8 +579,9 @@ module.exports = async function handler(req, res) {
         if (cambio) await escribirJson('registros.json', regs);
       }
       let extra = [];
-      try { extra = await pendientesExcel(regs); } catch (e) { /* solo se omite */ }
-      res.status(200).json({ lista: extra.concat(regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) }))) });
+      let errExcel = null;
+      try { extra = await pendientesExcel(regs); } catch (e) { errExcel = e.message; }
+      res.status(200).json({ errorExcel: errExcel, lista: extra.concat(regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) }))) });
       return;
     }
 
