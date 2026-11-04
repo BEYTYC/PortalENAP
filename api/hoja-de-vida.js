@@ -158,6 +158,7 @@ function agregar(mapa, k, v) { if (k) (mapa[k] = mapa[k] || []).push(v); }
 
 /* --------------------------- Procesar cada fuente -------------------------- */
 
+const normCont = (v) => String(v || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
 function procesarConglomerado(libro) {
   const hoja = libro.hojas.find((h) => /todos los ingresos/i.test(h)) || libro.hojas[0];
   const F = libro.leer(hoja, { maxCols: 30 });
@@ -189,12 +190,12 @@ function procesarConglomerado(libro) {
       nac: ext ? sinTildes(r[c.pais] || '') : (c.ext >= 0 ? 'COLOMBIA' : ''), salida: txt(r[c.salida]), anioSal: txt(r[c.anioSal]), promo: c.promo >= 0 ? txt(r[c.promo]) : '',
       cont2: c.cont2 >= 0 ? txt(r[c.cont2]).replace(/\s+/g, '') : '', fechaRe: c.fechaRe >= 0 ? fechaCelda(r[c.fechaRe]) : '',
     };
-    if (reg.cont && reg.fecha) { const m = (fechasCont[reg.cont] = fechasCont[reg.cont] || {}); m[reg.fecha] = (m[reg.fecha] || 0) + 1; }
+    if (reg.cont && reg.fecha) { const kc = normCont(reg.cont); const m = (fechasCont[kc] = fechasCont[kc] || {}); m[reg.fecha] = (m[reg.fecha] || 0) + 1; }
     n++;
     if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(reg.nombre), reg);
   }
   // fecha de reingreso: la de ese contingente (la más frecuente entre sus integrantes)
-  const fechaDeCont = (k) => { const m = fechasCont[k]; return m ? Object.keys(m).sort((a, b) => m[b] - m[a])[0] : ''; };
+  const fechaDeCont = (k) => { const m = fechasCont[normCont(k)]; return m ? Object.keys(m).sort((a, b) => m[b] - m[a])[0] : ''; };
   [porCed, porNom].forEach((M) => Object.values(M).forEach((L) => L.forEach((reg) => { if (reg.cont2 && !/^(-|NO|NA|N\/A|0)$/i.test(reg.cont2)) reg.reingreso = { cont: reg.cont2, fecha: reg.fechaRe || fechaDeCont(reg.cont2) || '' }; })));
   return { porCed, porNom, filas: n };
 }
@@ -673,8 +674,8 @@ function armarFicha(id, S) {
   /* ---- Línea de tiempo ---- */
   const linea = [];
   if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: 'Ingreso a la ENAP', detalle: [ing0.cont && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), pv: ing0.pv });
-  if (ing0 && ing0.reingreso) linea.push({ tipo: 'regreso', t: tFecha(ing0.reingreso.fecha) != null ? tFecha(ing0.reingreso.fecha) : null, fecha: ing0.reingreso.fecha, anio: anioDe(ing0.reingreso.fecha), titulo: 'Reingreso a la ENAP', detalle: 'Contingente ' + ing0.reingreso.cont, pv: ing0.pv });
-  ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Nuevo ingreso', detalle: [x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), pv: x.pv }));
+  if (ing0 && ing0.reingreso && !ingresos.slice(1).some((x) => normCont(x.cont) === normCont(ing0.reingreso.cont))) linea.push({ tipo: 'regreso', t: tFecha(ing0.reingreso.fecha) != null ? tFecha(ing0.reingreso.fecha) : null, fecha: ing0.reingreso.fecha, anio: anioDe(ing0.reingreso.fecha), titulo: 'Reingreso a la ENAP', detalle: 'Contingente ' + ing0.reingreso.cont, pv: ing0.pv });
+  ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Reingreso a la ENAP', detalle: [x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), pv: x.pv }));
   sems.forEach((s) => linea.push({ tipo: 'semestre', t: s.t, anio: s.periodo ? +s.periodo.slice(0, 4) : null, semestre: s, pv: pvAnt }));
   const e0 = escal.slice().sort((a, b) => (a.periodo || '').localeCompare(b.periodo || '')).pop() || null;
   let tEsc = null;
@@ -758,6 +759,11 @@ function armarFicha(id, S) {
     const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
     linea.push({ tipo: 'logros', t: ti, anio: ing ? ing.anio : null, titulo: 'Logros', items });
   }
+  // Un reingreso solo puede ocurrir después de un retiro: si no trae fecha, va justo después del retiro.
+  {
+    const rt = linea.find((e) => e.tipo === 'retiro');
+    if (rt && rt.t != null) linea.filter((e) => e.tipo === 'regreso' && e.t == null).forEach((e) => { e.t = rt.t + 0.0005; });
+  }
   // Orden: por fecha; los que no tienen fecha conservan su orden natural al final de su grupo.
   const orden = { ingreso: 0, regreso: 1, logros: 1.5, semestre: 2, escalafon: 3, grado: 4, complementacion: 5, ley: 5, extension: 5, concesion: 5, reconocimiento: 5, medalla: 5, retiro: 6 };
   linea.forEach((e, i) => { e.i = i; e.o = (e.tipo === 'grado' && /ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/.test(sinTildes(e.programa || ''))) ? 5.5 : orden[e.tipo]; });
@@ -768,6 +774,10 @@ function armarFicha(id, S) {
     return a.i - b.i;
   });
   linea.forEach((e) => { delete e.i; delete e.o; });
+  {
+    const ir = linea.findIndex((e) => e.tipo === 'retiro'), ie = linea.findIndex((e) => e.tipo === 'escalafon');
+    if (ir >= 0 && ie > ir && !linea.slice(ir, ie).some((e) => e.tipo === 'regreso')) avisos.push('Tiene un escalafonamiento posterior al retiro y no hay un reingreso registrado entre los dos: revisar.');
+  }
 
   // Nombre más completo entre las fuentes (si el corto está contenido en el largo): evita ver el segundo nombre en unas partes y en otras no.
   {
