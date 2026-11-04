@@ -189,10 +189,9 @@ body.cargando .app{visibility:hidden}
       <div><label>Registrado</label><b id="mr">—</b></div>
     </div>
     <div class="sec">DOCUMENTO DE RETIRO</div>
-    <div class="g" style="grid-template-columns:1.2fr 2fr 1fr">
+    <div class="g" style="grid-template-columns:1fr 2fr">
       <div class="req"><label for="mf">Fecha de retiro</label><input class="field" type="date" id="mf"></div>
       <div class="req"><label for="md">Documento primer retiro</label><input class="field" id="md" placeholder="RES. 000000 MES DD/AAAA"></div>
-      <div class="ro"><label for="mnr">Núm. resolución</label><input class="field" id="mnr" readonly tabindex="-1" placeholder="Automático"></div>
     </div>
   </div>
   <div class="ff" style="margin-top:14px"><span>Lo registra <span id="yo2">—</span></span><div><button class="btn btn-g" id="mcan">Cancelar</button><button class="btn btn-p" id="msave">Guardar resolución</button></div></div>
@@ -307,10 +306,10 @@ $('dok').onclick=function(){var b=$('dok');b.disabled=true;b.textContent='Deshac
 var RES=null;
 function abrirRes(id){var p=PEND.find(function(x){return x.id===id});if(!p)return;RES=p;var d=p.datos;
   $('mn').textContent=d.ap+' '+d.no;$('mc').textContent=d.ce;$('mcu').textContent=d.cu;$('mca').textContent=d.ca;$('mr').textContent=p.origen==='excel'?'Excel · '+(p.periodo||''):fdmy(p.fecha);
-  ['mf','md','mnr'].forEach(function(k){$(k).value=''});Array.prototype.forEach.call(document.querySelectorAll('#ov .err'),function(x){x.classList.remove('err')});
+  ['mf','md'].forEach(function(k){$(k).value=''});Array.prototype.forEach.call(document.querySelectorAll('#ov .err'),function(x){x.classList.remove('err')});
   $('ov').classList.add('on');setTimeout(function(){$('mf').focus()},50)}
 
-$('md').oninput=function(){var v=$('md').value.toUpperCase();$('mnr').value=v.length>=9?v.slice(0,9).slice(-4):''};
+
 function cerrarRes(){$('ov').classList.remove('on');RES=null}
 $('mx').onclick=cerrarRes;$('mcan').onclick=cerrarRes;
 document.addEventListener('keydown',function(e){if(e.key!=='Escape')return;if($('ov').classList.contains('on'))cerrarRes();if($('ovd').classList.contains('on'))cerrarUndo()});
