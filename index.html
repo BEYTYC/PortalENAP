@@ -1536,7 +1536,7 @@ img,svg,video,canvas,iframe{max-width:100%}
     <div id="hojaCarga" role="status" aria-live="polite"><i></i><span>Cargando sesión…</span></div>
     <!-- Hoja de vida del estudiante (hoja-de-vida/index.html, mismo origen). Solo sea@ y
          jestadisticaplen@; /api/hoja-de-vida valida el token y solo lee las bases. -->
-    <iframe id="hojaVidaFrame" class="registro-iframe" title="Hoja de vida del estudiante" allow="fullscreen" allowfullscreen></iframe>
+    <iframe id="hojaVidaFrame" class="registro-iframe" title="Trayectoria del estudiante" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewBajas" hidden>
@@ -3237,6 +3237,7 @@ img,svg,video,canvas,iframe{max-width:100%}
   const ICONS = {
     facultades: '<path d="M12 3 2 8l10 5 10-5-10-5Zm-6.5 8.2V16c0 1.7 2.9 3 6.5 3s6.5-1.3 6.5-3v-4.8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     secretaria: '<path d="M6 3h9l5 5v13H6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M15 3v5h5M9 12h6M9 15.5h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
+    institucion: '<path d="M3 9.5 12 4l9 5.5M5 10v8m4-8v8m6-8v8m4-8v8M3 20h18" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     estadistica: '<path d="M4 19V5m0 14h16M8 19v-6m5 6V9m5 10v-4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
     protocolos: '<path d="M7 3.5h10l1.5 3v13a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-13l1.5-3Z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9 9h6M9 12.5h6M9 16h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>',
   };
@@ -3275,14 +3276,19 @@ img,svg,video,canvas,iframe{max-width:100%}
       ],
     },
     {
-      key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
+      key: 'institucion', nombre: 'Institución', icon: 'institucion',
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Antigüedades ENAP', status: 'ok' },
+        // Solo Estadística: trayectoria completa de un estudiante (cédula o nombre).
+        { nombre: 'Trayectoria del estudiante', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
+      ],
+    },
+    {
+      key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
+      items: [
         // Solo Estadística (sea@ y jestadisticaplen@): registra los retiros en Bajas y Ascensos.
         { nombre: 'Registro de bajas', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
-        // Solo Estadística: trayectoria completa de un estudiante (cédula o nombre).
-        { nombre: 'Hoja de vida del estudiante', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
         { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
@@ -3409,9 +3415,9 @@ img,svg,video,canvas,iframe{max-width:100%}
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
           }
-          else if (item.status === 'ok' && item.nombre === 'Hoja de vida del estudiante') {
+          else if (item.status === 'ok' && item.nombre === 'Trayectoria del estudiante') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
-            else { abrirSubsistema('viewHojaVida', 'Hoja de vida del estudiante'); cargarHojaVida(); }
+            else { abrirSubsistema('viewHojaVida', 'Trayectoria del estudiante'); cargarHojaVida(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
