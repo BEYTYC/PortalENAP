@@ -708,7 +708,9 @@ function armarFicha(id, S) {
     if (/APLICACION/.test(tipoM) || /COMPLEMENT|CCP/.test(kc)) { const gc = evGrados.find((e) => e.comp) || evCcp[0]; if (gc) return poner(gc); }
     // 4. Programa o curso que coincide con el de un grado.
     const clave = kc || kp;
-    let g = clave ? evGrados.find((e) => coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave)) : null;
+    const gs = clave ? evGrados.filter((e) => coincide(kt(e.programa || ''), clave) || coincide(kt(e.tituloAcad || ''), clave)) : [];
+    // Si varias tarjetas coinciden, la del periodo más cercano al de la medalla.
+    const g = gs.length ? (tM != null ? gs.slice().sort((a, b) => Math.abs((a.t || 0) - tM) - Math.abs((b.t || 0) - tM))[0] : gs[0]) : null;
     if (g) return poner(g);
     // 5. Por periodo: la tarjeta de ley, grado, complementación o escalafón más cercana a esa fecha.
     const cand = evLey.concat(evGrados, evCcp, evEsc ? [evEsc] : []).filter((e) => e.t != null);
