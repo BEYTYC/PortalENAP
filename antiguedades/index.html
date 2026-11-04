@@ -2252,12 +2252,20 @@ function editor(el,s){
     recalc(s);rerank();
     D.ediciones=(D.ediciones||[]).concat([{t:new Date().toISOString(),por:(window.__yo||{}).correo||'',c:s.c,n:s.n,cambios:cam}]);
     return cam};
-  sec.querySelector('#ed-ap').onclick=()=>{const c=aplicar();if(c){render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x)x.textContent='Aplicado. Falta guardar en el servidor.'},30)}};
+  sec.querySelector('#ed-ap').onclick=()=>{const c=aplicar();if(c){render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x){x.textContent='Aplicado, pero SIN GUARDAR. Pulse «Guardar en el servidor» o el cambio se pierde al cerrar.';x.style.color='#B26A00'}},30)}};
   sec.querySelector('#ed-sv').onclick=()=>{
     const c=aplicar();
     if(!c&&!D.ediciones){m('Sin cambios.');return}
+    const say=(t,ok)=>{const x=document.getElementById('ed-m');if(x){x.textContent=t;x.style.color=ok===false?'#C0392B':''}};
     m('Guardando…');
-    window.__api('guardar-datos',{datos:D,periodo:PER}).then(()=>{if(c)render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x)x.textContent='Guardado en el servidor.'},30)}).catch(e=>m(e.message))};
+    const n=(D.ediciones||[]).length;
+    window.__api('guardar-datos',{datos:D,periodo:PER})
+      .then(()=>window.__api('datos',{periodo:PER}))
+      .then(r=>{
+        const g=r&&r.datos,ne=g&&g.ediciones?g.ediciones.length:0;
+        if(c)render();
+        setTimeout(()=>{ne>=n?say('Guardado y verificado en el servidor · '+new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}),true):say('El servidor no conservó el cambio. No cierre esta pantalla y avise a Estadística.',false)},40)})
+      .catch(e=>{setTimeout(()=>say('No se pudo guardar: '+(e&&e.message||e),false),40)})};
 }
 
 document.getElementById('q').addEventListener('input',e=>{const q0=q;q=e.target.value.trim();if(q&&!q0)window.__pre={cur,msem,totSel,nk,y:window.scrollY};if(!q)window.__pre=null;sel=null;selK=null;if(q){const r=buscar(q);if(r.length===1){sel=r[0][0];selK=r[0][1]}}render();if(sel)window.scrollTo({top:0,behavior:'smooth'})});
