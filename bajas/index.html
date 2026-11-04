@@ -23,10 +23,11 @@ h1{margin:4px 0 2px;font-size:28px;font-weight:600;letter-spacing:-.01em}
 .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 1px 2px #071c3c0f,0 8px 24px -12px #071c3c38}
 .search{padding:12px 14px;position:relative;z-index:3;display:flex;align-items:center;gap:14px}.search .sbox{flex:1}
 .sbox{position:relative}
-.sbox svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut2)}
+.sbox svg{z-index:1;position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut2)}
 .field{width:100%;font-family:inherit;font-size:14px;color:var(--n9);background:#fff;border:1px solid var(--line2);border-radius:8px;padding:8px 11px;outline:none;transition:border .15s,box-shadow .15s}
 .field:focus{border-color:var(--n7);box-shadow:0 0 0 3px #123A7322}
-.sbox .field{padding-left:36px;height:42px}
+.sbox .field{padding-left:36px;height:44px;border-radius:8px;border:1px solid #CBD5E1;box-shadow:0 8px 28px rgba(20,50,90,.18),0 2px 6px rgba(20,50,90,.10)}
+.sbox .field:focus{border-color:#123A73;box-shadow:0 0 0 3px rgba(31,78,140,.15),0 10px 32px rgba(20,50,90,.22)}
 .meta{font-size:12px;color:var(--mut);white-space:nowrap}
 .list{position:absolute;left:14px;right:14px;top:calc(100% - 4px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px -12px #071c3c55;max-height:300px;overflow:auto;padding:6px;display:none}.list.on{display:block}.it{display:flex;justify-content:space-between;align-items:center}
 .it{padding:10px 12px;border-radius:10px;cursor:pointer;border:1px solid transparent;margin-bottom:4px}
