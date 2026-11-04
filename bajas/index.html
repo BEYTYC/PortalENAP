@@ -257,11 +257,12 @@ $('q').oninput=function(e){render(e.target.value)};$('q').onfocus=function(e){re
 document.addEventListener('click',function(e){if(!e.target.closest('.search'))$('list').classList.remove('on')});
 $('cancel').onclick=limpiar;
 
-$('save').onclick=function(){var n=0;
-  Array.prototype.forEach.call(document.querySelectorAll('#fill .req'),function(w){var f=w.querySelector('.field');var bad=!String(f.value).trim();w.classList.toggle('err',bad);if(bad)n++});
-  if(!n&&!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($('fi').value.trim())){$('fi').parentElement.classList.add('err');toast('La fecha de ingreso debe ir como dd/mm/aaaa');return}
-  if(!n&&!/^\d{4}$/.test($('ai').value.trim())){$('ai').parentElement.classList.add('err');toast('El año de ingreso debe tener 4 dígitos');return}
-  if(n){toast('Faltan '+n+' campo'+(n>1?'s':'')+' obligatorio'+(n>1?'s':''));var f=document.querySelector('#fill .err .field');if(f)f.focus();return}
+$('save').onclick=function(){var n=0,faltan=[];
+  Array.prototype.forEach.call(document.querySelectorAll('#fill .req'),function(w){var f=w.querySelector('.field');var bad=!String(f.value).trim();w.classList.toggle('err',bad);if(bad){n++;var lb=w.querySelector('label');faltan.push(lb?lb.textContent.replace(/\s*\*\s*$/,'').trim():f.id)}});
+  function avisa(t,m){resModal('err',t,m);var e=document.querySelector('#fill .err .field');if(e)setTimeout(function(){e.scrollIntoView({block:'center'})},50)}
+  if(n){avisa('Faltan datos obligatorios','Complete: <b>'+faltan.map(esc).join(', ')+'</b>.');return}
+  if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test($('fi').value.trim())){$('fi').parentElement.classList.add('err');avisa('Fecha de ingreso','Debe ir como <b>dd/mm/aaaa</b>.');return}
+  if(!/^\d{4}$/.test($('ai').value.trim())){$('ai').parentElement.classList.add('err');avisa('Año de ingreso','Debe tener 4 dígitos.');return}
   var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
   var b=$('save');b.disabled=true;banner('');
   var nom=datos.ap+' '+datos.no;
