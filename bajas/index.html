@@ -117,7 +117,7 @@ body.cargando .app{visibility:hidden}
 
   <div class="main" id="reg">
     <div class="card search">
-      <div class="sbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" class="field" placeholder="Apellidos, nombres o cédula" autocomplete="off" aria-label="Buscar estudiante" disabled></div>
+      <div class="sbox"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="q" class="field" placeholder="Apellidos, nombres o cédula" autocomplete="off" aria-label="Buscar estudiante"></div>
       <div class="meta" id="nres"></div>
       <div class="list" id="list" role="listbox"></div>
     </div>
@@ -214,7 +214,7 @@ body.cargando .app{visibility:hidden}
 (function(){
 'use strict';
 var $=function(i){return document.getElementById(i)};
-var EST=[],PEND=[],YO=null,SEL=null;
+var LOADING=true,EST=[],PEND=[],YO=null,SEL=null;
 var norm=function(s){return String(s==null?'':s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase()};
 var esc=function(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')};
 var fdmy=function(iso){var d=new Date(iso);return isNaN(d)?'':d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})};
@@ -234,6 +234,7 @@ function banner(m){var b=$('banner');b.hidden=!m;b.textContent=m||''}
 /* ---------- búsqueda ---------- */
 function render(q){var Q=norm(q).trim();
   if(Q.length<3){$('list').classList.remove('on');$('nres').textContent='';return}
+  if(LOADING){$('list').innerHTML='<div class="vac" style="padding:14px;text-align:center;color:var(--mut)">Cargando estudiantes… un momento</div>';$('list').classList.add('on');return}
   var r=EST.filter(function(d){return d._k.indexOf(Q)>=0}).slice(0,60);
   $('list').innerHTML=r.length?r.map(function(d){return '<div class="it" role="option" data-i="'+d._i+'"><b>'+esc(d.ap+' '+d.no)+(d.nuevo?'<small>Nuevo ingreso</small>':'')+'</b><span>C.C. '+esc(d.ce)+(d.cu?' · '+esc(d.cu):'')+(d.co?' · '+esc(d.co):'')+'</span></div>'}).join(''):'<div class="vac" style="padding:14px">No se encontró ningún estudiante activo con esa búsqueda.</div>';
   $('nres').textContent=r.length+' coincidencia'+(r.length===1?'':'s');
@@ -323,14 +324,14 @@ $('msave').onclick=function(){var n=0;['mf','md'].forEach(function(i){var bad=!$
 Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(b){b.onclick=function(){Array.prototype.forEach.call(document.querySelectorAll('.tab'),function(x){x.classList.remove('on')});b.classList.add('on');var p=b.dataset.t==='pend';document.body.classList.toggle('pendtab',p);$('reg').style.display=p?'none':'flex';$('pend').style.display=p?'flex':'none';if(p)cargarPend()}});
 
 function cargarEst(foco){return api('vigentes').then(function(r){EST=(r.lista||[]).map(function(d,i){d._i=i;d._k=norm(d.ap+' '+d.no+' '+d.ce);return d});
-    $('q').disabled=false;if(foco)$('q').focus();$('nres').textContent=''})
-  .catch(function(e){$('nres').textContent='No se pudieron cargar los estudiantes';banner(e.message)})}
+    LOADING=false;$('nres').textContent='';if(document.activeElement===$('q')||$('q').value)render($('q').value)})
+  .catch(function(e){LOADING=false;$('nres').textContent='No se pudieron cargar los estudiantes';banner(e.message)})}
 /* ---------- arranque ---------- */
 $('today').textContent=new Date().toLocaleDateString('es-CO');
 gate(true,'Cargando sesión…','',true);
-api('sesion').then(function(s){YO=s;$('yo').textContent=s.correo;$('yo2').textContent=s.correo;gate(false);
-  cargarPend();
-  return cargarEst(true)})
+cargarEst();
+api('sesion').then(function(s){YO=s;$('yo').textContent=s.correo;$('yo2').textContent=s.correo;gate(false);$('q').focus();
+  return cargarPend()})
 .catch(function(e){gate(true,/solo para/i.test(e.message)?'Sin permiso':'No se pudo abrir el módulo',e.message,false)});
 })();
 </script>
