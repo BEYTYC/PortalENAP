@@ -1962,7 +1962,13 @@ img,svg,video,canvas,iframe{max-width:100%}
 
   window.PortalENAP = window.PortalENAP || {};
   // Concesiones Especiales: entrega el token de Microsoft de la sesion actual.
-  window.PortalENAP.tokenMicrosoft = async function () {
+  let __tokenEnCurso = null;
+  window.PortalENAP.tokenMicrosoft = function () {
+    // Varias peticiones seguidas comparten una sola adquisicion en curso.
+    if (!__tokenEnCurso) __tokenEnCurso = tokenMicrosoftInterno().finally(() => { __tokenEnCurso = null; });
+    return __tokenEnCurso;
+  };
+  const tokenMicrosoftInterno = async function () {
     // Los modulos embebidos (p. ej. Solicitud de Grado) se precargan desde
     // que abre el Portal, o sea antes de que la persona inicie sesion, y
     // piden su token de una vez. En vez de fallar, esta funcion espera
