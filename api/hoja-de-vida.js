@@ -281,7 +281,9 @@ function graduadosDeHoja(F, porCed, porNom) {
   if (c.nombre < 0) c.nombre = encab.findIndex((x) => /NOMBRE/.test(x) && !/(PROGRAMA|TRABAJO|TITULO|ACTA|ESPECIAL)/.test(x));
   if (c.ape < 0) c.ape = encab.findIndex((x) => /^APELLIDO/.test(x));
   if (c.trabajo < 0) c.trabajo = encab.findIndex((x) => /(TRABAJO|TESIS|MONOGRAFIA|PROYECTO DE GRADO)/.test(x) && !/(FECHA|NOTA|CALIFIC|DIRECTOR|ASESOR|JURADO|ACTA)/.test(x));
-  if (c.ced < 0 && c.nombre < 0 && c.ape < 0) return null;
+  // Respaldo: si "APELLIDOS Y NOMBRES" viene vacío (fórmula sin valor guardado), se arma con APELLIDOS2 + NOMBRES.
+  const iAp2 = encab.findIndex((x) => /^APELLIDOS ?2$/.test(x)), iNom2 = encab.findIndex((x) => /^NOMBRES$/.test(x));
+  if (c.ced < 0 && c.nombre < 0 && c.ape < 0 && iAp2 < 0) return null;
   if (c.prog < 0 && c.fecha < 0) return null; // hoja sin programa ni fecha: no es una lista de grados
   let n = 0;
   for (let i = h0 + 1; i < F.length; i++) {
@@ -289,6 +291,7 @@ function graduadosDeHoja(F, porCed, porNom) {
     const ck = c.ced >= 0 ? cedKey(r[c.ced]) : '';
     let nm = c.nombre >= 0 ? sinTildes(r[c.nombre]) : '';
     if (c.ape >= 0 && c.ape !== c.nombre) { const ap = sinTildes(r[c.ape]); if (ap && !nm.includes(ap)) nm = (ap + ' ' + nm).trim(); }
+    if (!nm && (iAp2 >= 0 || iNom2 >= 0)) nm = sinTildes([iAp2 >= 0 ? r[iAp2] : '', iNom2 >= 0 ? r[iNom2] : ''].filter(Boolean).join(' '));
     if (!ck && !nm) continue;
     const reg = { programa: c.prog >= 0 ? sinTildes(r[c.prog]) : '', titulo: c.titulo >= 0 ? txt(r[c.titulo]) : '', fecha: c.fecha >= 0 ? fechaCelda(r[c.fecha]) : '', nombre: nm ? nom(nm) : '', trabajo: c.trabajo >= 0 ? txt(r[c.trabajo]) : '' };
     n++;
