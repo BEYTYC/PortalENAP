@@ -2175,7 +2175,7 @@ function recalc(s){
   s.f=(s.ac!=null&&s.an!=null&&s.di!=null&&s.cf!=null)?.5*s.ac+.2*s.an+.2*s.di+.1*s.cf:null;
   const MIL=['Aptitud naval','Disciplina','Cultura física'],u=s.h[s.h.length-1]||[];
   s.rk=(s.rk||[]).filter(x=>!MIL.includes(x[0])&&RK_OK(x));
-  if(!OUT(s))[[MIL[0],u[2]],[MIL[1],u[3]],[MIL[2],u[4]]].forEach(([n,v],ix)=>{if(v!=null&&v<(ix===2?7:6))s.rk.push([n,Math.round(v*1000)/1000])});
+  if(!OUT(s))[[MIL[0],u[2]],[MIL[1],u[3]],[MIL[2],u[4]]].forEach(([n,v],ix)=>{if(v!=null&&v<(ix===2?7:6)&&!(s.rkq||[]).includes(n))s.rk.push([n,Math.round(v*1000)/1000])});
 }
 function rerank(){
   [D.esc||[],(D.sheets||{}).PR||[],(D.sheets||{}).CDP||[],(D.sheets||{}).MRE||[]].forEach(arr=>{
