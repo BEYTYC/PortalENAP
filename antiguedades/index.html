@@ -798,6 +798,41 @@ svg .cnt{font-weight:700}
 .edb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .edb button{border:0;border-radius:6px;padding:8px 12px;background:var(--navy,#12305a);color:#fff;font:inherit;font-weight:600;cursor:pointer}
 .edn{font-size:11px;opacity:.7;margin:8px 0 0}
+
+.edt{margin-top:18px;border:1px solid var(--line);border-radius:12px;padding:0;background:#fff;box-shadow:0 1px 2px rgba(31,78,150,.06),0 10px 28px -14px rgba(31,78,150,.25);overflow:hidden}
+.edt .edh{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 16px;background:var(--navy);color:#fff}
+.edt .edh h4{margin:0;font-size:15px;font-weight:700;color:#fff}.edt .edh p{margin:2px 0 0;font-size:12px;color:var(--navy-mute)}
+.edt .edp{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;padding:4px 9px;border:1px solid rgba(255,255,255,.45);border-radius:999px;white-space:nowrap}
+.edt .eds{padding:14px 16px;border-bottom:1px solid var(--line)}
+.edt .eds h5{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:13px;font-weight:700;color:var(--ink)}
+.edt .eds h5 i{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--soft);color:var(--navy);font:700 11px/1 inherit;font-style:normal}
+.edt .edg{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin:0}
+.edt .edg .edw{grid-column:1/-1}
+.edt label{display:flex;flex-direction:column;gap:4px;font-size:12px}
+.edt label>span{font-weight:600;color:var(--mute)}
+.edt input[type=text],.edt select,.edt .ed-n{font:inherit;font-size:13px;padding:7px 9px;border:1px solid #B8C7DB;border-radius:7px;background:#fff;color:var(--ink);min-width:0}
+.edt input[type=text]:focus,.edt select:focus,.edt .ed-n:focus{outline:2px solid var(--navy);outline-offset:0;border-color:var(--navy)}
+.edt .edh2{margin:0 0 8px;font-size:12px;color:var(--mute)}
+.edt .edr{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.edt .edr li label{flex-direction:row;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--hover);cursor:pointer}
+.edt .edr li label:has(input:checked){background:#E6F4EC;border-color:#9ACDB2}
+.edt .edr .edrn{font-weight:600;color:var(--ink)}.edt .edr .edrv{color:var(--warn)}
+.edt .edr em{margin-left:auto;font-style:normal;font-size:11px;color:var(--good);opacity:0}
+.edt .edr li label:has(input:checked) em{opacity:1}
+.edt .edr input[type=checkbox]{width:16px;height:16px;accent-color:var(--navy)}
+.edt .edtb{width:100%;border-collapse:collapse}
+.edt .edtb th{padding:7px 6px;font-size:11.5px;font-weight:600;color:var(--mute);text-align:center;border-bottom:1px solid var(--line);background:var(--hover)}
+.edt .edtb tbody th{text-align:left;color:var(--ink);background:transparent;font-size:12.5px}
+.edt .edtb td{padding:5px 6px;text-align:center;border-bottom:1px solid var(--line)}
+.edt .edtb .ed-n{width:72px;text-align:center}
+.edt .edf{padding:14px 16px;background:var(--hover)}
+.edt .edb{display:flex;gap:10px;flex-wrap:wrap;margin:0}
+.edt .edb button{border:1px solid var(--navy);border-radius:8px;padding:9px 16px;background:var(--navy);color:#fff;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.edt .edb button.b2{background:#fff;color:var(--navy)}
+.edt .edb button:hover{filter:brightness(.95)}
+#ed-m{margin-top:10px;font-size:13px;font-weight:600;color:var(--good);min-height:1em}
+.edt .edn{margin:8px 0 0;font-size:11.5px;line-height:1.4;color:var(--mute);opacity:1}
+@media(max-width:640px){.edt .edg{grid-template-columns:1fr}}
 .podio .trf{display:block;margin:0 auto -4px;position:relative;top:12px;}
 
 .pleg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:11.5px;margin:6px 0 10px}.pleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
@@ -2186,7 +2221,13 @@ function rerank(){
 function editor(el,s){
   const iv=v=>v==null?'':String(Math.round(v*1000)/1000).replace('.',',');
   const sec=document.createElement('section');sec.className='edt';
-  sec.innerHTML=`<h4>Modo edición · solo administrador</h4><div class="edg"><label>Estado<select id="ed-e">${ESTS.map(x=>`<option${(s.e||'Normal')===x?' selected':''}>${x}</option>`).join('')}</select></label><label>Detalle / observación<input id="ed-ev" type="text" value="${(s.ev||'').replace(/"/g,'&quot;')}"></label><label>Novedad financiera<input id="ed-fin" type="text" value="${(s.fin||'').replace(/"/g,'&quot;')}"></label></div>${(s.rk&&s.rk.length)?`<fieldset class="edr" style="border:1px solid #cfd8e3;border-radius:8px;margin:10px 0;padding:8px 12px"><legend style="font-weight:600;padding:0 6px">Motivos de riesgo · marque los que ya no aplican</legend>${s.rk.map((r,i)=>`<label style="display:flex;gap:8px;align-items:center;padding:3px 0"><input type="checkbox" class="ed-rk" data-i="${i}"><span>${String(r[0]).replace(/</g,'&lt;')}${r[1]==null?'':' · '+iv(r[1])}</span></label>`).join('')}</fieldset>`:''}<div class="tw"><table><thead><tr><th>Semestre</th><th>Académica</th><th>Apt. naval</th><th>Disciplina</th><th>C.FIS</th></tr></thead><tbody>${s.h.map((r,i)=>`<tr><td>${r[0]}</td>${[1,2,3,4].map(j=>`<td><input class="ed-n" data-i="${i}" data-j="${j}" inputmode="decimal" value="${iv(r[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div><div class="edb"><button type="button" id="ed-ap">Aplicar y recalcular</button><button type="button" id="ed-sv">Guardar en el servidor</button><span id="ed-m" role="status"></span></div><p class="edn">Recalcula promedios, promedio final y puestos de todo el grupo. Los premios no se recalculan solos.</p>`;
+  const esc2=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+  const NC=['','Académica','Apt. naval','Disciplina','C. física'];
+  sec.innerHTML=`<header class="edh"><div><h4>Edición de la ficha</h4><p>${esc2(s.n)} · ${esc2(s.c)}</p></div><span class="edp">Solo administrador</span></header>
+  <div class="eds"><h5><i>1</i>Estado y observaciones</h5><div class="edg"><label><span>Estado del estudiante</span><select id="ed-e">${ESTS.map(x=>`<option${(s.e||'Normal')===x?' selected':''}>${x}</option>`).join('')}</select></label><label><span>Novedad financiera</span><input id="ed-fin" type="text" placeholder="Sin novedad" value="${esc2(s.fin)}"></label><label class="edw"><span>Detalle u observación</span><input id="ed-ev" type="text" placeholder="Ej.: decisión del Batallón, soporte, fecha…" value="${esc2(s.ev)}"></label></div></div>
+  <div class="eds"><h5><i>2</i>Motivos de riesgo</h5>${(s.rk&&s.rk.length)?`<p class="edh2">Marque los motivos que ya no aplican. Quedan exentos y no se vuelven a calcular.</p><ul class="edr">${s.rk.map((r,i)=>`<li><label><input type="checkbox" class="ed-rk" data-i="${i}"><span class="edrn">${esc2(r[0])}</span>${r[1]==null?'':`<b class="edrv">${iv(r[1])}</b>`}<em>Ya no aplica</em></label></li>`).join('')}</ul>`:'<p class="edh2">Este estudiante no tiene motivos de riesgo registrados.</p>'}</div>
+  <div class="eds"><h5><i>3</i>Notas por semestre</h5><div class="tw"><table class="edtb"><thead><tr><th>Semestre</th>${[1,2,3,4].map(j=>`<th>${NC[j]}</th>`).join('')}</tr></thead><tbody>${s.h.map((r,i)=>`<tr><th scope="row">${esc2(r[0])}</th>${[1,2,3,4].map(j=>`<td><input class="ed-n" data-i="${i}" data-j="${j}" inputmode="decimal" aria-label="${esc2(r[0])} ${NC[j]}" value="${iv(r[j])}"></td>`).join('')}</tr>`).join('')}</tbody></table></div><p class="edh2">Escala de 0 a 10, con coma decimal.</p></div>
+  <footer class="edf"><div class="edb"><button type="button" id="ed-ap" class="b2">Aplicar y recalcular</button><button type="button" id="ed-sv">Guardar en el servidor</button></div><div id="ed-m" role="status"></div><p class="edn">Al aplicar se recalculan promedios, promedio final y puestos de todo el grupo. Los premios no se recalculan solos. Cada cambio queda registrado con la fecha y quién lo hizo.</p></footer>`;
   el.appendChild(sec);
   const m=t=>{sec.querySelector('#ed-m').textContent=t};
   const aplicar=()=>{
@@ -2206,7 +2247,7 @@ function editor(el,s){
     recalc(s);rerank();
     D.ediciones=(D.ediciones||[]).concat([{t:new Date().toISOString(),por:(window.__yo||{}).correo||'',c:s.c,n:s.n,cambios:cam}]);
     return cam};
-  sec.querySelector('#ed-ap').onclick=()=>{const c=aplicar();if(c){render();m('Aplicado. Falta guardar en el servidor.')}};
+  sec.querySelector('#ed-ap').onclick=()=>{const c=aplicar();if(c){render();setTimeout(()=>{const x=document.getElementById('ed-m');if(x)x.textContent='Aplicado. Falta guardar en el servidor.'},30)}};
   sec.querySelector('#ed-sv').onclick=()=>{
     const c=aplicar();
     if(!c&&!D.ediciones){m('Sin cambios.');return}
