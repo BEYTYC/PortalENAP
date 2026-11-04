@@ -237,9 +237,20 @@ function procesarBajas(libro) {
   return { porCed, porNom, filas: n, asc };
 }
 
+/* Graduados: se leen TODAS las hojas del libro que tengan encabezados reconocibles (pregrado, especializaciones, maestrías, doctorado… pueden ir en hojas distintas). */
 function procesarGraduados(libro) {
-  const hoja = libro.hojas.find((h) => /^grados$/i.test(h)) || libro.hojas[0];
-  const F = libro.leer(hoja, { maxCols: 40 });
+  const porCed = {}, porNom = {};
+  let n = 0, cols = null;
+  const hojas = libro.hojas.slice().sort((a, b) => (/^grados$/i.test(b) ? 1 : 0) - (/^grados$/i.test(a) ? 1 : 0));
+  hojas.forEach((hoja) => {
+    let F;
+    try { F = libro.leer(hoja, { maxCols: 40 }); } catch (e) { return; }
+    const r = graduadosDeHoja(F, porCed, porNom);
+    if (r) { n += r.n; cols = cols || r.columnas; ['fecha', 'titulo', 'trabajo', 'nombre', 'cedula'].forEach((k) => { if (r.columnas[k]) cols[k] = true; }); }
+  });
+  return { porCed, porNom, filas: n, columnas: cols || { fecha: false, titulo: false, trabajo: false, nombre: false, cedula: false } };
+}
+function graduadosDeHoja(F, porCed, porNom) {
   // La fila de encabezados puede no ser la primera: se toma la primera (de las 8 primeras) que traiga cédula o nombre.
   let h0 = 0, c = null;
   for (let q = 0; q < Math.min(F.length, 8); q++) {
@@ -258,7 +269,8 @@ function procesarGraduados(libro) {
   if (c.nombre < 0) c.nombre = encab.findIndex((x) => /NOMBRE/.test(x) && !/(PROGRAMA|TRABAJO|TITULO|ACTA|ESPECIAL)/.test(x));
   if (c.ape < 0) c.ape = encab.findIndex((x) => /^APELLIDO/.test(x));
   if (c.trabajo < 0) c.trabajo = encab.findIndex((x) => /(TRABAJO|TESIS|MONOGRAFIA|PROYECTO DE GRADO)/.test(x) && !/(FECHA|NOTA|CALIFIC|DIRECTOR|ASESOR|JURADO|ACTA)/.test(x));
-  const porCed = {}, porNom = {};
+  if (c.ced < 0 && c.nombre < 0 && c.ape < 0) return null;
+  if (c.prog < 0 && c.fecha < 0) return null; // hoja sin programa ni fecha: no es una lista de grados
   let n = 0;
   for (let i = h0 + 1; i < F.length; i++) {
     const r = F[i];
@@ -270,7 +282,7 @@ function procesarGraduados(libro) {
     n++;
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
-  return { porCed, porNom, filas: n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
+  return { n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
 }
 
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
