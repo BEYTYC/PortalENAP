@@ -1546,7 +1546,7 @@ const D=window.__D;
 ['MRE','MER'].forEach(k=>(D.sheets&&D.sheets[k]||[]).forEach(s=>{s.g='PLT'}));
 /* sin novedades de "asignatura < 6,0": solo se conservan los demás motivos de riesgo */
 const RK_OK=x=>/^(Aptitud naval|Disciplina|Cultura física|Perdió|Concepto de Sanidad|Consejo|Curso Instructor|Novedad financiera)/.test(x[0]);
-[D.esc||[],...Object.keys(D.sheets||{}).map(k=>D.sheets[k]||[])].forEach(L=>L.forEach(s=>{if(s.rk)s.rk=s.rk.filter(RK_OK)}));
+[D.esc||[],...Object.keys(D.sheets||{}).map(k=>D.sheets[k]||[])].forEach(L=>L.forEach(s=>{if(s.rk)s.rk=s.rk.filter(x=>RK_OK(x)&&!(s.rkq||[]).includes(x[0]))}));
 [...(D.esc||[]),...Object.values(D.sheets||{}).flat()].forEach(s=>{if(s.e==='Salió')s.e='Retirado'});
 const OUT=s=>s.e==='Aplazado'||(s.e==='Comisión'&&(D.solo||s.p==null))||s.e==='Retirado';
 const PER=window.__PER||'2026-1',PREV=({'2026-2':'2026-1','2026-1':'2025-2'})[PER]||'2025-2';
