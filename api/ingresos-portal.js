@@ -25,7 +25,7 @@ const roles = require('./roles.js');
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const DOMINIO = '@enap.edu.co';
-const ADMINS = ['jestadisticaplen@enap.edu.co'];
+const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
 const RUTA = 'PortalAccesos/ingresos.json';
 const RUTA_SESIONES = 'PortalAccesos/sesiones.json';
 const RUTA_MODULOS = 'PortalAccesos/modulos.json';

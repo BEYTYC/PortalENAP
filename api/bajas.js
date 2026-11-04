@@ -4,7 +4,7 @@
  * Servidor del módulo "Registro de bajas" y de la validación final de
  * Ascensos (botón en Antigüedades › Administración).
  *
- * Quién puede usarlo: solo jestadisticaplen@enap.edu.co.
+ * Quién puede usarlo: solo sea@enap.edu.co y jestadisticaplen@enap.edu.co.
  *
  * De dónde salen los datos (OneDrive de jestadisticaplen, solo lectura):
  *   - Antigüedades (SharePoint del Portal, carpeta Antiguedades/): curso y grado
@@ -34,7 +34,7 @@ const roles = require('./roles.js');
 const X = require('./_xlsx.js');
 
 const GRAPH = 'https://graph.microsoft.com/v1.0';
-const ADMINS = ['jestadisticaplen@enap.edu.co'];
+const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
 const DUENO = 'jestadisticaplen@enap.edu.co';
 const AVISAR_A = 'sea@enap.edu.co';
 const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/';
@@ -537,7 +537,7 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'object' && req.body ? req.body : {};
     if (!body.accessToken || !body.accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(body.accessToken);
-    if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para jestadisticaplen@enap.edu.co.', 403);
+    if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para sea@enap.edu.co y jestadisticaplen@enap.edu.co.', 403);
     await ctx();
     const a = body.accion;
 
