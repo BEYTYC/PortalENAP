@@ -392,7 +392,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
 
 /* Acceso: verifica la sesión al abrir y deja el cursor en el buscador. */
 
-api('sesion').then(function(){$('q').disabled=false;$('bt').disabled=false;$('ay').textContent='Cédula completa o al menos 3 letras del nombre.';$('q').focus();
+api('sesion').then(function(){$('q').disabled=false;$('bt').disabled=false;var AYT='Cédula completa o al menos 3 letras del nombre.';function ayPon(){$('ay').innerHTML=ESC(AYT)+' · <a href="#" id="rf" style="color:inherit;text-decoration:underline">Actualizar datos</a>';$('rf').onclick=function(ev){ev.preventDefault();$('ay').textContent='Actualizando datos desde los archivos…';api('refrescar').then(function(){AYT='Datos actualizados. Cédula completa o al menos 3 letras del nombre.';ayPon()}).catch(function(e){AYT='No se pudo actualizar: '+e.message;ayPon()})}}ayPon();$('q').focus();
   api('calentar').catch(function(){}) /* precarga las bases para que la primera consulta sea rápida */
 }).catch(function(e){$('ay').textContent='';msg(ESC(e.message),1)});
 var FS_IN='M8 3H5a2 2 0 0 0-2 2v3 M21 8V5a2 2 0 0 0-2-2h-3 M3 16v3a2 2 0 0 0 2 2h3 M16 21h3a2 2 0 0 0 2-2v-3',FS_OUT='M8 3v3a2 2 0 0 1-2 2H3 M21 8h-3a2 2 0 0 1-2-2V3 M3 16h3a2 2 0 0 1 2 2v3 M16 21v-3a2 2 0 0 1 2-2h3';

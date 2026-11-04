@@ -954,6 +954,10 @@ module.exports = async function handler(req, res) {
     const a = body.accion;
     if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre }); return; }
     await ctx();
+    if (a === 'refrescar') { // descarta lo guardado en memoria y vuelve a leer todas las fuentes desde los archivos
+      Object.keys(CACHE).forEach((k) => { delete CACHE[k]; }); ANT = null;
+      const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
+    }
     if (a === 'calentar') { // precarga todas las fuentes en la memoria de la función (se llama al abrir el módulo)
       const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
     }
