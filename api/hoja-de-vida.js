@@ -241,14 +241,16 @@ function procesarBajas(libro) {
 function procesarGraduados(libro) {
   const porCed = {}, porNom = {};
   let n = 0, cols = null;
+  const hojasInfo = [];
   const hojas = libro.hojas.slice().sort((a, b) => (/^grados$/i.test(b) ? 1 : 0) - (/^grados$/i.test(a) ? 1 : 0));
   hojas.forEach((hoja) => {
     let F;
     try { F = libro.leer(hoja, { maxCols: 40 }); } catch (e) { return; }
     const r = graduadosDeHoja(F, porCed, porNom);
+    hojasInfo.push(r ? { hoja, usada: true, filas: r.n, cols: r.cols } : { hoja, usada: false });
     if (r) { n += r.n; cols = cols || r.columnas; ['fecha', 'titulo', 'trabajo', 'nombre', 'cedula'].forEach((k) => { if (r.columnas[k]) cols[k] = true; }); }
   });
-  return { porCed, porNom, filas: n, columnas: cols || { fecha: false, titulo: false, trabajo: false, nombre: false, cedula: false } };
+  return { porCed, porNom, filas: n, hojas: hojasInfo, columnas: cols || { fecha: false, titulo: false, trabajo: false, nombre: false, cedula: false } };
 }
 function graduadosDeHoja(F, porCed, porNom) {
   // La fila de encabezados puede no ser la primera: se toma la primera (de las 8 primeras) que traiga cédula o nombre.
@@ -282,7 +284,7 @@ function graduadosDeHoja(F, porCed, porNom) {
     n++;
     if (ck) agregar(porCed, ck, reg); else if (reg.nombre) agregar(porNom, nomKey(reg.nombre), reg);
   }
-  return { n, columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
+  return { n, cols: (F[h0] || []).map((x) => txt(x)).filter(Boolean), columnas: { fecha: c.fecha >= 0, titulo: c.titulo >= 0, trabajo: c.trabajo >= 0, nombre: c.nombre >= 0, cedula: c.ced >= 0 } };
 }
 
 /* Cursos de extensión / complementación / ascenso: columnas por nombre de encabezado; si no se reconocen, no se muestra nada. */
@@ -921,7 +923,7 @@ async function cargar() {
   const [cong, baj, grad, ant, ext, ley, ccp, conc, med] = await Promise.all([
     intenta('conglomerado', 'CONGLOMERADO (ingresos)', () => fuente('conglomerado', procesarConglomerado)),
     intenta('bajas', 'Bajas y Ascensos', () => fuente('bajas', procesarBajas), (v) => (v.asc.error ? 'Hoja Ascensos: ' + v.asc.error : `Ascensos: ${v.asc.filas} filas`)),
-    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => (!v.columnas.nombre ? 'Sin columna de nombre: quienes solo están en Graduados no se pueden buscar por nombre.' : v.columnas.fecha ? '' : 'Sin columna de fecha de grado: se muestra solo que se graduó y el programa.')),
+    intenta('graduados', 'Graduados en la ENAP', () => fuente('graduados', procesarGraduados), (v) => `${v.filas} registros · ` + v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ') + (!v.columnas.nombre ? ' · SIN columna de nombre: quienes solo están en Graduados no se pueden buscar por nombre.' : v.columnas.fecha ? '' : ' · Sin columna de fecha de grado.')),
     intenta('antiguedades', 'Antigüedades (notas, distinguido, excelencia)', cargarAntiguedades, (v) => `Periodos: ${v.periodos.join(', ')}`),
     intenta('extension', 'Cursos de extensión', () => fuente('extension', procesarExtension), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
     intenta('ley', 'Cursos de ley (capacitación para ascenso)', () => fuente('ley', procesarLey), (v) => v.hojas.map((h) => h.hoja + (h.usada ? ` (${h.filas}; columnas: ${(h.cols || []).join(', ')})` : ' (sin columnas reconocidas)')).join(' · ')),
