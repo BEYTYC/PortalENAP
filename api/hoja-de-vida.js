@@ -307,6 +307,7 @@ function graduadosDeHoja(F, porCed, porNom) {
 const procesarExtension = (libro) => procesarCursos(libro, 'extension');
 const procesarLey = (libro) => procesarCursos(libro, 'ley');
 const procesarCcp = (libro) => procesarCursos(libro, 'ccp');
+function horasDe(v) { const m = String(v == null ? '' : v).replace(',', '.').match(/\d+(\.\d+)?/); return m && +m[0] > 0 ? +m[0] : null; }
 function procesarCursos(libro, base) {
   const porCed = {}, porNom = {};
   const hojas = [];
@@ -321,8 +322,9 @@ function procesarCursos(libro, base) {
         nombre: ['APELLIDOS Y NOMBRES', 'NOMBRES Y APELLIDOS', 'NOMBRE', 'NOMBRES', 'NOMBRE COMPLETO', 'ALUMNO', 'ESTUDIANTE'],
         curso: ['CURSO', 'NOMBRE CURSO', 'NOMBRE DEL CURSO', 'PROGRAMA', 'NOMBRE PROGRAMA'],
         tipo: ['TIPO', 'TIPO CURSO', 'TIPO DE CURSO', 'CLASE', 'MODALIDAD', 'CATEGORIA'],
-        inicio: ['FECHA INICIO', 'FECHA DE INICIO', 'INICIO'],
-        fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA'],
+        inicio: ['FECHA INICIO', 'FECHA DE INICIO', 'INICIO', 'FECHA INGRESO', 'FECHA DE INGRESO', 'INGRESO', 'FECHA INICIO CCP'],
+        horas: ['HORAS', 'NUMERO DE HORAS', 'NO HORAS', 'N HORAS', 'CANTIDAD DE HORAS', 'INTENSIDAD HORARIA', 'INTENSIDAD', 'DURACION HORAS', 'DURACION', 'HORAS CURSO', 'TOTAL HORAS'],
+        fin: ['FECHA FIN', 'FECHA FINALIZACION', 'FECHA DE FINALIZACION', 'FIN', 'FECHA TERMINACION', 'FECHA DE TERMINACION', 'FECHA TERMINO', 'FECHA DE TERMINO', 'TERMINACION', 'FECHA'],
         ape: ['APELLIDOS'],
         nota: ['NOTA', 'PROMEDIO', 'NOTA FINAL', 'CALIFICACION'], puesto: ['PUESTO', 'PUESTO OCUPADO'],
         promo: ['PROMOCION', 'CURSO CCP', 'CCP', 'NUMERO CCP', 'NO CCP'], espec: ['ESPECIALIDAD', 'SIGLA', 'ESP'],
@@ -342,7 +344,7 @@ function procesarCursos(libro, base) {
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
         curso: base === 'ccp' ? 'CURSO DE COMPLEMENTACIÓN PROFESIONAL' : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
-        tipo: base === 'ccp' ? [c.programa >= 0 ? nom(r[c.programa]) : [c.curso >= 0 && nom(r[c.curso]), c.espec >= 0 && nom(r[c.espec])].filter(Boolean).join(' · '), c.promo >= 0 && nom(r[c.promo])].filter(Boolean).join(' · ') : (c.tipo >= 0 ? txt(r[c.tipo]) : ''), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '',
+        tipo: base === 'ccp' ? [c.programa >= 0 ? nom(r[c.programa]) : [c.curso >= 0 && nom(r[c.curso]), c.espec >= 0 && nom(r[c.espec])].filter(Boolean).join(' · '), c.promo >= 0 && nom(r[c.promo])].filter(Boolean).join(' · ') : (c.tipo >= 0 ? txt(r[c.tipo]) : ''), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '', horas: c.horas >= 0 ? horasDe(r[c.horas]) : null,
         nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nm,
       };
       k++; n++;
@@ -755,7 +757,7 @@ function armarFicha(id, S) {
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
     const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
-    linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, pv: x.pv });
+    linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, horas: x.horas, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
   // Complementación o posgrado cursado sin grado: "Egresado no graduado - <programa>".

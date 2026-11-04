@@ -369,8 +369,10 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(e.programa)body+='<div class="ds">Programa: '+ESCT(e.programa)+'</div>';
       chip='Medalla';
     }else{ // cursos
-      titulo=TT(e.titulo);chipD=fch(e.tipo==='complementacion'?(e.inicio||e.fecha):(e.fin||e.fecha))||'';var d3=[];if(e.detalle)d3.push(e.detalle);if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);
+      titulo=TT(e.titulo);chipD=fch(e.tipo==='complementacion'?(e.inicio||e.fecha):(e.fin||e.fecha))||'';var d3=[];if(e.detalle)d3.push(e.detalle);if(e.tipo==='extension'&&e.horas)d3.push(e.horas+' horas');if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);
       if(e.tipo==='complementacion'){if(e.detalle)body+='<div class="ds"><b>Programa de ingreso:</b> '+TT(e.detalle)+'</div>';d3=[];if(e.nota!=null)d3.push('Nota '+f3(e.nota));if(e.puesto)d3.push('Puesto '+e.puesto);if(d3.length)body+='<div class="ds">'+ESC(d3.join(' · '))+'</div>'}else if(d3.length){if(e.tipo==='ley'||e.tipo==='extension')titulo+=' <span class="sub">· '+TT(d3.join(' · '))+'</span>';else body+='<div class="ds">'+TT(d3.join(' · '))+'</div>'}
+      if(e.tipo==='ley'&&(e.inicio||e.fin))body+='<div class="ds">'+(e.inicio?'<b>Inicio:</b> '+fch(e.inicio):'')+(e.inicio&&e.fin?' · ':'')+(e.fin?'<b>Fin:</b> '+fch(e.fin):'')+'</div>';
+      if(e.tipo==='complementacion'&&(e.inicio||e.fin))body+='<div class="ds">'+(e.inicio?'<b>Ingreso:</b> '+fch(e.inicio):'')+(e.inicio&&e.fin?' · ':'')+(e.fin?'<b>Terminación:</b> '+fch(e.fin):'')+'</div>';
       chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial',complementacion:'Ingreso'}[e.tipo]||'';
     }
     if(e.medallas&&(e.tipo==='ley'||e.tipo==='complementacion'||e.tipo==='extension'))e.medallas.forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?'<div>'+TT(m.categoria)+(m.motivo?' · '+ESCT(m.motivo):'')+'</div>':(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':''))+'</div></div>'});
