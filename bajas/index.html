@@ -198,7 +198,8 @@ body.cargando .app{visibility:hidden}
   <div id="rok" style="display:none;width:52px;height:52px;border-radius:50%;background:#E7F4EC;color:#1E6B3A;margin:0 auto 14px;place-items:center"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></div>
   <h2 id="rt" style="margin:0 0 6px;font-size:18px;font-weight:600">Registrando baja…</h2>
   <div id="rm" style="font-size:14px;color:var(--mut);line-height:1.5">Un momento, por favor.</div>
-  <div style="margin-top:20px"><button class="btn btn-p" id="rbtn" style="display:none;margin:0">Aceptar</button></div>
+  <pre id="rdet" style="display:none;text-align:left;white-space:pre-wrap;word-break:break-all;font:12px/1.5 ui-monospace,Consolas,monospace;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:14px 0 0;color:#475569;max-height:180px;overflow:auto;user-select:all"></pre>
+  <div style="margin-top:20px"><button class="btn btn-g" id="rcop" style="display:none">Copiar detalle</button><button class="btn btn-p" id="rbtn" style="display:none;margin:0">Aceptar</button></div>
 </div></div>
 <div class="toast" id="toast" role="status"></div>
 <script>
@@ -215,8 +216,13 @@ function tok(){var P=window.parent&&window.parent!==window?window.parent.PortalE
   return Promise.race([P.tokenMicrosoft(),new Promise(function(_,rj){setTimeout(function(){rj(new Error('No se pudo obtener tu sesión de Microsoft del Portal. Cierra sesión, vuelve a entrar y abre de nuevo el módulo.'))},25000)})])}
 function api(accion,extra){return tok().then(function(t){var ac=new AbortController();setTimeout(function(){ac.abort()},55000);
   return fetch('/api/bajas',{method:'POST',signal:ac.signal,headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({accessToken:t,accion:accion},extra||{}))})
-  .catch(function(e){throw new Error(e&&e.name==='AbortError'?'El servidor tardó demasiado en responder. Intente de nuevo.':'No se pudo conectar con el servidor.')})})
-  .then(function(r){return r.json().catch(function(){return{}}).then(function(j){if(!r.ok)throw new Error(j.error||('Error '+r.status));return j})})}
+  .catch(function(e){var x=new Error(e&&e.name==='AbortError'?'El servidor tardó demasiado en responder. Intente de nuevo.':'No se pudo conectar con el servidor. Revise la conexión a internet o si la red bloquea el Portal.');x.tipo=e&&e.name==='AbortError'?'TIEMPO AGOTADO (55 s)':'SIN CONEXIÓN ('+(navigator.onLine?'en línea':'sin internet')+'; '+(e&&e.message||e)+')';x.paso=accion;throw x})})
+  .then(function(r){return r.text().then(function(tx){var j=null;try{j=JSON.parse(tx)}catch(_){}
+    if(!r.ok||!j){var x=new Error(j&&j.error?j.error:(r.ok?'El servidor respondió algo inesperado.':'Error '+r.status+(j?'':' (la respuesta no es del Portal; puede ser un bloqueo de la red o un fallo del servidor)')));
+      x.http=r.status;x.cod=j&&j.cod;x.paso=(j&&j.paso)||accion;x.hora=j&&j.hora;x.tipo=j?'ERROR DEL SERVIDOR':'RESPUESTA NO VÁLIDA';if(!j)x.crudo=String(tx).replace(/\s+/g,' ').slice(0,160);throw x}
+    return j})})}
+function detalleErr(e,extra){var L=['Paso: '+(e.paso||'?'),'Tipo: '+(e.tipo||'?')+(e.http?' · HTTP '+e.http:''),'Código: '+(e.cod||'—'),'Hora: '+(e.hora||new Date().toISOString()),'Usuario: '+(YO&&YO.correo||'—')];
+  if(extra)L.push(extra);if(e.crudo)L.push('Respuesta: '+e.crudo);L.push('Navegador: '+(navigator.userAgent||'').slice(0,120));L.push('Página: '+location.pathname+' · '+(window.screen?screen.width+'x'+screen.height:''));return L.join('\n')}
 
 function gate(on,titulo,msg,spin){var g=$('gate');g.hidden=!on;g.classList.toggle('load',!!spin);document.body.classList.toggle('cargando',!!on&&!!spin);if(on){$('gt').textContent=titulo;$('gm').textContent=msg||'';$('gsp').style.display=spin?'block':'none'}}
 function toast(m){var t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on')},2800)}
@@ -263,10 +269,11 @@ $('save').onclick=function(){var n=0,faltan=[];
     EST=EST.filter(function(x){return x!==SEL});EST.forEach(function(x,i){x._i=i});
     cargarPend();
     resModal('ok','Baja registrada','<b>'+esc(nom)+'</b><br>Pendiente resolución de retiro.'+(r.aviso?'<br><span style="font-size:13px;color:#7A4A06">'+esc(r.aviso)+'</span>':''),function(){limpiar()})})
-  .catch(function(e){resModal('err','No se pudo registrar',esc(e.message))})
+  .catch(function(e){resModal('err','No se pudo registrar',esc(e.message),null,detalleErr(e,'Estudiante: C.C. '+datos.ce+' · '+datos.cu))})
   .then(function(){b.disabled=false})};
 var RFIN=null;
-function resModal(est,t,m,fin){RFIN=fin||null;$('ovr').classList.add('on');$('rsp').style.display=est==='work'?'block':'none';$('rok').style.display=est==='ok'?'grid':'none';$('rt').textContent=t;$('rm').innerHTML=m;$('rbtn').style.display=est==='work'?'none':'inline-block';$('rbtn').textContent=est==='ok'?'Aceptar':'Cerrar'}
+function resModal(est,t,m,fin,det){RFIN=fin||null;$('rdet').style.display=det?'block':'none';$('rdet').textContent=det||'';$('rcop').style.display=det?'inline-block':'none';$('rcop').textContent='Copiar detalle';$('ovr').classList.add('on');$('rsp').style.display=est==='work'?'block':'none';$('rok').style.display=est==='ok'?'grid':'none';$('rt').textContent=t;$('rm').innerHTML=m;$('rbtn').style.display=est==='work'?'none':'inline-block';$('rbtn').textContent=est==='ok'?'Aceptar':'Cerrar'}
+$('rcop').onclick=function(){var t=$('rdet').textContent;try{navigator.clipboard.writeText(t).then(function(){$('rcop').textContent='Copiado'})}catch(_){var r=document.createRange();r.selectNodeContents($('rdet'));var g=getSelection();g.removeAllRanges();g.addRange(r)}};
 $('rbtn').onclick=function(){$('ovr').classList.remove('on');var f=RFIN;RFIN=null;if(f)f()};
 
 /* ---------- pendientes ---------- */

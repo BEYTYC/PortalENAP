@@ -522,6 +522,7 @@ function validarDatos(d) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
+  let _paso = '', _quien = '';
   try {
     /* ---- Cron diario de recordatorios ---- */
     if (req.method === 'GET') {
@@ -536,7 +537,9 @@ module.exports = async function handler(req, res) {
     if (req.method !== 'POST') { res.status(405).json({ error: 'Use POST.' }); return; }
     const body = typeof req.body === 'object' && req.body ? req.body : {};
     if (!body.accessToken || !body.accion) throw error('Faltan "accessToken" o "accion".', 400);
+    _paso = String(body.accion);
     const yo = await identificar(body.accessToken);
+    _quien = yo.correo;
     if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para sea@enap.edu.co y jestadisticaplen@enap.edu.co.', 403);
     await ctx();
     const a = body.accion;
@@ -664,7 +667,9 @@ module.exports = async function handler(req, res) {
 
     throw error(`Acción desconocida: ${a}`, 400);
   } catch (e) {
-    res.status(e.status || 500).json({ error: e instanceof Error ? e.message : String(e) });
+    const cod = 'B' + Date.now().toString(36).slice(-5).toUpperCase();
+    console.error(`[bajas ${cod}] paso=${_paso} usuario=${_quien} estado=${e.status || 500} ${e && e.stack ? e.stack : e}`);
+    res.status(e.status || 500).json({ error: e instanceof Error ? e.message : String(e), cod, paso: _paso, hora: new Date().toISOString() });
   }
 };
 
