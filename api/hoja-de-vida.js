@@ -182,7 +182,7 @@ function procesarConglomerado(libro) {
   const H0 = (F[0] || []).map((x) => sinTildes(x).replace(/Ñ/g, 'N').replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim());
   c.cont2 = H0.findIndex((x) => /SEGUNDO CONTI/.test(x) || (/REINGRESO/.test(x) && /CONTI/.test(x)));
   c.fechaRe = H0.findIndex((x, j) => j !== c.cont2 && /REINGRESO/.test(x) && /(FECHA|PERIODO|ANO)/.test(x));
-  c.resol = H0.findIndex((x) => /RESOLUCION/.test(x) && !/(REINGRESO|RETIRO|SALIDA|BAJA|ESCALAF|GRADO)/.test(x));
+  c.resol = H0.findIndex((x) => x === 'RES ING 2'); if (c.resol < 0) c.resol = H0.findIndex((x) => /RESOLUCION/.test(x) && !/(REINGRESO|RETIRO|SALIDA|BAJA|ESCALAF|GRADO)/.test(x));
   c.resolRe = H0.findIndex((x) => /RESOLUCION/.test(x) && /REINGRESO/.test(x));
   if (c.nombre < 0) throw error('CONGLOMERADO no tiene la columna APELLIDOS Y NOMBRES.', 500);
   const porCed = {}, porNom = {};
@@ -215,6 +215,8 @@ function procesarConglomerado(libro) {
 
 function procesarBajas(libro) {
   const F = libro.leer(HOJA_BAJAS, { maxCols: 33 });
+  const colRes = (H, def) => { const j = (H || []).findIndex((x) => /^RESOLUCION$/.test(sinTildes(x))); return j >= 0 ? j : def; };
+  const iResB = colRes(F[0], 16);
   const porCed = {}, porNom = {};
   let n = 0;
   for (let i = 1; i < F.length; i++) {
@@ -223,7 +225,7 @@ function procesarBajas(libro) {
     if (!ck && !r[4]) continue;
     const reg = {
       nombre: nom(r[4]), ck, sigla: txt(r[2]), cont: txt(r[3]).replace(/\s+/g, ''), anioIng: r[6] || null, ingreso: fechaCelda(r[7]),
-      curso: txt(r[11]), grado: txt(r[13]), retiro: fechaCelda(r[14]), doc: txt(r[16]), causal: txt(r[20]), obs: txt(r[22]),
+      curso: txt(r[11]), grado: txt(r[13]), retiro: fechaCelda(r[14]), doc: txt(r[iResB]), causal: txt(r[20]), obs: txt(r[22]),
     };
     n++;
     if (ck) agregar(porCed, ck, reg); else agregar(porNom, nomKey(reg.nombre), reg);
@@ -233,6 +235,7 @@ function procesarBajas(libro) {
   const asc = { porCed: {}, porNom: {}, filas: 0 };
   try {
     const A = libro.leer(HOJA_ASC, { maxCols: 18 });
+    const iResA = colRes(A[0], 16);
     for (let i = 1; i < A.length; i++) {
       const r = A[i];
       const ck = cedKey(r[7]);
@@ -241,7 +244,7 @@ function procesarBajas(libro) {
       const reg = {
         nombre: nom(r[6]), ck, cont: txt(r[2]), sigla: txt(r[3]), promocion: txt(r[4]), especialidad: txt(r[5]),
         puesto: puesto > 0 ? puesto : null, total: total > 0 ? total : null, promedio: typeof r[12] === 'number' ? r[12] : null,
-        periodo: txt(r[13]), fecha: fechaCelda(r[14]), resolucion: txt(r[16]),
+        periodo: txt(r[13]), fecha: fechaCelda(r[14]), resolucion: txt(r[iResA]),
       };
       asc.filas++;
       if (ck) agregar(asc.porCed, ck, reg); else agregar(asc.porNom, nomKey(reg.nombre), reg);
@@ -757,7 +760,7 @@ function armarFicha(id, S) {
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
     linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: (ing0 && ing0.promo) || e0.promocion, pv: e0.pv });
   }
-  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
+  grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
     const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, horas: x.horas, pv: x.pv });
