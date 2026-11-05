@@ -622,6 +622,14 @@ function jerarquiaPromo(promo, nac) {
   if (k === 'MER') return 'Teniente de Corbeta de la Reserva Activa';
   return 'Teniente de Corbeta';
 }
+/* Título de la tarjeta de ingreso según la especialidad con que ingresó; sin especialidad militar (civiles) solo "Ingreso como Aspirante". */
+function tituloIngreso(sigla) {
+  const e = sinTildes(sigla);
+  if (/\bIM\b|INFANTERIA/.test(e)) return 'Ingreso como Aspirante a Cadete de Infantería de Marina';
+  if (/\bMER\b|MERCANTE/.test(e)) return 'Ingreso como Aspirante a Cadete Mercante';
+  if (/\bNAV\b|NAVAL/.test(e)) return 'Ingreso como Aspirante a Cadete Naval';
+  return 'Ingreso como Aspirante';
+}
 function jerarquiaEsc(esp, nac, cdprim) {
   const e = sinTildes(esp);
   if (cdprim) return 'Subteniente del Cuerpo de Infantería de Marina';
@@ -745,7 +753,7 @@ function armarFicha(id, S) {
 
   /* ---- Línea de tiempo ---- */
   const linea = [];
-  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: 'Ingreso a la ENAP', detalle: [ing0.cont && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), resolucion: ing0.resol || '', pv: ing0.pv });
+  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: tituloIngreso(ing0.sigla), detalle: [ing0.cont && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), resolucion: ing0.resol || '', pv: ing0.pv });
   if (ing0 && ing0.reingreso && !ingresos.slice(1).some((x) => normCont(x.cont) === normCont(ing0.reingreso.cont))) linea.push({ tipo: 'regreso', t: tFecha(ing0.reingreso.fecha) != null ? tFecha(ing0.reingreso.fecha) : null, fecha: ing0.reingreso.fecha, anio: anioDe(ing0.reingreso.fecha), titulo: 'Reingreso a la ENAP', detalle: 'Contingente ' + ing0.reingreso.cont, resolucion: ing0.reingreso.resol || '', pv: ing0.pv });
   ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Reingreso a la ENAP', detalle: [x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), resolucion: x.resol || '', pv: x.pv }));
   sems.forEach((s) => linea.push({ tipo: 'semestre', t: s.t, anio: s.periodo ? +s.periodo.slice(0, 4) : null, semestre: s, pv: pvAnt }));
