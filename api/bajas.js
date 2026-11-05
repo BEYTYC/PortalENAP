@@ -232,8 +232,10 @@ async function antiguedadesActuales() {
   const listas = [D.esc || [], ...Object.values(D.sheets || {})];
   listas.forEach((L) => (L || []).forEach((s) => {
     const ck = cedKey(s.ce); if (!ck) return;
-    if (s.e === 'Retirado' || s.e === 'Salió') { est[ck] = Object.assign(est[ck] || {}, { retirado: true }); return; }
-    if (!est[ck] || !est[ck].cu) est[ck] = { n: s.n, cu: s.cu || '', g: s.g || '', ct: s.ct || '', retirado: false };
+    const dato = { n: s.n, cu: s.cu || '', g: s.g || '', ct: s.ct || '' };
+    // Un estudiante con estado Retirado/Salió en Antigüedades también se lista: solo deja de salir cuando ya está en la base de bajas.
+    if (s.e === 'Retirado' || s.e === 'Salió') { if (!est[ck]) est[ck] = Object.assign(dato, { retirado: true }); return; }
+    if (!est[ck] || est[ck].retirado || !est[ck].cu) est[ck] = Object.assign(dato, { retirado: false });
   }));
   return { periodo: per || (d.meta && d.meta.periodo) || null, est };
 }
@@ -261,8 +263,10 @@ async function vigentes() {
     };
   };
   for (const [ck, a] of Object.entries(ant.est)) {
-    if (a.retirado || yaRegistrados.has(ck)) continue;
-    visto.add(ck); out.push(armar(ck, a, cong[ck]));
+    if (yaRegistrados.has(ck)) continue;
+    const c0 = cong[ck], ret0 = baj.ced[ck];
+    if (ret0 && ret0.some((x) => !x.ingreso || !c0 || !c0.orden || x.ingreso >= c0.orden - 86400000)) continue; // ya está en la base de bajas
+    visto.add(ck); const o = armar(ck, a, c0); if (a.retirado) o.rt = true; out.push(o);
   }
   // Recién ingresados en CONGLOMERADO que aún no están en Antigüedades
   const limite = Date.now() - 400 * 86400000;

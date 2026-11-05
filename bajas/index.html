@@ -233,7 +233,7 @@ function render(q){var Q=norm(q).trim();
   if(Q.length<3){$('list').classList.remove('on');$('nres').textContent='';return}
   if(LOADING){$('list').innerHTML='<div class="vac" style="padding:14px;text-align:center;color:var(--mut)">Cargando estudiantes… un momento</div>';$('list').classList.add('on');return}
   var r=EST.filter(function(d){return d._k.indexOf(Q)>=0}).slice(0,60);
-  $('list').innerHTML=r.length?r.map(function(d){return '<div class="it" role="option" data-i="'+d._i+'"><b>'+esc(d.ap+' '+d.no)+(d.nuevo?'<small>Nuevo ingreso</small>':'')+'</b><span>C.C. '+esc(d.ce)+(d.cu?' · '+esc(d.cu):'')+(d.co?' · '+esc(d.co):'')+'</span></div>'}).join(''):'<div class="vac" style="padding:14px">No se encontró ningún estudiante activo con esa búsqueda.</div>';
+  $('list').innerHTML=r.length?r.map(function(d){return '<div class="it" role="option" data-i="'+d._i+'"><b>'+esc(d.ap+' '+d.no)+(d.nuevo?'<small>Nuevo ingreso</small>':d.rt?'<small>Retirado en Antigüedades</small>':'')+'</b><span>C.C. '+esc(d.ce)+(d.cu?' · '+esc(d.cu):'')+(d.co?' · '+esc(d.co):'')+'</span></div>'}).join(''):'<div class="vac" style="padding:14px">No se encontró ningún estudiante activo con esa búsqueda.</div>';
   $('nres').textContent=r.length+' coincidencia'+(r.length===1?'':'s');
   $('list').classList.add('on');
   Array.prototype.forEach.call(document.querySelectorAll('.it'),function(e){e.onclick=function(){pick(+e.dataset.i)}})}
