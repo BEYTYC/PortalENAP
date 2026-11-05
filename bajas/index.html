@@ -245,7 +245,7 @@ function pick(i){var d=EST[i];SEL=d;document.body.classList.add('sel');$('list')
   $('pr').value=(d.ps?d.ps+' · ':'')+(d.pr||'');
   Array.prototype.forEach.call(document.querySelectorAll('#fill .err,#fill .need'),function(x){x.classList.remove('err','need')});
   $('sxw').classList.toggle('need',!d.sx);$('sxh').style.display=d.sx?'none':'block';
-  ['gr','cu','ai','fi','na','si','co'].forEach(function(k){if(!$(k).value)$(k).parentElement.classList.add('need')});
+  ['gr','cu','ai','fi','na','si','co','ca'].forEach(function(k){if(!$(k).value)$(k).parentElement.classList.add('need')});
   $('fill').querySelector('.fb').scrollTop=0}
 function limpiar(){SEL=null;document.body.classList.remove('sel');$('fill').style.display='none';$('empty').style.display='grid';$('q').value='';render('')}
 
