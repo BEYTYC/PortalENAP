@@ -327,7 +327,6 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
   if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado','EGRESADO NO GRADUADO':'Egresado no graduado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
   if(P.cont&&!/^(PUENTE|M[AÁ]QUINAS?)\b/i.test(P.cont))ls.push('Contingente '+ESC(P.cont));
-  if(P.curso)ls.push('Curso '+ESC(P.curso));
   if(P.nac&&P.nac!=='COLOMBIA')ls.push(ESC(P.nac));
   h+=ls.join('<s>|</s>');
   h+='</div></div></div></div></div>';
