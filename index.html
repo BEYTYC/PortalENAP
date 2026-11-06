@@ -960,7 +960,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       </button>
       <p class="login-gate__foot">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
     </div>
-    <p class="login-gate__credito">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br>Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</p>
+    <p class="login-gate__credito">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em style="display:inline-block;margin-top:6px;font-style:italic">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></p>
   </div>
 </div>
 
@@ -1206,7 +1206,12 @@ img,svg,video,canvas,iframe{max-width:100%}
   .dropdown button{ padding:8px 13px !important; min-height:38px !important; font-size:13.5px !important; }
   .subitems a{ padding:8px 13px !important; font-size:13px !important; }
 }</style>
-<style id="barras-compactas">@media (max-width:760px){ .navcat > .nav-btn{ padding:11px 4px !important; } .nav-subsistema.show{ min-height:34px !important; } footer{ padding-top:4px !important; padding-bottom:calc(4px + env(safe-area-inset-bottom,0px)) !important; } }</style>
+<style id="barras-compactas">@media (max-width:760px){ .navcat > .nav-btn{ padding:11px 4px !important; } .nav-subsistema.show{ min-height:34px !important; } footer{ padding-top:4px !important; padding-bottom:calc(4px + env(safe-area-inset-bottom,0px)) !important; } }/* Texto seleccionable y sin cursor de escritura (el cursor de texto solo en campos editables) */
+html,body{caret-color:transparent}
+body{cursor:default;-webkit-user-select:text;user-select:text}
+table,thead,tbody,tr,th,td,p,span,div,li,h1,h2,h3,h4,h5,section,article,main{-webkit-user-select:text;user-select:text}
+input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-user-select:text;user-select:text}
+</style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
   <div class="panel-app__header">
