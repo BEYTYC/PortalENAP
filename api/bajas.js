@@ -222,13 +222,11 @@ function partirNombre(n) {
   return { ap: ap.join(' '), no: t.slice(i).join(' ') };
 }
 
-async function antiguedadesActuales() {
-  const idx = (await leerJsonAnt('periodos.json')) || { lista: [] };
-  const per = (idx.lista || []).slice().sort().pop();
-  const d = per ? await leerJsonAnt(`datos-${per}.json`) : await leerJsonAnt('datos.json');
+/* Lee TODOS los periodos guardados de Antigüedades. Si alguien está en varios, vale el periodo más reciente. */
+function estudiantesDePeriodo(d) {
   const D = d && d.datos;
-  if (!D) return { periodo: per || null, est: {} };
   const est = {};
+  if (!D) return est;
   const listas = [D.esc || [], ...Object.values(D.sheets || {})];
   listas.forEach((L) => (L || []).forEach((s) => {
     const ck = cedKey(s.ce); if (!ck) return;
@@ -237,15 +235,30 @@ async function antiguedadesActuales() {
     if (s.e === 'Retirado' || s.e === 'Salió') { if (!est[ck]) est[ck] = Object.assign(dato, { retirado: true }); return; }
     if (!est[ck] || est[ck].retirado || !est[ck].cu) est[ck] = Object.assign(dato, { retirado: false });
   }));
-  return { periodo: per || (d.meta && d.meta.periodo) || null, est };
+  return est;
+}
+
+async function antiguedadesActuales() {
+  const idx = (await leerJsonAnt('periodos.json')) || { lista: [] };
+  const pers = (idx.lista || []).slice().sort();
+  const ultimo = pers[pers.length - 1] || null;
+  const datos = pers.length ? await Promise.all(pers.map((p) => leerJsonAnt(`datos-${p}.json`).catch(() => null))) : [await leerJsonAnt('datos.json')];
+  const est = {};
+  datos.forEach((d, k) => {
+    const m = estudiantesDePeriodo(d);
+    const esUlt = !pers.length || pers[k] === ultimo;
+    Object.keys(m).forEach((ck) => { est[ck] = Object.assign(m[ck], { periodo: pers[k] || null, enUltimo: esUlt }); });
+  });
+  return { periodo: ultimo, est };
 }
 
 async function vigentes() {
-  const [ant, cong, baj, reg] = await Promise.all([
+  const [ant, cong, baj, reg, grad] = await Promise.all([
     antiguedadesActuales(),
     fuente('conglomerado', procesarConglomerado),
     fuente('bajas', procesarBajas),
     leerJson('registros.json'),
+    fuente('graduados', procesarGraduados).catch(() => ({})),
   ]);
   const yaRegistrados = new Set((reg || []).map((r) => cedKey(r.datos.ce)));
   const out = [];
@@ -264,6 +277,7 @@ async function vigentes() {
   };
   for (const [ck, a] of Object.entries(ant.est)) {
     if (yaRegistrados.has(ck)) continue;
+    if (!a.enUltimo && grad[ck]) continue; // de un periodo anterior y ya se graduó
     const c0 = cong[ck], ret0 = baj.ced[ck];
     if (ret0 && ret0.some((x) => !x.ingreso || !c0 || !c0.orden || x.ingreso >= c0.orden - 86400000)) continue; // ya está en la base de bajas
     visto.add(ck); const o = armar(ck, a, c0); if (a.retirado) o.rt = true; out.push(o);
