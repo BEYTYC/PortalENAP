@@ -184,6 +184,11 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .pers .chips{flex:1 1 100%;margin-top:0}
 }
 .pie-cred{text-align:center;font-size:11px;line-height:1.35;color:#5b6b82;padding:18px 12px 20px}.pie-cred em{opacity:.8}
+/* Texto seleccionable y sin cursor de escritura (el cursor de texto solo en campos editables) */
+html,body{caret-color:transparent}
+body{cursor:default;-webkit-user-select:text;user-select:text}
+table,thead,tbody,tr,th,td,p,span,div,li,h1,h2,h3,h4,h5,section,article,main{-webkit-user-select:text;user-select:text}
+input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-user-select:text;user-select:text}
 </style>
 <link rel="preload" as="image" href="../assets/escudo-marca-agua-sm.webp" type="image/webp">
 </head>
