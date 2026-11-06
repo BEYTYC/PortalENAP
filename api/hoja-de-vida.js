@@ -626,7 +626,7 @@ function jerarquiaPromo(promo, nac) {
   return 'Teniente de Corbeta';
 }
 /* Título de la tarjeta de ingreso según la especialidad con que ingresó; sin especialidad militar (civiles) solo "Ingreso como Aspirante". */
-const esPuente = (c) => /^PUENTE\b/.test(sinTildes(c));
+const esPuente = (c) => /^(PUENTE|MAQUINAS?)\b/.test(sinTildes(c)); // civiles mercantes: no son cadetes ni llevan grado
 function tituloIngreso(sigla) {
   const e = sinTildes(sigla);
   if (/\bIM\b|INFANTERIA/.test(e)) return 'Ingreso como Aspirante a Cadete de Infantería de Marina';
@@ -770,7 +770,7 @@ function armarFicha(id, S) {
     const claseEsc = kPromo && kPromo !== 'OTRA' ? kPromo : claseEsp(escTxt), claseIng = (ing0 && (claseEsp(ing0.cont) || claseEsp(ing0.sigla))) || '';
     const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: (ing0 && ing0.promo) || e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: (ing0 && esPuente(ing0.cont)) ? '' : (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: (ing0 && esPuente(ing0.cont)) ? null : cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: (ing0 && ing0.promo) || e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
@@ -812,7 +812,7 @@ function armarFicha(id, S) {
     const gA = linea.find((e) => e.tipo === 'grado' && !e.comp && !(e.medallas && e.medallas.length)) || linea.find((e) => e.tipo === 'escalafon' && !(e.medallas && e.medallas.length));
     if (gA) return poner(gA);
   });
-  if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: retiro.grado, pv: retiro.pv });
+  if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: (ing0 && esPuente(ing0.cont)) ? '' : retiro.grado, pv: retiro.pv });
   // Grado de honor / meritorio / laureado: van en la tarjeta de la titulación académica (la primera que no es de complementación).
   const gAcad = linea.find((e) => e.tipo === 'grado' && !e.comp) || linea.find((e) => e.tipo === 'grado');
   const honores = concesiones.filter((x) => ['mencion', 'merito', 'laureado'].includes(x.clase));
