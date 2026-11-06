@@ -1004,6 +1004,13 @@ module.exports = async function handler(req, res) {
     if (a === 'calentar') { // precarga todas las fuentes en la memoria de la función (se llama al abrir el módulo)
       const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
     }
+    if (a === 'indice') { // lista compacta de personas para que el navegador filtre al instante, sin esperar al servidor en cada tecla
+      const S0 = ULTIMO_S || (await cargarFondo()).S;
+      if (ULTIMO_S) cargarFondo().catch(() => {});
+      const L = listaCache(Object.assign({}, S0, { solo: true })), d = Math.max(0, +body.desde || 0), N = 6000;
+      res.status(200).json({ total: L.length, desde: d, filas: L.slice(d, d + N).map((p) => [p.id, p.nombre, p.id.slice(2) === p.cedula ? '' : p.cedula, p.sigla, p.cont, p.anio]) });
+      return;
+    }
     if (a === 'sugerir') { // autocompletar mientras se escribe: TODAS las fuentes (antes solo el Conglomerado y no salían quienes están solo en Graduados/Extensión)
       // Rápido: usa la última carga que ya está en memoria y la actualiza en segundo plano; así el autocompletar no espera a OneDrive.
       let S0;
