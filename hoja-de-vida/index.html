@@ -254,15 +254,15 @@ function buscarLocal(q){var num=/^[\d.\s]+$/.test(q),res;
   if(num){var k=q.replace(/\D/g,'').replace(/^0+/,'');res=IDX.filter(function(p){return p.id.charAt(0)==='c'&&p.id.slice(2).indexOf(k)>=0})}
   else{var t=nk(q);res=IDX.filter(function(p){return t.every(function(x){return p.w.some(function(y){return y.indexOf(x)===0})})});res.sort(function(a,b){return a.nombre.localeCompare(b.nombre,'es')})}
   return{total:res.length,lista:res.slice(0,8)}}
-function pintar(r){
+function pintarSug(r){
     if(!r.lista.length){cerrar();return}
     $('sug').innerHTML=r.lista.map(function(p){return '<button type="button" role="option" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span></button>'}).join('')+(r.total>r.lista.length?'<div class="msg" style="padding:8px">Hay '+r.total+' coincidencias; siga escribiendo para afinar.</div>':'');
     $('sug').hidden=false;sel=-1;
     Array.prototype.forEach.call($('sug').querySelectorAll('button'),function(b){b.addEventListener('mousedown',function(e){e.preventDefault();var id=b.getAttribute('data-id');cerrar();abrir(id)})})}
 $('q').addEventListener('input',function(){clearTimeout(st);var q=$('q').value.trim();if(q.length<3){cerrar();return}
-  if(IDX){pintar(buscarLocal(q));if(Date.now()-IDXT>600000)cargarIdx();return}
+  if(IDX){pintarSug(buscarLocal(q));if(Date.now()-IDXT>600000)cargarIdx();return}
   cargarIdx();
-  st=setTimeout(function(){var n=++sq;api('sugerir',{q:q}).then(function(r){if(IDX||n!==sq)return;pintar(r)}).catch(function(){})},150)});
+  st=setTimeout(function(){var n=++sq;api('sugerir',{q:q}).then(function(r){if(n!==sq)return;var q2=$('q').value.trim();if(q2.length<3)return;pintarSug(IDX?buscarLocal(q2):r)}).catch(function(){})},150)});
 $('q').addEventListener('keydown',function(e){var bs=$('sug').querySelectorAll('button');if(!bs.length||$('sug').hidden)return;
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;Array.prototype.forEach.call(bs,function(b,i){b.classList.toggle('on',i===sel)})}
   else if(e.key==='Enter'&&sel>=0){e.preventDefault();var id=bs[sel].getAttribute('data-id');cerrar();abrir(id)}
