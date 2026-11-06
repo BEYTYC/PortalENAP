@@ -833,16 +833,17 @@ function armarFicha(id, S) {
   const nExc = setExc.size;
   // Semestre (1.1, 1.2, 2.1…) en que fue distinguido: del curso del periodo en Antigüedades o, si no, del curso en la hoja Distinguido.
   const semDe = (c0) => { const m = String(c0 || '').match(/^\s*(\d)\.(\d)/); return m ? m[1] + '.' + m[2] : ''; };
-  const semsDist = Array.from(setDist).map((per) => {
+  const semsDe = (set, clase) => Array.from(set).map((per) => {
     const sm = sems.find((x) => x.periodo === per);
-    const cd = concesiones.find((x) => x.clase === 'distinguido' && (x.periodo === per));
+    const cd = concesiones.find((x) => x.clase === clase && (x.periodo === per));
     return { per, sem: semDe(sm && sm.label) || semDe(cd && cd.curso) };
   }).filter((x) => x.sem || /^\d{4}-\d$/.test(x.per)).sort((a, b) => (perNum(a.per) || 0) - (perNum(b.per) || 0));
+  const semsDist = semsDe(setDist, 'distinguido'), semsExc = semsDe(setExc, 'excelencia');
   const semestresDist = Array.from(new Set(semsDist.map((x) => x.sem).filter(Boolean)));
   const items = [];
   if (setDist.size) items.push({ k: 'distinguido', label: 'Medalla de Alumno Distinguido', n: setDist.size, semestres: semsDist.map((x) => x.sem).filter(Boolean) });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
-  if (nExc) items.push({ k: 'excelencia', label: 'Medalla de Excelencia Académica', n: nExc });
+  if (nExc) items.push({ k: 'excelencia', label: 'Medalla de Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
   if (items.length) {
     const ing = linea.find((e) => e.tipo === 'ingreso');
     const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
