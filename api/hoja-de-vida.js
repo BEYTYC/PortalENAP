@@ -370,7 +370,7 @@ function normPeriodo(v) {
   if (m2) return `${m2[2]}-${m2[1] === 'II' || m2[1] === '2' ? 2 : 1}`;
   return '';
 }
-const CLASES_HOJA = [[/BECA/, 'beca', 'Beca'], [/MENCION|HONOR/, 'mencion', 'Mención de honor'], [/MERIT/, 'merito', 'Meritorio'], [/LAUREAD/, 'laureado', 'Laureado'], [/DISTINGUID/, 'distinguido', 'Alumno distinguido']];
+const CLASES_HOJA = [[/BECA/, 'beca', 'Beca'], [/MENCION|HONOR/, 'mencion', 'Mención de honor'], [/MERIT/, 'merito', 'Meritorio'], [/LAUREAD/, 'laureado', 'Laureado'], [/DISTINGUID/, 'distinguido', 'Alumno Distinguido']];
 function procesarConcesiones(libro) {
   const porCed = {}, porNom = {}, hojas = [];
   let n = 0;
@@ -840,9 +840,9 @@ function armarFicha(id, S) {
   }).filter((x) => x.sem || /^\d{4}-\d$/.test(x.per)).sort((a, b) => (perNum(a.per) || 0) - (perNum(b.per) || 0));
   const semestresDist = Array.from(new Set(semsDist.map((x) => x.sem).filter(Boolean)));
   const items = [];
-  if (setDist.size) items.push({ k: 'distinguido', label: 'Medalla de alumno distinguido', n: setDist.size, semestres: semsDist.map((x) => x.sem).filter(Boolean) });
+  if (setDist.size) items.push({ k: 'distinguido', label: 'Medalla de Alumno Distinguido', n: setDist.size, semestres: semsDist.map((x) => x.sem).filter(Boolean) });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
-  if (nExc) items.push({ k: 'excelencia', label: 'Medalla de excelencia académica', n: nExc });
+  if (nExc) items.push({ k: 'excelencia', label: 'Medalla de Excelencia Académica', n: nExc });
   if (items.length) {
     const ing = linea.find((e) => e.tipo === 'ingreso');
     const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
