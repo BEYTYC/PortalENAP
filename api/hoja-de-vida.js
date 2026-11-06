@@ -853,7 +853,7 @@ function armarFicha(id, S) {
     if (sem && !semsBeca.includes(sem)) semsBeca.push(sem);
   });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas, semestres: semsBeca });
-  if (nExc) items.push({ k: 'excelencia', label: 'Medalla de Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
+  if (nExc) items.push({ k: 'excelencia', label: 'Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
   if (items.length) {
     const ing = linea.find((e) => e.tipo === 'ingreso');
     const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
