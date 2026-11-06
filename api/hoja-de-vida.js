@@ -847,7 +847,12 @@ function armarFicha(id, S) {
   const semestresDist = Array.from(new Set(semsDist.map((x) => x.sem).filter(Boolean)));
   const items = [];
   if (setDist.size) items.push({ k: 'distinguido', label: 'Medalla de Alumno Distinguido', n: setDist.size, semestres: semsDist.map((x) => x.sem).filter(Boolean) });
-  if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas });
+  const semsBeca = [];
+  concesiones.filter((x) => x.clase === 'beca').forEach((x) => {
+    const per = x.periodo || '', sm = per && sems.find((y) => y.periodo === per), sem = semDe(sm && sm.label) || semDe(x.curso);
+    if (sem && !semsBeca.includes(sem)) semsBeca.push(sem);
+  });
+  if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas, semestres: semsBeca });
   if (nExc) items.push({ k: 'excelencia', label: 'Medalla de Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
   if (items.length) {
     const ing = linea.find((e) => e.tipo === 'ingreso');
