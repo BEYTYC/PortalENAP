@@ -324,6 +324,14 @@ async function escribirBaja(r) {
   });
   if (tabla.columnCount >= 35) { fila[33] = r.fecha.slice(0, 10).split('-').reverse().join('/'); fila[34] = r.por; }
   const res = await gj(`${wb(it)}/tables('${TABLA_BAJAS}')/rows/add`, { method: 'POST', body: { index: null, values: [fila] } }, 'Agregar fila en Bajas');
+  // «3.1» se escribía como número y Excel (en español) lo mostraba «3,1»: la celda se deja como texto.
+  if (p.sinLetra) {
+    const celda = `${base}/range(address='M${ultima + 1}')`;
+    try {
+      await gj(celda, { method: 'PATCH', body: { numberFormat: [['@']] } }, 'Formato texto de CURSO SIN LETRA');
+      await gj(celda, { method: 'PATCH', body: { values: [[String(p.sinLetra)]] } }, 'Escribir CURSO SIN LETRA');
+    } catch (e) { /* el registro ya quedó escrito; solo falló el formato */ }
+  }
   return { N, fila: ultima + 1, indice: res && res.index };
 }
 
