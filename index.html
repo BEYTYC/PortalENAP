@@ -960,7 +960,7 @@ img,svg,video,canvas,iframe{max-width:100%}
       </button>
       <p class="login-gate__foot">Solo personal con roles activos en el sistema podrá acceder al portal.</p>
     </div>
-    <p class="login-gate__credito">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em style="display:inline-block;margin-top:6px;font-style:italic">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></p>
+    <p class="login-gate__credito" style="color:#8d99ab">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em style="display:inline-block;margin-top:2px;font-style:italic;color:#8d99ab">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></p>
   </div>
 </div>
 
@@ -1211,6 +1211,8 @@ html,body{caret-color:transparent}
 body{cursor:default;-webkit-user-select:text;user-select:text}
 table,thead,tbody,tr,th,td,p,span,div,li,h1,h2,h3,h4,h5,section,article,main{-webkit-user-select:text;user-select:text}
 input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-user-select:text;user-select:text}
+/* Crédito del login: siempre dos líneas en el celular */
+@media (max-width:860px){.login-gate__credito{font-size:min(10.5px,2.75vw)!important;white-space:nowrap;line-height:1.35!important;padding-left:8px;padding-right:8px}.login-gate__credito em{white-space:nowrap}}
 </style>
 <section id="vistaAdmin" class="panel-app" aria-label="Administración de usuarios">
  <div class="panel-app__inner">
