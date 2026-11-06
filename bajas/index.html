@@ -99,7 +99,6 @@ body.cargando .app{visibility:hidden}
 .vac{text-align:center;color:var(--mut);padding:28px}
 .btn:disabled{opacity:.6;cursor:default}
 .it small{font-size:11px;color:var(--gold);font-weight:600;margin-left:8px}
-.pie-cred{position:fixed;left:0;right:0;bottom:3px;text-align:center;font-size:10px;line-height:1.3;color:#5b6b82;pointer-events:none;z-index:1}.pie-cred em{opacity:.8}@media (max-width:900px){.pie-cred{position:static;padding:10px 12px 14px}}
 /* Texto seleccionable y sin cursor de escritura (el cursor de texto solo en campos editables) */
 html,body{caret-color:transparent}
 body{cursor:default;-webkit-user-select:text;user-select:text}
@@ -334,6 +333,5 @@ api('sesion').then(function(s){YO=s;$('yo').textContent=s.correo;$('yo2').textCo
 .catch(function(e){gate(true,/solo para/i.test(e.message)?'Sin permiso':'No se pudo abrir el módulo',e.message,false)});
 })();
 </script>
-<div class="pie-cred">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em>Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></div>
 </body>
 </html>
