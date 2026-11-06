@@ -56,7 +56,10 @@ const cedKey = (v) => {
   return /\d/.test(t) ? t : ''; // 'NR', 'N/A', '-' no son cédula: se cruza por nombre
 };
 /* Llave de nombre: palabras ordenadas, sin tildes ni signos (sirve aunque cambie el orden apellidos/nombres). */
-const nomKey = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
+/* Correcciones de nombre (la base trae un nombre de más): clave de palabras ordenadas -> nombre correcto. */
+const NOMBRE_CORREGIDO = { 'GABRIEL OVALLE PORRAS WILSON': 'OVALLE PORRAS WILSON' };
+const nomKey0 = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
+const nomKey = (n) => { const k = nomKey0(n); return NOMBRE_CORREGIDO[k] ? nomKey0(NOMBRE_CORREGIDO[k]) : k; };
 /* Nombre para mostrar: mayúsculas con tildes y Ñ tal como vienen en la base. */
 const txt = (v) => String(v == null ? '' : v).trim();
 /* Nombres y apellidos frecuentes: las bases a veces vienen sin tilde ni Ñ; se restituyen para mostrar. */
@@ -64,7 +67,7 @@ const CON_TILDE = ('ÁLVAREZ ÁLVARO ÁNGEL ÁNGELA ÁNGELES ÁVILA ÁVILES ADRI
 const quitaTil = (w) => w.replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'N');
 const MAPA_TIL = {};
 CON_TILDE.forEach((w) => { MAPA_TIL[quitaTil(w)] = w; });
-const nom = (v) => txt(v).toUpperCase().replace(/\s+/g, ' ').replace(/[A-ZÁÉÍÓÚÜÑ]+/g, (w) => MAPA_TIL[w] || w);
+const nom = (v) => { const x = txt(v).toUpperCase().replace(/\s+/g, ' ').replace(/[A-ZÁÉÍÓÚÜÑ]+/g, (w) => MAPA_TIL[w] || w); return NOMBRE_CORREGIDO[nomKey0(x)] || x; };
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => (d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : '');
 function fechaCelda(v) {
