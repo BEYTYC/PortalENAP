@@ -183,7 +183,7 @@ html:fullscreen body::before{content:'';position:fixed;inset:0;z-index:-1;pointe
 .pers .nm .cc{display:block;margin-top:3px;font-size:13px}
 .pers .chips{flex:1 1 100%;margin-top:0}
 }
-.pie-cred{text-align:center;font-size:11px;line-height:1.35;color:#5b6b82;padding:18px 12px 20px}.pie-cred em{opacity:.8}
+.pie-cred{text-align:center;font-size:11px;line-height:1.35;color:#5b6b82;padding:18px 12px 20px}.pie-cred em{opacity:.8}html:fullscreen .pie-cred{display:none}
 /* Texto seleccionable y sin cursor de escritura (el cursor de texto solo en campos editables) */
 html,body{caret-color:transparent}
 body{cursor:default;-webkit-user-select:text;user-select:text}
@@ -326,7 +326,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   if(F.civil)ls.push('<i style="color:#4A5B70">Civil</i>');
   if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
   if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado','EGRESADO NO GRADUADO':'Egresado no graduado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
-  if(P.cont)ls.push('Contingente '+ESC(P.cont));
+  if(P.cont&&!/^PUENTE\b/i.test(P.cont))ls.push('Contingente '+ESC(P.cont));
   if(P.curso)ls.push('Curso '+ESC(P.curso));
   if(P.nac&&P.nac!=='COLOMBIA')ls.push(ESC(P.nac));
   h+=ls.join('<s>|</s>');
