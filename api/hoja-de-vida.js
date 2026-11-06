@@ -57,8 +57,9 @@ const cedKey = (v) => {
 };
 /* Llave de nombre: palabras ordenadas, sin tildes ni signos (sirve aunque cambie el orden apellidos/nombres). */
 /* Correcciones de nombre (la base trae un nombre de más): clave de palabras ordenadas -> nombre correcto. */
-const NOMBRE_CORREGIDO = { 'GABRIEL OVALLE PORRAS WILSON': 'OVALLE PORRAS WILSON' };
-const nomKey0 = (n) => sinTildes(n).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
+const NOMBRE_CORREGIDO = { 'GABRIEL OVALLE PORRAS WILSON': 'OVALLE PORRAS WILSON', 'ALBERTO GUEVARA RICARDO TRAAD': 'GUEVARA RICARDO ALBERTO' };
+const quitaCD = (n) => String(n == null ? '' : n).replace(/^\s*CD\.?\s+(?=\S)/i, ''); // el grado (CD) no forma parte del nombre
+const nomKey0 = (n) => sinTildes(quitaCD(n)).replace(/Ñ/g, 'N').replace(/[^A-Z ]/g, ' ').split(' ').filter(Boolean).sort().join(' ');
 const nomKey = (n) => { const k = nomKey0(n); return NOMBRE_CORREGIDO[k] ? nomKey0(NOMBRE_CORREGIDO[k]) : k; };
 /* Nombre para mostrar: mayúsculas con tildes y Ñ tal como vienen en la base. */
 const txt = (v) => String(v == null ? '' : v).trim();
@@ -67,7 +68,7 @@ const CON_TILDE = ('ÁLVAREZ ÁLVARO ÁNGEL ÁNGELA ÁNGELES ÁVILA ÁVILES ADRI
 const quitaTil = (w) => w.replace(/Ñ/g, '\u0001').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\u0001/g, 'N');
 const MAPA_TIL = {};
 CON_TILDE.forEach((w) => { MAPA_TIL[quitaTil(w)] = w; });
-const nom = (v) => { const x = txt(v).toUpperCase().replace(/\s+/g, ' ').replace(/[A-ZÁÉÍÓÚÜÑ]+/g, (w) => MAPA_TIL[w] || w); return NOMBRE_CORREGIDO[nomKey0(x)] || x; };
+const nom = (v) => { const x = quitaCD(txt(v)).toUpperCase().replace(/\s+/g, ' ').replace(/[A-ZÁÉÍÓÚÜÑ]+/g, (w) => MAPA_TIL[w] || w); return NOMBRE_CORREGIDO[nomKey0(x)] || x; };
 const pad = (n) => String(n).padStart(2, '0');
 const iso = (d) => (d ? `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` : '');
 function fechaCelda(v) {
