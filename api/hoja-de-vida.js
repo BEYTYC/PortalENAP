@@ -949,6 +949,11 @@ function buscar(S, q) {
 
 /* ---------------------- Carga de fuentes con tolerancia -------------------- */
 
+let ULTIMO_S = null, CARGANDO = null;
+function cargarFondo() {
+  if (!CARGANDO) CARGANDO = cargar().then((r) => { ULTIMO_S = r.S; return r; }).finally(() => { CARGANDO = null; });
+  return CARGANDO;
+}
 async function cargar() {
   const fuentes = [];
   const S = {};
@@ -999,12 +1004,15 @@ module.exports = async function handler(req, res) {
       const t0 = Date.now(); await cargar(); res.status(200).json({ ok: true, ms: Date.now() - t0 }); return;
     }
     if (a === 'sugerir') { // autocompletar mientras se escribe: TODAS las fuentes (antes solo el Conglomerado y no salían quienes están solo en Graduados/Extensión)
-      const { S: S0 } = await cargar();
+      // Rápido: usa la última carga que ya está en memoria y la actualiza en segundo plano; así el autocompletar no espera a OneDrive.
+      let S0;
+      if (ULTIMO_S) { cargarFondo().catch(() => {}); S0 = ULTIMO_S; } else S0 = (await cargarFondo()).S;
       const r = buscar(Object.assign({}, S0, { solo: true }), body.q);
       res.status(200).json({ total: r.total, lista: r.lista.slice(0, 8) });
       return;
     }
     const { S, fuentes: fuentesTodas } = await cargar();
+    ULTIMO_S = S;
     const fuentes = yo.correo === 'jestadisticaplen@enap.edu.co' ? fuentesTodas : [];
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }

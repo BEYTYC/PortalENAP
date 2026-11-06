@@ -257,6 +257,8 @@ $('q').addEventListener('keydown',function(e){var bs=$('sug').querySelectorAll('
   else if(e.key==='Enter'&&sel>=0){e.preventDefault();var id=bs[sel].getAttribute('data-id');cerrar();abrir(id)}
   else if(e.key==='Escape')cerrar()});
 $('q').addEventListener('blur',function(){setTimeout(cerrar,150)});
+/* Precalienta la lista de personas para que el autocompletar responda al instante */
+setTimeout(function(){api('sugerir',{q:'aaa'}).catch(function(){})},600);
 
 /* ---------- Búsqueda ---------- */
 $('f').addEventListener('submit',function(ev){ev.preventDefault();sq++;cerrar();var q=$('q').value.trim();if(q.length<3){msg('Escriba al menos 3 caracteres (cédula o nombre).',1);return}
