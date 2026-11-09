@@ -35,3 +35,6 @@ El panel "Estado de las fuentes" al final de cada hoja dice qué se conectó y q
 - Los archivos de cursos se leen por nombre de encabezado (CEDULA, CURSO, TIPO, FECHA…); si no se reconocen, no se muestra nada.
 
 Archivos: `api/hoja-de-vida.js` (servidor), `hoja-de-vida/index.html` (pantalla).
+
+---
+Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística, Escuela Naval de Cadetes "Almirante Padilla". Derechos morales de autor reservados (Ley 23 de 1982, art. 30).
