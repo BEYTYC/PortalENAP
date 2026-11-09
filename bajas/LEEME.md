@@ -23,3 +23,6 @@ En Antigüedades › Administración, tarjeta "Validación final de escalafonami
 - **Bajas y Ascensos debe estar en .xlsx** (`Estadística/Bases de Datos/B.D Retiros y Ascensos/Bajas y Ascensos.xlsx`): Microsoft Graph no escribe en .xlsm. Mientras siga en .xlsm, el módulo lee pero no escribe (los registros quedan guardados y se escriben solos cuando aparezca el .xlsx).
 - Permisos de aplicación (Azure, con consentimiento de administrador) del registro que usa `GRAPH_CLIENT_ID`: `Sites.ReadWrite.All` (ya lo usa el Portal; cubre los OneDrive) y **`Mail.Send`** para los recordatorios.
 - Variable opcional `CRON_SECRET` en Vercel (si se define, el cron la envía y el endpoint la exige). `PORTAL_URL` opcional para el enlace del correo.
+
+---
+Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística, Escuela Naval de Cadetes "Almirante Padilla". Derechos morales de autor reservados (Ley 23 de 1982, art. 30).

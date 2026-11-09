@@ -1,3 +1,8 @@
+/*!
+ * Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+ * Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+ * Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+ */
 /* Balance Académico · PDF con la geometría del formato oficial (EDUCA-FT-009-JINEN).
    Página 612 pt de ancho; alto Carta (792) u Oficio (936) según lo que ocupe el balance. Arial (Helvetica en jsPDF), notas con coma y 3 decimales.
    Uso: BalancePDF.generar(jsPDF, {prog, estado, res, logo, marca, firmas}) → doc jsPDF */

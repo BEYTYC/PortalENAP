@@ -11,3 +11,6 @@ Abrir `balance-academico/index.html` desde el mismo servidor del portal (necesit
 
 Precarga por enlace (para la integración futura):
 `index.html?programa=ing-electronica&tipoDoc=CC&documento=…&nombres=…&apellidos=…&nivel=pregrado`
+
+---
+Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística, Escuela Naval de Cadetes "Almirante Padilla". Derechos morales de autor reservados (Ley 23 de 1982, art. 30).

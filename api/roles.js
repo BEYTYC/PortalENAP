@@ -1,3 +1,8 @@
+/*!
+ * Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+ * Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+ * Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+ */
 /**
  * api/roles.js
  *

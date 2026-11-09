@@ -20,3 +20,6 @@ Módulo del Portal (Estadística › Antigüedades ENAP). HTML/CSS/JS plano, sin
 ## Pendiente
 - Descarga del Excel "BD Antigüedades <fecha>".
 - Carga de Todas las Notas, pérdidas, bajas, Conglomerado y novedades, y cálculo del siguiente semestre dentro del módulo.
+
+---
+Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística, Escuela Naval de Cadetes "Almirante Padilla". Derechos morales de autor reservados (Ley 23 de 1982, art. 30).

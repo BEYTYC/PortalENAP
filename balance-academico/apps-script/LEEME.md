@@ -40,3 +40,6 @@ En `index.html` del Portal basta con añadir `'balance:token-request'` a `tiposV
 - Se pueden seleccionar varios balances y firmarlos o descargarlos en grupo con una sola imagen de firma.
 - La imagen de la firma nunca se guarda en OneDrive: se carga una vez por sesión.
 - Programas habilitados por ahora: Especialización en Gestión Logística y Maestría en Gestión Logística (`ACTIVOS` en `programas.js`).
+
+---
+Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística, Escuela Naval de Cadetes "Almirante Padilla". Derechos morales de autor reservados (Ley 23 de 1982, art. 30).

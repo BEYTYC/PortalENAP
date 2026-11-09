@@ -1,3 +1,8 @@
+/*!
+ * Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+ * Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+ * Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+ */
 /* Programas con plantilla de Balance Académico.
    Los Excel viven en ../balances/ y siguen siendo la fuente de verdad (el portal también los enlaza). */
 (function (root, factory) {

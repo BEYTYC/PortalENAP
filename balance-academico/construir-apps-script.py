@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+# Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+# Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
 """Genera apps-script/Index.html (un solo archivo) a partir de index.html y los módulos.
 Uso:  python3 construir-apps-script.py
 Apps Script solo sirve HTML, así que los .js se incrustan y las librerías vienen de cdnjs."""

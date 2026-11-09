@@ -1,3 +1,8 @@
+/*!
+ * Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+ * Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+ * Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+ */
 /* Registro Cursos de Extension: todo lo que aparece en pantalla entra con un
    desplazamiento suave hacia arriba (fade + subida). Es un script suelto que
    no toca el codigo de la aplicacion: observa el DOM y anima cada elemento
