@@ -744,6 +744,31 @@ function armarFicha(id, S) {
   const md = pick(S.med, 'medallas');
   const medallas = sinRepetidos(md.exactas.map((x) => Object.assign({ pv: false }, x)).concat(md.nombre.map((x) => Object.assign({ pv: true }, x))), (x) => [kt(x.medalla), x.periodo || x.fecha, kt(x.general), kt(x.curso), kt(x.programa)].join('|'));
 
+  /* Quien hizo curso de ley se escalafonó: si el ascenso no apareció por cédula ni nombre exacto,
+     se busca en Ascensos con tolerancia (nombre incompleto o con una palabra distinta), sin aceptar nunca otra cédula. */
+  const hizoLey = cursos.some((c) => c.clase === 'ley');
+  if (!escal.length && hizoLey && S.baj && S.baj.asc) {
+    const mias = new Set();
+    nks.forEach((k) => String(k).split(' ').forEach((w) => { if (w) mias.add(w); }));
+    nomKey(nombre).split(' ').forEach((w) => { if (w) mias.add(w); });
+    const miCont = ing0 ? normCont(ing0.cont) : '';
+    let mejor = null, mejorPts = 0;
+    const prueba = (reg) => {
+      if (reg.ck && ck && reg.ck !== ck) return; // otra cédula: es otra persona
+      const suyas = nomKey(reg.nombre).split(' ').filter(Boolean);
+      if (!suyas.length) return;
+      const comunes = suyas.filter((w) => mias.has(w)).length;
+      const sub = comunes === suyas.length || comunes === mias.size; // una lista contenida en la otra
+      const contOk = !!miCont && !!reg.cont && normCont(reg.cont) === miCont;
+      if (!(comunes >= 3 || (comunes >= 2 && (sub || contOk)))) return;
+      const pts = comunes + (contOk ? 2 : 0) + (sub ? 1 : 0);
+      if (pts > mejorPts) { mejor = reg; mejorPts = pts; }
+    };
+    Object.values(S.baj.asc.porCed).forEach((L) => L.forEach(prueba));
+    Object.values(S.baj.asc.porNom).forEach((L) => L.forEach(prueba));
+    if (mejor) { escal = [Object.assign({ pv: true }, mejor)]; if (porVerificar.indexOf('escalafón') < 0) porVerificar.push('escalafón'); }
+  }
+
   /* ---- Estado ---- */
   let estado = '';
   const POSG = /ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/;
@@ -754,9 +779,9 @@ function armarFicha(id, S) {
   if (civil) estado = grados.length ? 'GRADUADO' : '';
   else if (titulado) estado = 'GRADUADO';
   else if (retiro && !hayReingreso) estado = 'RETIRADO';
-  else if (!escal.length && ing0 && (ing0.salida || ing0.anioSal) && !(ultimo && ultimo.e !== 'Retirado' && ultimo.e !== 'Salió')) estado = 'SALIÓ';
+  else if (!escal.length && !hizoLey && ing0 && (ing0.salida || ing0.anioSal) && !(ultimo && ultimo.e !== 'Retirado' && ultimo.e !== 'Salió')) estado = 'SALIÓ';
   else if (ultimo && (ultimo.e === 'Retirado' || ultimo.e === 'Salió') && !hayReingreso) estado = 'RETIRADO';
-  else if (escal.length) {
+  else if (escal.length || hizoLey) {
     // PR, CDPRIM, CDPRON y CEXTIM no son egresados sin grado: su ciclo termina en el escalafonamiento.
     const SIN_GRADO = /^(PR|CDPRIM|CDPRON|CEXTIM)$/;
     const progEsc = [ing0 && ing0.sigla, ...escal.map((e) => e.sigla)].map((v) => sinTildes(v || '').replace(/[^A-Z]/g, '')).filter(Boolean);
@@ -779,7 +804,7 @@ function armarFicha(id, S) {
     const claseEsc = kPromo && kPromo !== 'OTRA' ? kPromo : claseEsp(escTxt), claseIng = (ing0 && (claseEsp(ing0.cont) || claseEsp(ing0.sigla))) || '';
     const cambioEsp = claseEsc && claseIng && claseEsc !== claseIng ? { de: claseIng, a: claseEsc } : null;
     tEsc = tFecha(e0.fecha) != null ? tFecha(e0.fecha) : (perNum(e0.periodo) != null ? perNum(e0.periodo) + 0.45 : null);
-    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', jerarquia: (ing0 && esPuente(ing0.cont)) ? '' : (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: (ing0 && esPuente(ing0.cont)) ? null : cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: (ing0 && ing0.promo) || e0.promocion, pv: e0.pv });
+    linea.push({ tipo: 'escalafon', t: tEsc, fecha: e0.fecha, anio: anioDe(e0.fecha) || (e0.periodo ? +e0.periodo.slice(0, 4) : null), titulo: 'Escalafonamiento', egresado: estado === 'EGRESADO NO GRADUADO', jerarquia: (ing0 && esPuente(ing0.cont)) ? '' : (ing0 && ing0.promo && jerarquiaPromo(ing0.promo, ing0.nac)) || jerarquiaEsc(escTxt, ing0 && ing0.nac, /CDPRIM/.test(sinTildes([e0.sigla, e0.promocion, e0.especialidad, e0.cont].join(' ')))), cambioEsp: (ing0 && esPuente(ing0.cont)) ? null : cambioEsp, puesto: e0.puesto, total: e0.total, promedio: e0.promedio, periodo: e0.periodo, resolucion: e0.resolucion, especialidad: e0.especialidad, promocion: (ing0 && ing0.promo) || e0.promocion, pv: e0.pv });
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
