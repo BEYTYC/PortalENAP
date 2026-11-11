@@ -909,10 +909,11 @@ function armarFicha(id, S) {
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas, semestres: semsBeca });
   if (nExc) items.push({ k: 'excelencia', label: 'Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
   {
-    const pr = [], nC = medallas.length, nH = ['mencion', 'merito', 'laureado'].map((c) => [c, concesiones.filter((x) => x.clase === c).length]);
-    if (nC) pr.push(nC + (nC === 1 ? ' medalla Caldas' : ' medallas Caldas'));
+    const nC = medallas.length;
+    if (nC) items.push({ k: 'caldas', label: 'Medalla Caldas', n: nC });
+    const pr = [], nH = ['mencion', 'merito', 'laureado'].map((c) => [c, concesiones.filter((x) => x.clase === c).length]);
     nH.forEach(([c, n]) => { if (n) pr.push(n + ' ' + ({ mencion: n === 1 ? 'mención de honor' : 'menciones de honor', merito: n === 1 ? 'meritorio' : 'meritorios', laureado: n === 1 ? 'laureado' : 'laureados' })[c]); });
-    const nP = nC + nH.reduce((t, x) => t + x[1], 0);
+    const nP = nH.reduce((t, x) => t + x[1], 0);
     if (nP) items.push({ k: 'premio', label: nP === 1 ? 'Premio' : 'Premios', n: nP, det: pr.join(' · ') });
   }
   if (items.length) {
