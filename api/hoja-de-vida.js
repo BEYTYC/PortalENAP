@@ -1044,6 +1044,36 @@ module.exports = async function handler(req, res) {
     const { S, fuentes: fuentesTodas } = await cargar();
     ULTIMO_S = S;
     const fuentes = yo.correo === 'jestadisticaplen@enap.edu.co' ? fuentesTodas : [];
+    if (a === 'rastro') {
+      // Diagnóstico (solo Estadística): busca una cédula en las hojas originales, tal como se leen, para ver en qué fila y columna está escrita.
+      if (yo.correo !== 'jestadisticaplen@enap.edu.co') throw error('Solo disponible para la Oficina de Estadística.', 403);
+      const dig = String(body.q || '').replace(/\D/g, '');
+      if (dig.length < 5) throw error('Escriba la cédula completa (solo números).', 400);
+      const colL = (j) => (j < 26 ? '' : String.fromCharCode(64 + Math.floor(j / 26))) + String.fromCharCode(65 + (j % 26));
+      const hallazgos = [];
+      const mirar = async (clave, etiqueta, re, maxCols) => {
+        let libro;
+        try { libro = X.abrir(await descargar(await item(clave))); }
+        catch (e) { hallazgos.push({ fuente: etiqueta, error: e.message }); return; }
+        for (const h of libro.hojas.filter((x) => re.test(sinTildes(x)))) {
+          let F; try { F = libro.leer(h, { maxCols }); } catch (e) { hallazgos.push({ fuente: etiqueta, hoja: h, error: e.message }); continue; }
+          for (let i = 0; i < F.length && hallazgos.length < 60; i++) {
+            const r = F[i] || [];
+            for (let j = 0; j < r.length; j++) {
+              const d = String(r[j] == null ? '' : (typeof r[j] === 'number' ? r[j].toFixed(0) : r[j])).replace(/\D/g, '');
+              if (d.length >= 5 && d.indexOf(dig) >= 0) {
+                hallazgos.push({ fuente: etiqueta, hoja: h, fila: i + 1, col: colL(j), celdas: r.map((v, q) => (v == null || v === '' ? null : colL(q) + ': ' + String(typeof v === 'number' ? v : v).slice(0, 60))).filter(Boolean) });
+                break;
+              }
+            }
+          }
+        }
+      };
+      await mirar('bajas', 'Bajas y Ascensos', /ASCENSO|BAJAS/, 20);
+      await mirar('conglomerado', 'CONGLOMERADO', /TODOS LOS INGRESOS|./, 30);
+      res.status(200).json({ cedula: dig, hallazgos });
+      return;
+    }
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }
     if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes, actualizado: Object.values(MODS).sort().slice(-1)[0] || '' })); return; }
