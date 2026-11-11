@@ -816,6 +816,8 @@ function armarFicha(id, S) {
   linea.forEach((e) => {
     if (e.tipo === 'complementacion') {
       if (!linea.some((g) => g.tipo === 'grado' && g.comp)) { e.egNG = true; e.egNom = String(e.detalle || '').split(' · ')[0]; }
+    } else if (e.tipo === 'ley' && /COMANDO/.test(sinTildes([e.titulo, Array.isArray(e.detalle) ? e.detalle.join(' ') : e.detalle].join(' ')))) { // curso de comando: debía llevar a la Especialización en Política y Estrategia Marítima
+      if (!linea.some((g) => g.tipo === 'grado' && /POLITICA Y ESTRATEGIA/.test(sinTildes(g.programa || g.detalle || '')))) { e.egNG = true; e.egNom = 'Especialización en Política y Estrategia Marítima'; }
     } else if (e.tipo === 'extension' && /ESPECIALIZ|MAESTR|DOCTOR/.test(sinTildes(e.titulo || ''))) { // los diplomados y demás cursos de extensión no llevan "egresado no graduado"
       const k = kt(e.titulo);
       if (!linea.some((g) => g.tipo === 'grado' && (kt(g.programa || '') && (k.includes(kt(g.programa)) || kt(g.programa).includes(k))))) { e.egNG = true; e.egNom = e.titulo; }
