@@ -2625,11 +2625,23 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       });
       ses.filter((x) => x.correo === p.correo).forEach((x) => { nSes++; tot += x.seg || 0; Object.keys(x.mods || {}).forEach((k) => { tm[k] = (tm[k] || 0) + x.mods[k]; }); });
       const veces = (n) => n + (n === 1 ? ' vez' : ' veces');
-      const lin = Object.keys(ent).sort((a, b) => ent[b] - ent[a]).map((k) => '• ' + esc(k) + ': <b>' + veces(ent[k]) + '</b>' + (tm[k] ? ' · ' + durTxt(tm[k]) : ''));
-      const nega = Object.keys(den).map((k) => '• ' + esc(k) + ': sin permiso (' + veces(den[k]) + ')').concat(Object.keys(sol).map((k) => '• ' + esc(k) + ': solicitó acceso (' + veces(sol[k]) + ')'));
-      const detalle = '<b>Ingresó al Portal:</b> ' + veces(p.ok) + (p.mal ? ' · <b>Intentos sin éxito:</b> ' + p.mal : '') + (tot ? ' · <b>Tiempo activo:</b> ' + durTxt(tot) : '')
-        + '<br><b>A dónde entró (clics):</b><br>' + (lin.concat(nega).join('<br>') || 'Sin módulos abiertos todavía.');
-      return `<tr class="ing-fila" tabindex="0" title="Clic para ver cuántas veces entró y a dónde"><td>${esc(fmt.format(new Date(p.ult.fecha)))}</td><td>${esc(p.nombre)}</td><td>${esc(p.correo)}</td>`
+      // Último inicio: arranca en la sesión más reciente de la persona (o en el último ingreso registrado).
+      const misSes = ses.filter((x) => x.correo === p.correo).sort((x, y) => Date.parse(y.inicio) - Date.parse(x.inicio));
+      const ultIng = Math.max(Date.parse(p.ult.fecha), ...ingresosDatos.filter((e) => e.correo === p.correo && e.resultado === 'Ingresó').map((e) => Date.parse(e.fecha)));
+      const t0 = (misSes[0] && Date.parse(misSes[0].inicio) >= ultIng - 5 * 60000 ? Date.parse(misSes[0].inicio) : ultIng) - 60000;
+      const hora = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+      const etq = { 'Abrió': 'entró', 'Sin permiso': 'sin permiso', 'No disponible': 'no disponible', 'Solicitó acceso': 'solicitó acceso' };
+      const ultMods = mod.filter((x) => x.correo === p.correo && Date.parse(x.fecha) >= t0).sort((x, y) => Date.parse(x.fecha) - Date.parse(y.fecha));
+      const tmUlt = (misSes[0] && Date.parse(misSes[0].inicio) >= t0) ? (misSes[0].mods || {}) : {};
+      const linUlt = ultMods.map((x) => '• ' + esc(hora.format(new Date(x.fecha))) + ' — <b>' + esc(x.modulo) + '</b> (' + esc(etq[x.resultado] || x.resultado) + ')');
+      const resumen = Object.keys(tmUlt).filter((k) => tmUlt[k] > 0).sort((x, y) => tmUlt[y] - tmUlt[x]).map((k) => esc(k) + ' ' + durTxt(tmUlt[k]));
+      const lin = Object.keys(ent).sort((x, y) => ent[y] - ent[x]).map((k) => esc(k) + ' ' + ent[k]);
+      const detalle = '<b>Módulos a los que entró en su último inicio:</b><br>' + (linUlt.join('<br>') || 'No abrió ningún módulo en ese inicio.')
+        + (resumen.length ? '<br><span style="color:#5b6b82">Tiempo en cada uno: ' + resumen.join(' · ') + '</span>' : '')
+        + '<hr style="border:0;border-top:1px solid #dfe5ee;margin:8px 0">'
+        + '<b>Ingresó al Portal:</b> ' + veces(p.ok) + (p.mal ? ' · <b>Intentos sin éxito:</b> ' + p.mal : '') + (tot ? ' · <b>Tiempo activo total:</b> ' + durTxt(tot) : '')
+        + (lin.length ? '<br><span style="color:#5b6b82">Historial de aperturas: ' + lin.join(' · ') + '</span>' : '');
+      return `<tr class="ing-fila" tabindex="0" title="Clic para ver a qué módulos entró en su último inicio"><td>${esc(fmt.format(new Date(p.ult.fecha)))}</td><td>${esc(p.nombre)}</td><td>${esc(p.correo)}</td>`
         + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(p.ult.resultado)}</span></td></tr>`
         + `<tr class="ing-det" hidden><td colspan="4" style="white-space:normal">${detalle}</td></tr>`;
     }).join('');
