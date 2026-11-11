@@ -1366,7 +1366,9 @@ class Component extends DCLogic {
       if (est === 'admin' || est === 'aprobada') {
         this.nomSet({ msg: 'Preparando la descarga…' });
         this.nomApi('descargar').then((j) => {
-          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean);
+          const quitar = ['Año de terminación', 'Promedio antigüedad'], keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0);
+          j.cab = keep.map((c) => j.cab[c]);
+          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => keep.map((c) => f[c]));
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
           const cargar = window.ExcelJS ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = './exceljs.min.js'; sc.onload = ok; sc.onerror = () => no(new Error('No se pudo cargar el generador de Excel.')); document.head.appendChild(sc); });
           return cargar.then(() => {
