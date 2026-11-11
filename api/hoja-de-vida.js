@@ -817,8 +817,9 @@ function armarFicha(id, S) {
     if (e.tipo === 'complementacion') {
       if (!linea.some((g) => g.tipo === 'grado' && g.comp)) { e.egNG = true; e.egNom = String(e.detalle || '').split(' · ')[0]; }
     } else if (e.tipo === 'ley' && /COMANDO/.test(sinTildes([e.titulo, Array.isArray(e.detalle) ? e.detalle.join(' ') : e.detalle].join(' ')))) { // curso de comando: debía llevar a la Especialización en Política y Estrategia Marítima
-      const sg = [ing0 && ing0.sigla, ...escal.map((x) => x.sigla), ing0 && ing0.cont].map((v) => sinTildes(v || '').replace(/[^A-Z]/g, '')).filter(Boolean), deLinea = sg.some((v) => /^(NAV|IM)$/.test(v)) && !sg.some((v) => /^(CDPRON|CDPRIM|CEXTIM|CDLOG|PR|MC|MM|EJERCITO)/.test(v)); // solo oficiales de línea (NAV, IM); los administrativos hacen otro curso de comando
-      if (deLinea && !linea.some((g) => g.tipo === 'grado' && /POLITICA Y ESTRATEGIA/.test(sinTildes(g.programa || g.detalle || '')))) { e.egNG = true; e.egNom = 'Especialización en Política y Estrategia Marítima'; }
+      const sg = [ing0 && ing0.sigla, ...escal.map((x) => x.sigla), ing0 && ing0.cont].map((v) => sinTildes(v || '').replace(/[^A-Z]/g, '')).filter(Boolean), deLinea = sg.some((v) => /^(NAV|IM)$/.test(v)) && !sg.some((v) => /^(CDPRON|CDPRIM|CEXTIM|CDLOG|PR|MC|MM|EJERCITO)/.test(v));
+      const ti = tFecha(e.inicio), tf = tFecha(e.fin), semestral = ti != null && tf != null && (tf - ti) * 12 >= 4.5 && !/ADMINISTRATIV/.test(sinTildes([e.titulo, Array.isArray(e.detalle) ? e.detalle.join(' ') : e.detalle].join(' '))); // el comando de línea dura un semestre (5-6 meses); el administrativo es corto y no lleva especialización // solo oficiales de línea (NAV, IM); los administrativos hacen otro curso de comando
+      if (deLinea && semestral && !linea.some((g) => g.tipo === 'grado' && /POLITICA Y ESTRATEGIA/.test(sinTildes(g.programa || g.detalle || '')))) { e.egNG = true; e.egNom = 'Especialización en Política y Estrategia Marítima'; }
     } else if (e.tipo === 'extension' && /ESPECIALIZ|MAESTR|DOCTOR/.test(sinTildes(e.titulo || ''))) { // los diplomados y demás cursos de extensión no llevan "egresado no graduado"
       const k = kt(e.titulo);
       if (!linea.some((g) => g.tipo === 'grado' && (kt(g.programa || '') && (k.includes(kt(g.programa)) || kt(g.programa).includes(k))))) { e.egNG = true; e.egNom = e.titulo; }
