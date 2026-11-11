@@ -280,17 +280,25 @@ function pintarSug(r){
     $('sug').innerHTML=r.lista.map(function(p){return '<button type="button" role="option" data-id="'+ESC(p.id)+'"><span><b>'+ESC(p.nombre)+'</b><br><small>'+(p.cedula?'C.C. '+ESC(ced(p.cedula)):'Sin cédula')+(p.sigla?' · '+ESC(p.sigla):'')+(p.cont?' · '+ESC(p.cont):'')+(p.anio?' · '+p.anio:'')+'</small></span></button>'}).join('')+(r.total>r.lista.length?'<div class="msg" style="padding:8px">Hay '+r.total+' coincidencias; siga escribiendo para afinar.</div>':'');
     $('sug').hidden=false;sel=-1;
     Array.prototype.forEach.call($('sug').querySelectorAll('button'),function(b){b.addEventListener('mousedown',function(e){e.preventDefault();var id=b.getAttribute('data-id');cerrar();abrir(id)})})}
+function sugiereRemoto(q,intento){var n=++sq;api('sugerir',{q:q}).then(function(r){if(n!==sq)return;var q2=$('q').value.trim();if(q2.length<3)return;pintarSug(IDX?buscarLocal(q2):r)}).catch(function(){
+    if(n!==sq)return;
+    if(intento<2){setTimeout(function(){if(n===sq&&$('q').value.trim().length>=3)sugiereRemoto($('q').value.trim(),intento+1)},1500);return}
+    $('sug').innerHTML='<div class="msg" style="padding:10px 12px">No se pudo consultar; use el bot\u00f3n Consultar.</div>';$('sug').hidden=false})}
 $('q').addEventListener('input',function(){clearTimeout(st);var q=$('q').value.trim();if(q.length<3){cerrar();return}
   if(IDX){pintarSug(buscarLocal(q));if(Date.now()-IDXT>600000)cargarIdx();return}
   cargarIdx();
-  st=setTimeout(function(){var n=++sq;api('sugerir',{q:q}).then(function(r){if(n!==sq)return;var q2=$('q').value.trim();if(q2.length<3)return;pintarSug(IDX?buscarLocal(q2):r)}).catch(function(){})},150)});
+  /* El servidor puede estar arrancando (primera consulta del día): se avisa en vez de quedarse mudo. */
+  $('sug').innerHTML='<div class="msg" style="padding:10px 12px">Cargando la lista de estudiantes\u2026</div>';$('sug').hidden=false;sel=-1;
+  st=setTimeout(function(){sugiereRemoto(q,0)},150)});
 $('q').addEventListener('keydown',function(e){var bs=$('sug').querySelectorAll('button');if(!bs.length||$('sug').hidden)return;
   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();sel=(sel+(e.key==='ArrowDown'?1:-1)+bs.length)%bs.length;Array.prototype.forEach.call(bs,function(b,i){b.classList.toggle('on',i===sel)})}
   else if(e.key==='Enter'&&sel>=0){e.preventDefault();var id=bs[sel].getAttribute('data-id');cerrar();abrir(id)}
   else if(e.key==='Escape')cerrar()});
 $('q').addEventListener('blur',function(){setTimeout(cerrar,150)});
 /* Precalienta la lista de personas para que el autocompletar responda al instante */
-setTimeout(cargarIdx,400);
+setTimeout(cargarIdx,0);
+/* Mantiene el servidor y el índice despiertos mientras el módulo esté abierto (los arranques en frío son los que demoran la búsqueda). */
+setInterval(function(){if(document.hidden)return;if(!IDX||Date.now()-IDXT>600000)cargarIdx();api('sugerir',{q:'aaa'}).catch(function(){})},240000);
 
 /* ---------- Búsqueda ---------- */
 $('f').addEventListener('submit',function(ev){ev.preventDefault();sq++;cerrar();var q=$('q').value.trim();if(q.length<3){msg('Escriba al menos 3 caracteres (cédula o nombre).',1);return}
