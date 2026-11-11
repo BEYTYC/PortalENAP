@@ -96,6 +96,7 @@ body{margin:0}
 @keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .x{transition:all .45s cubic-bezier(.22,.8,.24,1)}
+.egf{transition:all .2s ease}.egf:hover{border-color:#B8841F !important;box-shadow:0 4px 12px rgba(12,32,80,.2);transform:translateY(-1px);filter:brightness(.96)}.egf:active{transform:none;box-shadow:none}
 .hov{transition:background .2s ease,transform .2s ease}
 .hov:hover{background:rgba(12,32,80,.06)}
 button{font-family:inherit;color:inherit}
@@ -291,12 +292,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div class="egside" style="display:flex;flex-direction:column;gap:14px">
 <div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Programa</div><div style="margin-top:6px"><select class="egsel" onChange="{{ egProgSet }}"><sc-for list="{{ egProgOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></div></div>
 <div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Año</div><div style="margin-top:6px"><div style="display:flex;gap:8px"><select class="egsel" onChange="{{ egModeSet }}"><sc-for list="{{ egModeOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select><sc-if value="{{ egYrOn }}" hint-placeholder-val="{{ true }}"><select class="egsel" style="min-width:96px" onChange="{{ egYrSet }}"><sc-for list="{{ egYrOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></sc-if></div></div></div>
-<button class="x" onClick="{{ egFrom2000 }}" style="{{ egFrom2000St }}">A partir del 2000</button>
+<button class="x egf" onClick="{{ egFrom2000 }}" style="{{ egFrom2000St }}">A partir del 2000</button>
 <div style="font-size:11.5px;line-height:1.45;color:#6B7A94">Viendo: <b style="color:#0C2050">{{ egView }}</b></div>
 </div>
 </sc-if>
 <div style="margin-top:auto;display:flex;flex-direction:column;gap:9px">
-<sc-if value="{{ asNorm }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ clearAll }}" style="{{ clearStyle }}">Borrar todos los filtros</button></sc-if><sc-if value="{{ egOn }}" hint-placeholder-val="{{ false }}"><button class="x" onClick="{{ egClear }}" style="{{ egClearStyle }}">Borrar todos los filtros</button></sc-if>
+<sc-if value="{{ asNorm }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ clearAll }}" style="{{ clearStyle }}">Borrar todos los filtros</button></sc-if><sc-if value="{{ egOn }}" hint-placeholder-val="{{ false }}"><button class="x egf" onClick="{{ egClear }}" style="{{ egClearStyle }}">Borrar todos los filtros</button></sc-if>
 <sc-if value="{{ fs }}" hint-placeholder-val="{{ false }}"><div style="margin:8px 0 6px;text-align:center;font-size:10.5px;line-height:1.4;color:#3D4D69">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em style="font-style:italic;opacity:.8">Desarrollado por la Oficina de Estadística<br>PD02 Beyty P. Camargo M.</em></div></sc-if>
 </div>
 </aside></sc-if>
