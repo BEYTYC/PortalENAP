@@ -1227,8 +1227,13 @@ class Component extends DCLogic {
     }
     return Promise.reject(new Error('fuera'));
   }
-  nomApi(accion, extra) {
-    return this.nomTok().then((t) => fetch('/api/egresados', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: t, accion: accion }, extra || {})) }).then((r) => r.json().then((j) => { if (!r.ok) throw new Error(j.error || ('Error ' + r.status)); return j; })));
+  nomApi(accion, extra, intento) {
+    intento = intento || 0;
+    return this.nomTok().then((t) => fetch('/api/egresados', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: t, accion: accion }, extra || {})) }).then((r) => r.json().then((j) => { if (!r.ok) throw new Error(j.error || ('Error ' + r.status)); return j; }, () => { throw new Error('El Portal respondió con un error (' + r.status + '). Intenta de nuevo en un momento.'); }), (e) => {
+      // Fallo de red (el Portal se está actualizando o se cortó la conexión): reintenta dos veces antes de avisar
+      if (intento < 2) return new Promise((ok) => setTimeout(ok, 1500 * (intento + 1))).then(() => this.nomApi(accion, extra, intento + 1));
+      throw new Error('No se pudo conectar con el Portal. Revisa tu conexión y vuelve a intentar; si sigue igual, avisa a Estadística.');
+    }));
   }
   nomSet(o) { this.setState({ nom: Object.assign({}, this.state.nom || {}, o) }); }
   nomSesion() {
