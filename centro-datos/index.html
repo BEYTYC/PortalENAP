@@ -1391,7 +1391,10 @@ class Component extends DCLogic {
         this.nomApi('descargar').then((j) => {
           const quitar = ['Año de terminación', 'Promedio antigüedad', 'Posible error de registro (2022 en adelante)', 'Nota contacto'], iNota = j.cab.indexOf('Nota contacto'), keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0); keep.sort((a, b) => (/^Otros grados/.test(j.cab[a]) ? 1 : 0) - (/^Otros grados/.test(j.cab[b]) ? 1 : 0) || a - b);
           j.cab = keep.map((c) => j.cab[c]);
-          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => keep.map((c) => f[c]).concat([iNota >= 0 ? f[iNota] || '' : '']));
+          const ipT = j.cab.indexOf('Periodo de terminación'), hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' })), perHoy = hoy.getFullYear() * 2 + (hoy.getMonth() >= 6 ? 1 : 0);
+          const aniosEsc = (t) => { const m = /^(\d{4})-([12])$/.exec(String(t || '')); return m ? Math.max(0, (perHoy - (Number(m[1]) * 2 + Number(m[2]) - 1)) / 2) : ''; };
+          if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde el escalafonamiento');
+          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => { const v = keep.map((c) => f[c]); if (ipT >= 0) v.splice(ipT + 1, 0, aniosEsc(v[ipT])); return v.concat([iNota >= 0 ? f[iNota] || '' : '']); });
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
           const js = (cond, src, msg) => (cond() ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error(msg)); document.head.appendChild(sc); }));
           const cargar = js(() => window.ExcelJS, './exceljs.min.js', 'No se pudo cargar el generador de Excel.').then(() => js(() => window.JSZip, './jszip.min.js', 'No se pudo cargar el generador de Excel.'));
@@ -1405,10 +1408,10 @@ class Component extends DCLogic {
             ws.addRow([]);
             ws.addRow(['Egresados no graduados - ' + tProg + ' - ' + tPer]);
             ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
-            ws.addRow(['Fuente: Centro de Datos ENAP - Portal Estadístico']);
+            ws.addRow(['Fuente: Centro de Datos ENAP - Portal de Servicios Digitales Oficina de Estadística']);
             ws.addRow([]);
             ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
-            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
+            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
             const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
@@ -1420,7 +1423,7 @@ class Component extends DCLogic {
               if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 6 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
+                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : hh === 'Años desde el escalafonamiento' ? '0.0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
                 if (n === 6) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
                 else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
