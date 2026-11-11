@@ -1265,49 +1265,26 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         <button type="button" class="panel-app__btn panel-app__btn--ghost" id="ingresosRecargarBtn" style="padding:4px 10px;font-size:0.8117rem;">Actualizar</button>
       </div>
     </div>
-    <p style="font-size:0.8508rem;color:#5b6b7c;margin:6px 0 10px;">Quién entró o intentó entrar y a qué hora (hora de Colombia). Una misma cuenta se anota una vez cada 10 minutos.</p>
+    <p style="font-size:0.8508rem;color:#5b6b7c;margin:6px 0 10px;">Último inicio de cada persona (hora de Colombia). Toca una fila para ver cuántas veces entró y a dónde.</p>
     <div style="max-height:420px;overflow:auto;">
     <table>
-      <thead><tr><th>Fecha y hora</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
+      <thead><tr><th>Último inicio</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
       <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
 
   <div class="panel-app__card" id="actividadCard" hidden>
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-      <h3 style="margin:0;color:#0a2540;font-size:1.0308rem;">Actividad en el Portal</h3>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <select id="actividadPeriodo" aria-label="Periodo" style="height:34px;padding:0 10px;border:1px solid #C9D9EE;border-radius:10px;background:#fff;color:#1F4E96;font-size:0.8117rem;">
-          <option value="7">Últimos 7 días</option><option value="30" selected>Últimos 30 días</option><option value="0">Todo el historial</option>
-        </select>
-        <button type="button" class="panel-app__btn panel-app__btn--ghost" id="actividadRecargarBtn" style="padding:4px 10px;font-size:0.8117rem;">Actualizar</button>
-      </div>
-    </div>
-    <p style="font-size:0.8508rem;color:#5b6b7c;margin:6px 0 10px;">Cuánto tiempo activo tiene cada persona en el Portal (con la pestaña a la vista) y a qué módulos entra o intenta entrar. «Sin permiso» es un intento que el sistema no dejó pasar.</p>
-    <div style="max-height:380px;overflow:auto;">
-    <table>
-      <thead><tr><th>Persona</th><th>Sesiones</th><th>Tiempo total</th><th>Promedio</th><th>Última actividad</th><th>Módulos (tiempo · entradas)</th><th>Sin permiso</th></tr></thead>
-      <tbody id="actividadBody"><tr><td colspan="7">Cargando…</td></tr></tbody>
-    </table>
-    </div>
-    <h4 style="margin:18px 0 6px;color:#0B2A5B;font-size:0.9187rem;">Solicitudes de acceso</h4>
+    <h3 style="margin:0 0 6px;color:#0a2540;font-size:1.0308rem;">Solicitudes de acceso</h3>
     <div style="max-height:260px;overflow:auto;">
     <table>
       <thead><tr><th>Fecha</th><th>Persona</th><th>Módulo</th></tr></thead>
       <tbody id="solicitudesBody"><tr><td colspan="3">Cargando…</td></tr></tbody>
     </table>
     </div>
-    <h4 style="margin:18px 0 6px;color:#0B2A5B;font-size:0.9187rem;">Últimas sesiones</h4>
-    <div style="max-height:300px;overflow:auto;">
-    <table>
-      <thead><tr><th>Inicio</th><th>Persona</th><th>Duración</th><th>Tiempo por módulo</th></tr></thead>
-      <tbody id="sesionesBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
-    </table>
-    </div>
   </div>
 
-  <div class="panel-app__card">
+  <div class="panel-app__card" style="display:none" aria-hidden="true">
     <table>
       <thead><tr><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
       <tbody id="adminTablaBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
@@ -2619,49 +2596,41 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   }
   function pintarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
-    const filas = ingresosDatos.filter((e) => !ingresosSoloFallidos || e.resultado !== 'Ingresó');
-    if (!filas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
-    // Cada ingreso se cruza con las sesiones de esa misma cuenta que empezaron desde ese ingreso
-    // y antes del siguiente ingreso de la cuenta: de ahí salen la duración y los módulos.
-    const porCorreo = {};
-    ingresosDatos.filter((e) => e.resultado === 'Ingresó').forEach((e) => { (porCorreo[e.correo] = porCorreo[e.correo] || []).push(Date.parse(e.fecha)); });
-    Object.keys(porCorreo).forEach((k) => porCorreo[k].sort((a, b) => a - b));
     const durTxt = (seg) => {
       seg = Math.max(0, Math.round(seg || 0));
       if (seg < 60) return seg + ' s';
       const m = Math.round(seg / 60);
       return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min';
     };
+    // Una fila por persona con su último inicio; al abrirla: cuántas veces entró y a dónde (módulos y clics).
+    const P = {};
+    ingresosDatos.forEach((e) => {
+      const p = (P[e.correo] = P[e.correo] || { correo: e.correo, nombre: e.nombre, ok: 0, mal: 0, ult: null });
+      if (e.resultado === 'Ingresó') p.ok++; else p.mal++;
+      if (!p.ult || Date.parse(e.fecha) > Date.parse(p.ult.fecha)) { p.ult = e; if (e.nombre) p.nombre = e.nombre; }
+    });
+    const personas = Object.keys(P).map((k) => P[k]).filter((p) => !ingresosSoloFallidos || p.mal > 0).sort((a, b) => Date.parse(b.ult.fecha) - Date.parse(a.ult.fecha));
+    if (!personas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
     const ses = actividadDatos.sesiones || [];
     const mod = actividadDatos.modulos || [];
-    cuerpo.innerHTML = filas.slice(0, 500).map((e) => {
-      const ok = e.resultado === 'Ingresó';
-      let dur = '—', mods = '—';
-      if (ok) {
-        const t0 = Date.parse(e.fecha) - 60000;
-        const lista = porCorreo[e.correo] || [];
-        const sig = lista.find((t) => t > Date.parse(e.fecha));
-        const t1 = sig ? sig - 60000 : Infinity;
-        const dentro = ses.filter((x) => x.correo === e.correo && Date.parse(x.inicio) >= t0 && Date.parse(x.inicio) < t1);
-        const tm = {}; let tot = 0;
-        dentro.forEach((x) => { tot += x.seg || 0; Object.keys(x.mods || {}).forEach((k) => { tm[k] = (tm[k] || 0) + x.mods[k]; }); });
-        const ent = {}; const den = {};
-        mod.filter((x) => x.correo === e.correo && Date.parse(x.fecha) >= t0 && Date.parse(x.fecha) < t1).forEach((x) => {
-          if (x.resultado === 'Abrió') ent[x.modulo] = 1; else if (x.resultado === 'Sin permiso') den[x.modulo] = 1;
-        });
-        if (dentro.length) dur = '<b>' + durTxt(tot) + '</b>';
-        const nombres = Object.keys(Object.assign({}, tm, ent));
-        const partes = nombres.filter((k) => k !== 'Inicio' || ent[k]).sort((a, b) => (tm[b] || 0) - (tm[a] || 0)).map((k) => esc(k) + (tm[k] ? ' · ' + durTxt(tm[k]) : ''));
-        const ini = tm['Inicio'] ? ['Inicio · ' + durTxt(tm['Inicio'])] : [];
-        const sp = Object.keys(den).map((k) => esc(k) + ' (sin permiso)');
-        const todo = partes.concat(ini, sp);
-        if (todo.length) mods = todo.join('<br>');
-      }
-      const detalle = ok ? ('<b>Tiempo en el Portal:</b> ' + (dur === '—' ? 'sin datos' : dur) + '<br><b>Módulos:</b><br>' + mods) : 'No ingresó: sin actividad.';
-      return `<tr class="ing-fila" tabindex="0" title="Clic para ver su actividad"><td>${esc(fmt.format(new Date(e.fecha)))}</td><td>${esc(e.nombre)}</td><td>${esc(e.correo)}</td>`
-        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(e.resultado)}</span></td></tr>`
+    cuerpo.innerHTML = personas.slice(0, 500).map((p) => {
+      const ok = p.ult.resultado === 'Ingresó';
+      const ent = {}, den = {}, sol = {}, tm = {}; let tot = 0, nSes = 0;
+      mod.filter((x) => x.correo === p.correo).forEach((x) => {
+        if (x.resultado === 'Abrió') ent[x.modulo] = (ent[x.modulo] || 0) + 1;
+        else if (x.resultado === 'Solicitó acceso') sol[x.modulo] = (sol[x.modulo] || 0) + 1;
+        else den[x.modulo] = (den[x.modulo] || 0) + 1;
+      });
+      ses.filter((x) => x.correo === p.correo).forEach((x) => { nSes++; tot += x.seg || 0; Object.keys(x.mods || {}).forEach((k) => { tm[k] = (tm[k] || 0) + x.mods[k]; }); });
+      const veces = (n) => n + (n === 1 ? ' vez' : ' veces');
+      const lin = Object.keys(ent).sort((a, b) => ent[b] - ent[a]).map((k) => '• ' + esc(k) + ': <b>' + veces(ent[k]) + '</b>' + (tm[k] ? ' · ' + durTxt(tm[k]) : ''));
+      const nega = Object.keys(den).map((k) => '• ' + esc(k) + ': sin permiso (' + veces(den[k]) + ')').concat(Object.keys(sol).map((k) => '• ' + esc(k) + ': solicitó acceso (' + veces(sol[k]) + ')'));
+      const detalle = '<b>Ingresó al Portal:</b> ' + veces(p.ok) + (p.mal ? ' · <b>Intentos sin éxito:</b> ' + p.mal : '') + (tot ? ' · <b>Tiempo activo:</b> ' + durTxt(tot) : '')
+        + '<br><b>A dónde entró (clics):</b><br>' + (lin.concat(nega).join('<br>') || 'Sin módulos abiertos todavía.');
+      return `<tr class="ing-fila" tabindex="0" title="Clic para ver cuántas veces entró y a dónde"><td>${esc(fmt.format(new Date(p.ult.fecha)))}</td><td>${esc(p.nombre)}</td><td>${esc(p.correo)}</td>`
+        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(p.ult.resultado)}</span></td></tr>`
         + `<tr class="ing-det" hidden><td colspan="4" style="white-space:normal">${detalle}</td></tr>`;
     }).join('');
   }
@@ -2679,42 +2648,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     return Math.floor(m / 60) + ' h ' + String(m % 60).padStart(2, '0') + ' min';
   }
   function pintarActividad() {
-    const dias = Number(document.getElementById('actividadPeriodo').value) || 0;
-    const desde = dias ? Date.now() - dias * 86400000 : 0;
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
-    const ses = actividadDatos.sesiones.filter((x) => Date.parse(x.ultimo) >= desde);
-    const mods = actividadDatos.modulos.filter((x) => Date.parse(x.fecha) >= desde);
-    const P = {};
-    const persona = (correo, nombre) => (P[correo] = P[correo] || { correo, nombre: nombre || correo, n: 0, seg: 0, ultimo: 0, tmod: {}, entradas: {}, denegados: {} });
-    ses.forEach((x) => {
-      const p = persona(x.correo, x.nombre); p.n++; p.seg += x.seg || 0; p.ultimo = Math.max(p.ultimo, Date.parse(x.ultimo) || 0);
-      Object.keys(x.mods || {}).forEach((k) => { p.tmod[k] = (p.tmod[k] || 0) + x.mods[k]; });
-    });
-    mods.forEach((x) => {
-      if (x.resultado === 'Solicitó acceso') return;
-      const p = persona(x.correo, x.nombre); p.ultimo = Math.max(p.ultimo, Date.parse(x.fecha) || 0);
-      if (x.resultado === 'Abrió') p.entradas[x.modulo] = (p.entradas[x.modulo] || 0) + 1;
-      else { const k = x.modulo + (x.resultado === 'No disponible' ? ' (aún no disponible)' : ''); p.denegados[k] = (p.denegados[k] || 0) + 1; }
-    });
-    const filas = Object.keys(P).map((k) => P[k]).sort((a, b) => b.seg - a.seg);
-    const cuerpo = document.getElementById('actividadBody');
-    if (!filas.length) cuerpo.innerHTML = '<tr><td colspan="7">Sin actividad registrada en este periodo.</td></tr>';
-    else cuerpo.innerHTML = filas.map((p) => {
-      const nombres = Object.keys(Object.assign({}, p.tmod, p.entradas)).sort((a, b) => (p.tmod[b] || 0) - (p.tmod[a] || 0));
-      const chips = nombres.map((k) => `<span class="act-mod">${esc(k)} · ${fmtDur(p.tmod[k] || 0)} · ${p.entradas[k] || 0}</span>`).join('') || '—';
-      const no = Object.keys(p.denegados).map((k) => `<span class="act-mod act-no">${esc(k)} × ${p.denegados[k]}</span>`).join('') || '—';
-      return `<tr><td>${esc(p.nombre)}<br><span style="color:#6C86AD;font-size:0.7688rem">${esc(p.correo)}</span></td><td>${p.n}</td><td><b>${fmtDur(p.seg)}</b></td><td>${p.n ? fmtDur(p.seg / p.n) : '—'}</td><td>${p.ultimo ? esc(fmt.format(new Date(p.ultimo))) : '—'}</td><td>${chips}</td><td>${no}</td></tr>`;
-    }).join('');
-    const sol = mods.filter((x) => x.resultado === 'Solicitó acceso');
+    const sol = actividadDatos.modulos.filter((x) => x.resultado === 'Solicitó acceso');
     document.getElementById('solicitudesBody').innerHTML = sol.length
       ? sol.slice(0, 100).map((x) => `<tr><td>${esc(fmt.format(new Date(x.fecha)))}</td><td>${esc(x.nombre || x.correo)}<br><span style="color:#6C86AD;font-size:0.7688rem">${esc(x.correo)}</span></td><td>${esc(x.modulo)}</td></tr>`).join('')
-      : '<tr><td colspan="3">Nadie ha solicitado acceso en este periodo.</td></tr>';
-    const cs = document.getElementById('sesionesBody');
-    cs.innerHTML = ses.length ? ses.slice(0, 200).map((x) => {
-      const m = Object.keys(x.mods || {}).sort((a, b) => x.mods[b] - x.mods[a]).map((k) => `${esc(k)} ${fmtDur(x.mods[k])}`).join(' · ') || '—';
-      return `<tr><td>${esc(fmt.format(new Date(x.inicio)))}</td><td>${esc(x.nombre || x.correo)}</td><td><b>${fmtDur(x.seg)}</b></td><td>${m}</td></tr>`;
-    }).join('') : '<tr><td colspan="4">Sin sesiones en este periodo.</td></tr>';
+      : '<tr><td colspan="3">Nadie ha solicitado acceso todavía.</td></tr>';
   }
   async function cargarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
@@ -3202,8 +3141,6 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     document.getElementById('adminGuardarBtn').addEventListener('click', guardarUsuarioAdmin);
     document.getElementById('adminRecargarBtn').addEventListener('click', cargarVistaAdmin);
     document.getElementById('ingresosRecargarBtn').addEventListener('click', cargarIngresos);
-    document.getElementById('actividadRecargarBtn').addEventListener('click', cargarIngresos);
-    document.getElementById('actividadPeriodo').addEventListener('change', pintarActividad);
     document.getElementById('ingresosFiltroBtn').addEventListener('click', () => {
       ingresosSoloFallidos = !ingresosSoloFallidos;
       document.getElementById('ingresosFiltroBtn').textContent = ingresosSoloFallidos ? 'Ver todos los ingresos' : 'Ver solo intentos sin éxito';
