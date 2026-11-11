@@ -336,6 +336,8 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
   h+='<div class="cu"><div class="rt"><button type="button" class="volver" id="vlv" title="Volver a la búsqueda" aria-label="Volver a la búsqueda">'+svg('M19 12H5 M12 19l-7-7l7-7',16,'#1F4E8C')+'Atrás</button>'+actHtml(F.actualizado)+'</div>'+'<div class="fila"><div class="av">'+ESC(ini(P.nombre))+'</div><div class="nmw"><div class="nm"><h1 title="'+ESC(P.nombre)+'">'+(P.grado?ESC(P.grado)+' ':'')+ESC(P.nombre)+'</h1>'+(P.cedula?'<span class="cc">C.C. '+ESC(ced(P.cedula))+(P.nac&&P.nac!=='COLOMBIA'?bandera(P.nac):'')+'</span>':'')+'</div><div class="ln">';
   var ls=[];
   if(F.civil)ls.push('<i style="color:#4A5B70">Civil</i>');
+  var nvl=0;L.forEach(function(e){if(e.tipo!=='grado')return;var t=String(e.programa||'')+' '+String(e.tituloAcad||'')+' '+String(e.detalle||'');t=t.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();var v=/DOCTOR/.test(t)?3:/MAESTR|MAGISTER/.test(t)?2:/ESPECIALIZ/.test(t)?1:0;if(v>nvl)nvl=v});
+  if(nvl)ls.push('<i style="color:#1F4E8C">'+(nvl===3?(/^(F|MUJER|FEMENINO)/i.test(String(P.sexo||''))?'Doctora':'Doctor'):nvl===2?'Magíster':'Especialista')+'</i>');
   if(F.escalafonado&&est!=='ESCALAFONADO')ls.push('<i style="color:#1B5E34">Escalafonado</i>');
   if(ES){var et=({GRADUADO:'Titulado',ACTIVO:'Activo',RETIRADO:'Retirado','SALIÓ':'Salió',ESCALAFONADO:'Escalafonado','EGRESADO NO GRADUADO':'Egresado no graduado'})[est]||est;ls.push('<i style="color:'+ES[1]+'">'+ESC(et)+'</i>')}
   if(P.cont&&!/^(PUENTE|M[AÁ]QUINAS?)\b/i.test(P.cont))ls.push('Contingente '+ESC(P.cont));
