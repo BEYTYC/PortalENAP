@@ -936,7 +936,7 @@ function armarFicha(id, S) {
   if (porVerificar.length) alertas.push('Coincidencia por nombre, por verificar: ' + Array.from(new Set(porVerificar)).join(', ') + '.');
   return {
     persona: { nombre, cedula: (ing0 && ing0.cedula) || (cong[0] && cong[0].cedula) || (ck || ''), sigla: (ing0 && ing0.sigla) || '', cont: (ing0 && ing0.cont) || (e0 && e0.cont) || '', sexo: (ing0 && ing0.sexo) || '', nac: (ing0 && ing0.nac) || '', curso: (ultimo && ultimo.cu) || '', grado: (ultimo && ultimo.g) || '' },
-    estado, civil, graduado: grados.length > 0, escalafonado: !!e0, retiro: retiro ? { fecha: retiro.retiro, causal: retiro.causal, doc: retiro.doc, obs: retiro.obs } : null,
+    estado, civil, graduado: grados.length > 0, enCiencias: grados.some((g) => /CIENCIAS (NAVALES|NAUTICAS)/.test(sinTildes(g.programa || g.titulo || ''))), escalafonado: !!e0, retiro: retiro ? { fecha: retiro.retiro, causal: retiro.causal, doc: retiro.doc, obs: retiro.obs } : null,
     ingreso: ing0 ? { fecha: ing0.fecha, anio: ing0.anio } : null,
     resumen: {
       semestres: sems.length,
