@@ -368,15 +368,15 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <sc-if value="{{ pGeneral }}" hint-placeholder-val="{{ true }}">
 <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px">
 
-<div class="rise d3" style="{{ panel }};grid-column:span 12">
+<div class="rise d3" style="{{ panel }};grid-column:span 12;display:flex;flex-direction:column">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por año y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSub }}</div></div>
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px">Desde <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gFromSet }}"><sc-for list="{{ gFromOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select> hasta <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gToSet }}"><sc-for list="{{ gToOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></span><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
 <div style="{{ gBox }}">
 <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gYearCols }}" as="y" hint-placeholder-count="17">
-<button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
-<div style="margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
-<div class="x" style="{{ y.stack }}"><div class="x" style="{{ y.sr }}">{{ y.pr }}</div><div class="x" style="{{ y.sa }}">{{ y.pa }}</div><div class="x" style="{{ y.sg }}">{{ y.pg }}</div></div>
+<button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;border-radius:6px">
+<div style="flex:1;min-height:0;position:relative;margin-top:16px"><div class="x" style="{{ y.wrap }}"><div style="position:absolute;left:0;right:0;bottom:100%;margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
+<div style="{{ y.stack }}"><div class="x" style="{{ y.sr }}">{{ y.pr }}</div><div class="x" style="{{ y.sa }}">{{ y.pa }}</div><div class="x" style="{{ y.sg }}">{{ y.pg }}</div></div></div></div>
 <div style="margin-top:5px;height:14px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.label }}</div>
 </button>
 </sc-for>
@@ -419,20 +419,20 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="font-size:15px;font-weight:600;color:#0C2050">Género</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">De la selección</div>
 <div style="margin-top:12px;display:grid;grid-template-columns:1fr;grid-template-rows:1fr 1fr;gap:10px;flex:1;min-height:0">
 <sc-for list="{{ genCards }}" as="g" hint-placeholder-count="2">
-<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" style="flex:none;height:72%;max-height:72px;width:auto"><span style="display:flex;flex-direction:column;min-width:0;flex:1"><span style="font-size:11.5px;font-weight:600;color:#51617D">{{ g.label }}</span><span style="font-size:18px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050">{{ g.num }}</span><span style="margin-top:1px;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ g.col }}">{{ g.share }}</span><span style="font-size:10.5px;color:#6B7A94">estudiantes</span></span></button>
+<button class="hov x" onClick="{{ g.go }}" style="{{ g.style }}"><img src="{{ g.icon }}" alt="" style="flex:none;height:60%;max-height:90px;width:auto"><span style="display:flex;flex-direction:column;min-width:0"><span style="font-size:11.5px;font-weight:600;color:#51617D">{{ g.label }}</span><span style="font-size:19px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums;color:#0C2050;white-space:nowrap">{{ g.num }}</span><span style="margin-top:2px;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;color:{{ g.col }}">{{ g.share }}</span><span style="font-size:10.5px;color:#6B7A94">estudiantes</span></span></button>
 </sc-for>
 </div>
 <div style="margin-top:12px;height:12px;border-radius:6px;overflow:hidden;display:flex;background:rgba(12,32,80,.07);flex:none"><div class="x" style="{{ genBarH }}"></div><div class="x" style="{{ genBarM }}"></div></div>
 </div>
 
-<div class="rise d6" style="{{ panel }};grid-column:span 4">
+<div class="rise d6" style="{{ panel }};grid-column:span 4;display:flex;flex-direction:column">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Extranjeros por país</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ paisSub }}</div>
-<div style="margin-top:10px;display:flex;gap:8px;align-items:flex-start">
-<svg width="128" height="195" viewBox="52 0 86 130" style="flex:none" role="img" aria-label="Mapa de procedencia">
+<div style="margin-top:10px;flex:1;min-height:0;display:flex;gap:14px;align-items:stretch">
+<svg viewBox="52 0 86 130" style="flex:none;height:100%;width:auto;max-width:45%" role="img" aria-label="Mapa de procedencia">
 <polygon fill="#E3EAF4" stroke="#C4D0E4" stroke-width="1" stroke-linejoin="round" points="{{ mapPoly }}"/>
 <sc-for list="{{ mapDots }}" as="d" hint-placeholder-count="6"><circle cx="{{ d.cx }}" cy="{{ d.cy }}" r="{{ d.r }}" fill="{{ d.fill }}" opacity="{{ d.op }}" stroke="#fff" stroke-width=".6" style="cursor:pointer" onClick="{{ d.go }}"><title>{{ d.tip }}</title></circle></sc-for>
 </svg>
-<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
+<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:space-around;gap:1px">
 <sc-for list="{{ paisRows }}" as="r" hint-placeholder-count="6">
 <button class="hov x" onClick="{{ r.go }}" title="{{ r.tip }}" style="{{ r.rowStyle }}"><img src="{{ r.flag }}" alt="" width="24" height="16" style="flex:none;border-radius:2px;box-shadow:0 0 0 1px rgba(12,32,80,.15)"><span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="display:flex;justify-content:space-between;gap:4px;font-size:12px;color:#26364F"><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left">{{ r.label }}</span><span style="font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ r.num }}</span></span><span style="height:5px;border-radius:3px;background:rgba(12,32,80,.07);overflow:hidden;display:block"><span class="x" style="{{ r.bar }};display:block"></span></span></span></button>
 </sc-for>
@@ -2205,15 +2205,15 @@ class Component extends DCLogic {
     const gYear = yearsAll.filter((y) => y >= gDesde && y <= gHasta).map((y) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); return { y: y, c: c }; });
     const gMax = Math.max(1, ...gYear.map((o) => o.c.t));
     const gYearCols = gYear.map((o) => {
-      const seg = (n, col) => 'height:' + (n / gMax * H).toFixed(1) + 'px;background:' + col + ';display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;font-variant-numeric:tabular-nums';
-      const pl = (n, t) => (gYear.length <= 45 && t > 0 && n / gMax * H >= 14 ? Math.round(n / t * 100) + '%' : '');
+      const seg = (n, col) => 'height:' + (o.c.t ? n / o.c.t * 100 : 0).toFixed(2) + '%;background:' + col + ';display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;font-variant-numeric:tabular-nums';
+      const pl = (n, t) => (gYear.length <= 45 && t > 0 && n / gMax * 300 >= 14 ? Math.round(n / t * 100) + '%' : '');
       return {
         label: (gYear.length > 45 && o.y % 5 !== 0) ? '' : String(o.y).slice(gYear.length > 45 ? 0 : 2), total: gYear.length > 45 ? '' : fmt(o.c.t), aria: 'Ingreso ' + o.y + ': ' + o.c.t + ' estudiantes', go: tog('year', o.y),
-        stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:' + (o.c.t / gMax * H).toFixed(1) + 'px;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (dimYear(o.y) ? 0.3 : 1) + ';outline:' + (f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
+        wrap: 'position:absolute;left:0;right:0;bottom:0;height:' + (o.c.t / gMax * 100).toFixed(2) + '%', stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (dimYear(o.y) ? 0.3 : 1) + ';outline:' + (f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
         sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc), pr: pl(o.c.ret, o.c.t), pa: pl(o.c.est, o.c.t), pg: pl(o.c.esc, o.c.t)
       };
     });
-    const gTr = barTr(gYear.map((o) => o.c.t), gMax, H, 19);
+    const gTr = trendOf(gYear.map((o) => o.c.t / gMax), 'position:absolute;left:0;width:100%;top:16px;height:calc(100% - 35px);pointer-events:none;overflow:visible');
     const gLeg = [['Escalafonados', C3.esc], ['Estudiando', C3.est], ['Retirados', C3.ret]].map((a) => ({ label: a[0], dot: dot(a[1]) }));
     const mesesAvg = (rs) => { const q = rs.filter((r) => r.meses != null); return q.length > 0 ? q.reduce((a, r) => a + r.meses, 0) / q.length : 0; };
     const metr = (rs) => {
@@ -2369,7 +2369,7 @@ class Component extends DCLogic {
     const ICON_M = svgUri('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 40"><circle cx="14" cy="6.5" r="5.5" fill="#E0489A"/><path d="M10 15h8a3 3 0 0 1 3 2.4L25 31h-5.2v7.5h-4V31h-3.6v7.5h-4V31H3l4-13.6A3 3 0 0 1 10 15z" fill="#E0489A"/></svg>');
     const genCards = [['H', 'Hombres', nH, '#2F6FE0', '#EAF1FD', ICON_H], ['M', 'Mujeres', nM, '#E0489A', '#FCEAF3', ICON_M]].map((a) => ({
       label: a[1], num: fmt(a[2]), share: (nH + nM) > 0 ? (a[2] / (nH + nM) * 100).toFixed(2).replace('.', ',') + '%' : '—', col: a[3], icon: a[5], go: tog('sexo', a[0]),
-      style: 'display:flex;align-items:center;gap:10px;padding:10px 12px;min-width:0;min-height:0;border-radius:16px;text-align:left;cursor:pointer;background:' + a[4] + ';border:1.5px solid ' + (f.sexo === a[0] ? '#B8841F' : 'transparent') + ';opacity:' + (f.sexo && f.sexo !== a[0] ? 0.4 : 1),
+      style: 'display:flex;align-items:center;justify-content:center;gap:12px;padding:10px 12px;min-width:0;min-height:0;border-radius:16px;text-align:left;cursor:pointer;background:' + a[4] + ';border:1.5px solid ' + (f.sexo === a[0] ? '#B8841F' : 'transparent') + ';opacity:' + (f.sexo && f.sexo !== a[0] ? 0.4 : 1),
       bar: 'height:4px;border-radius:2px;background:' + a[3] + ';width:' + ((nH + nM) > 0 ? (a[2] / (nH + nM) * 100).toFixed(1) : 0) + '%'
     }));
     const paisData = D('pais').filter(extF);
@@ -2797,7 +2797,7 @@ class Component extends DCLogic {
       credStyle: credStyle, welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railSexo: true, estLbl: 'Estado', rngLbl: 'Año de ingreso',
       gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + gDesde + ' hasta ' + gHasta + '. Toca una barra para filtrar por año de ingreso',
       gTrP: gTr.p, gTrS: gTr.s, gradTrP: gradCols.tr.p, gradTrS: gradCols.tr.s, conTrP: conCols.tr.p, conTrS: conCols.tr.s, recTrP: recCols.tr.p, recTrS: recCols.tr.s, yrTrP: yrT.p, yrTrS: yrT.s,
-      gBox: 'position:relative;margin-top:14px;display:flex;align-items:flex-end;gap:5px;height:' + (H + 40) + 'px', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle + fadeS, areaStyle: areaStyle, stageStyle: stageStyle,
+      gBox: 'position:relative;margin-top:6px;display:flex;align-items:stretch;gap:5px;flex:1;min-height:170px', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle + fadeS, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, exitDash: exitDash, stageCls: mob ? 'mob' : (mobIni ? 'mobi' : ''), appPad: fsOn ? '22px 26px' : (scr && mobq) ? '12px' : '34px 90px', enterGeneral: enter('general'),
       welcomeStyle: 'position:absolute;inset:0;transition:opacity .6s cubic-bezier(.22,.8,.24,1),transform .6s cubic-bezier(.22,.8,.24,1),filter .6s ease;' + (this.state.leaving ? 'opacity:0;transform:scale(1.04);filter:blur(10px)' : 'opacity:1;transform:none;filter:none'),
       wTotal: fmt(data.length), wGrad: fmt(wCnt(gradF)), wRet: fmt(wCnt(retF)),
