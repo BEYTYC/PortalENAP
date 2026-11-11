@@ -1380,8 +1380,8 @@ class Component extends DCLogic {
               row.height = n === 1 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
                 cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 1, indent: izq[c - 1] ? 1 : 0 };
-                if (n === 1) { cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
-                else { cell.font = { name: 'Calibri', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === j.cab.length && cell.value === 'Sí') { cell.font = { name: 'Calibri', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
+                if (n === 1) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
+                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === j.cab.length && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
             });
             ws.autoFilter = { from: { row: 1, column: 1 }, to: { row: 1, column: j.cab.length } };
