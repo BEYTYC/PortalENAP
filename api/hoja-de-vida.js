@@ -936,8 +936,12 @@ function armarFicha(id, S) {
   });
   linea.forEach((e) => { delete e.i; delete e.o; });
   {
+    // Retiro y después escalafonamiento sin reingreso registrado: hubo un reingreso; se muestra la tarjeta sin fecha para que no quede en el aire.
     const ir = linea.findIndex((e) => e.tipo === 'retiro'), ie = linea.findIndex((e) => e.tipo === 'escalafon');
-    if (ir >= 0 && ie > ir && !linea.slice(ir, ie).some((e) => e.tipo === 'regreso')) avisos.push('Tiene un escalafonamiento posterior al retiro y no hay un reingreso registrado entre los dos: revisar.');
+    if (ir >= 0 && ie > ir && !linea.slice(ir, ie).some((e) => e.tipo === 'regreso')) {
+      linea.splice(ie, 0, { tipo: 'regreso', t: null, fecha: '', anio: null, titulo: 'Reingreso a la ENAP', detalle: '', sinRegistro: true });
+      avisos.push('Tiene un escalafonamiento posterior al retiro y el reingreso no está registrado en las bases: se muestra sin fecha.');
+    }
   }
 
   // Nombre más completo entre las fuentes (si el corto está contenido en el largo): evita ver el segundo nombre en unas partes y en otras no.
