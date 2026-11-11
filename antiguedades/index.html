@@ -2421,7 +2421,7 @@ function armarBD(E,D0,quien){
   var wb=new E.Workbook(),ahora=new Date();
   var fec=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/ /g,' ');
   var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
-  var FUENTE='Fuente: Antigüedades ENAP - Portal Estadístico',FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
+  var FUENTE='Fuente: Antigüedades ENAP - Portal de Servicios Digitales Oficina de Estadística',FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
   var r3=function(v){return v==null?null:Math.round(v*1000)/1000};
   var PERX=(typeof window!=='undefined'&&window.__PER)||'2026-1',SOLO=!!D0.solo;
   var CAN=['1.1','1.2','2.1','2.2','3.1','3.2','4.1','4.2'];
