@@ -2893,7 +2893,7 @@ function admin(){
     um.textContent='Leyendo archivo…';
     f.text().then(function(t){var d;try{d=JSON.parse(t)}catch(e){throw new Error('El archivo no es un JSON válido.')}
       um.textContent='Guardando en SharePoint…';
-      return api('guardar-datos',{datos:d,periodo:pe})}).then(function(r){try{sessionStorage.setItem('antPer',r.meta.periodo);localStorage.setItem('antPer',r.meta.periodo)}catch(x){}um.textContent='Listo. Se guardó el periodo '+r.meta.periodo+'; recarga la página para verlo.';metaTxt(r.meta)}).catch(function(e){um.textContent=e.message})};
+      return api('guardar-datos',{datos:d,periodo:pe})}).then(function(r){um.textContent='Listo. Se guardó el periodo '+r.meta.periodo+'; recarga la página para verlo.';metaTxt(r.meta)}).catch(function(e){um.textContent=e.message})};
   document.getElementById('fu').onclick=function(){var m=document.getElementById('fum');m.textContent='Comprobando…';
     api('fuentes').then(function(r){m.innerHTML=r.fuentes.map(function(f){return f.ok?('<div>✔ <b>'+esc(f.nombre)+'</b>: se puede leer ('+Math.round(f.bytes/1024)+' KB, modificado '+fh(f.modificado)+(f.por?' por '+esc(f.por):'')+')</div>'):('<div>✘ <b>'+esc(f.nombre)+'</b>: '+esc(f.detalle||'no se pudo leer')+(f.estado?' ('+f.estado+')':'')+'</div>')}).join('')}).catch(function(e){m.textContent=e.message})};
   window.__recargarAdmin=cargar;cargar();
@@ -2945,11 +2945,11 @@ function vfInit(){var st=document.getElementById('vfst'),pr=document.getElementB
     if(!fe||!dc){m.textContent='Escribe la fecha y la resolución de ascenso.';return}
     m.textContent='Guardando…';apiB('ascensos-resolucion',{periodo:per,fecha:fe,resolucion:dc}).then(function(){m.textContent='Resolución de ascenso guardada en la hoja Ascensos.';vfInit()}).catch(function(e){m.textContent=e.message})};
 }
-function perElegido(){try{return sessionStorage.getItem('antPer')||localStorage.getItem('antPer')||undefined}catch(e){return undefined}}
+function perElegido(){return undefined} /* al abrir siempre se muestra el último periodo cargado; el selector solo cambia la vista actual */
 function selPer(l,act){var a=document.getElementById('pv'),b=document.getElementById('pv2');
   l=(l&&l.length)?l:(act?[act]:[]);
   var h=l.map(function(x){return '<option value="'+x+'"'+(x===act?' selected':'')+'>'+x+'</option>'}).join('');
-  function ch(e){var v=e.target.value;try{sessionStorage.setItem('antPer',v);localStorage.setItem('antPer',v)}catch(x){}cambiarPer(v)}
+  function ch(e){var v=e.target.value;cambiarPer(v)}
   if(a){a.innerHTML=h;a.onchange=ch;document.getElementById('pvw').hidden=!(window.__adm&&l.length>0)}
   if(b){b.innerHTML=h;b.onchange=ch}}
 window.selPer=selPer;
