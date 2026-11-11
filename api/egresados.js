@@ -10,6 +10,7 @@
  * El repositorio es público: los nombres y cédulas NO pueden estar en el código ni en el navegador.
  * Viven en SharePoint (carpeta "Egresados" del sitio del Portal) y este endpoint solo los entrega a:
  *   - ADMIN (ADMINS): siempre.
+ *   - AUTORIZADOS: cuentas autorizadas de forma permanente.
  *   - cuentas @enap.edu.co cuya solicitud fue APROBADA por un ADMIN (queda anotada cada descarga).
  *
  * Archivos en SharePoint (carpeta Egresados/):
@@ -26,6 +27,8 @@ const roles = require('./roles.js');
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 const DOMINIO = '@enap.edu.co';
 const ADMINS = ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'];
+// Cuentas autorizadas de forma permanente para descargar la lista con nombres (sin pasar por solicitud).
+const AUTORIZADOS = ['jpcna@enap.edu.co', 'dfcn@enap.edu.co'];
 const REMITENTE = 'jestadisticaplen@enap.edu.co';
 const AVISAR_A = 'jestadisticaplen@enap.edu.co';
 const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/';
@@ -96,11 +99,12 @@ module.exports = async function handler(req, res) {
     const admin = ADMINS.includes(yo.correo);
     const sols = (await leerJson('solicitudes.json')) || [];
     const mias = sols.filter((s) => s.correo === yo.correo).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
-    const aprobada = admin || (mias[0] && mias[0].estado === 'aprobada');
+    const autorizado = AUTORIZADOS.includes(yo.correo);
+    const aprobada = admin || autorizado || (mias[0] && mias[0].estado === 'aprobada');
 
     if (accion === 'sesion') {
       const lista = await leerJson('lista.json');
-      res.status(200).json({ correo: yo.correo, admin, puede: !!aprobada, estado: admin ? 'admin' : (mias[0] ? mias[0].estado : null), lista: lista ? { actualizado: lista.meta && lista.meta.actualizado, filas: (lista.filas || []).length } : null });
+      res.status(200).json({ correo: yo.correo, admin, puede: !!aprobada, estado: admin ? 'admin' : autorizado ? 'aprobada' : (mias[0] ? mias[0].estado : null), lista: lista ? { actualizado: lista.meta && lista.meta.actualizado, filas: (lista.filas || []).length } : null });
       return;
     }
 
