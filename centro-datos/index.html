@@ -308,8 +308,9 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <sc-if value="{{ egOn }}" hint-placeholder-val="{{ false }}">
 <div class="egside" style="display:flex;flex-direction:column;gap:14px">
 <div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Programa</div><div style="margin-top:6px"><select class="egsel" onChange="{{ egProgSet }}"><sc-for list="{{ egProgOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></div></div>
-<div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Año</div><div style="margin-top:6px"><div style="display:flex;gap:8px"><select class="egsel" onChange="{{ egModeSet }}"><sc-for list="{{ egModeOpts }}" as="o" hint-placeholder-count="4"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select><sc-if value="{{ egYrOn }}" hint-placeholder-val="{{ true }}"><select class="egsel" style="min-width:96px" onChange="{{ egYrSet }}"><sc-for list="{{ egYrOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></sc-if></div></div></div>
-<button class="x egf" onClick="{{ egFrom2000 }}" style="{{ egFrom2000St }}">A partir del 2000</button>
+<div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Rango de escalafonamiento</div>
+<div style="margin-top:6px;display:flex;gap:6px"><select class="egsel" style="flex:1;min-width:0" onChange="{{ egDY }}"><sc-for list="{{ egDYOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select><sc-if value="{{ egDOn }}" hint-placeholder-val="{{ false }}"><select class="egsel" style="width:118px;flex:none" onChange="{{ egDS }}"><sc-for list="{{ egDSOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></sc-if></div>
+<div style="margin-top:5px;display:flex;gap:6px"><select class="egsel" style="flex:1;min-width:0" onChange="{{ egHY }}"><sc-for list="{{ egHYOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select><sc-if value="{{ egHOn }}" hint-placeholder-val="{{ false }}"><select class="egsel" style="width:118px;flex:none" onChange="{{ egHS }}"><sc-for list="{{ egHSOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></sc-if></div></div>
 <div style="font-size:11.5px;line-height:1.45;color:#6B7A94">Viendo: <b style="color:#0C2050">{{ egView }}</b></div>
 </div>
 </sc-if>
@@ -1274,11 +1275,13 @@ class Component extends DCLogic {
       egOpen: () => { this.setState({ eg: { on: true, prog: spP == null || spP < 0 ? null : spP, ran: sp0.range ? [sp0.range[0], sp0.range[1]] : sp0.year ? [sp0.year, sp0.year] : [0, 9999], mode: sp0.range ? 'ge' : sp0.year ? 'eq' : 'all', yr: sp0.year || (sp0.range ? sp0.range[0] : 2000), sem: null, pre: true }, dd: false, rd: false, ed: false, pd: false, cd: false }); this.nomSesion(); },
       egBack: () => this.setState({ eg: null }) };
     if (!on) return base;
-    const y0 = eg.ran[0], y1 = eg.ran[1], prog = eg.prog, sem = eg.sem;
-    const og = eg.og == null ? null : eg.og, inR0 = (r) => r[0] >= y0 && r[0] <= y1 && (!sem || r[5] === sem), inR = (r) => inR0(r) && (og == null || (og === -1 ? r[2] === 1 : (r[7] || []).indexOf(og) >= 0));
+    const y0 = eg.ran[0], y1 = eg.ran[1], prog = eg.prog, sem = eg.sem, dp0 = eg.dp || 0, hp0 = eg.hp || 0;
+    const semOk = (y, q) => (!sem || q === sem) && (!dp0 || y > y0 || q >= dp0) && (!hp0 || y < y1 || q <= hp0);
+    const dns = (y, k) => [1, 2].reduce((a3, q) => a3 + (semOk(y, q) ? dn(y, k, q) : 0), 0);
+    const og = eg.og == null ? null : eg.og, inR0 = (r) => r[0] >= y0 && r[0] <= y1 && semOk(r[0], r[5]), inR = (r) => inR0(r) && (og == null || (og === -1 ? r[2] === 1 : (r[7] || []).indexOf(og) >= 0));
     const rows = E.R.filter((r) => inR(r) && pm(r[1]) && inc(r));
     const yrs = Object.keys(E.D).map(Number).filter((y) => y >= y0 && y <= y1).sort((a, b) => a - b);
-    const den = (y, k) => PN.reduce((a, _, j) => a + (inP(j, k) && incY(y, j) ? dn(y, j, sem) : 0), 0);
+    const den = (y, k) => PN.reduce((a, _, j) => a + (inP(j, k) && incY(y, j) ? dns(y, j) : 0), 0);
     const tot = yrs.reduce((a, y) => a + den(y, prog), 0), pend = rows.length, grad = tot - pend;
     const ages = rows.map((r) => 2026 - r[0]).sort((a, b) => a - b);
     const med = ages.length ? (ages.length % 2 ? ages[(ages.length - 1) / 2] : (ages[ages.length / 2 - 1] + ages[ages.length / 2]) / 2) : 0;
@@ -1301,7 +1304,7 @@ class Component extends DCLogic {
     const egAnyF = prog != null || (eg.mode || 'all') !== 'all' || !!sem || og != null;
     const egOtroSub = og == null ? 'Quienes ya tienen otro título en Graduados ENAP. Toca un grado para filtrar.' : og === -1 ? 'Filtrando: con cualquier otro grado. Toca un grado para ver solo ese.' : 'Filtrando: ' + E.O[og] + '. Toca de nuevo para quitar el filtro.';
     const bs = y0 === 0 && y1 === 9999 ? 5 : 1, bins = {};
-    yrs.forEach((y) => { const b = Math.floor(y / bs) * bs; bins[b] = bins[b] || { n: 0, t: 0, nc: 0, tp: 0 }; bins[b].t += PN.reduce((a2, _, j) => a2 + (inP(j, prog) ? dn(y, j, sem) : 0), 0); bins[b].tp += PN.reduce((a2, _, j) => a2 + (inP(j, prog) && !incY(y, j) ? dn(y, j, sem) : 0), 0); });
+    yrs.forEach((y) => { const b = Math.floor(y / bs) * bs; bins[b] = bins[b] || { n: 0, t: 0, nc: 0, tp: 0 }; bins[b].t += PN.reduce((a2, _, j) => a2 + (inP(j, prog) ? dns(y, j) : 0), 0); bins[b].tp += PN.reduce((a2, _, j) => a2 + (inP(j, prog) && !incY(y, j) ? dns(y, j) : 0), 0); });
     E.R.filter((r) => inR(r) && pm(r[1])).forEach((r) => { const b = Math.floor(r[0] / bs) * bs; if (bins[b]) { bins[b].n++; if (incY(r[0], r[1])) bins[b].nc++; } });
     const bk = Object.keys(bins).map(Number).sort((a, b) => a - b), mx = Math.max.apply(null, bk.map((b) => bins[b].n).concat([1])), BH = 190;
     const BH2 = 170, MR = Math.max.apply(null, bk.map((b) => bins[b].t ? bins[b].n / bins[b].t : 0).concat([0.06]));
@@ -1310,7 +1313,7 @@ class Component extends DCLogic {
     const egBars = bk.map((b) => { const o = bins[b], rt = o.t ? o.n / o.t : 0, hF = o.t / mxT, gF = hF * (1 - rt), pre2 = o.tp > 0 && o.tp / o.t >= 0.5; return {
       nS: 'position:absolute;left:-8px;right:-8px;bottom:100%;margin-bottom:2px;text-align:center;font-size:10px;font-weight:700;color:#E8702A;font-variant-numeric:tabular-nums;white-space:nowrap',
       n: o.t ? fmt(o.n) : '', n2: o.t && gF >= 0.085 ? fmt(o.t - o.n) : '', lbl: bs === 1 && bk.length > 14 ? "'" + String(b).slice(2) : String(b), tip: (bs === 1 ? b : b + '–' + (b + 4)) + ': ' + o.n + ' sin grado (' + pc(o.n, o.t) + ') · ' + (o.t - o.n) + ' graduados (' + pc(o.t - o.n, o.t) + ') · de ' + o.t + ' egresados' + (o.tp ? (pre2 ? ' · El programa aún no existía en SNIES: no cuenta en el conteo' : ' · Incluye ' + o.tp + ' egresados de años en que algún programa aún no existía: no cuentan en el conteo') : ''),
-      go: () => this.setState({ eg: Object.assign({}, eg, bs === 1 ? { mode: 'eq', yr: b, ran: [b, b] } : { mode: 'ge', yr: b, ran: [b, 9999] }) }),
+      go: () => this.setState({ eg: Object.assign({}, eg, bs === 1 ? { mode: 'eq', yr: b, ran: [b, b], dp: null, hp: null } : { mode: 'ge', yr: b, ran: [b, 9999], dp: null, hp: null }) }),
       col: 'position:relative;flex:1;min-width:0;max-width:64px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border:0;background:none;padding:0;font:inherit;cursor:pointer',
       wrap: (pre2 ? 'opacity:.78;' : '') + 'position:relative;height:calc((100% - ' + 18 + 'px) * ' + hF.toFixed(4) + ');min-height:5px;transition:height .55s cubic-bezier(.22,.8,.24,1)',
       bar: 'height:' + (rt * 100).toFixed(2) + '%;flex:none;background:#E8702A;transition:height .55s cubic-bezier(.22,.8,.24,1)',
@@ -1335,7 +1338,7 @@ class Component extends DCLogic {
     const hall = [];
     const sm = SEM(tot ? pend / tot : 0);
     hall.push(fmt(pend) + ' de ' + fmt(tot) + ' egresados no se han graduado: tasa ' + pc(pend, tot) + ', semáforo ' + sm.t.toLowerCase() + (sm.t === 'Verde' ? ' (cumple la meta de menos de 5 %)' : ' (la meta es menos de 5 %)') + ' · ' + perTxt + (prog == null ? '' : ', ' + pLabel(prog)) + '.');
-    { const ps = PN.map((_, k) => k).filter((k) => pm(k)).map((k) => { const n = E.R.filter((r) => r[1] === k && inR(r) && inc(r)).length, t = yrs.reduce((a, y) => a + (incY(y, k) ? dn(y, k, sem) : 0), 0); return { k: k, n: n, t: t, r: t ? n / t : 0 }; }).filter((q) => q.t > 0);
+    { const ps = PN.map((_, k) => k).filter((k) => pm(k)).map((k) => { const n = E.R.filter((r) => r[1] === k && inR(r) && inc(r)).length, t = yrs.reduce((a, y) => a + (incY(y, k) ? dns(y, k) : 0), 0); return { k: k, n: n, t: t, r: t ? n / t : 0 }; }).filter((q) => q.t > 0);
       if (ps.length > 1) { const srt = ps.slice().sort((a, b) => b.r - a.r), v = ps.filter((q) => q.r < 0.05).length, rj = ps.filter((q) => q.r >= 0.10).length; hall.push(v + ' de ' + ps.length + ' programas están en verde y ' + rj + ' en rojo (10 % o más). El más crítico es ' + PN[srt[0].k] + ' con ' + pc(srt[0].n, srt[0].t) + '.'); } }
     { const lo = Math.max.apply(null, yrs.concat([0])); if (lo > 0 && yrs.length >= 8) { const r1 = (a, b) => { let n = 0, t = 0; yrs.forEach((y) => { if (y >= a && y <= b) t += den(y, prog); }); rows.forEach((r) => { if (r[0] >= a && r[0] <= b) n++; }); return [n, t]; }; const A1 = r1(lo - 4, lo), B1 = r1(lo - 9, lo - 5); if (A1[1] && B1[1]) hall.push('Tendencia: en ' + (lo - 4) + '–' + lo + ' la tasa fue ' + pc(A1[0], A1[1]) + ' frente a ' + pc(B1[0], B1[1]) + ' en ' + (lo - 9) + '–' + (lo - 5) + ((A1[0] / A1[1]) < (B1[0] / B1[1]) ? ': va mejorando.' : ': empeoró.')); } }
     { const yr = yrs.map((y) => ({ y: y, n: rows.filter((r) => r[0] === y).length, t: den(y, prog) })).filter((q) => q.t >= 15).sort((a, b) => b.n / b.t - a.n / a.t)[0]; if (yr && yr.n) hall.push('El año con la tasa más alta es ' + yr.y + ' (' + pc(yr.n, yr.t) + ': ' + yr.n + ' de ' + yr.t + ' egresados).'); }
@@ -1353,12 +1356,19 @@ class Component extends DCLogic {
     const egModeOpts = [['all', 'Todo el histórico'], ['eq', 'Un año puntual'], ['ge', 'Ese año y posteriores'], ['le', 'Ese año y anteriores']].map((o) => ({ v: o[0], t: o[1], sel: md === o[0] }));
     const egYrOn = md !== 'all';
     const egYrOpts = allY.map((y) => ({ v: String(y), t: String(y), sel: y === yrSel }));
+    const dYs = [{ v: '', t: 'Desde el inicio', sel: y0 === 0 }].concat(allY.slice().sort((a, b) => a - b).map((y) => ({ v: String(y), t: String(y), sel: y === y0 }))), hYs = [{ v: '', t: 'Hasta hoy', sel: y1 === 9999 }].concat(allY.map((y) => ({ v: String(y), t: String(y), sel: y === y1 })));
+    const rngSet = (a, b, dp, hp) => this.setState({ eg: Object.assign({}, eg, { ran: [a, b], dp: a ? dp : null, hp: b !== 9999 ? hp : null, mode: 'all' }) });
+    const egDY = (e) => { const v = +(e.target.value || 0); rngSet(v, v && y1 !== 9999 && v > y1 ? v : y1, dp0 || 1, hp0 || 2); };
+    const egDS = (e) => rngSet(y0, y1, +e.target.value, hp0 || 2);
+    const egHY = (e) => { const v = +(e.target.value || 9999); rngSet(v !== 9999 && y0 > v ? v : y0, v, dp0 || 1, hp0 || 2); };
+    const egHS = (e) => rngSet(y0, y1, dp0 || 1, +e.target.value);
+    const egPOpt = (cur) => [1, 2].map((q) => ({ v: String(q), t: 'Periodo ' + q, sel: cur === q }));
     const egModeSet = (e) => { const m = e && e.target ? e.target.value : 'all'; this.setState({ eg: Object.assign({}, eg, { mode: m, yr: yrSel, ran: mkRan(m, yrSel) }) }); };
     const egYrSet = (e) => { const y = +(e && e.target ? e.target.value : yrSel); this.setState({ eg: Object.assign({}, eg, { yr: y, ran: mkRan(md, y) }) }); };
     const HD = []; for (let d = 1930; d <= 2020; d += 10) { let any = false; for (let y = d; y <= d + 9; y++) if (E.D[y]) any = true; if (any) HD.push(d); }
     const egHeadH = HD.map((d) => ({ t: d >= 2020 ? '2020–25' : d + 's' }));
     const egHeat = PN.map((n, k) => k).filter((k) => pm(k)).map((k) => ({ label: PN[k], cells: HD.map((d) => {
-      let t = 0; for (let y = d; y <= d + 9; y++) { t += dn(y, k, sem); } const nn = E.R.filter((r) => r[1] === k && r[0] >= d && r[0] <= d + 9 && (!sem || r[5] === sem)).length;
+      let t = 0; for (let y = d; y <= d + 9; y++) { t += dns(y, k); } const nn = E.R.filter((r) => r[1] === k && r[0] >= d && r[0] <= d + 9 && semOk(r[0], r[5])).length;
       const nd = d + 9 < (REG[k] || 0);
       if (!t) return { txt: '', st: 'background:transparent', tip: '' };
       const r = nn / t, sm2 = SEM(r);
@@ -1369,9 +1379,9 @@ class Component extends DCLogic {
     const egPreSet = () => this.setState({ eg: Object.assign({}, eg, { pre: !eg.pre }) });
     const egPreTxt = (eg.pre ? '✓ ' : '') + 'Incluir Ciencias anteriores a 2000', egPreStyle = 'padding:9px 14px;border-radius:12px;cursor:pointer;font:inherit;font-size:12.5px;font-weight:600;border:1px solid ' + (eg.pre ? '#0C2050' : '#C9D3E3') + ';background:' + (eg.pre ? '#0C2050' : '#fff') + ';color:' + (eg.pre ? '#fff' : '#3D4D69');
     const egDec = decs.map((d) => {
-      const rr = E.R.filter((r) => r[0] >= d && r[0] <= d + 9 && (!sem || r[5] === sem) && pm(r[1]) && inc(r));
+      const rr = E.R.filter((r) => r[0] >= d && r[0] <= d + 9 && semOk(r[0], r[5]) && pm(r[1]) && inc(r));
       let esc = 0; for (let y = d; y <= d + 9; y++) { if (E.D[y]) esc += den(y, prog); }
-      const nk = [[0], [1], [2], PN.map((_, j) => j).filter((j) => j >= NC)].map((ks) => ks.some((k) => pm(k)) ? String(E.R.filter((r) => r[0] >= d && r[0] <= d + 9 && (!sem || r[5] === sem) && pm(r[1]) && inc(r) && ks.indexOf(r[1]) >= 0).length) : '—');
+      const nk = [[0], [1], [2], PN.map((_, j) => j).filter((j) => j >= NC)].map((ks) => ks.some((k) => pm(k)) ? String(E.R.filter((r) => r[0] >= d && r[0] <= d + 9 && semOk(r[0], r[5]) && pm(r[1]) && inc(r) && ks.indexOf(r[1]) >= 0).length) : '—');
       return { d: d, label: d + '–' + (d + 9) + (d === 2020 ? ' *' : ''), a: nk[0], b: nk[1], c: nk[2], cc: nk[3], pend: fmt(rr.length), n: rr.length, esc: fmt(esc), rate: esc ? rr.length / esc : 0, tasa: pc(rr.length, esc), tc: SEM(esc ? rr.length / esc : 0).c, go: () => {}, on: y0 === d && y1 === d + 9 };
     }).filter((o) => o.esc > 0 || o.n > 0);
     const mxr = Math.max.apply(null, egDec.map((o) => o.rate).concat([0.01]));
@@ -1470,7 +1480,7 @@ class Component extends DCLogic {
       rd.onload = () => { let l = null; try { l = JSON.parse(rd.result); } catch (x) {} if (!l) { this.nomSet({ msg: 'El archivo no es un JSON válido.' }); return; } this.nomSet({ msg: 'Subiendo la lista…' }); this.nomApi('guardar-lista', { lista: l }).then((j) => { this.nomSet({ msg: 'Lista cargada: ' + j.filas + ' filas.', lista: { filas: j.filas, actualizado: new Date().toISOString() } }); }).catch((x) => this.nomSet({ msg: x.message })); };
       rd.readAsText(f);
     };
-    return Object.assign(base, { egView: perTxt + (prog == null ? '' : ' · ' + pLabel(prog)) + '', egFrom2000: egFrom2000, egFrom2000St: egFrom2000St, egClearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (egAnyF ? '#B8841F' : '#DDE3EE') + ';background:' + (egAnyF ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (egAnyF ? '#1A1405' : '#8190A8'), egOtro: egOtro, egOtroSub: egOtroSub, egTopH: 'height:max(' + Math.max(340, egProg.length > 2 ? egProg.length * 34 + 96 : 0) + 'px,calc(var(--eh,520px) - ' + (egHeat.length * 40 + 215) + 'px))', egHeat: egHeat, egHeadH: egHeadH, egHeatCols: egHeatCols, egClear: egClear, egPreSet: egPreSet, egPreTxt: egPreTxt, egPreStyle: egPreStyle, egBarsH: egBarsH, egBarsSub: egBarsSub, egNomOn: !!nomBtn, egNomTxt: nomBtn, egNomGo: nomGo, egNomMsg: nm.msg || '', egAdmin: est === 'admin', egSol: egSol, egNoSol: !egSol.length, egSubir: egSubir, egListaTxt: nm.lista ? 'Lista cargada: ' + nm.lista.filas + ' filas' : 'Aún no hay lista nominal cargada', egKpis: egKpis, egBars: egBars, egProg: egProg, egAge: egAge, egCont: egCont, egQ: egQ, egHall: hall.map((t) => ({ t: t })), egModeOpts: egModeOpts, egYrOn: egYrOn, egYrOpts: egYrOpts, egModeSet: egModeSet, egYrSet: egYrSet, egDecRows: egDecRows, egSemP: egSemP, egTopY: egTopY, egSem: egSem, egProgOpts: egProgOpts, egProgSet: egProgSet, egBarsTitle: 'Graduados y no graduados por año de escalafonamiento', egDl: dl, egDlTxt: 'Descargar ' + fmt(pend) + ' egresados (CSV)', egPer: perTxt,
+    return Object.assign(base, { egView: perTxt + (prog == null ? '' : ' · ' + pLabel(prog)) + '', egFrom2000: egFrom2000, egFrom2000St: egFrom2000St, egDY: egDY, egDS: egDS, egHY: egHY, egHS: egHS, egDYOpts: dYs, egHYOpts: hYs, egDSOpts: egPOpt(dp0), egHSOpts: egPOpt(hp0), egDOn: y0 > 0, egHOn: y1 < 9999, egClearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (egAnyF ? '#B8841F' : '#DDE3EE') + ';background:' + (egAnyF ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (egAnyF ? '#1A1405' : '#8190A8'), egOtro: egOtro, egOtroSub: egOtroSub, egTopH: 'height:max(' + Math.max(340, egProg.length > 2 ? egProg.length * 34 + 96 : 0) + 'px,calc(var(--eh,520px) - ' + (egHeat.length * 40 + 215) + 'px))', egHeat: egHeat, egHeadH: egHeadH, egHeatCols: egHeatCols, egClear: egClear, egPreSet: egPreSet, egPreTxt: egPreTxt, egPreStyle: egPreStyle, egBarsH: egBarsH, egBarsSub: egBarsSub, egNomOn: !!nomBtn, egNomTxt: nomBtn, egNomGo: nomGo, egNomMsg: nm.msg || '', egAdmin: est === 'admin', egSol: egSol, egNoSol: !egSol.length, egSubir: egSubir, egListaTxt: nm.lista ? 'Lista cargada: ' + nm.lista.filas + ' filas' : 'Aún no hay lista nominal cargada', egKpis: egKpis, egBars: egBars, egProg: egProg, egAge: egAge, egCont: egCont, egQ: egQ, egHall: hall.map((t) => ({ t: t })), egModeOpts: egModeOpts, egYrOn: egYrOn, egYrOpts: egYrOpts, egModeSet: egModeSet, egYrSet: egYrSet, egDecRows: egDecRows, egSemP: egSemP, egTopY: egTopY, egSem: egSem, egProgOpts: egProgOpts, egProgSet: egProgSet, egBarsTitle: 'Graduados y no graduados por año de escalafonamiento', egDl: dl, egDlTxt: 'Descargar ' + fmt(pend) + ' egresados (CSV)', egPer: perTxt,
       egNote: pre + ' CCP se cuenta desde el año de registro en SNIES de cada programa: Administración, Administración Marítima y Oceanografía Física 1998; Ingeniería Naval 2012; Ingeniería Electrónica 2013. Ciencias: Conglomerado (promociones NAV, IM, MC y MM; motivo de salida ASCENSO) contra Graduados ENAP, primero por cédula y, si no tiene, por nombre. Prima el título: si se graduó en otro programa de Ciencias, cuenta como graduado en ese. Un CCP no cuenta como título de Ciencias, ni al revés. CCP: base CCP con fecha de terminación, buscada en el mismo programa en Graduados (Ingeniería Naval incluye los CCP de Mecánica y Construcciones y acepta títulos de Ingeniería Naval con especialidad u orientación; Ingeniería Electrónica acepta también el título de Ingeniería Naval con especialidad electrónica). La descarga con nombres y cédulas requiere autorización.' });
   }
 
