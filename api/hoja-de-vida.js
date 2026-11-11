@@ -812,7 +812,7 @@ function armarFicha(id, S) {
   }
   grados.forEach((x) => { const t = tFecha(x.fecha); linea.push({ tipo: 'grado', t: t != null ? t : (tEsc != null ? tEsc + 0.02 : null), fecha: x.fecha, anio: anioDe(x.fecha), titulo: 'Graduación', detalle: x.titulo || x.programa || '', programa: x.programa, tituloAcad: x.titulo || '', trabajo: x.trabajo || '', comp: esGradoComp(x, cursos, e0 ? e0.fecha : ''), pv: x.pv }); });
   cursos.forEach((x) => {
-    const f = x.clase === 'complementacion' ? (x.inicio || x.fin) : (x.fin || x.inicio);
+    const f = x.fin || x.inicio; // la fecha de la tarjeta es la de terminación (o inicio si no hay)
     linea.push({ tipo: x.clase, t: tFecha(f), fecha: f, anio: anioDe(f), titulo: x.curso, detalle: x.tipo, nota: x.nota, puesto: x.puesto, inicio: x.inicio, fin: x.fin, horas: x.horas, pv: x.pv });
   });
   concesiones.forEach((x) => linea.push({ tipo: x.clase === 'concesion' ? 'concesion' : 'reconocimiento', clase: x.clase, t: x.periodo ? perNum(x.periodo) + 0.01 : (x.anio ? x.anio + 0.01 : null), periodo: x.periodo, anioSolo: !x.periodo && !!x.anio, anio: x.periodo ? +x.periodo.slice(0, 4) : (x.anio || null), titulo: x.concesion, pct: x.pct || '', motivo: x.motivo || '', detalle: [x.pct && x.pct + ' de descuento', x.motivo && 'Motivo: ' + x.motivo, x.resol && 'Resolución ' + x.resol, x.valor].filter(Boolean).join(' · '), pv: x.pv }));
@@ -837,6 +837,7 @@ function armarFicha(id, S) {
     if (!dest) dest = comps.filter((e) => (e.inicio || e.fin) && (e.inicio || e.fin) <= (g.fecha || '9999')).sort((a, b) => String(a.inicio || a.fin).localeCompare(String(b.inicio || b.fin))).pop() || (comps.length === 1 ? comps[0] : null);
     if (!dest) return;
     dest.titulacion = { fecha: g.fecha || '', programa: g.programa || '', titulo: g.tituloAcad || '', trabajo: g.trabajo || '', pv: g.pv };
+    if (g.fecha) { dest.fecha = g.fecha; dest.anio = anioDe(g.fecha) || dest.anio; const tg = tFecha(g.fecha); if (tg != null) dest.t = tg; } // el chip de la tarjeta muestra la fecha de grado
     dest.programa = dest.programa || g.programa; dest.tituloAcad = dest.tituloAcad || g.tituloAcad; // para que la medalla Caldas siga encontrando la tarjeta
     g.quitar = true;
   });
