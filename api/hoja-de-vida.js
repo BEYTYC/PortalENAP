@@ -245,15 +245,18 @@ function procesarBajas(libro) {
   try {
     const A = libro.leer(HOJA_ASC, { maxCols: 18 });
     const iResA = colRes(A[0], 16);
+    const cedulaPura = (v) => { const d = cedKey(v); return /^\d{5,}$/.test(d) ? d : ''; };
     for (let i = 1; i < A.length; i++) {
       const r = A[i];
-      const ck = cedKey(r[7]);
-      if (!ck && !r[6]) continue;
-      const puesto = +r[9], total = +r[11];
+      // Hay filas corridas una columna a la derecha (nombre en H y cédula en I, como la 6191): se detectan y se leen igual.
+      const off = !cedulaPura(r[7]) && cedulaPura(r[8]) && /[A-ZÁÉÍÓÚÑ]/i.test(String(r[7] || '')) ? 1 : 0;
+      const ck = cedKey(r[7 + off]);
+      if (!ck && !r[6 + off]) continue;
+      const puesto = +r[9 + off], total = +r[11 + off];
       const reg = {
-        nombre: nom(r[6]), ck, cont: txt(r[2]), sigla: txt(r[3]), promocion: txt(r[4]), especialidad: txt(r[5]),
-        puesto: puesto > 0 ? puesto : null, total: total > 0 ? total : null, promedio: typeof r[12] === 'number' ? r[12] : null,
-        periodo: txt(r[13]), fecha: fechaCelda(r[14]), resolucion: txt(r[iResA]),
+        nombre: nom(r[6 + off]), ck, cont: txt(r[2]), sigla: txt(r[3]), promocion: txt(r[4]), especialidad: txt(r[5]),
+        puesto: puesto > 0 ? puesto : null, total: total > 0 ? total : null, promedio: typeof r[12 + off] === 'number' ? r[12 + off] : null,
+        periodo: txt(r[13 + off]), fecha: fechaCelda(r[14 + off]), resolucion: txt(r[iResA + off]),
       };
       asc.filas++;
       if (ck) agregar(asc.porCed, ck, reg); else agregar(asc.porNom, nomKey(reg.nombre), reg);
