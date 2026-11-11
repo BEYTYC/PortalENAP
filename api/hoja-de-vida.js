@@ -829,6 +829,19 @@ function armarFicha(id, S) {
       if (!linea.some((g) => g.tipo === 'grado' && (kt(g.programa || '') && (k.includes(kt(g.programa)) || kt(g.programa).includes(k))))) { e.egNG = true; e.egNom = e.titulo; }
     }
   });
+  // La titulación de la complementación no va aparte: se funde en la tarjeta del curso con su Fecha de titulación.
+  linea.filter((g) => g.tipo === 'grado' && g.comp).forEach((g) => {
+    const kg = kt(g.programa || g.tituloAcad || g.detalle || '');
+    const comps = linea.filter((e) => e.tipo === 'complementacion' && !e.titulacion);
+    let dest = comps.find((e) => { const k = kt(String(e.detalle || '').split(' · ')[0]) || kt(e.titulo || ''); return kg && k && (k.includes(kg) || kg.includes(k)); });
+    if (!dest) dest = comps.filter((e) => (e.inicio || e.fin) && (e.inicio || e.fin) <= (g.fecha || '9999')).sort((a, b) => String(a.inicio || a.fin).localeCompare(String(b.inicio || b.fin))).pop() || (comps.length === 1 ? comps[0] : null);
+    if (!dest) return;
+    dest.titulacion = { fecha: g.fecha || '', programa: g.programa || '', titulo: g.tituloAcad || '', trabajo: g.trabajo || '', pv: g.pv };
+    dest.programa = dest.programa || g.programa; dest.tituloAcad = dest.tituloAcad || g.tituloAcad; // para que la medalla Caldas siga encontrando la tarjeta
+    g.quitar = true;
+  });
+  for (let i = linea.length - 1; i >= 0; i--) if (linea[i].quitar) linea.splice(i, 1);
+
   // La medalla Caldas nunca va suelta: se asocia a un programa o curso (escalafonamiento, titulación, complementación o curso de ley).
   // CURSO ESPECÍFICO y PERIODO de la base de medallas dicen dónde se obtuvo.
   // Se ubica por CURSO GENERAL y CURSO ESPECÍFICO y por PERIODO; la categoría (consagración, aplicación…) no decide nada.

@@ -434,10 +434,11 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       if(hrsTxt)titulo+='<span class="sub" style="display:block;margin-top:1px;line-height:1.25">'+TT(hrsTxt)+'</span>';
       if(e.tipo==='ley'&&(e.inicio||e.fin))body+='<div class="ds">'+(e.inicio?'<b>Inicio:</b> '+fch(e.inicio):'')+(e.inicio&&e.fin?' · ':'')+(e.fin?'<b>Fin:</b> '+fch(e.fin):'')+'</div>';
       if(e.tipo==='complementacion'&&(e.inicio||e.fin))body+='<div class="ds">'+(e.inicio?'<b>Ingreso:</b> '+fch(e.inicio):'')+(e.inicio&&e.fin?' · ':'')+(e.fin?'<b>Terminación:</b> '+fch(e.fin):'')+'</div>';
+      if(e.tipo==='complementacion'&&e.titulacion){var T=e.titulacion;if(T.titulo||T.programa)body+='<div class="ds"><b>Título:</b> '+TT(T.titulo||T.programa)+'</div>';if(T.fecha)body+='<div class="ds"><b>Fecha de titulación:</b> '+fch(T.fecha)+'</div>';if(T.trabajo)body+='<div class="ds"><b>Trabajo de grado:</b> '+ESCT(T.trabajo)+'</div>'}
       chip={reconocimiento:'Reconocimiento',medalla:'Medalla',concesion:'Concesión especial'}[e.tipo]||'';
     }
     if(e.medallas&&(e.tipo==='ley'||e.tipo==='complementacion'||e.tipo==='extension'))e.medallas.forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?' · <b>'+ESCT(String(m.categoria).charAt(0)+String(m.categoria).slice(1).toLowerCase())+'</b>':'')+(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':'')+'</div></div>'});
-    if(e.egNG)body+='<div class="ds"><b style="color:#8A5A00">Egresado no graduado'+(e.egNom?' - '+TT(e.egNom):'')+'</b></div>';
+    if(e.egNG)body+='<div class="ds"><b style="color:#8A5A00">Egresado no graduado</b><span style="color:#8A5A00"> — no ha obtenido el título'+(e.egNom?' de '+TT(e.egNom):'')+'</span></div>';
     body+=pvTag(e)||(e.semestre&&e.pv?pvTag({pv:1}):'');
     h+='<div class="tl-row rise" style="animation-delay:'+(n*50)+'ms"><div class="tl-year">'+ys+'</div><div class="tl-axis"><div class="tl-node" style="background:'+p[0]+';box-shadow:0 0 0 7px '+p[1]+',0 6px 14px rgba(20,50,90,.2)">'+svg(IC[icon],22,'#fff')+'</div></div>'
       +'<div class="tl-card'+(key==='perdido'?' perdido perd':'')+'">'+(anio?'<div class="yr-m">'+anio+'</div>':'')+'<div class="t"><b>'+titulo+'</b>'+(chipD?'<span class="d" style="background:'+p[1]+';color:'+p[2]+'">'+ESCT(chipD)+'</span>':'')+'</div>'+body+(chip?'<div><span class="cp" style="background:'+p[0]+'">'+ESCT(chip)+'</span></div>':'')+'</div></div>';
