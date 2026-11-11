@@ -1418,7 +1418,7 @@ class Component extends DCLogic {
               row.eachCell({ includeEmpty: true }, (cell, c) => {
                 if (n > 4) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 4, indent: izq[c - 1] ? 1 : 0 };
                 if (n === 4) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
-                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
+                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
             });
             const iCo = j.cab.indexOf('Correo'), iTe = j.cab.indexOf('Teléfono');
@@ -1426,7 +1426,7 @@ class Component extends DCLogic {
             ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
-              if (ab) { const idImg = wb.addImage({ buffer: ab, extension: 'png' }); ws.addImage(idImg, { tl: { col: Math.max(1, Math.floor(nc / 2) - 1), row: 5 }, ext: { width: 560, height: Math.round(560 * 2356 / 1743) }, editAs: 'absolute' }); }
+              if (ab) { ws.addBackgroundImage(wb.addImage({ buffer: ab, extension: 'png' })); }
               return wb.xlsx.writeBuffer();
             });
           }).then((buf) => {
