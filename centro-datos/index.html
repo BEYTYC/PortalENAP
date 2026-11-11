@@ -231,7 +231,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <button class="x" onClick="{{ edToggle }}" aria-haspopup="listbox" style="{{ edBtnStyle }}"><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0"><span style="white-space:nowrap">{{ edLabel }}</span><span style="font-size:10.5px;font-weight:500;color:#6B7A94;font-variant-numeric:tabular-nums">{{ edSub }}</span></span><span style="font-size:10px">▾</span></button>
 <sc-if value="{{ edOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position:absolute;top:100%;left:0;right:0;margin-top:6px;z-index:60;padding:6px;border-radius:14px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 18px 40px rgba(20,35,63,.2);display:flex;flex-direction:column;gap:2px;max-height:330px;overflow-y:auto">
-<sc-for list="{{ espOptions }}" as="o" hint-placeholder-count="6"><button class="hov" onClick="{{ o.go }}" style="{{ o.style }}"><span>{{ o.label }}</span><span style="font-size:10.5px;font-weight:500;color:#6B7A94;font-variant-numeric:tabular-nums">{{ o.sub }}</span></button></sc-for>
+<div style="padding:2px 10px 4px;font-size:10.5px;color:#6B7A94">Puedes elegir varias especialidades</div><sc-for list="{{ espOptions }}" as="o" hint-placeholder-count="6"><button class="hov" onClick="{{ o.go }}" style="{{ o.style }}"><span>{{ o.label }}</span><span style="font-size:10.5px;font-weight:500;color:#6B7A94;font-variant-numeric:tabular-nums">{{ o.sub }}</span></button></sc-for><div style="position:sticky;bottom:-6px;margin:4px -6px -6px;padding:8px;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 30%);flex:none"><button class="x" onClick="{{ edToggle }}" style="width:100%;padding:9px 12px;border:0;border-radius:11px;background:linear-gradient(135deg,#0C2050,#1B3A8A);color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">Aplicar</button></div>
 </div>
 </sc-if>
 </div>
@@ -307,6 +307,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </sc-if>
 <sc-if value="{{ egOn }}" hint-placeholder-val="{{ false }}">
 <div class="egside" style="display:flex;flex-direction:column;gap:14px">
+<button class="x" onClick="{{ egBack }}" aria-label="Volver al Centro de Datos" style="align-self:flex-start;display:inline-flex;align-items:center;gap:7px;padding:8px 14px 8px 11px;border:1px solid #D5DDEA;border-radius:999px;background:#fff;font-family:inherit;font-size:13px;font-weight:600;color:#0C2050;cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0C2050" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>Volver</button>
 <div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Programa</div><div style="margin-top:6px"><select class="egsel" onChange="{{ egProgSet }}"><sc-for list="{{ egProgOpts }}" as="o" hint-placeholder-count="12"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></div><sc-if value="{{ egRegOn }}" hint-placeholder-val="{{ false }}"><div style="margin-top:8px;padding:8px 12px;border-radius:12px;background:#F3F6FB;border:1px solid #E3E8F0;font-size:11.5px;color:#6B7A94">Fecha de creación: <b style="color:#0C2050">{{ egRegTxt }}</b></div></sc-if></div>
 <div><div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">Rango de escalafonamiento</div>
 <div style="margin-top:6px;display:flex;gap:6px"><select class="egsel" style="flex:1;min-width:0" onChange="{{ egDY }}"><sc-for list="{{ egDYOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select><sc-if value="{{ egDOn }}" hint-placeholder-val="{{ false }}"><select class="egsel" style="width:118px;flex:none" onChange="{{ egDS }}"><sc-for list="{{ egDSOpts }}" as="o" hint-placeholder-count="2"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></sc-if></div>
@@ -340,7 +341,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="display:flex;align-items:center;justify-content:space-between;gap:20px">
 <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
 <div><div style="font-size:20px;font-weight:700;color:#0C2050;letter-spacing:-.01em">Egresados no graduados</div><div style="margin-top:2px;font-size:12px;color:#6B7A94">Escalafonados que no obtuvieron el título de Ciencias Navales, y quienes hicieron un CCP (Administración, Administración Marítima, Oceanografía Física, Ingeniería Naval e Ingeniería Electrónica) y no obtuvieron el título.</div></div></div>
-<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex:none"><sc-if value="{{ egNomOn }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ egNomGo }}" style="padding:8px 18px;border-radius:12px;border:0;background:#0C2050;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px">{{ egNomTxt }}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></button></sc-if><div style="font-size:11px;color:#6B7A94;max-width:340px;text-align:right">{{ egNomMsg }}</div></div>
+<div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex:none"><sc-if value="{{ egNomOn }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ egNomGo }}" title="Acceso restringido: se solicita a Estadística" style="padding:8px 18px;border-radius:12px;border:0;background:#0C2050;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>{{ egNomTxt }}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></button></sc-if><div style="font-size:10.5px;color:#6B7A94;max-width:340px;text-align:right">Acceso restringido · se puede solicitar a Estadística</div><div style="font-size:11px;color:#6B7A94;max-width:340px;text-align:right">{{ egNomMsg }}</div></div>
 </div>
 <div class="egk" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
 <sc-for list="{{ egKpis }}" as="k" hint-placeholder-count="3"><div class="rise" onClick="{{ k.go }}" style="{{ k.cur }}box-sizing:border-box;padding:16px 18px;border-radius:18px;background:#fff;border:1px solid #E3E8F0"><div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:#6B7A94;font-weight:600"><span style="{{ k.dot }}"></span>{{ k.label }}</div><div style="margin-top:4px;font-size:30px;line-height:1.05;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:{{ k.vc }}" class="cnt">{{ k.value }}</div><div style="margin-top:10px;position:relative;height:6px;border-radius:3px;background:rgba(12,32,80,.07)"><div style="{{ k.bar }}"></div><sc-if value="{{ k.mark }}" hint-placeholder-val="{{ false }}"><div style="{{ k.markS }}"></div></sc-if></div><div style="margin-top:8px;font-size:11px;line-height:1.35;color:#6B7A94">{{ k.sub }}</div></div></sc-for>
@@ -385,7 +386,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por año y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSub }}</div></div>
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px">Desde <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gFromSet }}"><sc-for list="{{ gFromOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select> hasta <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gToSet }}"><sc-for list="{{ gToOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></span><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
 <div style="{{ gBox }}">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gYearCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="flex:1;min-height:0;position:relative;margin-top:16px"><div class="x" style="{{ y.wrap }}"><div style="position:absolute;left:0;right:0;bottom:100%;margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
@@ -484,6 +485,19 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 </div></sc-if>
 
+<sc-if value="{{ showWorld }}" hint-placeholder-val="{{ false }}"><div class="rise d4" style="{{ panel }};grid-column:span 3">
+<div style="font-size:15px;font-weight:600;color:#0C2050">Destino por país</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ dpSub }}</div>
+<div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap"><sc-for list="{{ dpLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#6B7A94"><span style="{{ l.c }}"></span>{{ l.t }}</span></sc-for></div>
+<div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">
+<sc-for list="{{ dpRows }}" as="d" hint-placeholder-count="8">
+<button class="hov x" onClick="{{ d.go }}" title="{{ d.tip }}" style="{{ d.rowStyle }}">
+<div style="display:flex;justify-content:space-between;font-size:11.5px"><span>{{ d.label }}</span><span style="font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ d.num }} <span style="font-weight:400;color:#6B7A94">· {{ d.sub }}</span></span></div>
+<div style="margin-top:3px;height:8px;border-radius:4px;background:rgba(12,32,80,.07);overflow:hidden;display:flex"><div class="x" style="{{ d.s1 }}"></div><div class="x" style="{{ d.s2 }}"></div><div class="x" style="{{ d.s3 }}"></div></div>
+</button>
+</sc-for>
+</div>
+</div></sc-if>
+
 <div class="rise d5" style="{{ panel }};grid-column:span 4">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ pfTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Quiénes son y por dónde ingresaron</div>
 <div style="margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px">
@@ -497,6 +511,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <button class="hov x" onClick="{{ e.go }}" style="{{ e.rowStyle }}"><span style="width:120px;flex:none;font-size:11px;color:#26364F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left">{{ e.label }}</span><span style="flex:1;height:9px;display:block;border-radius:5px;background:rgba(12,32,80,.05);overflow:hidden"><span class="x" style="{{ e.bar }};display:block"></span></span><span style="width:34px;flex:none;text-align:right;font-size:11px;font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ e.num }}</span></button>
 </sc-for>
 </div>
+<sc-if value="{{ extDlOn }}" hint-placeholder-val="{{ false }}"><div style="margin-top:auto;padding-top:12px;display:flex;flex-direction:column;gap:5px;align-items:flex-start"><button class="x" onClick="{{ extDlGo }}" title="Acceso restringido: se solicita a Estadística" style="padding:8px 16px;border-radius:12px;border:0;background:#0C2050;color:#fff;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:9px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>{{ extBtnTxt }}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></button><div style="font-size:10.5px;color:#6B7A94">Acceso restringido · se puede solicitar a Estadística</div><div style="font-size:11px;color:#6B7A94">{{ extDlMsg }}</div></div></sc-if>
 </div>
 
 </div>
@@ -510,10 +525,10 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Graduados por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Promoción a la que pertenece cada graduado. Toca una fila para filtrar.</div></div>
 </div>
 <div style="{{ hmBox }}">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gradTrS }}"><polyline points="{{ gradTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gradTrS }}"><polyline points="{{ gradTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gradCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
-<div style="margin-bottom:3px;font-size:10.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
+<div style="position:relative;z-index:2;margin-bottom:3px;font-size:10.5px;font-weight:600;color:#4A5A78;text-align:center;font-variant-numeric:tabular-nums;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 5px #fff">{{ y.num }}</div>
 <div class="x" style="{{ y.stack }}"><div class="x" style="{{ y.sm }}"></div><div class="x" style="{{ y.sh }}"></div></div>
 <div style="margin-top:5px;font-size:11px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.label }}</div>
 </button>
@@ -547,7 +562,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 </div>
 
-<div class="ctp rise d5" style="{{ panel }};grid-column:2 / span 2">
+<div class="ctp rise d5" style="{{ panel }};grid-column:2 / span 2;display:none">
 <div class="cth" style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:15px;font-weight:600;color:#0C2050">{{ tablaTitulo }}</div><div style="font-size:11.5px;color:#6B7A94">{{ tablaNota }}</div></div>
 <div class="ctg" style="margin-top:8px;display:grid;grid-template-columns:120px minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.2fr) 56px 66px minmax(0,1fr);column-gap:12px;padding:0 6px 6px;border-bottom:1px solid #DDE3EE;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#6B7A94"><div>Cédula</div><div>Apellidos</div><div>Nombres</div><div>Especialidad</div><div>Ingreso</div><div>Sexo</div><div>{{ tablaExtra }}</div></div>
 <sc-for list="{{ tabla }}" as="r" hint-placeholder-count="7">
@@ -636,7 +651,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div class="rise d6" style="{{ panel }};display:flex;flex-direction:column;overflow:hidden">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Retirados por año de retiro</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Año estimado del retiro. Toca una fila para filtrar.</div>
 <div style="position:relative;margin-top:10px;display:flex;align-items:flex-end;gap:2px;flex:1;min-height:60px">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ yrTrS }}"><polyline points="{{ yrTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ yrTrS }}"><polyline points="{{ yrTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ yrCols }}" as="y" hint-placeholder-count="26">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:4px">
 <div style="font-size:8.5px;font-weight:600;color:#0C2050;font-variant-numeric:tabular-nums;height:22px;line-height:1;margin-bottom:1px;white-space:nowrap;display:flex;align-items:flex-end;justify-content:center"><span style="writing-mode:vertical-rl;transform:rotate(180deg)">{{ y.num }}</span></div>
@@ -710,7 +725,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div class="rise d5" style="{{ panel }}">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Concesiones por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Número por promoción</div>
 <div style="{{ conBox }}">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ conTrS }}"><polyline points="{{ conTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ conTrS }}"><polyline points="{{ conTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ conCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:2px;font-size:9.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
@@ -721,7 +736,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 </div>
 
-<div class="ctp rise d6" style="{{ panel }};grid-column:2 / span 2">
+<div class="ctp rise d6" style="{{ panel }};grid-column:2 / span 2;display:none">
 <div class="cth" style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:15px;font-weight:600;color:#0C2050">{{ tablaTitulo }}</div><div style="font-size:11.5px;color:#6B7A94">{{ tablaNota }}</div></div>
 <div class="ctg" style="margin-top:8px;display:grid;grid-template-columns:120px minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.2fr) 56px 66px minmax(0,1fr);column-gap:12px;padding:0 6px 6px;border-bottom:1px solid #DDE3EE;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#6B7A94"><div>Cédula</div><div>Apellidos</div><div>Nombres</div><div>Especialidad</div><div>Ingreso</div><div>Sexo</div><div>{{ tablaExtra }}</div></div>
 <sc-for list="{{ tabla }}" as="r" hint-placeholder-count="7">
@@ -775,7 +790,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div class="rise d5" style="{{ panel }}">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Reconocimientos por año de ingreso</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Número por promoción</div>
 <div style="{{ recBox }}">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ recTrS }}"><polyline points="{{ recTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ recTrS }}"><polyline points="{{ recTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ recCols }}" as="y" hint-placeholder-count="17">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="margin-bottom:2px;font-size:9.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ y.num }}</div>
@@ -786,7 +801,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 </div>
 
-<div class="ctp rise d6" style="{{ panel }};grid-column:2 / span 2">
+<div class="ctp rise d6" style="{{ panel }};grid-column:2 / span 2;display:none">
 <div class="cth" style="display:flex;justify-content:space-between;align-items:baseline"><div style="font-size:15px;font-weight:600;color:#0C2050">{{ tablaTitulo }}</div><div style="font-size:11.5px;color:#6B7A94">{{ tablaNota }}</div></div>
 <div class="ctg" style="margin-top:8px;display:grid;grid-template-columns:120px minmax(0,1.1fr) minmax(0,.9fr) minmax(0,1.2fr) 56px 66px minmax(0,1fr);column-gap:12px;padding:0 6px 6px;border-bottom:1px solid #DDE3EE;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:#6B7A94"><div>Cédula</div><div>Apellidos</div><div>Nombres</div><div>Especialidad</div><div>Ingreso</div><div>Sexo</div><div>{{ tablaExtra }}</div></div>
 <sc-for list="{{ tabla }}" as="r" hint-placeholder-count="7">
@@ -873,7 +888,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ spYTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ spYSub }}. Toca una fila para filtrar por año</div></div>
 <div style="display:flex;gap:10px;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:#2F6FE0"></span>Pregrado</span><span style="display:inline-flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:3px;background:#E3A92E"></span>Posgrado</span></div></div>
 <div style="position:relative;margin-top:14px;display:flex;align-items:flex-end;gap:6px;height:{{ spBoxH }}px">
-<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ spTrS }}"><polyline points="{{ spTrP }}" fill="none" stroke="#C8352B" stroke-width="2" stroke-dasharray="6 4" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
+<svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ spTrS }}"><polyline points="{{ spTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ spYears }}" as="y" hint-placeholder-count="20">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:6px;opacity:{{ y.op }}">
 <div style="margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
@@ -1256,6 +1271,73 @@ class Component extends DCLogic {
     }).catch((e) => this.nomSet({ est: e.message === 'fuera' ? 'fuera' : 'error', msg: e.message === 'fuera' ? '' : e.message }));
   }
   nomSolic() { this.nomApi('solicitudes').then((j) => this.nomSet({ sol: j.solicitudes || [], desc: j.descargas || [] })).catch((e) => this.nomSet({ msg: e.message })); }
+  nomXlsx(j, lista, o) {
+          const js = (cond, src, msg) => (cond() ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error(msg)); document.head.appendChild(sc); }));
+          const cargar = js(() => window.ExcelJS, './exceljs.min.js', 'No se pudo cargar el generador de Excel.').then(() => js(() => window.JSZip, './jszip.min.js', 'No se pudo cargar el generador de Excel.'));
+          return cargar.then(() => {
+            const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
+            const quien = o.correo || j.correo || 'usuario del Portal', ahora = new Date();
+            const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
+            const ws = wb.addWorksheet(o.hoja, { views: [{ state: 'frozen', ySplit: 6, showGridLines: false }] });
+            const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|País de nacimiento|Programa de ingreso|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
+            ws.addRow([]);
+            ws.addRow([o.titulo]);
+            ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
+            ws.addRow(['Fuente: Centro de Datos ENAP - Portal de Servicios Digitales Oficina de Estadística']);
+            ws.addRow([]);
+            ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
+            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
+            ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
+            j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
+            const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
+            const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
+            ws.eachRow({ includeEmpty: true }, (row, n) => {
+              if (n === 1 || n === 5) { row.height = 14.4; return; }
+              if (n === 2) { row.height = 15.6; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 12, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              if (n === 3) { row.height = 15.6; const c2 = row.getCell(1); c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              row.height = n === 6 ? 32 : 20;
+              row.eachCell({ includeEmpty: true }, (cell, c) => {
+                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : (hh === 'Años desde el escalafonamiento' || hh === 'Años desde el ingreso') ? '0.0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
+                if (n === 6) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
+                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
+              });
+            });
+            const iCo = j.cab.indexOf('Correo'), iTe = j.cab.indexOf('Teléfono');
+            lista.forEach((f, i) => { const nota = f[nc]; if (!nota) return; [iCo, iTe].forEach((c) => { if (c < 0) return; const ce = ws.getRow(7 + i).getCell(c + 1); if (ce.value === '' || ce.value == null) return; ce.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4C2' } }; ce.note = { texts: [{ text: nota }], margins: { insetmode: 'custom', inset: [0.1, 0.1, 0.1, 0.1] } }; }); });
+            ws.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: nc } };
+            ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
+            return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
+              if (ab) { ws.addBackgroundImage(wb.addImage({ buffer: ab, extension: 'png' })); }
+              return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
+                const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
+                if (m && l && x.indexOf(m[0]) < x.indexOf(l[0])) { x = x.replace(m[0], '').replace(l[0], l[0] + m[0]); z.file('xl/worksheets/sheet1.xml', x); }
+                return z.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+              })));
+            });
+          }).then((buf) => {
+            const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = o.nombre; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(u); }, 500);
+          });
+  }
+  extDescargar(rows, titulo) {
+    const nm = this.state.nom || {}, est = nm.est;
+    if (est === 'admin' || est === 'aprobada') {
+      this.nomSet({ msg: 'Preparando la descarga…' });
+      return this.nomApi('descargar', { tipo: 'extranjeros' }).then((j) => {
+        if (!j.ids) throw new Error('La lista de extranjeros no trae identificadores. Un administrador debe volver a subirla.');
+        const quitar = ['Nota contacto'], iNota = j.cab.indexOf('Nota contacto'), keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0);
+        const pos = {}; j.ids.forEach((id, k) => { pos[id] = k; });
+        const lista = rows.slice().sort((x, y) => y.year - x.year || (y.periodo === 'II' ? 1 : 0) - (x.periodo === 'II' ? 1 : 0) || x.i - y.i).map((r) => j.filas[pos[r.i]]).filter(Boolean).map((f) => keep.map((c) => f[c]).concat([iNota >= 0 ? f[iNota] || '' : '']));
+        j.cab = keep.map((c) => j.cab[c]);
+        return this.nomXlsx(j, lista, { hoja: 'Extranjeros', titulo: titulo, nombre: 'Extranjeros_con_nombres.xlsx', correo: nm.correo });
+      }).then(() => this.nomSet({ msg: '' })).catch((e) => this.nomSet({ msg: e.message }));
+    }
+    if (est === 'sin' || est === 'rechazada') {
+      this.nomSet({ msg: 'Enviando la solicitud…' });
+      return this.nomApi('solicitar').then((j) => this.nomSet({ est: j.estado || 'pendiente', msg: 'Solicitud enviada. Te avisarán cuando la aprueben.' })).catch((e) => this.nomSet({ msg: e.message }));
+    }
+    return null;
+  }
   egres() {
     const k0 = this.state, m0 = this._egm;
     if (m0 && m0.e === k0.eg && m0.n === k0.nom && m0.s === k0.sp) return m0.v;
@@ -1420,53 +1502,8 @@ class Component extends DCLogic {
           if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde el escalafonamiento');
           const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => { const v = keep.map((c) => f[c]); if (ipT >= 0) v.splice(ipT + 1, 0, aniosEsc(v[ipT])); return v.concat([iNota >= 0 ? f[iNota] || '' : '']); });
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
-          const js = (cond, src, msg) => (cond() ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error(msg)); document.head.appendChild(sc); }));
-          const cargar = js(() => window.ExcelJS, './exceljs.min.js', 'No se pudo cargar el generador de Excel.').then(() => js(() => window.JSZip, './jszip.min.js', 'No se pudo cargar el generador de Excel.'));
-          return cargar.then(() => {
-            const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
-            const quien = nm.correo || j.correo || 'usuario del Portal', ahora = new Date();
-            const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-            const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', ySplit: 6, showGridLines: false }] });
-            const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
-            const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
-            ws.addRow([]);
-            ws.addRow(['Egresados no graduados - ' + tProg + ' - ' + tPer]);
-            ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
-            ws.addRow(['Fuente: Centro de Datos ENAP - Portal de Servicios Digitales Oficina de Estadística']);
-            ws.addRow([]);
-            ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
-            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
-            ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
-            j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
-            const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
-            const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
-            ws.eachRow({ includeEmpty: true }, (row, n) => {
-              if (n === 1 || n === 5) { row.height = 14.4; return; }
-              if (n === 2) { row.height = 15.6; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 12, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              if (n === 3) { row.height = 15.6; const c2 = row.getCell(1); c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              row.height = n === 6 ? 32 : 20;
-              row.eachCell({ includeEmpty: true }, (cell, c) => {
-                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : hh === 'Años desde el escalafonamiento' ? '0.0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
-                if (n === 6) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
-                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
-              });
-            });
-            const iCo = j.cab.indexOf('Correo'), iTe = j.cab.indexOf('Teléfono');
-            lista.forEach((f, i) => { const nota = f[nc]; if (!nota) return; [iCo, iTe].forEach((c) => { if (c < 0) return; const ce = ws.getRow(7 + i).getCell(c + 1); if (ce.value === '' || ce.value == null) return; ce.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4C2' } }; ce.note = { texts: [{ text: nota }], margins: { insetmode: 'custom', inset: [0.1, 0.1, 0.1, 0.1] } }; }); });
-            ws.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: nc } };
-            ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
-            return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
-              if (ab) { ws.addBackgroundImage(wb.addImage({ buffer: ab, extension: 'png' })); }
-              return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
-                const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
-                if (m && l && x.indexOf(m[0]) < x.indexOf(l[0])) { x = x.replace(m[0], '').replace(l[0], l[0] + m[0]); z.file('xl/worksheets/sheet1.xml', x); }
-                return z.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
-              })));
-            });
-          }).then((buf) => {
-            const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(u); }, 500);
-          });
+          const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
+          return this.nomXlsx(j, lista, { hoja: 'Egresados no graduados', titulo: 'Egresados no graduados - ' + tProg + ' - ' + tPer, nombre: nombre, correo: nm.correo });
         }).then(() => {
           this.nomSet({ msg: '' });
         }).catch((e) => this.nomSet({ msg: e.message }));
@@ -1481,7 +1518,7 @@ class Component extends DCLogic {
     const egSubir = (e) => {
       const f = e && e.target && e.target.files && e.target.files[0]; if (!f) return;
       const rd = new FileReader();
-      rd.onload = () => { let l = null; try { l = JSON.parse(rd.result); } catch (x) {} if (!l) { this.nomSet({ msg: 'El archivo no es un JSON válido.' }); return; } this.nomSet({ msg: 'Subiendo la lista…' }); this.nomApi('guardar-lista', { lista: l }).then((j) => { this.nomSet({ msg: 'Lista cargada: ' + j.filas + ' filas.', lista: { filas: j.filas, actualizado: new Date().toISOString() } }); }).catch((x) => this.nomSet({ msg: x.message })); };
+      rd.onload = () => { let l = null; try { l = JSON.parse(rd.result); } catch (x) {} if (!l) { this.nomSet({ msg: 'El archivo no es un JSON válido.' }); return; } this.nomSet({ msg: 'Subiendo la lista…' }); this.nomApi('guardar-lista', { lista: l, tipo: l.tipo === 'extranjeros' ? 'extranjeros' : undefined }).then((j) => { this.nomSet({ msg: 'Lista cargada: ' + j.filas + ' filas.', lista: { filas: j.filas, actualizado: new Date().toISOString() } }); }).catch((x) => this.nomSet({ msg: x.message })); };
       rd.readAsText(f);
     };
     return Object.assign(base, { egView: perTxt + (prog == null ? '' : ' · ' + pLabel(prog)) + '', egFrom2000: egFrom2000, egFrom2000St: egFrom2000St, egRegOn: typeof prog === 'number', egRegTxt: typeof prog === 'number' ? ({ 0: 'Diciembre de 1999', 1: 'Diciembre de 1999', 2: 'Diciembre de 1999', 3: 'Marzo de 1998', 4: 'Marzo de 1998', 5: 'Marzo de 1998', 6: 'Noviembre de 2012', 7: 'Abril de 2013' })[prog] : '', egDY: egDY, egDS: egDS, egHY: egHY, egHS: egHS, egDYOpts: dYs, egHYOpts: hYs, egDSOpts: egPOpt(dp0), egHSOpts: egPOpt(hp0), egDOn: y0 > 0, egHOn: y1 < 9999, egClearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (egAnyF ? '#B8841F' : '#DDE3EE') + ';background:' + (egAnyF ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (egAnyF ? '#1A1405' : '#8190A8'), egOtro: egOtro, egOtroSub: egOtroSub, egTopH: 'height:max(' + Math.max(340, egProg.length > 2 ? egProg.length * 34 + 96 : 0) + 'px,calc(var(--eh,520px) - ' + (egHeat.length * 40 + 215) + 'px))', egHeat: egHeat, egHeadH: egHeadH, egHeatCols: egHeatCols, egClear: egClear, egPreSet: egPreSet, egPreTxt: egPreTxt, egPreStyle: egPreStyle, egBarsH: egBarsH, egBarsSub: egBarsSub, egNomOn: !!nomBtn, egNomTxt: nomBtn, egNomGo: nomGo, egNomMsg: nm.msg || '', egAdmin: est === 'admin', egSol: egSol, egNoSol: !egSol.length, egSubir: egSubir, egListaTxt: nm.lista ? 'Lista cargada: ' + nm.lista.filas + ' filas' : 'Aún no hay lista nominal cargada', egKpis: egKpis, egBars: egBars, egProg: egProg, egAge: egAge, egCont: egCont, egQ: egQ, egHall: hall.map((t) => ({ t: t })), egModeOpts: egModeOpts, egYrOn: egYrOn, egYrOpts: egYrOpts, egModeSet: egModeSet, egYrSet: egYrSet, egDecRows: egDecRows, egSemP: egSemP, egTopY: egTopY, egSem: egSem, egProgOpts: egProgOpts, egProgSet: egProgSet, egBarsTitle: 'Graduados y no graduados por año de escalafonamiento', egDl: dl, egDlTxt: 'Descargar ' + fmt(pend) + ' egresados (CSV)', egPer: perTxt,
@@ -1534,7 +1571,7 @@ class Component extends DCLogic {
     const f = this.state.f;
     const tab = this.state.tab;
     const upd = (patch) => this.setState({ f: Object.assign({}, this.state.f, patch) });
-    const tog = (dim, val) => () => { const cur = this.state.f[dim]; upd({ [dim]: cur === val ? null : val }); };
+    const tog = (dim, val) => () => { const cur = this.state.f[dim]; if (dim === 'esp') { const a = cur ? (Array.isArray(cur) ? cur.slice() : [cur]) : [], i = a.indexOf(val); if (i >= 0) a.splice(i, 1); else a.push(val); upd({ esp: a.length ? a : null }); return; } upd({ [dim]: cur === val ? null : val }); };
 
     const fmt = (v) => String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     const pct = (a, b) => (b > 0 ? (a / b * 100).toFixed(1).replace('.', ',') + '%' : '—');
@@ -1544,6 +1581,7 @@ class Component extends DCLogic {
     const edBand = (e) => (e == null ? -1 : EB.findIndex((b) => e >= b[1] && e <= b[2]));
     let skipCard = false;
     const pn = (r) => (r.periodo === 'II' || r.periodo === 2 || r.periodo === '2' ? 2 : 1);
+    const espA = f.esp ? (Array.isArray(f.esp) ? f.esp : [f.esp]) : null;
     const pass = (r, ex) => {
       if (ex !== 'card' && !skipCard && f.card) { const c = f.card; if (c === 'esc' ? !(r.estado === 'graduado' || r.estado === 'egresado') : c === 'ret' ? r.estado !== 'retirado' : c === 'act' ? r.estado !== 'activo' : c === 'ext' ? r.pais === 'Colombia' : false) return false; }
       if (ex !== 'ciudad' && f.ciudad && r.ciudad !== f.ciudad) return false;
@@ -1552,7 +1590,7 @@ class Component extends DCLogic {
       if (ex !== 'sexo' && f.sexo && r.sexo !== f.sexo) return false;
       if (ex !== 'prog' && f.prog && r.prog !== f.prog) return false;
       if (ex !== 'estado' && f.estado && (f.estado === 'esc' ? !(r.estado === 'graduado' || r.estado === 'egresado') : r.estado !== f.estado)) return false;
-      if (ex !== 'esp' && f.esp && r.esp !== f.esp) return false;
+      if (ex !== 'esp' && espA && espA.indexOf(r.esp) < 0) return false;
       if (ex !== 'cont' && f.cont && r.cont !== f.cont) return false;
       if (ex !== 'year' && f.periods && f.periods.indexOf(r.year + '-' + r.periodo) < 0) return false;
       if (ex !== 'causal' && f.causal && r.causal !== f.causal) return false;
@@ -1619,11 +1657,11 @@ class Component extends DCLogic {
     const railGen = tab === 'general';
     const espOptions = [[null, 'Todas las especialidades']].concat(ESPALL.map((k) => [k, k])).map((a) => {
       const c = a[0] ? optSplit('esp', (r) => r.esp === a[0]) : sc(data.filter((r) => pass(r, 'esp')), () => true);
-      const on = (f.esp || null) === a[0];
-      return { label: a[1], sub: fmt(c.t) + ' estudiantes', go: () => this.setState({ ed: false, f: Object.assign({}, this.state.f, { esp: a[0] }) }), style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 10px;border:0;border-radius:10px;font-size:12.5px;font-weight:' + (on ? 700 : 500) + ';cursor:pointer;text-align:left;background:' + (on ? '#FBF3DE' : 'transparent') + ';color:#14233F;flex:none' };
+      const on = a[0] ? !!espA && espA.indexOf(a[0]) >= 0 : !espA;
+      return { label: (on && a[0] ? '✓ ' : '') + a[1], sub: fmt(c.t) + ' estudiantes', go: a[0] ? tog('esp', a[0]) : () => this.setState({ ed: false, f: Object.assign({}, this.state.f, { esp: null }) }), style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 10px;border:0;border-radius:10px;font-size:12.5px;font-weight:' + (on ? 700 : 500) + ';cursor:pointer;text-align:left;background:' + (on ? '#FBF3DE' : 'transparent') + ';color:#14233F;flex:none' };
     });
-    const espSel = f.esp ? optSplit('esp', (r) => r.esp === f.esp) : sc(data.filter((r) => pass(r, 'esp')), () => true);
-    const edLabel = f.esp || 'Todas las especialidades';
+    const espSel = espA ? optSplit('esp', (r) => espA.indexOf(r.esp) >= 0) : sc(data.filter((r) => pass(r, 'esp')), () => true);
+    const edLabel = espA ? (espA.length === 1 ? espA[0] : espA.length + ' especialidades') : 'Todas las especialidades';
     const edSub = fmt(espSel.t) + ' estudiantes';
     const edBtnStyle = 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (f.esp ? '#D9B25A' : '#DDE3EE') + ';background:' + (f.esp ? '#FBF3DE' : '#fff') + ';color:' + (f.esp ? '#7A5510' : '#26364F');
     const cdBase = data.filter((r) => pass(r, 'cont'));
@@ -1676,7 +1714,7 @@ class Component extends DCLogic {
     if (f.sexo) chipDefs.push({ label: f.sexo === 'M' ? 'Mujeres' : 'Hombres', go: () => upd({ sexo: null }) });
     if (f.prog) chipDefs.push({ label: PLAB[f.prog], go: () => upd({ prog: null }) });
     if (f.estado) chipDefs.push({ label: f.estado === 'esc' ? 'Escalafonado' : ELAB[f.estado], go: () => upd({ estado: null }) });
-    if (f.esp) chipDefs.push({ label: f.esp, go: () => upd({ esp: null }) });
+    if (espA) chipDefs.push({ label: espA.join(' + '), go: () => upd({ esp: null }) });
     if (f.edad !== null) chipDefs.push({ label: 'Edad al ingreso ' + EB[f.edad][0], go: () => upd({ edad: null }) });
     if (f.yret) chipDefs.push({ label: 'Retirados en ' + f.yret, go: () => upd({ yret: null }) });
     if (f.cont) chipDefs.push({ label: 'Contingente ' + f.cont, go: () => upd({ cont: null }) });
@@ -2094,7 +2132,7 @@ class Component extends DCLogic {
         exs(kp('Extranjeros', '#7C5CD6', nExt, null, fr(nExt.t, allC.t), ''), ['% de los ingresos', rate(nExt.t, allC.t)], [ 'Principal país', topPais ])
       ];
       const CK = ['ing', 'esc', 'ret', 'act', 'ext'];
-      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => this.setState({ f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
+      kpis.forEach((k, i) => { const key = CK[i], on = f.card === key; k.go = () => { if (!on && key === 'ext' && !(this.state.nom && this.state.nom.est && this.state.nom.est !== 'error')) this.nomSesion(); this.setState({ f: Object.assign({}, this.state.f, { card: on ? null : key, estado: null, pais: null }) }); }; k.style = k.style.replace('border:1px solid #E3E8F0', 'cursor:pointer;border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0')) + (f.card && !on ? ';opacity:.6' : '') + (on ? ';background:#FFFBF0' : ''); });
     } else if (tab === 'programas') {
       kpis = [
         kp('Estudiantes', '#0C2050', all, null, total > 0 ? 1 : 0, '10–19: ' + fmt(ia) + ' vs ' + fmt(ib)),
@@ -2182,7 +2220,7 @@ class Component extends DCLogic {
       const pts = fr.map((v, i) => { const t = Math.max(-0.04, Math.min(1.04, a + b * i)); return ((i + 0.5) / n * 1000).toFixed(1) + ',' + ((1 - t) * 1000).toFixed(1); }).join(' ');
       return { p: pts, s: sty };
     };
-    const barTr = (vals, mx, Hh, below) => trendOf(vals.map((v) => v / mx), 'position:absolute;left:0;width:100%;bottom:' + below + 'px;height:' + Hh + 'px;pointer-events:none;overflow:visible');
+    const barTr = (vals, mx, Hh, below) => trendOf(vals.map((v) => v / mx), 'position:absolute;z-index:1;left:0;width:100%;bottom:' + below + 'px;height:' + Hh + 'px;pointer-events:none;overflow:visible');
     const hmCols = (arr, fn, Hh, color) => {
       const col = color || BLUE;
       const c = {}; years.forEach((y) => { c[y] = { h: 0, m: 0 }; });
@@ -2336,7 +2374,7 @@ class Component extends DCLogic {
       const present = {}; espData.forEach((r) => { present[r.cont] = (present[r.cont] || 0) + 1; });
       const lst = cdSorted.filter((k) => present[k]).slice(-14);
       espItems = lst.map((k) => ({ label: k, rs: espData.filter((r) => r.cont === k), go: tog('cont', k), dim: false }));
-      espTitle = 'Últimos contingentes'; espSub = f.esp + ' · toca uno para filtrar';
+      espTitle = 'Últimos contingentes'; espSub = espA.join(' + ') + ' · toca uno para filtrar';
     } else {
       espItems = ESPALL.map((k) => ({ label: k, rs: espData.filter((r) => r.esp === k), go: tog('esp', k), dim: false }));
       espTitle = 'Destino por especialidad'; espSub = 'Escalafonados, estudiando y retirados';
@@ -2405,7 +2443,7 @@ class Component extends DCLogic {
 
     const ingBase = D('esp');
     const ingMax = Math.max(1, ...ESPALL.map((e) => cnt(ingBase, (r) => r.esp === e)));
-    const ingEsp = ESPALL.map((e) => ({ e, n: cnt(ingBase, (r) => r.esp === e) })).filter((o) => o.n > 0 || f.esp === o.e).sort((a, b) => b.n - a.n).map((o) => ({ label: o.e, num: fmt(o.n), share: pct(o.n, ingBase.length), go: tog('esp', o.e), rowStyle: 'width:100%;padding:1px 4px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.esp && f.esp !== o.e ? 0.35 : 1), sh: 'height:100%;border-radius:4px;background:linear-gradient(90deg,#2F6FE0AA,#2F6FE0);width:' + (o.n / ingMax * 100).toFixed(1) + '%' }));
+    const ingEsp = ESPALL.map((e) => ({ e, n: cnt(ingBase, (r) => r.esp === e) })).filter((o) => o.n > 0 || (espA && espA.indexOf(o.e) >= 0)).sort((a, b) => b.n - a.n).map((o) => ({ label: o.e, num: fmt(o.n), share: pct(o.n, ingBase.length), go: tog('esp', o.e), rowStyle: 'width:100%;padding:1px 4px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.esp && f.esp !== o.e ? 0.35 : 1), sh: 'height:100%;border-radius:4px;background:linear-gradient(90deg,#2F6FE0AA,#2F6FE0);width:' + (o.n / ingMax * 100).toFixed(1) + '%' }));
     const ingYr = {}; full.forEach((r) => { ingYr[r.year] = (ingYr[r.year] || 0) + 1; });
     const ingYrs = Object.keys(ingYr).map(Number).sort((a, b) => a - b);
     const ingBest = ingYrs.reduce((b, y) => (b === null || ingYr[y] > ingYr[b] ? y : b), null);
@@ -2509,25 +2547,52 @@ class Component extends DCLogic {
     const pfE = {}; full.forEach((r) => { pfE[r.esp] = (pfE[r.esp] || 0) + 1; });
     const pfKeys = Object.keys(pfE).sort((a, b) => pfE[b] - pfE[a]).slice(0, 5);
     const pfMax = Math.max(1, ...pfKeys.map((k) => pfE[k]));
-    const pfRows = pfKeys.map((k) => ({ label: k, num: fmt(pfE[k]), go: tog('esp', k), rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:22px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + (f.esp && f.esp !== k ? 0.4 : 1), bar: 'height:100%;border-radius:3px;background:linear-gradient(90deg,' + dCol + 'AA,' + dCol + ');width:' + (pfE[k] / pfMax * 100).toFixed(1) + '%' }));
+    const pfRows = pfKeys.map((k) => ({ label: k, num: fmt(pfE[k]), go: tog('esp', k), rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:22px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + (espA && espA.indexOf(k) < 0 ? 0.4 : 1), bar: 'height:100%;border-radius:3px;background:linear-gradient(90deg,' + dCol + 'AA,' + dCol + ');width:' + (pfE[k] / pfMax * 100).toFixed(1) + '%' }));
     const pfMs = full.filter((r) => r.meses != null);
-    const pfStats = [
+    const isExt = f.card === 'ext';
+    const pfStats = isExt ? [
+      { label: 'Mujeres', value: pct(cnt(full, (r) => r.sexo === 'M'), full.length) },
+      { label: 'Países de origen', value: String(Object.keys(pCnt).length) },
+      { label: 'Permanencia media', value: pfMs.length ? (pfMs.reduce((a, r) => a + r.meses, 0) / pfMs.length / 12).toFixed(1).replace('.', ',') + ' años' : '—' },
+      { label: 'Retirados', value: pct(cnt(full, retF), full.length) }
+    ] : [
       { label: 'Mujeres', value: pct(cnt(full, (r) => r.sexo === 'M'), full.length) },
       { label: 'Extranjeros', value: pct(cnt(full, extF), full.length) },
       { label: 'Permanencia media', value: pfMs.length ? (pfMs.reduce((a, r) => a + r.meses, 0) / pfMs.length / 12).toFixed(1).replace('.', ',') + ' años' : '—' },
       { label: 'Nacidos en Bogotá', value: pct(cnt(full, (r) => r.ciudad === 'Bogotá'), conCiudad > 0 ? full.filter((r) => r.ciudad !== 'Sin dato').length : 0) }
     ];
     const pfTitle = 'Perfil de ' + (CARDNAME[f.card] || '');
+    // Destino de los extranjeros por país (barras apiladas al 100 %)
+    const dpKeys = Object.keys(pCnt).sort((a, b) => pCnt[b] - pCnt[a]).slice(0, 8);
+    const DPE = [['graduado', 'Escalafonados', ECOL.graduado], ['activo', 'Estudiando', ECOL.activo], ['retirado', 'Retirados', ECOL.retirado]];
+    const dpRows = dpKeys.map((k) => {
+      const rs = paisData.filter((r) => r.pais === k), n = rs.length;
+      const seg = (e) => rs.filter((r) => (e === 'graduado' ? (r.estado === 'graduado' || r.estado === 'egresado') : r.estado === e)).length;
+      const ret = seg('retirado');
+      return { label: k, num: fmt(n), sub: n ? Math.round(ret / n * 100) + '% retiro' : '', go: tog('pais', k), tip: DPE.map((e) => e[1] + ': ' + seg(e[0])).join(' · '),
+        rowStyle: 'width:100%;padding:3px 4px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.pais && f.pais !== k ? 0.35 : 1),
+        s1: 'height:100%;background:' + DPE[0][2] + ';width:' + (n ? seg('graduado') / n * 100 : 0).toFixed(1) + '%', s2: 'height:100%;background:' + DPE[1][2] + ';width:' + (n ? seg('activo') / n * 100 : 0).toFixed(1) + '%', s3: 'height:100%;background:' + DPE[2][2] + ';width:' + (n ? ret / n * 100 : 0).toFixed(1) + '%' };
+    });
+    const dpLeg = DPE.map((e) => ({ t: e[1], c: 'width:9px;height:9px;border-radius:3px;background:' + e[2] + ';flex:none' }));
+    // Descarga nominal de extranjeros (restringida, con autorización de Estadística)
+    const nomE = this.state.nom || {}, estE = nomE.est;
+    const extBtnTxt = estE === 'admin' || estE === 'aprobada' ? 'Descargar base de datos' : estE === 'pendiente' ? 'Solicitud enviada · en revisión' : estE === 'rechazada' ? 'Solicitud rechazada · pedir de nuevo' : estE === 'sin' ? 'Solicitar autorización para descargar' : 'Descargar base de datos';
+    const extDlGo = () => {
+      if (estE === 'fuera') { this.nomSet({ msg: 'La descarga está disponible dentro del Portal, con tu cuenta @enap.edu.co.' }); return; }
+      if (estE !== 'admin' && estE !== 'aprobada' && estE !== 'sin' && estE !== 'rechazada') { if (estE !== 'pendiente') this.nomSesion(); return; }
+      this.extDescargar(D(null).filter(extF), 'Extranjeros - ' + (f.pais ? (f.pais === 'Otros' ? 'Otros países' : f.pais) : 'Todos los países'));
+    };
     const rowShow = 'grid-column:span 12;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1fr);gap:14px;min-height:0';
     const rowA = hasCard ? 'display:none' : rowShow, rowB = hasCard ? rowShow : 'display:none';
 
     // ---------- GRADUADOS
-    const gradCols = hmCols(yearData, gradF, H, '#0FA89A');
-    const gradProg = hmRowList(ESPALL.map((k) => ({ label: k, c: sc(D('esp').filter((r) => r.esp === k), gradF), go: tog('esp', k), dim: f.esp && f.esp !== k })), '#0FA89A');
-    const tasaItems = years.filter((y) => y <= 2021).map((y) => {
+    const HG = Math.max(160, Math.min(340, Math.floor((ah - 210) / 2) - 150));
+    const gradCols = hmCols(yearData, gradF, HG, '#0FA89A');
+    const gradProg = hmRowList(ESPALL.map((k) => ({ label: k, c: sc(D('esp').filter((r) => r.esp === k), gradF), go: tog('esp', k), dim: espA && espA.indexOf(k) < 0 })), '#0FA89A');
+    const tasaItems = years.filter((y) => y <= 2021).map((y, ix, arr) => {
       const rs = data.filter((r) => PN(r, 'year') && r.year === y && r.estado !== 'activo');
       const g = cnt(rs, gradF);
-      return { v: rs.length > 0 ? g / rs.length : 0, label: String(y).slice(2), num: rs.length > 0 ? Math.round(g / rs.length * 100) + '%' : '—', aria: 'Cohorte ' + y + ': ' + pct(g, rs.length) + ' de graduación', go: tog('year', y), dim: dimYear(y) };
+      return { v: rs.length > 0 ? g / rs.length : 0, label: String(y).slice(2), num: rs.length > 0 && (ix % 2 === 0 || ix === arr.length - 1) ? Math.round(g / rs.length * 100) + '%' : '', aria: 'Cohorte ' + y + ': ' + pct(g, rs.length) + ' de graduación', go: tog('year', y), dim: dimYear(y) };
     });
     const tasaCols = valCols(tasaItems, '#0FA89A', 150);
 
@@ -2554,7 +2619,7 @@ class Component extends DCLogic {
       return {
         label: k, num: pct(rt.t, t.t) + ' · ' + fmt(rt.t), go: tog('esp', k),
         sub: 'vs institución ' + pct(cnt(data, retF), data.length),
-        rowStyle: 'width:100%;padding:2px 6px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.esp && f.esp !== k ? 0.35 : 1),
+        rowStyle: 'width:100%;padding:2px 6px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (espA && espA.indexOf(k) < 0 ? 0.35 : 1),
         bar: 'height:100%;border-radius:5px;background:linear-gradient(90deg,' + ECOL.retirado + 'AA,' + ECOL.retirado + ');width:' + Math.min(100, (t.t > 0 ? rt.t / t.t : 0) * 250).toFixed(1) + '%'
       };
     });
@@ -2572,12 +2637,12 @@ class Component extends DCLogic {
     retCols.forEach((c, i) => { if (i % 2) c.label = ''; });
     const heatHead = causNames;
     const SHORTESP = ['Cadete Naval Profesional', 'Cadete IM Profesional', 'Cadete Naval Logístico', 'Curso Extraordinario IM'];
-    const cursoSem = !!f.esp && SHORTESP.indexOf(f.esp) >= 0;
-    const bRows = (this._real.B || []).filter((b) => (!f.esp || b[1] === ESPALL.indexOf(f.esp)) && (!f.sexo || b[2] === (f.sexo === 'M' ? 1 : 0)) && (!f.year || b[0] === f.year) && (!f.range || (b[0] >= f.range[0] && b[0] <= f.range[1])) && (!f.causal || b[3] === causNames.indexOf(f.causal)) && (!f.yret || b[6] === f.yret));
+    const cursoSem = !!espA && espA.length === 1 && SHORTESP.indexOf(espA[0]) >= 0;
+    const bRows = (this._real.B || []).filter((b) => (!espA || espA.some((e) => b[1] === ESPALL.indexOf(e))) && (!f.sexo || b[2] === (f.sexo === 'M' ? 1 : 0)) && (!f.year || b[0] === f.year) && (!f.range || (b[0] >= f.range[0] && b[0] <= f.range[1])) && (!f.causal || b[3] === causNames.indexOf(f.causal)) && (!f.yret || b[6] === f.yret));
     const cursoB = cursoSem ? [['1.er sem.', 0, 6], ['2.º sem.', 7, 999]] : [['ASP', 0, 0], ['1.er año', 1, 1], ['2.º año', 2, 2], ['3.er año', 3, 3], ['4.º año', 4, 4]];
     const cursoTitle = cursoSem ? 'Semestre en que se retiran' : 'Año en que se retiran';
     const cursoKnown = bRows.filter((b) => b[4] >= 0).length;
-    const cursoSub = cursoSem ? f.esp + ': 2 semestres · estimado por permanencia' : 'Según grado y curso de retiro · ' + fmt(cursoKnown) + ' con dato de ' + fmt(bRows.length) + ' bajas';
+    const cursoSub = cursoSem ? espA[0] + ': 2 semestres · estimado por permanencia' : 'Según grado y curso de retiro · ' + fmt(cursoKnown) + ' con dato de ' + fmt(bRows.length) + ' bajas';
     const cursoC = cursoSem ? cursoB.map((b) => cnt(rtAll, (r) => r.meses != null && r.meses >= b[1] && r.meses <= b[2])) : cursoB.map((b) => bRows.filter((r) => r[4] === b[1]).length);
     const cursoMax = Math.max(1, ...cursoC);
     const cursoTot = cursoC.reduce((a, b) => a + b, 0);
@@ -2634,7 +2699,7 @@ class Component extends DCLogic {
     const heatCnt = ESPALL.map((k) => causNames.map((c) => { const v = cnt(heatSrc, (r) => r.esp === k && r.causal === c); if (v > heatMax) heatMax = v; return v; }));
     const heatRows = ESPALL.map((k, i) => ({
       label: k, go: tog('esp', k),
-      cells: heatCnt[i].map((v) => ({ num: fmt(v), style: 'height:21px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;background:rgba(240,118,58,' + (0.07 + v / heatMax * 0.7).toFixed(2) + ');color:' + (v / heatMax > 0.55 ? '#fff' : '#7A3512') + ';opacity:' + (f.esp && f.esp !== k ? 0.35 : 1) }))
+      cells: heatCnt[i].map((v) => ({ num: fmt(v), style: 'height:21px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums;background:rgba(240,118,58,' + (0.07 + v / heatMax * 0.7).toFixed(2) + ');color:' + (v / heatMax > 0.55 ? '#fff' : '#7A3512') + ';opacity:' + (espA && espA.indexOf(k) < 0 ? 0.35 : 1) }))
     }));
 
     // ---------- CONCESIONES
@@ -2895,7 +2960,7 @@ class Component extends DCLogic {
       spL1: sp1.l, spA1: sp1.a, spL2: sp2.l, spA2: sp2.a, spL3: sp3.l, spA3: sp3.a, nodes: nodes, linesD: linesD.trim(),
       panel: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden',
       sexoBtns: sexoBtns, progLabel: progLabel, rdOptions: rdOptions, rdLabel: rdLabel, rdSub: rdSub, rdBtnStyle: rdBtnStyle, rdOpen: this.state.rd, rdToggle: () => this.setState({ ed: false, pd: false, cd: false, rd: !this.state.rd }), estadoBtns: estadoBtns, rangoBtns: rangoBtns,
-      rowA: rowA, rowB: rowB, mapStyle: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden' + ';grid-column:span ' + (isWorld ? 8 : 5), showWorld: isWorld, showCol: !isWorld, worldPolys: worldPolys, worldDots: worldDots, worldLab: worldLab, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
+      rowA: rowA, rowB: rowB, extDlOn: isExt, extBtnTxt: extBtnTxt, extDlGo: extDlGo, extDlMsg: nomE.msg || '', dpRows: dpRows, dpLeg: dpLeg, dpSub: 'Qué pasó con quienes ingresaron de cada país', mapStyle: 'box-sizing:border-box;padding:18px 20px;border-radius:20px;background:rgba(255,255,255,.6);border:1px solid #E3E8F0;box-shadow:0 1px 2px rgba(20,35,63,.04),0 10px 28px rgba(20,35,63,.06);overflow:hidden' + ';grid-column:span ' + (isWorld ? 5 : 5), showWorld: isWorld, showCol: !isWorld, worldPolys: worldPolys, worldDots: worldDots, worldLab: worldLab, detTitle: detTitle, detSub: detSub, colPoly: colPoly, cityDots: cityDots, cityLab: cityLab, cityRows: cityRows, pfRows: pfRows, pfStats: pfStats, pfTitle: pfTitle, genBarH: genBarH, genBarM: genBarM,
       clearStyle: clearStyle, clearAll: clearAll, tabs: tabs,
       railGen: railGen, railOther: !railGen, espOptions: espOptions, edLabel: edLabel, edSub: edSub, edBtnStyle: edBtnStyle, edOpen: this.state.ed, edToggle: () => this.setState({ rd: false, pd: false, cd: false, ed: !this.state.ed }),
       cdOptions: cdOptions, cdQuery: this.state.cq, cdSearch: (e) => this.setState({ cq: (e && e.target ? e.target.value : '') }), cdNone: cdNone, cdLabel: cdLabel, cdSub: cdSub, cdBtnStyle: cdBtnStyle, cdOpen: this.state.cd, cdToggle: () => this.setState({ rd: false, pd: false, ed: false, cd: !this.state.cd, cq: '' }), dataNote: 'En construcción · cifras preliminares',
@@ -2907,7 +2972,7 @@ class Component extends DCLogic {
       kpis: kpis, kpiGrid: kpiGrid,
       yearCols: yearColsOut, boxStyle: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', estadoLeg: estadoLeg, progRows: progRows,
       dn: dn, sexoRows: sexoRows, matEstado: matEstado, pairGvr: pairGvr, pairVol: pairVol, pairCon: pairCon, pairRec: pairRec, pairForm: pairForm, pairProg: pairProg, es: es, estRows: estRows,
-      gradCols: gradCols, hmBox: 'position:relative;margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
+      gradCols: gradCols, hmBox: 'position:relative;margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (HG + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
       txtBox: txtBox, orbBox: orbBox, bgMask: bgMask, wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, ingEsp: ingEsp, ingStats: ingStats, edCols: edCols, ageSub: ageSub, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
       conTipo: conTipo, conProg: conProg, conEstado: conEstado, conCols: conCols, conBox: colBox(150),
       recTipo: recTipo, recProg: recProg, recEstado: recEstado, recCols: recCols, recBox: colBox(150),
