@@ -1399,12 +1399,12 @@ class Component extends DCLogic {
             const quien = nm.correo || j.correo || 'usuario del Portal', ahora = new Date();
             const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
             const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', ySplit: 3, showGridLines: false }] });
-            const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|Correo|Teléfono)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
+            const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
             const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
             ws.addRow(['Egresados no graduados - ' + tProg + ' - ' + tPer]);
             ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
             ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
-            lista.forEach((f) => ws.addRow(f.map((v) => (v == null ? '' : String(v)))));
+            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.map((v, c) => { const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(1, 1, 1, nc); ws.mergeCells(2, 1, 2, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
             const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = /terminación/.test(j.cab[c]) ? 17 : 13; });
@@ -1414,7 +1414,7 @@ class Component extends DCLogic {
               if (n === 2) { row.height = 22; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c1.alignment = { vertical: 'top', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 3 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 3, indent: izq[c - 1] ? 1 : 0 };
+                if (n > 3) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Teléfono' ? '#,##0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 3, indent: izq[c - 1] ? 1 : 0 };
                 if (n === 3) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
                 else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
