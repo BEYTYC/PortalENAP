@@ -1374,25 +1374,28 @@ class Component extends DCLogic {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = nm.correo || j.correo || 'usuario del Portal', ahora = new Date();
             const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-            const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', ySplit: 2 }] });
+            const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', ySplit: 3 }] });
             const izq = { 0: 1, 1: 1, 3: 1 }, nc = j.cab.length;
+            const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
+            ws.addRow(['Egresados no graduados - ' + tProg + ' - ' + tPer]);
             ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
-            ws.addRow(j.cab);
+            ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
             lista.forEach((f) => ws.addRow(f.map((v) => (v == null ? '' : String(v)))));
-            ws.mergeCells(1, 1, 1, nc);
+            ws.mergeCells(1, 1, 1, nc); ws.mergeCells(2, 1, 2, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
             const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 13; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow((row, n) => {
-              if (n === 1) { row.height = 24; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              row.height = n === 2 ? 32 : 20;
+              if (n === 1) { row.height = 30; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 15, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              if (n === 2) { row.height = 22; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              row.height = n === 3 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 2, indent: izq[c - 1] ? 1 : 0 };
-                if (n === 2) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
-                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 1) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
+                cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 3, indent: izq[c - 1] ? 1 : 0 };
+                if (n === 3) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
+                else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
             });
-            ws.autoFilter = { from: { row: 2, column: 1 }, to: { row: 2, column: nc } };
+            ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return wb.xlsx.writeBuffer();
           }).then((buf) => {
