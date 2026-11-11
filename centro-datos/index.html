@@ -1389,37 +1389,41 @@ class Component extends DCLogic {
       if (est === 'admin' || est === 'aprobada') {
         this.nomSet({ msg: 'Preparando la descarga…' });
         this.nomApi('descargar').then((j) => {
-          const quitar = ['Año de terminación', 'Promedio antigüedad', 'Posible error de registro (2022 en adelante)'], keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0); keep.sort((a, b) => (/^Otros grados/.test(j.cab[a]) ? 1 : 0) - (/^Otros grados/.test(j.cab[b]) ? 1 : 0) || a - b);
+          const quitar = ['Año de terminación', 'Promedio antigüedad', 'Posible error de registro (2022 en adelante)', 'Nota contacto'], iNota = j.cab.indexOf('Nota contacto'), keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0); keep.sort((a, b) => (/^Otros grados/.test(j.cab[a]) ? 1 : 0) - (/^Otros grados/.test(j.cab[b]) ? 1 : 0) || a - b);
           j.cab = keep.map((c) => j.cab[c]);
-          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => keep.map((c) => f[c]));
+          const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => keep.map((c) => f[c]).concat([iNota >= 0 ? f[iNota] || '' : '']));
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
           const cargar = window.ExcelJS ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = './exceljs.min.js'; sc.onload = ok; sc.onerror = () => no(new Error('No se pudo cargar el generador de Excel.')); document.head.appendChild(sc); });
           return cargar.then(() => {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = nm.correo || j.correo || 'usuario del Portal', ahora = new Date();
             const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-            const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', ySplit: 3, showGridLines: false }] });
+            const ws = wb.addWorksheet('Egresados no graduados', { views: [{ state: 'frozen', xSplit: 2, ySplit: 4, showGridLines: false }] });
             const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
             const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
             ws.addRow(['Egresados no graduados - ' + tProg + ' - ' + tPer]);
+            ws.addRow(['Fuente: Centro de Datos ENAP - Portal Estadístico']);
             ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
             ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
-            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.map((v, c) => { const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
-            ws.mergeCells(1, 1, 1, nc); ws.mergeCells(2, 1, 2, nc);
+            const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
+            ws.mergeCells(1, 1, 1, 2); ws.mergeCells(2, 1, 2, 2); ws.mergeCells(3, 1, 3, 2);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
-            const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = /terminación/.test(j.cab[c]) ? 17 : 13; });
+            const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow((row, n) => {
-              if (n === 1) { row.height = 30; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 15, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'bottom', horizontal: 'left', indent: 1 }; return; }
-              if (n === 2) { row.height = 22; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c1.alignment = { vertical: 'top', horizontal: 'left', indent: 1 }; return; }
-              row.height = n === 3 ? 32 : 20;
+              if (n === 1) { row.height = 66; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 15, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'bottom', horizontal: 'left', wrapText: true, indent: 1 }; return; }
+              if (n === 2) { row.height = 30; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true }; return; }
+              if (n === 3) { row.height = 44; const c2 = row.getCell(1); c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 }; return; }
+              row.height = n === 4 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                if (n > 3) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 3, indent: izq[c - 1] ? 1 : 0 };
-                if (n === 3) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
+                if (n > 4) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 4, indent: izq[c - 1] ? 1 : 0 };
+                if (n === 4) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
                 else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (n % 2 === 0) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF4F7FC' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
             });
-            ws.autoFilter = { from: { row: 3, column: 1 }, to: { row: 3, column: nc } };
+            const iCo = j.cab.indexOf('Correo'), iTe = j.cab.indexOf('Teléfono');
+            lista.forEach((f, i) => { const nota = f[nc]; if (!nota) return; [iCo, iTe].forEach((c) => { if (c < 0) return; const ce = ws.getRow(5 + i).getCell(c + 1); if (ce.value === '' || ce.value == null) return; ce.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4C2' } }; ce.note = { texts: [{ text: nota }], margins: { insetmode: 'custom', inset: [0.1, 0.1, 0.1, 0.1] } }; }); });
+            ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return wb.xlsx.writeBuffer();
           }).then((buf) => {
