@@ -23,7 +23,7 @@ document.addEventListener('click',function(e){try{
 <script>(function(){var RE=/^(-?[\d.]+)(?:,(\d+))?(%?)$/;function parse(t){var m=RE.exec((t||'').trim());if(!m)return null;var ip=m[1].replace(/\./g,'');if(!/^-?\d+$/.test(ip))return null;return{v:parseFloat(ip+(m[2]?'.'+m[2]:'')),dec:m[2]?m[2].length:0,pct:m[3]}}
 function fmtN(v,d,p){var q=v.toFixed(d).split('.');q[0]=q[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.');return q.join(',')+p}
 var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches,obs;
-function run(e){var tn=e;while(tn&&tn.nodeType===1&&tn.childNodes.length===1)tn=tn.firstChild;if(!tn||tn.nodeType!==3)return;var t=tn.data;if(e._tgt===t||e._w)return;var n=parse(t);if(!n){e._tgt=t;e._last=null;return}var from=e._last==null?0:e._last;e._tgt=t;e._last=n.v;if(reduce||from===n.v)return;var t0=performance.now(),D=800,id=e._id=(e._id||0)+1;
+function run(e){var tn=e;while(tn&&tn.nodeType===1&&tn.childNodes.length===1)tn=tn.firstChild;if(!tn||tn.nodeType!==3)return;var t=tn.data;if(e._tgt===t||e._w)return;var n=parse(t);if(!n){e._tgt=t;e._last=null;return}var from=e._last==null?0:e._last;e._tgt=t;e._last=n.v;if(reduce||from===n.v)return;var t0=performance.now(),D=520,id=e._id=(e._id||0)+1;
 function step(now){if(e._id!==id)return;var k=Math.min(1,(now-t0)/D),k2=1-Math.pow(1-k,3);e._w=true;tn.data=k>=1?t:fmtN(from+(n.v-from)*k2,n.dec,n.pct);e._w=false;if(obs)obs.takeRecords();if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)}
 function scan(root){if(root.nodeType!==1)root=root.parentElement;if(!root)return;var c=root.closest&&root.closest('.cnt');if(c)run(c);if(root.querySelectorAll)root.querySelectorAll('.cnt').forEach(run)}
 var lastH=-1,mt=0;function measure(){mt=0;var e=document.querySelector('.egscr'),h=0;if(e&&e.offsetParent){var t=0,n=e;while(n){t+=n.offsetTop||0;n=n.offsetParent}h=t+e.offsetHeight+40}h=Math.round(h);if(h!==lastH){lastH=h;document.dispatchEvent(new CustomEvent('egh',{detail:h}))}}
@@ -58,7 +58,7 @@ body{margin:0}
 .d1{animation-delay:.04s}.d2{animation-delay:.10s}.d3{animation-delay:.16s}.d4{animation-delay:.22s}.d5{animation-delay:.28s}.d6{animation-delay:.34s}
 
 @keyframes fup{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
-.fup{animation:fup .9s cubic-bezier(.22,.8,.24,1) both}
+.fup{animation:fup .55s cubic-bezier(.22,.8,.24,1) both}
 @keyframes appin{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
 .appin{animation:appin .7s cubic-bezier(.22,.8,.24,1) both}
 @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,40px) scale(1.12)}}
@@ -79,7 +79,7 @@ body{margin:0}
 .grad{background:linear-gradient(100deg,#0C2050 0%,#1D4FD8 45%,#5B93F0 100%);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .spin{animation:spin 70s linear infinite}.spinr{animation:spinr 48s linear infinite}
 .flow{animation:flowd 4s linear infinite}
-.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.8s .9s cubic-bezier(.22,.8,.24,1) forwards}
+.draw{stroke-dasharray:1;stroke-dashoffset:1;animation:draw 1.8s .55s cubic-bezier(.22,.8,.24,1) forwards}
 .sheen{position:absolute;top:0;bottom:0;left:0;width:36%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:sheen 3.6s ease-in-out infinite}
 .cta{transition:transform .35s cubic-bezier(.22,.8,.24,1),box-shadow .35s ease}
 .cta:hover{transform:translateY(-3px);box-shadow:0 24px 54px rgba(29,79,216,.45),0 2px 0 rgba(255,255,255,.18) inset!important}
@@ -91,7 +91,7 @@ body{margin:0}
 .node:hover{background:#fff;margin-top:-4px;box-shadow:0 2px 4px rgba(20,35,63,.08),0 22px 44px rgba(29,79,216,.28)}
 .card{border-radius:22px;padding:16px 18px;box-sizing:border-box;overflow:hidden;transition:transform .4s cubic-bezier(.22,.8,.24,1),box-shadow .4s ease}
 .card:hover{transform:translateY(-4px);box-shadow:0 2px 4px rgba(20,35,63,.06),0 24px 48px rgba(29,79,216,.16)}
-.bbar{transform-origin:bottom;animation:growy .9s cubic-bezier(.22,.8,.24,1) both}
+.bbar{transform-origin:bottom;animation:growy .55s cubic-bezier(.22,.8,.24,1) both}
 .hbar{transform-origin:left;animation:growx 1s cubic-bezier(.22,.8,.24,1) both}
 @keyframes growy{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 @keyframes growx{from{transform:scaleX(0)}to{transform:scaleX(1)}}
@@ -1264,9 +1264,9 @@ class Component extends DCLogic {
     const med = ages.length ? (ages.length % 2 ? ages[(ages.length - 1) / 2] : (ages[ages.length / 2 - 1] + ages[ages.length / 2]) / 2) : 0;
     const conC = rows.filter((r) => r[3] === 1).length, otroC = rows.filter((r) => r[2] === 1).length;
     const SEM = (r) => r < 0.05 ? { c: '#12A58F', t: 'Verde' } : r < 0.10 ? { c: '#E3A92E', t: 'Amarillo' } : { c: '#C8352B', t: 'Rojo' };
-    const kp = (label, value, sub, color, w, vc) => ({ vc: vc || '#0C2050', label: label, value: value, sub: sub, dot: 'width:10px;height:10px;border-radius:3px;background:' + color, bar: 'height:100%;border-radius:2px;background:' + color + ';width:' + Math.max(2, Math.min(100, w)) + '%' + ';transition:width .9s cubic-bezier(.22,.8,.24,1),left .9s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .9s cubic-bezier(.22,.8,.24,1) both' });
+    const kp = (label, value, sub, color, w, vc) => ({ vc: vc || '#0C2050', label: label, value: value, sub: sub, dot: 'width:10px;height:10px;border-radius:3px;background:' + color, bar: 'height:100%;border-radius:2px;background:' + color + ';width:' + Math.max(2, Math.min(100, w)) + '%' + ';transition:width .55s cubic-bezier(.22,.8,.24,1),left .55s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .55s cubic-bezier(.22,.8,.24,1) both' });
     const rt0 = tot ? pend / tot : 0, smK = SEM(rt0);
-    const kp2 = (label, value, sub, color, w, vc, mark) => ({ label: label, value: value, sub: sub, vc: vc || '#0C2050', dot: 'width:10px;height:10px;border-radius:3px;background:' + color, bar: 'position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:' + color + ';width:' + Math.max(2, Math.min(100, w)) + '%' + ';transition:width .9s cubic-bezier(.22,.8,.24,1),left .9s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .9s cubic-bezier(.22,.8,.24,1) both', mark: !!mark, markS: 'position:absolute;top:-3px;bottom:-3px;width:2px;background:#0C2050;left:25%;transition:left .9s cubic-bezier(.22,.8,.24,1)' });
+    const kp2 = (label, value, sub, color, w, vc, mark) => ({ label: label, value: value, sub: sub, vc: vc || '#0C2050', dot: 'width:10px;height:10px;border-radius:3px;background:' + color, bar: 'position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:' + color + ';width:' + Math.max(2, Math.min(100, w)) + '%' + ';transition:width .55s cubic-bezier(.22,.8,.24,1),left .55s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .55s cubic-bezier(.22,.8,.24,1) both', mark: !!mark, markS: 'position:absolute;top:-3px;bottom:-3px;width:2px;background:#0C2050;left:25%;transition:left .55s cubic-bezier(.22,.8,.24,1)' });
     const egKpis = [
       kp2('Egresados no graduados', fmt(pend), 'de ' + fmt(tot) + ' egresados (' + fmt(grad) + ' sí se graduaron)', '#E8702A', tot ? pend / tot * 100 : 0),
       kp2('Tasa de no graduados', pc(pend, tot), '● ' + smK.t + ' · meta: menos de 5 %', smK.c, Math.min(100, rt0 / 0.20 * 100), smK.c, true),
@@ -1282,13 +1282,13 @@ class Component extends DCLogic {
       n: o.t ? (rt * 100).toFixed(rt < 0.1 ? 1 : 0).replace('.', ',') + '%' : '', lbl: bs === 1 ? String(b).slice(2) : String(b), tip: (bs === 1 ? b : b + '–' + (b + 4)) + ': ' + o.n + ' sin grado de ' + o.t + ' egresados (' + pc(o.n, o.t) + ')',
       go: () => this.setState({ eg: Object.assign({}, eg, bs === 1 ? { mode: 'eq', yr: b, ran: [b, b] } : { mode: 'ge', yr: b, ran: [b, 9999] }) }),
       col: 'flex:1;min-width:0;max-width:64px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:3px;height:' + (BH2 + 34) + 'px;border:0;background:none;padding:0;font:inherit;cursor:pointer',
-      bar: 'width:100%;border-radius:7px 7px 2px 2px;background:' + SEM(rt).c + ';height:' + h + 'px;opacity:' + (o.t ? 1 : .15)+';transition:height .9s cubic-bezier(.22,.8,.24,1),background-color .5s,opacity .5s;transform-origin:center bottom;animation:egh .9s cubic-bezier(.22,.8,.24,1) both' }; });
+      bar: 'width:100%;border-radius:7px 7px 2px 2px;background:' + SEM(rt).c + ';height:' + h + 'px;opacity:' + (o.t ? 1 : .15)+';transition:height .55s cubic-bezier(.22,.8,.24,1),background-color .5s,opacity .5s;transform-origin:center bottom;animation:egh .55s cubic-bezier(.22,.8,.24,1) both' }; });
     const egMeta = 'position:absolute;left:0;right:0;bottom:' + Math.round(0.05 / MR * BH2 + 16) + 'px;border-top:2px dashed #12A58F;pointer-events:none', egBarsH = 'position:relative;margin-top:14px;display:flex;align-items:flex-end;justify-content:center;gap:4px;height:' + (BH2 + 34) + 'px';
-    const hb = (list, color) => { const m = Math.max.apply(null, list.map((x) => x.v).concat([1])); return list.map((x) => ({ label: x.label, val: x.val, sub: x.sub || '', bar: 'height:100%;border-radius:4px;background:' + (x.c || color) + ';width:' + Math.max(x.v ? 3 : 0, x.v / m * 100) + '%' + ';transition:width .9s cubic-bezier(.22,.8,.24,1),left .9s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .9s cubic-bezier(.22,.8,.24,1) both' })); };
+    const hb = (list, color) => { const m = Math.max.apply(null, list.map((x) => x.v).concat([1])); return list.map((x) => ({ label: x.label, val: x.val, sub: x.sub || '', bar: 'height:100%;border-radius:4px;background:' + (x.c || color) + ';width:' + Math.max(x.v ? 3 : 0, x.v / m * 100) + '%' + ';transition:width .55s cubic-bezier(.22,.8,.24,1),left .55s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .55s cubic-bezier(.22,.8,.24,1) both' })); };
     const rowsP = E.R.filter((r) => inR(r) && inc(r));
     const progList = PN.map((_, k) => k).filter((k) => pm(k)).map((k) => { const n = rowsP.filter((r) => r[1] === k).length, t = yrs.reduce((a, y) => a + den(y, k), 0); return { label: PN[k], v: n, val: fmt(n), sub: 'de ' + fmt(t) + ' egresados · tasa ' + pc(n, t) + ' · ' + SEM(t ? n / t : 0).t.toLowerCase(), c: SEM(t ? n / t : 0).c, rate: t ? n / t : 0, n: n, t: t }; });
     const mxp = Math.max.apply(null, progList.map((q) => q.rate).concat([0.06]));
-    const egProg = progList.filter((q) => q.t > 0).sort((a, b) => b.rate - a.rate).map((q) => ({ label: q.label, cnt: fmt(q.n) + ' de ' + fmt(q.t), rt: pc(q.n, q.t), rc: 'color:' + SEM(q.rate).c, track: 'position:relative;margin-top:5px;height:10px;border-radius:5px;background:#EEF1F6', fill: 'position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:' + SEM(q.rate).c + ';width:' + Math.max(q.n ? 2 : 0, q.rate / mxp * 100) + '%' + ';transition:width .9s cubic-bezier(.22,.8,.24,1),left .9s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .9s cubic-bezier(.22,.8,.24,1) both', tick: 'position:absolute;top:-3px;bottom:-3px;width:2px;background:#0C2050;left:' + (0.05 / mxp * 100) + '%;transition:left .9s cubic-bezier(.22,.8,.24,1)' }));
+    const egProg = progList.filter((q) => q.t > 0).sort((a, b) => b.rate - a.rate).map((q) => ({ label: q.label, cnt: fmt(q.n) + ' de ' + fmt(q.t), rt: pc(q.n, q.t), rc: 'color:' + SEM(q.rate).c, track: 'position:relative;margin-top:5px;height:10px;border-radius:5px;background:#EEF1F6', fill: 'position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:' + SEM(q.rate).c + ';width:' + Math.max(q.n ? 2 : 0, q.rate / mxp * 100) + '%' + ';transition:width .55s cubic-bezier(.22,.8,.24,1),left .55s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .55s cubic-bezier(.22,.8,.24,1) both', tick: 'position:absolute;top:-3px;bottom:-3px;width:2px;background:#0C2050;left:' + (0.05 / mxp * 100) + '%;transition:left .55s cubic-bezier(.22,.8,.24,1)' }));
     const B = [['0–5 años', 0, 5], ['6–10 años', 6, 10], ['11–20 años', 11, 20], ['21–30 años', 21, 30], ['31 años o más', 31, 999]];
     const egAge = hb(B.map((b) => { const n = ages.filter((a) => a >= b[1] && a <= b[2]).length; return { label: b[0], v: n, val: fmt(n), sub: pc(n, pend) + ' de los pendientes' }; }), '#7B5BD8');
     const cc = {}; rows.forEach((r) => { cc[r[4]] = (cc[r[4]] || 0) + 1; });
@@ -1341,7 +1341,7 @@ class Component extends DCLogic {
     const mxr = Math.max.apply(null, egDec.map((o) => o.rate).concat([0.01]));
     const egDecRows = egDec.map((o) => ({ label: o.label, a: o.a, b: o.b, c: o.c, cc: o.cc, pend: o.pend, esc: o.esc, tasa: o.tasa, tc: o.tc, go: o.go,
       rowStyle: 'display:grid;grid-template-columns:1.2fr .8fr .8fr .8fr .6fr .9fr .9fr 2fr;gap:8px;align-items:center;width:100%;box-sizing:border-box;padding:8px 10px;border:0;border-radius:10px;cursor:default;font:inherit;font-size:12.5px;color:#26354F;text-align:center;background:' + (o.on ? '#FDEBDD' : 'transparent'),
-      bar: 'height:100%;border-radius:4px;background:' + o.tc + ';width:' + Math.max(o.rate ? 3 : 0, o.rate / mxr * 100) + '%' + ';transition:width .9s cubic-bezier(.22,.8,.24,1),left .9s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .9s cubic-bezier(.22,.8,.24,1) both' }));
+      bar: 'height:100%;border-radius:4px;background:' + o.tc + ';width:' + Math.max(o.rate ? 3 : 0, o.rate / mxr * 100) + '%' + ';transition:width .55s cubic-bezier(.22,.8,.24,1),left .55s cubic-bezier(.22,.8,.24,1),background-color .5s;transform-origin:left center;animation:egw .55s cubic-bezier(.22,.8,.24,1) both' }));
     const egSemP = hb([1, 2].map((m) => { const n = rows.filter((r) => r[5] === m).length; return { label: m === 1 ? 'Semestre I' : 'Semestre II', v: n, val: fmt(n), sub: pc(n, pend) + ' de los pendientes', c: m === 1 ? '#2F6FE0' : '#12A58F' }; }));
     const yc = {}; rows.forEach((r) => { yc[r[0]] = (yc[r[0]] || 0) + 1; });
     const topY = Object.keys(yc).map((k) => [k, yc[k]]).sort((a, b) => b[1] - a[1]).slice(0, 6);
@@ -1440,7 +1440,7 @@ class Component extends DCLogic {
     const fsk0 = isIni ? (mobIni ? Math.min(aw / 480, ah / 640) : Math.max(0.3, Math.min(aw / 1300, ah / 645))) : scr ? Math.max(0.3, (aw - 15) / 1650) : fsOn ? Math.max(0.3, Math.min(aw / 1550, ah / 880)) : Math.max(0.3, Math.min(aw / 1440, ah / 900));
     const fsk = (this._modo === 'tablero' && !fsOn && mobq) ? aw / 445 : fsk0;
     const dyn = isIni || fitMode || fsOn;
-    const stW = (scr && mobq) ? 445 : scr ? 1650 : dyn ? aw / fsk : 1440, stH = scr ? Math.max(1000, ah / fsk, this.state.egH || 0) : mobIni ? Math.max(640, ah / fsk) : dyn ? ah / fsk : 900;
+    const stW = (scr && mobq) ? 445 : scr ? 1650 : dyn ? aw / fsk : 1440, stH = scr ? Math.max(1000, ah / fsk, this.state.egH || 0) : mobIni ? Math.max(640, ah / fsk) : dyn ? Math.max(ah / fsk, fsOn ? (this.state.egH || 0) : 0) : 900;
     const mob = scr && mobq;
     const rootStyle = fsOn ? "position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;background:#ECF0F6" : fitMode ? "position:fixed;inset:0;overflow:hidden;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;background:" + (isIni ? 'transparent' : 'linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)') : 'position:relative;width:1440px;height:900px';
     const areaStyle = fsOn ? 'flex:1;position:relative;overflow-x:hidden;overflow-y:auto;min-height:0' : mobIni ? 'position:absolute;inset:0;overflow:hidden' : scr ? 'position:absolute;inset:0;overflow-x:hidden;overflow-y:auto' : 'position:absolute;inset:0';
