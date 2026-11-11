@@ -308,16 +308,6 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 
 <sc-if value="{{ showChips }}" hint-placeholder-val="{{ true }}"><div class="rise d2" style="min-height:32px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:relative;z-index:30">
-<sc-if value="{{ pProgramas }}" hint-placeholder-val="{{ false }}">
-<div style="position:relative">
-<button class="x" onClick="{{ ddToggle }}" aria-haspopup="listbox" style="display:inline-flex;align-items:center;gap:10px;padding:6px 14px;border-radius:12px;border:1px solid #0C2050;background:#0C2050;color:#fff;font-size:13px;font-weight:600;cursor:pointer"><span style="font-size:11px;font-weight:500;opacity:.7">Programa</span>{{ ddLabel }}<span style="font-size:10px">▾</span></button>
-<sc-if value="{{ ddOpen }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;top:38px;left:0;z-index:40;min-width:260px;padding:6px;border-radius:14px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 14px 36px rgba(20,35,63,.18);display:flex;flex-direction:column;gap:2px">
-<sc-for list="{{ ddOptions }}" as="o" hint-placeholder-count="5"><button class="hov" onClick="{{ o.go }}" style="{{ o.style }}"><span>{{ o.label }}</span><span style="font-size:11px;color:#6B7A94;font-variant-numeric:tabular-nums">{{ o.sub }}</span></button></sc-for>
-</div>
-</sc-if>
-</div>
-</sc-if>
 <sc-if value="{{ noChips }}" hint-placeholder-val="{{ true }}"><span style="font-size:12.5px;color:#6B7A94">Sin filtros: se muestran todos los registros</span></sc-if>
 <sc-for list="{{ chips }}" as="c" hint-placeholder-count="0"><button class="x" onClick="{{ c.go }}" style="display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:999px;border:1px solid #9DBBF2;background:#E6EEFC;color:#1D3F9E;font-size:12.5px;font-weight:600;cursor:pointer">{{ c.label }}<span aria-hidden="true" style="font-size:14px;line-height:1">×</span></button></sc-for>
 </div>
@@ -327,7 +317,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div class="egscr" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:14px">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:20px">
 <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
-<div><div style="font-size:20px;font-weight:700;color:#0C2050;letter-spacing:-.01em">Egresados no graduados</div><div style="margin-top:2px;font-size:12px;color:#6B7A94">Egresados de Ciencias (Conglomerado, motivo ASCENSO) sin título de Ciencias en Graduados ENAP, y egresados de seis CCP (Administración, Administración Marítima, Oceanografía Física, Ingeniería Naval, Ingeniería Electrónica y Ciencias de la Administración) sin grado en el mismo programa.</div></div></div>
+<div><div style="font-size:20px;font-weight:700;color:#0C2050;letter-spacing:-.01em">Egresados no graduados</div><div style="margin-top:2px;font-size:12px;color:#6B7A94">Escalafonados de Ciencias que no obtuvieron el título de Ciencias, y quienes hicieron un CCP (Administración, Administración Marítima, Oceanografía Física, Ingeniería Naval, Ingeniería Electrónica y Ciencias de la Administración) y no obtuvieron el título.</div></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex:none"><sc-if value="{{ egNomOn }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ egNomGo }}" style="padding:8px 18px;border-radius:12px;border:0;background:#0C2050;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px">{{ egNomTxt }}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></button></sc-if><div style="font-size:11px;color:#6B7A94;max-width:340px;text-align:right">{{ egNomMsg }}</div></div>
 </div>
 <div class="egk" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px">
@@ -1238,9 +1228,9 @@ class Component extends DCLogic {
   nomSolic() { this.nomApi('solicitudes').then((j) => this.nomSet({ sol: j.solicitudes || [], desc: j.descargas || [] })).catch((e) => this.nomSet({ msg: e.message })); }
   egres() {
     const k0 = this.state, m0 = this._egm;
-    if (m0 && m0.e === k0.eg && m0.n === k0.nom) return m0.v;
+    if (m0 && m0.e === k0.eg && m0.n === k0.nom && m0.s === k0.sp) return m0.v;
     const v0 = this.egres0();
-    this._egm = { e: k0.eg, n: k0.nom, v: v0 };
+    this._egm = { e: k0.eg, n: k0.nom, s: k0.sp, v: v0 };
     return v0;
   }
   egres0() {
@@ -1250,10 +1240,13 @@ class Component extends DCLogic {
     const PN = E.P, PCOL = ['#2F6FE0', '#12A58F', '#E3A92E'].concat(E.P.slice(3).map((_, i) => ['#7B5BD8', '#C8352B', '#E8702A', '#0C2050', '#6B7A94', '#2F9E6A', '#B85BD8', '#3D8BC9', '#A8832B', '#8A5A3C'][i % 10]));
     const NC = E.nc || 3, inP = (j, k) => k == null || (k === 'C' ? j < NC : k === 'P' ? j >= NC : k === j), pm = (j) => inP(j, eg.prog), incY = (y, k) => !!(eg && eg.pre) || k >= NC || y >= 2000, inc = (r) => incY(r[0], r[1]), pLabel = (k) => k == null ? 'todos los programas' : k === 'C' ? 'Ciencias' : k === 'P' ? 'CCP' : PN[k];
     const dn = (y, k, sm) => { const d = E.D[y]; return d ? (sm ? d[k * 2 + sm - 1] : d[k * 2] + d[k * 2 + 1]) : 0; };
-    const r95 = E.R.filter((r) => r[1] >= NC || r[0] >= 2000).length, t95 = Object.keys(E.D).map(Number).reduce((a, y) => a + PN.reduce((b, _, j) => b + (j >= NC || y >= 2000 ? dn(y, j) : 0), 0), 0);
+    const SPM = { 0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 7, 7: 6, 8: 5 }, sp0 = st.sp || {};
+    const spP = sp0.prog == null ? null : (SPM[sp0.prog] === undefined ? -1 : SPM[sp0.prog]);
+    const spOk = (y, j) => (spP == null || spP === j) && (sp0.nivel !== 'S') && (!sp0.year || y === sp0.year) && (!sp0.range || (y >= sp0.range[0] && y <= sp0.range[1]));
+    const r95 = E.R.filter((r) => (r[1] >= NC || r[0] >= 2000) && spOk(r[0], r[1])).length, t95 = Object.keys(E.D).map(Number).reduce((a, y) => a + PN.reduce((b, _, j) => b + ((j >= NC || y >= 2000) && spOk(y, j) ? dn(y, j) : 0), 0), 0);
     const base = { egOn: on, egGate: on ? 'display:none' : 'display:contents', egCls: on ? 'egg egoff' : 'egg', egBadge: fmt(r95),
       egCard: { value: fmt(r95), tasa: pc(r95, t95), hist: fmt(E.R.length) },
-      egOpen: () => { this.setState({ eg: { on: true, prog: null, ran: [0, 9999], mode: 'all', yr: 2000, sem: null, pre: true }, dd: false, rd: false, ed: false, pd: false, cd: false }); this.nomSesion(); },
+      egOpen: () => { this.setState({ eg: { on: true, prog: spP == null || spP < 0 ? null : spP, ran: sp0.range ? [sp0.range[0], sp0.range[1]] : sp0.year ? [sp0.year, sp0.year] : [0, 9999], mode: sp0.range ? 'ge' : sp0.year ? 'eq' : 'all', yr: sp0.year || (sp0.range ? sp0.range[0] : 2000), sem: null, pre: true }, dd: false, rd: false, ed: false, pd: false, cd: false }); this.nomSesion(); },
       egBack: () => this.setState({ eg: null }) };
     if (!on) return base;
     const y0 = eg.ran[0], y1 = eg.ran[1], prog = eg.prog, sem = eg.sem;
@@ -1595,7 +1588,7 @@ class Component extends DCLogic {
     const clearAll = () => this.setState({ f: { sexo: null, prog: null, estado: null, causal: null, concesion: null, pais: null, year: null, range: null, esp: null, periods: null, cont: null, card: null, ciudad: null, yret: null, edad: null } });
 
     // ---------- pestañas
-    const tabDefs = [['general', 'General'], ['concesiones', 'Concesiones'], ['programas', 'Programas']];
+    const tabDefs = [['general', 'General'], ['programas', 'Programas']];
     const tabs = tabDefs.map((t) => ({
       label: t[1], go: () => this.setState({ tab: t[0], dd: false, rd: false, ed: false, pd: false, cd: false, eg: null }),
       style: 'padding:11px 22px;border-radius:999px;border:0;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap;background:' + (tab === t[0] ? '#0C2050' : 'transparent') + ';color:' + (tab === t[0] ? '#fff' : '#51617D')
