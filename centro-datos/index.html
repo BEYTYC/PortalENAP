@@ -1425,7 +1425,10 @@ class Component extends DCLogic {
             lista.forEach((f, i) => { const nota = f[nc]; if (!nota) return; [iCo, iTe].forEach((c) => { if (c < 0) return; const ce = ws.getRow(5 + i).getCell(c + 1); if (ce.value === '' || ce.value == null) return; ce.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4C2' } }; ce.note = { texts: [{ text: nota }], margins: { insetmode: 'custom', inset: [0.1, 0.1, 0.1, 0.1] } }; }); });
             ws.autoFilter = { from: { row: 4, column: 1 }, to: { row: 4, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
-            return wb.xlsx.writeBuffer();
+            return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
+              if (ab) { const idImg = wb.addImage({ buffer: ab, extension: 'png' }); ws.addImage(idImg, { tl: { col: Math.max(1, Math.floor(nc / 2) - 1), row: 5 }, ext: { width: 560, height: Math.round(560 * 2356 / 1743) }, editAs: 'absolute' }); }
+              return wb.xlsx.writeBuffer();
+            });
           }).then((buf) => {
             const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(u); }, 500);
           });
