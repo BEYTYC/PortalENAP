@@ -365,7 +365,7 @@ function procesarCursos(libro, base) {
       if (!ck && !nm) continue;
       const clase = sinTildes((c.tipo >= 0 ? txt(r[c.tipo]) : '') + ' ' + nombreHoja);
       const reg = {
-        curso: base === 'ccp' ? 'CURSO DE COMPLEMENTACIÓN PROFESIONAL' : sinTildes(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
+        curso: base === 'ccp' ? 'CURSO DE COMPLEMENTACIÓN PROFESIONAL' : tilCurso(r[c.curso]), clase: base === 'ccp' ? 'complementacion' : base === 'ley' ? 'ley' : /COMPLEMENT/.test(clase) ? 'complementacion' : /ASCENSO|LEY/.test(clase) ? 'ley' : 'extension',
         tipo: base === 'ccp' ? [c.programa >= 0 ? nom(r[c.programa]) : [c.curso >= 0 && nom(r[c.curso]), c.espec >= 0 && nom(r[c.espec])].filter(Boolean).join(' · '), c.promo >= 0 && nom(r[c.promo])].filter(Boolean).join(' · ') : (c.tipo >= 0 ? txt(r[c.tipo]) : ''), hoja: nombreHoja, inicio: c.inicio >= 0 ? fechaCelda(r[c.inicio]) : '', fin: c.fin >= 0 ? fechaCelda(r[c.fin]) : '', horas: c.horas >= 0 ? horasDe(r[c.horas]) : null,
         nota: c.nota >= 0 && typeof r[c.nota] === 'number' ? r[c.nota] : null, puesto: c.puesto >= 0 && +r[c.puesto] > 0 ? +r[c.puesto] : null, nombre: nm,
       };
@@ -610,6 +610,14 @@ function sinRepetidos(lista, clave) {
   return Array.from(mapa.values());
 }
 const kt = (v) => sinTildes(v).replace(/[^A-Z0-9]/g, '');
+/* Tildes de los nombres de cursos (vienen en mayúsculas sin tilde en las bases). */
+const TIL_CURSO = { INGENIERIA: 'INGENIERÍA', ARTILLERIA: 'ARTILLERÍA', INFANTERIA: 'INFANTERÍA', CABALLERIA: 'CABALLERÍA', ENFERMERIA: 'ENFERMERÍA', ECONOMIA: 'ECONOMÍA', ASTRONOMIA: 'ASTRONOMÍA', CONTADURIA: 'CONTADURÍA', AUDITORIA: 'AUDITORÍA', LOGISTICA: 'LOGÍSTICA', LOGISTICO: 'LOGÍSTICO', ESTADISTICA: 'ESTADÍSTICA', INFORMATICA: 'INFORMÁTICA', TELEMATICA: 'TELEMÁTICA', MATEMATICA: 'MATEMÁTICA', MATEMATICAS: 'MATEMÁTICAS', ELECTRONICA: 'ELECTRÓNICA', ELECTRONICO: 'ELECTRÓNICO', MECANICA: 'MECÁNICA', MECANICO: 'MECÁNICO', HIDRAULICA: 'HIDRÁULICA', ELECTRICA: 'ELÉCTRICA', ELECTRICO: 'ELÉCTRICO', QUIMICA: 'QUÍMICA', FISICA: 'FÍSICA', FISICO: 'FÍSICO', BASICO: 'BÁSICO', BASICA: 'BÁSICA', TACTICO: 'TÁCTICO', TACTICA: 'TÁCTICA', TECNICO: 'TÉCNICO', TECNICA: 'TÉCNICA', TECNICAS: 'TÉCNICAS', PRACTICO: 'PRÁCTICO', PRACTICA: 'PRÁCTICA', PRACTICAS: 'PRÁCTICAS', TEORICO: 'TEÓRICO', TEORICA: 'TEÓRICA', POLITICA: 'POLÍTICA', POLITICAS: 'POLÍTICAS', PUBLICA: 'PÚBLICA', PUBLICAS: 'PÚBLICAS', PUBLICO: 'PÚBLICO', PUBLICOS: 'PÚBLICOS', MARITIMA: 'MARÍTIMA', MARITIMO: 'MARÍTIMO', MARITIMAS: 'MARÍTIMAS', MARITIMOS: 'MARÍTIMOS', NAUTICA: 'NÁUTICA', NAUTICAS: 'NÁUTICAS', NAUTICO: 'NÁUTICO', AERONAUTICA: 'AERONÁUTICA', ANALISIS: 'ANÁLISIS', INGLES: 'INGLÉS', FRANCES: 'FRANCÉS', CATEDRA: 'CÁTEDRA', ETICA: 'ÉTICA', ESTRATEGICO: 'ESTRATÉGICO', ESTRATEGICA: 'ESTRATÉGICA', CLIMATICO: 'CLIMÁTICO', CLIMATICA: 'CLIMÁTICA', DIDACTICA: 'DIDÁCTICA', PEDAGOGIA: 'PEDAGOGÍA', DISENO: 'DISEÑO', SENALES: 'SEÑALES', ESPANOL: 'ESPAÑOL', BALISTICA: 'BALÍSTICA', CRIMINALISTICA: 'CRIMINALÍSTICA', ACUSTICA: 'ACÚSTICA', HIDROACUSTICA: 'HIDROACÚSTICA', OPTICA: 'ÓPTICA', RAPIDA: 'RÁPIDA', RAPIDO: 'RÁPIDO', BUSQUEDA: 'BÚSQUEDA', PROPOSITO: 'PROPÓSITO', PERIODO: 'PERÍODO', ESPECIFICO: 'ESPECÍFICO', ESPECIFICA: 'ESPECÍFICA' };
+const tilCurso = (v) => sinTildes(v).replace(/[A-ZÑ]{3,}/g, (w) => {
+  if (TIL_CURSO[w]) return TIL_CURSO[w];
+  if (/ION$/.test(w) && w.length > 4) return w.slice(0, -3) + 'IÓN'; // gestión, acción, región, reunión…
+  if (/(OLOGIA|GRAFIA|NOMIA|METRIA|GOGIA)$/.test(w)) return w.slice(0, -2) + 'ÍA';
+  return w;
+});
 
 /* Jerarquía con la que se escalafona según la especialidad (y si es extranjero naval, honorario). */
 function claseEsp(txt0) {
@@ -855,7 +863,7 @@ function armarFicha(id, S) {
     const dist = (e) => (tM != null ? Math.abs((e.t || 0) - tM) : 0);
     const libres = (L) => L.filter((e) => !(e.medallas && e.medallas.length));
     const mejor = (L) => { const F = libres(L); return (F.length ? F : []).sort((a, b) => dist(a) - dist(b))[0]; };
-    const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'extension', 'escalafon'].includes(e.tipo) && e.t != null);
+    const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'escalafon'].includes(e.tipo) && e.t != null); // en cursos de extensión no se gana medalla Caldas
     const casa = (e, k) => e.tipo === 'escalafon' ? /ESCALAF/.test(k) : (coincide(kt(e.titulo), k) || coincide(kt(e.programa || ''), k) || coincide(kt(e.tituloAcad || ''), k) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), k)));
     const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
     // 1. Por cada clave (general primero), tarjetas que coinciden y no tienen ya una Caldas; la del periodo más cercano.
@@ -910,17 +918,20 @@ function armarFicha(id, S) {
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas, semestres: semsBeca });
   if (nExc) items.push({ k: 'excelencia', label: 'Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
   {
-    const nC = medallas.length;
-    if (nC) items.push({ k: 'caldas', label: 'Medalla Caldas', n: nC });
     const pr = [], nH = ['mencion', 'merito', 'laureado'].map((c) => [c, concesiones.filter((x) => x.clase === c).length]);
     nH.forEach(([c, n]) => { if (n) pr.push(n + ' ' + ({ mencion: n === 1 ? 'mención de honor' : 'menciones de honor', merito: n === 1 ? 'meritorio' : 'meritorios', laureado: n === 1 ? 'laureado' : 'laureados' })[c]); });
     const nP = nH.reduce((t, x) => t + x[1], 0);
     if (nP) items.push({ k: 'premio', label: nP === 1 ? 'Premio' : 'Premios', n: nP, det: pr.join(' · ') });
   }
+  {
+    // Solo la medalla Caldas de la promoción (la que quedó en la tarjeta de Escalafonamiento) cuenta como logro de la formación; las de cursos de ascenso u otros no.
+    const escEv = linea.find((e) => e.tipo === 'escalafon'), nCP = escEv && escEv.medallas ? escEv.medallas.length : 0;
+    if (nCP) items.unshift({ k: 'caldasmil', label: 'Medalla Militar “Francisco José de Caldas”', n: nCP });
+  }
   if (items.length) {
     const ing = linea.find((e) => e.tipo === 'ingreso');
     const ti = ing && ing.t != null ? ing.t + 0.01 : (ing && ing.anio ? ing.anio + 0.02 : null);
-    linea.push({ tipo: 'logros', t: ti, anio: ing ? ing.anio : null, titulo: 'Logros', items });
+    linea.push({ tipo: 'logros', t: ti, anio: ing ? ing.anio : null, titulo: 'Logros durante su etapa de formación naval militar', items });
   }
   // Un reingreso solo puede ocurrir después de un retiro: si no trae fecha, va justo después del retiro.
   {
