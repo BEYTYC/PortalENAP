@@ -193,6 +193,10 @@ function procesarConglomerado(libro) {
   c.fechaRe = H0.findIndex((x, j) => j !== c.cont2 && /REINGRESO/.test(x) && /(FECHA|PERIODO|ANO)/.test(x));
   c.resol = H0.findIndex((x) => x === 'RES ING 2'); if (c.resol < 0) c.resol = H0.findIndex((x) => /RESOLUCION/.test(x) && !/(REINGRESO|RETIRO|SALIDA|BAJA|ESCALAF|GRADO)/.test(x));
   c.resolRe = H0.findIndex((x) => /RESOLUCION/.test(x) && /REINGRESO/.test(x));
+  // Fecha de la resolución de ingreso: columna propia (en el archivo actual es la H); no es la fecha de ingreso (D).
+  c.resolF = H0.findIndex((x) => /FECHA/.test(x) && (/RESOL/.test(x) || /(^| )RES( |$)/.test(x)) && !/(REINGRESO|RETIRO|SALIDA|BAJA|ESCALAF|GRADO)/.test(x));
+  if (c.resolF < 0) c.resolF = 7;
+  if (c.resolF === c.fecha) c.resolF = -1;
   if (c.nombre < 0) throw error('CONGLOMERADO no tiene la columna APELLIDOS Y NOMBRES.', 500);
   const porCed = {}, porNom = {};
   const fechasCont = {}; // contingente -> {fecha: veces}
@@ -209,7 +213,7 @@ function procesarConglomerado(libro) {
       nombre: nom(r[c.nombre]), cedula: ck ? txt(r[c.cedula]) : '', ck, sigla: txt(r[c.esp]), cont: txt(r[c.cont]).replace(/\s+/g, ''),
       fecha: iso(d), anio: anio || null, sexo: /^[MF]$/i.test(txt(r[c.sexo])) ? txt(r[c.sexo]).toUpperCase() : '',
       nac: ext ? sinTildes(r[c.pais] || '') : (c.ext >= 0 ? 'COLOMBIA' : ''), salida: txt(r[c.salida]), anioSal: txt(r[c.anioSal]), promo: c.promo >= 0 ? txt(r[c.promo]) : '',
-      resol: c.resol >= 0 ? txt(r[c.resol]) : '', resolRe: c.resolRe >= 0 ? txt(r[c.resolRe]) : '',
+      resol: c.resol >= 0 ? txt(r[c.resol]) : '', resolF: c.resolF >= 0 ? fechaCelda(r[c.resolF]) : '', resolRe: c.resolRe >= 0 ? txt(r[c.resolRe]) : '',
       cont2: c.cont2 >= 0 ? txt(r[c.cont2]).replace(/\s+/g, '') : '', fechaRe: c.fechaRe >= 0 ? fechaCelda(r[c.fechaRe]) : '',
     };
     if (reg.cont && reg.fecha) { const kc = normCont(reg.cont); const m = (fechasCont[kc] = fechasCont[kc] || {}); m[reg.fecha] = (m[reg.fecha] || 0) + 1; }
@@ -791,7 +795,7 @@ function armarFicha(id, S) {
 
   /* ---- Línea de tiempo ---- */
   const linea = [];
-  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: esPuente(ing0.cont) ? 'Ingreso Civil Mercante' : tituloIngreso(ing0.sigla), detalle: [ing0.cont && !esPuente(ing0.cont) && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), resolucion: ing0.resol || '', pv: ing0.pv });
+  if (ing0) linea.push({ tipo: 'ingreso', t: tFecha(ing0.fecha) != null ? tFecha(ing0.fecha) : (ing0.anio ? ing0.anio + 0.01 : null), fecha: ing0.fecha, anio: ing0.anio || anioDe(ing0.fecha), titulo: esPuente(ing0.cont) ? 'Ingreso Civil Mercante' : tituloIngreso(ing0.sigla), detalle: [ing0.cont && !esPuente(ing0.cont) && 'Contingente ' + ing0.cont].filter(Boolean).join(' · '), resolFecha: ing0.resolF || '', resolucion: ing0.resol || '', pv: ing0.pv });
   if (ing0 && ing0.reingreso && !ingresos.slice(1).some((x) => normCont(x.cont) === normCont(ing0.reingreso.cont))) linea.push({ tipo: 'regreso', t: tFecha(ing0.reingreso.fecha) != null ? tFecha(ing0.reingreso.fecha) : null, fecha: ing0.reingreso.fecha, anio: anioDe(ing0.reingreso.fecha), titulo: 'Reingreso a la ENAP', detalle: 'Contingente ' + ing0.reingreso.cont, resolucion: ing0.reingreso.resol || '', pv: ing0.pv });
   ingresos.slice(1).forEach((x) => linea.push({ tipo: 'regreso', t: tFecha(x.fecha) != null ? tFecha(x.fecha) : (x.anio ? x.anio + 0.01 : null), fecha: x.fecha, anio: x.anio || anioDe(x.fecha), titulo: 'Reingreso a la ENAP', detalle: [x.cont && 'Contingente ' + x.cont].filter(Boolean).join(' · '), resolucion: x.resol || '', pv: x.pv }));
   sems.forEach((s) => linea.push({ tipo: 'semestre', t: s.t, anio: s.periodo ? +s.periodo.slice(0, 4) : null, semestre: s, pv: pvAnt }));

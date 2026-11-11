@@ -244,7 +244,17 @@ var MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'
 var MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
 function fchL(f){var m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(+m[3]+' de '+MESL[+m[2]-1]+' de '+m[1]):''}
 /* Formato: Resolución No. 5393 del 29 de noviembre de 2007 */
-function RT(r,f){r=String(r||'').trim();if(!r)return '';var n=r.match(/\d[\d.]*/);var num=n?n[0].replace(/\.$/,''):'';if(!num)return r;var d=fchL(f);if(d)return 'Resolución No. '+num+' del '+d;var y=r.slice(n.index+num.length).match(/(19|20)\d\d/);return 'Resolución No. '+num+(y?' de '+y[0]:'')}
+function RT(r,f){r=String(r||'').trim();if(!r)return '';var n=r.match(/\d[\d.]*/);var num=n?n[0].replace(/\.$/,''):'';if(!num)return r;
+  /* Si la resolución trae su propia fecha escrita (p. ej. "NOVIEMBRE 27/2015"), esa manda; si no, se usa la fecha aparte (f). */
+  var resto=r.slice(n.index+num.length).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
+  var MN={ENERO:1,FEBRERO:2,MARZO:3,ABRIL:4,MAYO:5,JUNIO:6,JULIO:7,AGOSTO:8,SEPTIEMBRE:9,SETIEMBRE:9,OCTUBRE:10,NOVIEMBRE:11,DICIEMBRE:12};
+  var d='',m=resto.match(/([A-Z]{3,})\s*(\d{1,2})\s*(?:DE\s+|[\/\-]|\s)\s*((?:19|20)\d\d)/);
+  if(m&&MN[m[1]])d=(+m[2])+' de '+MESL[MN[m[1]]-1]+' de '+m[3];
+  if(!d){m=resto.match(/(\d{1,2})\s+(?:DE\s+)?([A-Z]{3,})\s+(?:DE\s+)?((?:19|20)\d\d)/);if(m&&MN[m[2]])d=(+m[1])+' de '+MESL[MN[m[2]]-1]+' de '+m[3]}
+  if(!d){m=resto.match(/(\d{1,2})[\/.\-](\d{1,2})[\/.\-]((?:19|20)\d\d)/);if(m&&+m[2]>=1&&+m[2]<=12&&+m[1]>=1&&+m[1]<=31)d=(+m[1])+' de '+MESL[+m[2]-1]+' de '+m[3]}
+  if(!d)d=fchL(f);
+  if(d)return 'Resolución No. '+num+' del '+d;
+  var y=resto.match(/(19|20)\d\d/);return 'Resolución No. '+num+(y?' de '+y[0]:'')}
 function fch(f){var m=String(f||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?(+m[3]+' '+MES[+m[2]-1]+' '+m[1]):''}
 function f3(v){return v==null?'—':Number(v).toFixed(3)}
 function svg(p,s,c){return '<svg width="'+s+'" height="'+s+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+p+'"></path></svg>'}
@@ -408,7 +418,7 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
     }else if(e.tipo==='grado'){
       titulo='Titulación Académica';chipD=fch(e.fecha);if(e.programa)body+='<div class="ds"><b>Programa:</b> '+TT(e.programa)+'</div>';var tt=tituloDe(e.programa)||e.tituloAcad||(e.programa?'':e.detalle);if(tt)body+='<div class="ds"><b>Título:</b> '+TT(tt)+'</div>';if(e.trabajo)body+='<div class="ds"><b>Trabajo de grado:</b> '+ESCT(e.trabajo)+'</div>';(e.distinciones||[]).forEach(function(d){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+TT(d.titulo)+'</b></div></div>'});(e.medallas||[]).forEach(function(m){body+='<div class="medbox">'+svg(IC.medal,18,'#1B5E34')+'<div><b>'+ESCT(m.titulo)+'</b>'+(m.categoria?' · <b>'+ESCT(String(m.categoria).charAt(0)+String(m.categoria).slice(1).toLowerCase())+'</b>':'')+(m.motivo?'<div>'+ESCT(m.motivo)+'</div>':'')+'</div></div>'});
     }else if(e.tipo==='ingreso'||e.tipo==='regreso'){
-      titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');var di=[];if(e.detalle)di.push(e.detalle);var ri=RT(e.resolucion,e.fecha);if(ri)di.push(ri);if(di.length)body+='<div class="ds">'+ESCT(di.join(' · '))+'</div>';
+      titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');var di=[];if(e.detalle)di.push(e.detalle);var ri=RT(e.resolucion,e.tipo==='ingreso'?(e.resolFecha||''):e.fecha);if(ri)di.push(ri);if(di.length)body+='<div class="ds">'+ESCT(di.join(' · '))+'</div>';
     }else if(e.tipo==='retiro'){
       titulo='Retiro Institucional';chipD=fch(e.fecha);var d2=[];if(e.causal)d2.push(TT(e.causal));var rr=RT(e.doc,e.fecha);if(rr)d2.push(rr);if(e.curso)d2.push('Curso '+String(e.curso).toUpperCase());
       if(d2.length)body+='<div class="ds">'+ESC(d2.join(' · '))+'</div>';
