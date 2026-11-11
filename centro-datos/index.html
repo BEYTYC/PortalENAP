@@ -1412,7 +1412,7 @@ class Component extends DCLogic {
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow((row, n) => {
               if (n === 1) { row.height = 30; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 15, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'bottom', horizontal: 'left', indent: 1 }; return; }
-              if (n === 2) { row.height = 20; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'center' }; return; }
+              if (n === 2) { row.height = 20; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               if (n === 3) { row.height = 22; const c2 = row.getCell(1); c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'top', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 4 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
