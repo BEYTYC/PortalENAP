@@ -1393,7 +1393,8 @@ class Component extends DCLogic {
           j.cab = keep.map((c) => j.cab[c]);
           const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => keep.map((c) => f[c]).concat([iNota >= 0 ? f[iNota] || '' : '']));
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
-          const cargar = window.ExcelJS ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = './exceljs.min.js'; sc.onload = ok; sc.onerror = () => no(new Error('No se pudo cargar el generador de Excel.')); document.head.appendChild(sc); });
+          const js = (cond, src, msg) => (cond() ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error(msg)); document.head.appendChild(sc); }));
+          const cargar = js(() => window.ExcelJS, './exceljs.min.js', 'No se pudo cargar el generador de Excel.').then(() => js(() => window.JSZip, './jszip.min.js', 'No se pudo cargar el generador de Excel.'));
           return cargar.then(() => {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = nm.correo || j.correo || 'usuario del Portal', ahora = new Date();
@@ -1430,7 +1431,11 @@ class Component extends DCLogic {
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
               if (ab) { ws.addBackgroundImage(wb.addImage({ buffer: ab, extension: 'png' })); }
-              return wb.xlsx.writeBuffer();
+              return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
+                const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
+                if (m && l && x.indexOf(m[0]) < x.indexOf(l[0])) { x = x.replace(m[0], '').replace(l[0], l[0] + m[0]); z.file('xl/worksheets/sheet1.xml', x); }
+                return z.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+              })));
             });
           }).then((buf) => {
             const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(u); }, 500);
