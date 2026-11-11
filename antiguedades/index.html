@@ -2450,7 +2450,7 @@ function armarBD(E,D0,quien){
     grupos.push({c0:1,c1:nF,tipo:'fija'});
     grupos.push({c0:nF+1,c1:nF+nP,tipo:'prom'});for(var q=nF+1;q<=nF+nP;q++)ws.getColumn(q).width=11;ws.getColumn(nF+nP+1).width=3.5;
     var c=nF+nP+2;
-    bloques.forEach(function(cod){grupos.push({c0:c,c1:c+wS-1,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<wS;j++){ws.getColumn(c+j).width=13;ws.getColumn(c+j).outlineLevel=1}ws.getColumn(c+wS).width=3.5;ws.getColumn(c+wS).outlineLevel=1;c+=wS+1});
+    bloques.forEach(function(cod){grupos.push({c0:c,c1:c+wS-1,tipo:cod.slice(-1)==='A'?'rep':'sem',cod:cod});for(var j=0;j<wS;j++){ws.getColumn(c+j).width=13}ws.getColumn(c+wS).width=3.5;c+=wS+1});
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:nF+nP+1);
     // título y fecha
