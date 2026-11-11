@@ -100,10 +100,12 @@ module.exports = async function handler(req, res) {
     const sols = (await leerJson('solicitudes.json')) || [];
     const mias = sols.filter((s) => s.correo === yo.correo).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
     const autorizado = AUTORIZADOS.includes(yo.correo);
+    // Misma autorización para las dos listas nominales: egresados no graduados (lista.json) y extranjeros (lista-extranjeros.json).
+    const LISTA = body.tipo === 'extranjeros' ? 'lista-extranjeros.json' : 'lista.json';
     const aprobada = admin || autorizado || (mias[0] && mias[0].estado === 'aprobada');
 
     if (accion === 'sesion') {
-      const lista = await leerJson('lista.json');
+      const lista = await leerJson(LISTA);
       res.status(200).json({ correo: yo.correo, admin, puede: !!aprobada, estado: admin ? 'admin' : autorizado ? 'aprobada' : (mias[0] ? mias[0].estado : null), lista: lista ? { actualizado: lista.meta && lista.meta.actualizado, filas: (lista.filas || []).length } : null });
       return;
     }
@@ -122,12 +124,12 @@ module.exports = async function handler(req, res) {
 
     if (accion === 'descargar') {
       if (!aprobada) throw error('No tiene autorización para descargar la lista con nombres.', 403);
-      const lista = await leerJson('lista.json');
+      const lista = await leerJson(LISTA);
       if (!lista) throw error('Todavía no se ha cargado la lista nominal. Un administrador debe subirla.', 404);
       const d = (await leerJson('descargas.json')) || [];
       d.push({ correo: yo.correo, fecha: ahora() });
       await escribirJson('descargas.json', d.slice(-500));
-      res.status(200).json({ cab: lista.cab, filas: lista.filas });
+      res.status(200).json({ cab: lista.cab, filas: lista.filas, ids: lista.ids || null });
       return;
     }
 
@@ -150,7 +152,7 @@ module.exports = async function handler(req, res) {
       const l = body.lista;
       if (!l || !Array.isArray(l.cab) || !Array.isArray(l.filas)) throw error('El archivo no tiene el formato esperado (faltan "cab" y "filas").', 400);
       if (JSON.stringify(l).length > MAX_BYTES) throw error('La lista es demasiado grande.', 413);
-      await escribirJson('lista.json', { meta: { actualizado: ahora(), por: yo.correo }, cab: l.cab, filas: l.filas });
+      await escribirJson(LISTA, { meta: { actualizado: ahora(), por: yo.correo }, cab: l.cab, filas: l.filas, ids: Array.isArray(l.ids) ? l.ids : undefined });
       res.status(200).json({ ok: true, filas: l.filas.length });
       return;
     }
