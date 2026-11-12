@@ -1356,14 +1356,15 @@ class Component extends DCLogic {
     const SPM = { 0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 7, 7: 6, 8: 5 }, sp0 = st.sp || {};
     const spP = sp0.prog == null ? null : (SPM[sp0.prog] === undefined ? -1 : SPM[sp0.prog]);
     const spOk = (y, j) => (spP == null || spP === j) && (sp0.nivel !== 'S') && (!sp0.year || y === sp0.year) && (!sp0.range || (y >= sp0.range[0] && y <= sp0.range[1])) && (!sp0.desde || y >= sp0.desde[0]) && (!sp0.hasta || y <= sp0.hasta[0]);
-    const r95 = E.R.filter((r) => incY(r[0], r[1]) && spOk(r[0], r[1])).length, t95 = Object.keys(E.D).map(Number).reduce((a, y) => a + PN.reduce((b, _, j) => b + (incY(y, j) && spOk(y, j) ? dn(y, j) : 0), 0), 0);
+    const spQ = (y, q) => (!sp0.periods || sp0.periods.indexOf(y + '-' + q) >= 0) && (!sp0.desde || y > sp0.desde[0] || (y === sp0.desde[0] && q >= sp0.desde[1])) && (!sp0.hasta || y < sp0.hasta[0] || (y === sp0.hasta[0] && q <= sp0.hasta[1]));
+    const r95 = E.R.filter((r) => incY(r[0], r[1]) && spOk(r[0], r[1]) && spQ(r[0], r[5])).length, t95 = Object.keys(E.D).map(Number).reduce((a, y) => a + PN.reduce((b, _, j) => b + (incY(y, j) && spOk(y, j) ? [1, 2].reduce((c, q) => c + (spQ(y, q) ? dn(y, j, q) : 0), 0) : 0), 0), 0);
     const base = { egOn: on, egGate: on ? 'display:none' : 'display:contents', egCls: on ? 'egg egoff' : 'egg', egBadge: fmt(r95),
       egCard: { value: fmt(r95), tasa: pc(r95, t95), hist: fmt(E.R.length) },
-      egOpen: () => { this.setState({ eg: { on: true, prog: spP == null || spP < 0 ? null : spP, ran: sp0.range ? [sp0.range[0], sp0.range[1]] : sp0.year ? [sp0.year, sp0.year] : [0, 9999], mode: sp0.range ? 'ge' : sp0.year ? 'eq' : 'all', yr: sp0.year || (sp0.range ? sp0.range[0] : 2000), sem: null, pre: true }, dd: false, rd: false, ed: false, pd: false, cd: false }); this.nomSesion(); },
+      egOpen: () => { this.setState({ eg: { on: true, prog: spP == null || spP < 0 ? null : spP, ran: sp0.range ? [sp0.range[0], sp0.range[1]] : sp0.year ? [sp0.year, sp0.year] : [sp0.desde ? sp0.desde[0] : 0, sp0.hasta ? sp0.hasta[0] : 9999], mode: sp0.range ? 'ge' : sp0.year ? 'eq' : 'all', yr: sp0.year || (sp0.range ? sp0.range[0] : sp0.desde ? sp0.desde[0] : 2000), sem: null, per: sp0.periods || null, dp: !sp0.range && !sp0.year && sp0.desde ? sp0.desde[1] : 0, hp: !sp0.range && !sp0.year && sp0.hasta ? sp0.hasta[1] : 0, pre: true }, dd: false, rd: false, ed: false, pd: false, cd: false }); this.nomSesion(); },
       egBack: () => this.setState({ eg: null }) };
     if (!on) return base;
     const y0 = eg.ran[0], y1 = eg.ran[1], prog = eg.prog, sem = eg.sem, dp0 = eg.dp || 0, hp0 = eg.hp || 0;
-    const semOk = (y, q) => (!sem || q === sem) && (!dp0 || y > y0 || q >= dp0) && (!hp0 || y < y1 || q <= hp0);
+    const semOk = (y, q) => (!sem || q === sem) && (!eg.per || eg.per.indexOf(y + '-' + q) >= 0) && (!dp0 || y > y0 || q >= dp0) && (!hp0 || y < y1 || q <= hp0);
     const dns = (y, k) => [1, 2].reduce((a3, q) => a3 + (semOk(y, q) ? dn(y, k, q) : 0), 0);
     const og = eg.og == null ? null : eg.og, inR0 = (r) => r[0] >= y0 && r[0] <= y1 && semOk(r[0], r[5]), inR = (r) => inR0(r) && (og == null || (og === -1 ? r[2] === 1 : (r[7] || []).indexOf(og) >= 0));
     const rows = E.R.filter((r) => inR(r) && pm(r[1]) && inc(r));
@@ -1400,7 +1401,7 @@ class Component extends DCLogic {
     const egBars = bk.map((b) => { const o = bins[b], rt = o.t ? o.n / o.t : 0, hF = o.t / mxT, gF = hF * (1 - rt), pre2 = o.tp > 0 && o.tp / o.t >= 0.5; return {
       nS: 'position:absolute;left:-8px;right:-8px;bottom:100%;margin-bottom:2px;text-align:center;font-size:10px;font-weight:700;color:#E8702A;font-variant-numeric:tabular-nums;white-space:nowrap',
       n: o.t ? fmt(o.n) : '', n2: o.t && gF >= 0.085 ? fmt(o.t - o.n) : '', lbl: (bs === 1 || mobq) && bk.length > 12 ? "'" + String(b).slice(2) : String(b), tip: (bs === 1 ? b : b + '–' + (b + bs - 1)) + ': ' + o.n + ' sin grado (' + pc(o.n, o.t) + ') · ' + (o.t - o.n) + ' graduados (' + pc(o.t - o.n, o.t) + ') · de ' + o.t + ' egresados' + (o.tp ? (pre2 ? ' · El programa aún no existía en SNIES: no cuenta en el conteo' : ' · Incluye ' + o.tp + ' egresados de años en que algún programa aún no existía: no cuentan en el conteo') : ''),
-      go: () => this.setState({ eg: Object.assign({}, eg, bs === 1 ? { mode: 'eq', yr: b, ran: [b, b], dp: null, hp: null } : { mode: 'ge', yr: b, ran: [b, 9999], dp: null, hp: null }) }),
+      go: () => this.setState({ eg: Object.assign({}, eg, bs === 1 ? { mode: 'eq', yr: b, ran: [b, b], dp: null, hp: null, per: null } : { mode: 'ge', yr: b, ran: [b, 9999], dp: null, hp: null }) }),
       col: 'position:relative;flex:1;min-width:0;max-width:64px;display:flex;flex-direction:column;justify-content:flex-end;height:100%;border:0;background:none;padding:0;font:inherit;cursor:pointer',
       wrap: (pre2 ? 'opacity:.6;' : '') + 'position:relative;height:calc((100% - ' + 18 + 'px) * ' + hF.toFixed(4) + ');min-height:5px;transition:height .55s cubic-bezier(.22,.8,.24,1)',
       bar: 'height:' + (rt * 100).toFixed(2) + '%;flex:none;background:#E8702A;transition:height .55s cubic-bezier(.22,.8,.24,1)',
@@ -1444,7 +1445,7 @@ class Component extends DCLogic {
     const egYrOn = md !== 'all';
     const egYrOpts = allY.map((y) => ({ v: String(y), t: String(y), sel: y === yrSel }));
     const dYs = [{ v: '', t: 'Desde el inicio', sel: y0 === 0 }].concat(allY.slice().sort((a, b) => a - b).map((y) => ({ v: String(y), t: String(y), sel: y === y0 }))), hYs = [{ v: '', t: 'Hasta hoy', sel: y1 === 9999 }].concat(allY.map((y) => ({ v: String(y), t: String(y), sel: y === y1 })));
-    const rngSet = (a, b, dp, hp) => this.setState({ eg: Object.assign({}, eg, { ran: [a, b], dp: a ? dp : null, hp: b !== 9999 ? hp : null, mode: 'all' }) });
+    const rngSet = (a, b, dp, hp) => this.setState({ eg: Object.assign({}, eg, { ran: [a, b], dp: a ? dp : null, hp: b !== 9999 ? hp : null, per: null, mode: 'all' }) });
     const egDY = (e) => { const v = +(e.target.value || 0); rngSet(v, v && y1 !== 9999 && v > y1 ? v : y1, dp0 || 1, hp0 || 2); };
     const egDS = (e) => rngSet(y0, y1, +e.target.value, hp0 || 2);
     const egHY = (e) => { const v = +(e.target.value || 9999); rngSet(v !== 9999 && y0 > v ? v : y0, v, dp0 || 1, hp0 || 2); };
