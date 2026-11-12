@@ -1306,9 +1306,10 @@ class Component extends DCLogic {
             });
             const iCo = j.cab.indexOf('Correo'), iTe = j.cab.indexOf('Teléfono');
             lista.forEach((f, i) => { const nota = f[nc]; if (!nota) return; [iCo, iTe].forEach((c) => { if (c < 0) return; const ce = ws.getRow(7 + i).getCell(c + 1); if (ce.value === '' || ce.value == null) return; ce.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF4C2' } }; ce.note = { texts: [{ text: nota }], margins: { insetmode: 'custom', inset: [0.1, 0.1, 0.1, 0.1] } }; }); });
+            ws.eachRow({ includeEmpty: true }, (row, rn) => { if (rn >= 6) { for (let c = 1; c <= nc; c++) { row.getCell(c).protection = { locked: false }; } } }); ws.protect('', { selectLockedCells: false, selectUnlockedCells: true, autoFilter: true, sort: true, formatColumns: true, formatRows: true });
             ws.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
-            return fetch('../assets/escudo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
+            return fetch('../assets/escudo-logo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
               if (ab) { ws.addImage(wb.addImage({ buffer: ab, extension: 'png' }), { tl: { col: 0.12, row: 0.12 }, ext: { width: 62, height: 76 } }); [2, 3, 4].forEach((r) => { const ce = ws.getCell(r, 1); ce.alignment = Object.assign({}, ce.alignment, { horizontal: 'left', vertical: 'middle', indent: 8 }); }); ws.getRow(1).height = 14; ws.getRow(2).height = 22; ws.getRow(3).height = 17; ws.getRow(4).height = 17; }
               return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
                 const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
