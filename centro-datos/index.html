@@ -1310,7 +1310,7 @@ class Component extends DCLogic {
             ws.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return fetch('../assets/escudo-logo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
-              if (ab) { ws.addImage(wb.addImage({ buffer: ab, extension: 'png' }), { tl: { col: 0.22, row: 1.02 }, ext: { width: 54, height: 72 } }); [2, 3, 4].forEach((r) => { const ce = ws.getCell(r, 1); ce.alignment = Object.assign({}, ce.alignment, { horizontal: 'left', vertical: r === 2 ? 'bottom' : r === 4 ? 'top' : 'middle', indent: 8 }); }); ws.getRow(1).height = 12; ws.getRow(2).height = 21; ws.getRow(3).height = 16; ws.getRow(4).height = 16; }
+              if (ab) { ws.addImage(wb.addImage({ buffer: ab, extension: 'png' }), { tl: { col: 0.25, row: 1.1 }, ext: { width: 48, height: 64 } }); [2, 3, 4].forEach((r) => { const ce = ws.getCell(r, 1); ce.alignment = Object.assign({}, ce.alignment, { horizontal: 'left', vertical: r === 2 ? 'bottom' : r === 4 ? 'top' : 'middle', indent: 8 }); }); ws.getRow(1).height = 12; ws.getRow(2).height = 21; ws.getRow(3).height = 16; ws.getRow(4).height = 16; }
               return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
                 const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
                 if (m && l && x.indexOf(m[0]) < x.indexOf(l[0])) { x = x.replace(m[0], '').replace(l[0], l[0] + m[0]); z.file('xl/worksheets/sheet1.xml', x); }
