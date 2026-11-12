@@ -446,7 +446,7 @@ async function recordatorios() {
   for (const v of asc.validaciones.filter((x) => !x.completo)) {
     if (it && v.desde && v.hasta) {
       try {
-        const r = await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='O${v.desde}:Q${v.hasta}')?$select=values`, null, 'Ascensos');
+        const r = await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='${v.colF || 'O'}${v.desde}:${v.colQ || 'Q'}${v.hasta}')?$select=values`, null, 'Ascensos');
         if (r.values.every((f) => f[0] !== '' && f[0] != null && String(f[2] || '').trim())) { v.completo = true; v.completado = ahora(); cambioA = true; continue; }
       } catch (e) { /* se reintenta mañana */ }
     }
@@ -493,17 +493,47 @@ async function validarAscensos(yo, body) {
   const ultima = +(String(used.address).match(/(\d+)$/) || [])[1];
   const nAnt = await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='A${ultima}')?$select=values`, null, 'Ascensos');
   let N = +((nAnt.values || [[0]])[0][0]) || ultima - 1;
+  /* Las columnas se ubican por el ENCABEZADO: APELLIDOS (y NOMBRES si está en otra columna) y CÉDULA. Si se inserta
+     una columna, el texto se pega donde corresponde y lo que sigue (fecha, resolución) se desplaza igual. */
+  const enc = await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='A1:Z8')?$select=values`, null, 'Ascensos');
+  const norm = (x) => sinTildes(x).replace(/[^A-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+  let ap = -1, nm = -1, ce = -1;
+  for (const fila of enc.values || []) {
+    const H = fila.map(norm);
+    const a0 = H.findIndex((h) => h.startsWith('APELLIDO'));
+    if (a0 < 0) continue;
+    ap = a0;
+    if (!/NOMBRE/.test(H[a0]) && /^NOMBRE/.test(H[a0 + 1] || '')) nm = a0 + 1;
+    ce = H.findIndex((h, i) => i > a0 && /^(CEDULA|CC|DOCUMENTO)/.test(h));
+    break;
+  }
+  if (ap < 0) { ap = 6; }
+  if (ap < 6) throw error('En la hoja Ascensos la columna APELLIDOS está antes de la G; revise el encabezado.', 409);
+  const ceIdx = ce >= 0 ? ce : ap + (nm >= 0 ? 2 : 1);
+  const delta = ceIdx - 7;
+  const colL = (i) => { let n = i + 1, t = ''; while (n > 0) { const r = (n - 1) % 26; t = String.fromCharCode(65 + r) + t; n = Math.floor((n - 1) / 26); } return t; };
+  let cong = {};
+  try { cong = await fuente('conglomerado', procesarConglomerado); } catch (e) { cong = {}; }
+  const ancho = 18 + delta;
   const valores = filas.map(({ gr, f }) => {
     const esp = String(f.esp || gr.esp || '').toUpperCase();
     const progC = PROG_CIENCIAS[esp];
     const g2 = grad[cedKey(f.ce)] || [];
     const ciencias = progC && g2.some((p) => p === progC || p.startsWith(progC)) ? 'SÍ' : 'NO';
-    return [++N, 'ASCENSO', f.ct || '', esp, gr.promocion || '', f.sp || gr.especialidad || '', sinTildes(f.n), numCed(f.ce), ciencias,
-      f.p, `${f.p}/${f.tot}`, f.tot, typeof f.f === 'number' ? f.f : '', periodo, '', '', '', ''];
+    /* contingente: siempre el de CONGLOMERADO (CDPRON, PR, etc.); la promoción solo si se escribió */
+    const ct = ((cong[cedKey(f.ce)] || {}).cont) || f.ct || '';
+    const fila = new Array(ancho).fill('');
+    const base = [++N, 'ASCENSO', ct, esp, gr.promocion || '', f.sp || gr.especialidad || ''];
+    base.forEach((v, i) => { fila[i] = v; });
+    if (nm >= 0) { const pn = partirNombre(f.n); fila[ap] = pn.ap; fila[nm] = pn.no; } else fila[ap] = sinTildes(f.n);
+    const resto = [numCed(f.ce), ciencias, f.p, `${f.p}/${f.tot}`, f.tot, typeof f.f === 'number' ? f.f : '', periodo, '', '', '', ''];
+    resto.forEach((v, i) => { fila[ceIdx + i] = v; });
+    return fila;
   });
   const desde = ultima + 1, hasta = ultima + valores.length;
-  await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='A${desde}:R${hasta}')`, { method: 'PATCH', body: { values: valores } }, 'Escribir Ascensos');
-  asc.validaciones.push({ periodo, fecha: ahora(), por: yo.correo, desde, hasta, total: valores.length, grupos: grupos.map((x) => ({ clave: x.clave, n: (x.filas || []).length })) });
+  const cF = colL(14 + delta);
+  await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='A${desde}:${colL(ancho - 1)}${hasta}')`, { method: 'PATCH', body: { values: valores } }, 'Escribir Ascensos');
+  asc.validaciones.push({ periodo, fecha: ahora(), por: yo.correo, desde, hasta, colF: cF, colQ: colL(16 + delta), total: valores.length, grupos: grupos.map((x) => ({ clave: x.clave, n: (x.filas || []).length })) });
   await escribirJson('ascensos.json', asc);
   return { ok: true, total: valores.length, desde, hasta };
 }
@@ -519,8 +549,8 @@ async function resolucionAscenso(yo, body) {
   const it = await bajasXlsx();
   const n = v.hasta - v.desde + 1;
   const serial = X.fechaASerial(+m[1], +m[2], +m[3]);
-  await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='O${v.desde}:Q${v.hasta}')`, { method: 'PATCH', body: { values: Array.from({ length: n }, () => [serial, +m[1], doc]) } }, 'Escribir resolución de ascenso');
-  try { await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='O${v.desde}:O${v.hasta}')`, { method: 'PATCH', body: { numberFormat: Array.from({ length: n }, () => ['dd/mm/yyyy']) } }); } catch (e) { /* formato opcional */ }
+  await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='${v.colF || 'O'}${v.desde}:${v.colQ || 'Q'}${v.hasta}')`, { method: 'PATCH', body: { values: Array.from({ length: n }, () => [serial, +m[1], doc]) } }, 'Escribir resolución de ascenso');
+  try { await gj(`${hojaUrl(it, HOJA_ASC)}/range(address='${v.colF || 'O'}${v.desde}:${v.colF || 'O'}${v.hasta}')`, { method: 'PATCH', body: { numberFormat: Array.from({ length: n }, () => ['dd/mm/yyyy']) } }); } catch (e) { /* formato opcional */ }
   Object.assign(v, { completo: true, completado: ahora(), completadoPor: yo.correo, fechaAscenso: body.fecha, resolucion: doc });
   await escribirJson('ascensos.json', asc);
   return { ok: true };
