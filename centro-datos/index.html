@@ -8,7 +8,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="author" content="CAMARGO MARTÍNEZ BEYTY PATRICIA">
-<title>Centro de Datos ENAP (en construcción)</title>
+<title>Centro de Datos ENAP</title>
 <script>
 /* Móvil: tocar una tarjeta con "Cómo leerlo" muestra la explicación; tocar otra vez la oculta. */
 document.addEventListener('click',function(e){try{
@@ -213,7 +213,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <button class="hov" onClick="{{ goHome }}" style="margin:-4px 0 6px -6px;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:0;border-radius:999px;background:none;font-size:11.5px;font-weight:600;color:#51617D;cursor:pointer">‹ Inicio</button>
 <div style="font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:#2F6FE0">Escuela Naval de Cadetes</div>
 <div style="margin-top:4px;font-size:19px;line-height:1.2;font-weight:600;letter-spacing:-.01em;color:#0C2050">Centro de Datos</div>
-<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:#E6EEFC;border:1px solid #9DBBF2;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#1D3F9E"><span class="blink" style="width:6px;height:6px;border-radius:50%;background:#2F6FE0"></span>En construcción</div>
+
 <div style="margin-top:6px;font-size:11px;line-height:1.4;color:#6B7A94">Cada filtro muestra cuántos estudiantes tiene.</div>
 <div class="mobdate" style="margin-top:8px;font-size:11px;line-height:1.4;color:#6B7A94">Última actualización: <b style="color:#0C2050">{{ fechaAct }}</b></div>
 </div>
@@ -1279,7 +1279,7 @@ class Component extends DCLogic {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = o.correo || j.correo || 'usuario del Portal', ahora = new Date();
             const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-            const ws = wb.addWorksheet(o.hoja, { views: [{ state: 'frozen', ySplit: 6, showGridLines: false }] });
+            const ws = wb.addWorksheet(o.hoja, { views: [{ state: 'frozen', ySplit: 6, showGridLines: false, zoomScale: 100, zoomScaleNormal: 100 }] });
             const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|País de nacimiento|Programa de ingreso|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
             ws.addRow([]);
             ws.addRow([o.titulo]);
@@ -1290,7 +1290,7 @@ class Component extends DCLogic {
             const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
-            const pw = j.cab.map((h, c) => (/^Periodo de (ingreso|terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
+            const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde el ascenso)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow({ includeEmpty: true }, (row, n) => {
               if (n === 1 || n === 5) { row.height = 14.4; return; }
@@ -1299,7 +1299,7 @@ class Component extends DCLogic {
               if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 6 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : (hh === 'Años desde el escalafonamiento' || hh === 'Años desde el ingreso') ? '0.0' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
+                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : hh === 'Años desde el ascenso' ? 'General' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
                 if (n === 6) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
                 else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
@@ -1326,7 +1326,7 @@ class Component extends DCLogic {
       this.nomSet({ msg: 'Preparando la descarga…' });
       return this.nomApi('descargar', { tipo: 'extranjeros' }).then((j) => {
         if (!j.ids) throw new Error('La lista de extranjeros no trae identificadores. Un administrador debe volver a subirla.');
-        const quitar = ['Nota contacto'], iNota = j.cab.indexOf('Nota contacto'), keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0);
+        const quitar = ['Nota contacto', 'Años desde el ingreso'], iNota = j.cab.indexOf('Nota contacto'), keep = j.cab.map((h, c) => (quitar.indexOf(h) < 0 ? c : -1)).filter((c) => c >= 0);
         const pos = {}; j.ids.forEach((id, k) => { pos[id] = k; });
         const lista = rows.slice().sort((x, y) => y.year - x.year || (y.periodo === 'II' ? 1 : 0) - (x.periodo === 'II' ? 1 : 0) || x.i - y.i).map((r) => j.filas[pos[r.i]]).filter(Boolean).map((f) => keep.map((c) => f[c]).concat([iNota >= 0 ? f[iNota] || '' : '']));
         j.cab = keep.map((c) => j.cab[c]);
@@ -1500,7 +1500,7 @@ class Component extends DCLogic {
           j.cab = keep.map((c) => j.cab[c]);
           const ipT = j.cab.indexOf('Periodo de terminación'), hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' })), perHoy = hoy.getFullYear() * 2 + (hoy.getMonth() >= 6 ? 1 : 0);
           const aniosEsc = (t) => { const m = /^(\d{4})-([12])$/.exec(String(t || '')); return m ? Math.max(0, (perHoy - (Number(m[1]) * 2 + Number(m[2]) - 1)) / 2) : ''; };
-          if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde el escalafonamiento');
+          if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde el ascenso');
           const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => { const v = keep.map((c) => f[c]); if (ipT >= 0) v.splice(ipT + 1, 0, aniosEsc(v[ipT])); return v.concat([iNota >= 0 ? f[iNota] || '' : '']); });
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
           const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
@@ -1522,7 +1522,7 @@ class Component extends DCLogic {
       rd.onload = () => { let l = null; try { l = JSON.parse(rd.result); } catch (x) {} if (!l) { this.nomSet({ msg: 'El archivo no es un JSON válido.' }); return; } this.nomSet({ msg: 'Subiendo la lista…' }); this.nomApi('guardar-lista', { lista: l, tipo: l.tipo === 'extranjeros' ? 'extranjeros' : undefined }).then((j) => { this.nomSet({ msg: 'Lista cargada: ' + j.filas + ' filas.', lista: { filas: j.filas, actualizado: new Date().toISOString() } }); }).catch((x) => this.nomSet({ msg: x.message })); };
       rd.readAsText(f);
     };
-    return Object.assign(base, { egView: perTxt + (prog == null ? '' : ' · ' + pLabel(prog)) + '', egFrom2000: egFrom2000, egFrom2000St: egFrom2000St, egRegOn: typeof prog === 'number', egRegTxt: typeof prog === 'number' ? ({ 0: 'Diciembre de 1999', 1: 'Diciembre de 1999', 2: 'Diciembre de 1999', 3: 'Marzo de 1998', 4: 'Marzo de 1998', 5: 'Marzo de 1998', 6: 'Noviembre de 2012', 7: 'Abril de 2013' })[prog] : '', egDY: egDY, egDS: egDS, egHY: egHY, egHS: egHS, egDYOpts: dYs, egHYOpts: hYs, egDSOpts: egPOpt(dp0), egHSOpts: egPOpt(hp0), egDOn: y0 > 0, egHOn: y1 < 9999, egClearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (egAnyF ? '#B8841F' : '#DDE3EE') + ';background:' + (egAnyF ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (egAnyF ? '#1A1405' : '#8190A8'), egOtro: egOtro, egOtroSub: egOtroSub, egTopH: 'height:max(' + Math.max(340, egProg.length > 2 ? egProg.length * 34 + 96 : 0) + 'px,calc(var(--eh,520px) - ' + (egHeat.length * 40 + 215) + 'px))', egHeat: egHeat, egHeadH: egHeadH, egHeatCols: egHeatCols, egClear: egClear, egPreSet: egPreSet, egPreTxt: egPreTxt, egPreStyle: egPreStyle, egBarsH: egBarsH, egBarsSub: egBarsSub, egNomOn: !!nomBtn, egNomTxt: nomBtn, egNomGo: nomGo, egNomMsg: nm.msg || '', egAdmin: est === 'admin', egSol: egSol, egNoSol: !egSol.length, egSubir: egSubir, egListaTxt: nm.lista ? 'Lista cargada: ' + nm.lista.filas + ' filas' : 'Aún no hay lista nominal cargada', egKpis: egKpis, egBars: egBars, egProg: egProg, egAge: egAge, egCont: egCont, egQ: egQ, egHall: hall.map((t) => ({ t: t })), egModeOpts: egModeOpts, egYrOn: egYrOn, egYrOpts: egYrOpts, egModeSet: egModeSet, egYrSet: egYrSet, egDecRows: egDecRows, egSemP: egSemP, egTopY: egTopY, egSem: egSem, egProgOpts: egProgOpts, egProgSet: egProgSet, egBarsTitle: 'Graduados y no graduados por año de escalafonamiento', egDl: dl, egDlTxt: 'Descargar ' + fmt(pend) + ' egresados (CSV)', egPer: perTxt,
+    return Object.assign(base, { egView: perTxt + (prog == null ? '' : ' · ' + pLabel(prog)) + '', egFrom2000: egFrom2000, egFrom2000St: egFrom2000St, egRegOn: typeof prog === 'number', egRegTxt: typeof prog === 'number' ? ({ 0: '15 de diciembre de 1999', 1: '15 de diciembre de 1999', 2: '15 de diciembre de 1999', 3: '21 de marzo de 1998', 4: '21 de marzo de 1998', 5: '21 de marzo de 1998', 6: '1 de noviembre de 2012', 7: '25 de abril de 2013' })[prog] : '', egDY: egDY, egDS: egDS, egHY: egHY, egHS: egHS, egDYOpts: dYs, egHYOpts: hYs, egDSOpts: egPOpt(dp0), egHSOpts: egPOpt(hp0), egDOn: y0 > 0, egHOn: y1 < 9999, egClearStyle: 'padding:10px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid ' + (egAnyF ? '#B8841F' : '#DDE3EE') + ';background:' + (egAnyF ? 'linear-gradient(135deg,#E3B85A,#B8841F)' : '#F6F8FB') + ';color:' + (egAnyF ? '#1A1405' : '#8190A8'), egOtro: egOtro, egOtroSub: egOtroSub, egTopH: 'height:max(' + Math.max(340, egProg.length > 2 ? egProg.length * 34 + 96 : 0) + 'px,calc(var(--eh,520px) - ' + (egHeat.length * 40 + 215) + 'px))', egHeat: egHeat, egHeadH: egHeadH, egHeatCols: egHeatCols, egClear: egClear, egPreSet: egPreSet, egPreTxt: egPreTxt, egPreStyle: egPreStyle, egBarsH: egBarsH, egBarsSub: egBarsSub, egNomOn: !!nomBtn, egNomTxt: nomBtn, egNomGo: nomGo, egNomMsg: nm.msg || '', egAdmin: est === 'admin', egSol: egSol, egNoSol: !egSol.length, egSubir: egSubir, egListaTxt: nm.lista ? 'Lista cargada: ' + nm.lista.filas + ' filas' : 'Aún no hay lista nominal cargada', egKpis: egKpis, egBars: egBars, egProg: egProg, egAge: egAge, egCont: egCont, egQ: egQ, egHall: hall.map((t) => ({ t: t })), egModeOpts: egModeOpts, egYrOn: egYrOn, egYrOpts: egYrOpts, egModeSet: egModeSet, egYrSet: egYrSet, egDecRows: egDecRows, egSemP: egSemP, egTopY: egTopY, egSem: egSem, egProgOpts: egProgOpts, egProgSet: egProgSet, egBarsTitle: 'Graduados y no graduados por año de escalafonamiento', egDl: dl, egDlTxt: 'Descargar ' + fmt(pend) + ' egresados (CSV)', egPer: perTxt,
       egNote: pre + ' CCP se cuenta desde el año de registro en SNIES de cada programa: Administración, Administración Marítima y Oceanografía Física 1998; Ingeniería Naval 2012; Ingeniería Electrónica 2013. Ciencias: Conglomerado (promociones NAV, IM, MC y MM; motivo de salida ASCENSO) contra Graduados ENAP, primero por cédula y, si no tiene, por nombre. Prima el título: si se graduó en otro programa de Ciencias, cuenta como graduado en ese. Un CCP no cuenta como título de Ciencias, ni al revés. CCP: base CCP con fecha de terminación, buscada en el mismo programa en Graduados (Ingeniería Naval incluye los CCP de Mecánica y Construcciones y acepta títulos de Ingeniería Naval con especialidad u orientación; Ingeniería Electrónica acepta también el título de Ingeniería Naval con especialidad electrónica). La descarga con nombres y cédulas requiere autorización.' });
   }
 
@@ -1556,9 +1556,9 @@ class Component extends DCLogic {
     const scr = this._modo === 'tablero' && !fsOn;
     const mobIni = isIni && mobq;
     const fsk0 = isIni ? (mobIni ? Math.min(aw / 480, ah / 640) : Math.max(0.3, Math.min(aw / 1300, ah / 645))) : scr ? Math.max(0.3, (aw - 15) / 1650) : fsOn ? Math.max(0.3, Math.min(aw / 1550, ah / 880)) : Math.max(0.3, Math.min(aw / 1440, ah / 900));
-    const fsk = (this._modo === 'tablero' && !fsOn && mobq) ? aw / 445 : fsk0;
+    const fsk = (this._modo === 'tablero' && !fsOn && mobq) ? aw / 445 : Math.min(1.15, fsk0); // tope: en pantallas grandes o proyector no se agranda más
     const dyn = isIni || fitMode || fsOn;
-    const stW = (scr && mobq) ? 445 : scr ? 1650 : dyn ? aw / fsk : 1440, stH = scr ? Math.max(1000, ah / fsk) : mobIni ? Math.max(640, ah / fsk) : dyn ? ah / fsk : 900;
+    const stW = (scr && mobq) ? 445 : scr ? Math.max(1650, (aw - 15) / fsk) : dyn ? aw / fsk : 1440, stH = scr ? Math.max(1000, ah / fsk) : mobIni ? Math.max(640, ah / fsk) : dyn ? ah / fsk : 900;
     const mob = scr && mobq;
     const rootStyle = fsOn ? "position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;background:#ECF0F6" : fitMode ? "position:fixed;inset:0;overflow:hidden;font-family:'Aptos Display',Aptos,'Segoe UI Variable Display','Segoe UI',system-ui,sans-serif;background:" + (isIni ? 'transparent' : 'linear-gradient(160deg,#F6F8FB 0%,#ECF0F6 100%)') : 'position:relative;width:1440px;height:900px';
     const areaStyle = fsOn ? 'flex:1;position:relative;overflow-x:hidden;overflow-y:auto;min-height:0' : mobIni ? 'position:absolute;inset:0;overflow:hidden' : scr ? 'position:absolute;inset:0;overflow-x:hidden;overflow-y:auto' : 'position:absolute;inset:0';
@@ -1621,7 +1621,8 @@ class Component extends DCLogic {
     const total = full.length;
     const years = []; for (let y = 2000; y <= 2026; y++) years.push(y);
     const yearsAll = []; for (let y = 1935; y <= 2026; y++) yearsAll.push(y);
-    const yearData = D('year');
+    const yRng = (r) => !(f.range && (r.year < f.range[0] || r.year > f.range[1])) && !(f.desde && (r.year < f.desde[0] || (r.year === f.desde[0] && pn(r) < f.desde[1]))) && !(f.hasta && (r.year > f.hasta[0] || (r.year === f.hasta[0] && pn(r) > f.hasta[1]))) && !(f.periods && f.periods.indexOf(r.year + '-' + r.periodo) < 0);
+    const yearData = D('year').filter(yRng);
     const progData = D('prog');
     const sxData = D('sexo');
     const dimYear = (y) => (f.year && f.year !== y) || (f.range && (y < f.range[0] || y > f.range[1])) || (f.periods && !f.periods.some((q) => q.indexOf(y + '-') === 0)) || (f.desde && y < f.desde[0]) || (f.hasta && y > f.hasta[0]);
@@ -2317,7 +2318,7 @@ class Component extends DCLogic {
     const causCol = ['#F0763A', '#7C5CD6', '#E0489A', '#1F9E5A', '#8190A8'];
     // ---------- GENERAL (formación militar)
     const C3 = { esc: '#0FA89A', est: '#2F6FE0', ret: '#F0763A' };
-    const gDesde = this.state.gFrom || 1935, gHasta = this.state.gTo || 2026;
+    const gDesde = Math.max(this.state.gFrom || 1935, f.desde ? f.desde[0] : 0, f.range ? f.range[0] : 0), gHasta = Math.min(this.state.gTo || 2026, f.hasta ? f.hasta[0] : 9999, f.range ? f.range[1] : 9999);
     const gYrOpts = (cur) => yearsAll.map((y) => ({ v: String(y), t: String(y), sel: y === cur }));
     const gFromOpts = gYrOpts(gDesde), gToOpts = gYrOpts(gHasta);
     const gFromSet = (e) => { const v = +(e && e.target ? e.target.value : 1935); this.setState({ gFrom: v, gTo: Math.max(v, gHasta) }); };
