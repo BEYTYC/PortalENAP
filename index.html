@@ -1453,7 +1453,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   <div class="watermark"><img src="assets/escudo-marca-agua-sm.webp" decoding="async" alt=""></div>
     <!-- "Solicitud de Grado": el iframe se deja vacio hasta que se abre
          por primera vez (cargarTitulacion(), mas abajo) -- igual que
-         Concesiones Especiales -- para poder mostrar "Cargando sesion..."
+         Concesiones Especiales -- para poder mostrar "Cargando sesión..."
          mientras el propio Apps Script pide el token de Microsoft y
          arma su panel, y solo ocultarlo cuando el script avisa que ya
          esta listo. -->
@@ -1959,7 +1959,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       await new Promise((r) => setTimeout(r, 400));
       cuenta = instance.getAllAccounts()[0];
     }
-    if (!cuenta) throw new Error('No hay sesion iniciada.');
+    if (!cuenta) throw new Error('No hay sesión iniciada.');
     return adquirirToken(['User.Read'], cuenta);
   };
   window.PortalENAP.sesion = null;
@@ -3022,12 +3022,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         spinner.className = 'login-gate__spinner';
         icon.insertAdjacentElement('afterend', spinner);
       }
-      btnText.textContent = 'Iniciando sesion...';
+      btnText.textContent = 'Iniciando sesión...';
     } else {
       icon.style.display = '';
       const spinner = document.getElementById('loginGateSpinner');
       if (spinner) spinner.remove();
-      btnText.textContent = 'Iniciar sesion con cuenta institucional';
+      btnText.textContent = 'Iniciar sesión con cuenta institucional';
     }
   }
 
