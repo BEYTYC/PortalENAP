@@ -1275,6 +1275,7 @@ class Component extends DCLogic {
   nomXlsx(j, lista, o) {
           const js = (cond, src, msg) => (cond() ? Promise.resolve() : new Promise((ok, no) => { const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = () => no(new Error(msg)); document.head.appendChild(sc); }));
           const cargar = js(() => window.ExcelJS, './exceljs.min.js', 'No se pudo cargar el generador de Excel.').then(() => js(() => window.JSZip, './jszip.min.js', 'No se pudo cargar el generador de Excel.'));
+          if (o.num) { j = Object.assign({}, j, { cab: ['N°'].concat(j.cab) }); lista = lista.map((f, i) => [i + 1].concat(f)); }
           return cargar.then(() => {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = o.correo || j.correo || 'usuario del Portal', ahora = new Date();
@@ -1506,7 +1507,7 @@ class Component extends DCLogic {
           const lista = rows.slice().sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => j.filas[r[6]]).filter(Boolean).map((f) => { const v = keep.map((c) => f[c]); if (ipT >= 0) v.splice(ipT + 1, 0, aniosEsc(v[ipT])); return v.concat([iNota >= 0 ? f[iNota] || '' : '']); });
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
           const tPer = (y0 === 0 && y1 === 9999 ? 'Todo el histórico' : y1 === 9999 ? y0 + ' en adelante' : y0 === y1 ? String(y0) : y0 === 0 ? 'Hasta ' + y1 : y0 + ' a ' + y1) + (sem ? ' · Semestre ' + (sem === 1 ? 'I' : 'II') : ''), tProg = prog == null ? 'Todos los programas' : pLabel(prog);
-          return this.nomXlsx(j, lista, { hoja: 'Egresados no graduados', titulo: 'Egresados no graduados - ' + tProg + ' - ' + tPer, nombre: nombre, correo: nm.correo });
+          return this.nomXlsx(j, lista, { num: true, hoja: 'Egresados no graduados', titulo: 'Egresados no graduados - ' + tProg + ' - ' + tPer, nombre: nombre, correo: nm.correo });
         }).then(() => {
           this.nomSet({ msg: '' });
         }).catch((e) => this.nomSet({ msg: e.message }));
