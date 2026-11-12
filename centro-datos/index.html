@@ -1279,7 +1279,7 @@ class Component extends DCLogic {
             const wb = new window.ExcelJS.Workbook(); wb.creator = 'Escuela Naval de Cadetes · Estadística';
             const quien = o.correo || j.correo || 'usuario del Portal', ahora = new Date();
             const fec = ahora.toLocaleString('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true });
-            const ws = wb.addWorksheet(o.hoja, { views: [{ state: 'frozen', ySplit: 6, showGridLines: false, zoomScale: 100, zoomScaleNormal: 100 }] });
+            const ws = wb.addWorksheet(o.hoja, { views: [{ state: 'frozen', ySplit: 6, showGridLines: false, zoomScale: 100, zoomScaleNormal: 100, activeCell: 'A6' }] });
             const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|País de nacimiento|Programa de ingreso|Correo|Otros grados en la ENAP)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
             ws.addRow([]);
             ws.addRow([o.titulo]);
