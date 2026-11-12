@@ -2541,8 +2541,9 @@ var yo={correo:'',puede:false};window.__yo=yo;
 function bajarBD(quien){
   return cargaExcelJS().then(function(){
     var wb=armarBD(window.ExcelJS,window.__D,quien),ahora=new Date();
-    return fetch('../assets/escudo-excel.png').then(function(r){return r.ok?r.arrayBuffer():null}).catch(function(){return null}).then(function(ab){
-    if(ab){var im=wb.addImage({buffer:ab,extension:'png'});wb.worksheets.forEach(function(ws){ws.addImage(im,{tl:{col:0.12,row:0.12},ext:{width:62,height:76}});[2,3,4].forEach(function(r){var ce=ws.getCell(r,1);ce.alignment=Object.assign({},ce.alignment,{horizontal:'left',vertical:'middle',indent:8})});if(ws.getRow(1).height<14||!ws.getRow(1).height)ws.getRow(1).height=14;[2,3,4].forEach(function(r){var h=ws.getRow(r).height;if(!h||h<17)ws.getRow(r).height=r===2?22:17})})}
+    return fetch('../assets/escudo-logo-excel.png').then(function(r){return r.ok?r.arrayBuffer():null}).catch(function(){return null}).then(function(ab){
+    wb.worksheets.forEach(function(ws){var h=(ws.views[0]&&ws.views[0].ySplit)||6,nc=ws.columnCount;ws.eachRow({includeEmpty:true},function(row,rn){if(rn>=h){for(var c=1;c<=nc;c++)row.getCell(c).protection={locked:false}}});ws.protect('',{selectLockedCells:false,selectUnlockedCells:true,autoFilter:true,sort:true,formatColumns:true,formatRows:true})});
+    if(ab){var im=wb.addImage({buffer:ab,extension:'png'});wb.worksheets.forEach(function(ws){ws.addImage(im,{tl:{col:0.22,row:1.02},ext:{width:65,height:87}});[2,3,4].forEach(function(r){var ce=ws.getCell(r,1);ce.alignment=Object.assign({},ce.alignment,{horizontal:'left',vertical:'middle',indent:10})});ws.getRow(1).height=12;[2,3,4].forEach(function(r){ws.getRow(r).height=r===2?26:20})})}
     var p=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'numeric',year:'2-digit'}).formatToParts(ahora),g=function(k){return (p.filter(function(x){return x.type===k})[0]||{}).value};
     var nombre='BD Antigüedades '+g('day')+MES[parseInt(g('month'),10)-1]+g('year')+'.xlsx';
     return wb.xlsx.writeBuffer().then(function(buf){
