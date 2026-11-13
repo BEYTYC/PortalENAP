@@ -865,7 +865,7 @@ function armarFicha(id, S) {
     const mejor = (L) => { const F = libres(L); return (F.length ? F : []).sort((a, b) => dist(a) - dist(b))[0]; };
     // La Caldas de la promoción (la del programa profesional: Ciencias Navales, Náuticas, etc.) va en el Escalafonamiento, no en la titulación.
     const hayEsc = linea.some((e) => e.tipo === 'escalafon' && e.t != null);
-    const esPre = (e) => e.tipo === 'grado' && !e.comp && !/ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/.test(sinTildes(e.programa || e.tituloAcad || e.detalle || ''));
+    const esPre = (e) => e.tipo === 'grado' && !e.comp && /CIENCIAS (NAVALES|NAUTICAS)/.test(sinTildes(e.programa || e.tituloAcad || e.detalle || '')); // solo la Caldas de Ciencias Navales/Náuticas es de la promoción; la de CCP, especializaciones u otros programas queda en su propia tarjeta
     const preKeys = linea.filter(esPre).map((e) => kt(e.programa || e.tituloAcad || '')).filter(Boolean);
     const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'escalafon'].includes(e.tipo) && e.t != null && !(hayEsc && esPre(e))); // en cursos de extensión no se gana medalla Caldas
     const casa = (e, k) => e.tipo === 'escalafon' ? (/ESCALAF/.test(k) || preKeys.some((q) => coincide(q, k))) : (coincide(kt(e.titulo), k) || coincide(kt(e.programa || ''), k) || coincide(kt(e.tituloAcad || ''), k) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), k)));
