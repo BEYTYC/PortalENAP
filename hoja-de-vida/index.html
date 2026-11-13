@@ -430,9 +430,13 @@ function pintar(F){document.body.classList.remove('ini');document.body.classList
       titulo=TT(e.titulo);chipD=fch(e.fecha)||(e.anio?String(e.anio):'');var di=[];if(e.detalle)di.push(e.detalle);var ri=RT(e.resolucion,e.tipo==='ingreso'?(e.resolFecha||''):e.fecha);if(ri)di.push(ri);if(di.length)body+='<div class="ds">'+ESCT(di.join(' · '))+'</div>';
       if(e.sinRegistro)body+='<div class="ds" style="color:#8A5A00">Hubo un reingreso, pero no quedó registrado en las bases: sin fecha ni contingente.</div>';
     }else if(e.tipo==='retiro'){
-      titulo='Retiro Institucional';chipD=fch(e.fecha);var d2=[];if(e.causal)d2.push(TT(e.causal));var rr=RT(e.doc,e.fecha);if(rr)d2.push(rr);if(e.curso)d2.push('Curso '+String(e.curso).toUpperCase());
+      titulo=e.reingreso?'Retiro y Reingreso':'Retiro Institucional';chipD=fch(e.fecha);var d2=[];if(e.causal)d2.push(TT(e.causal));var rr=RT(e.doc,e.fecha);if(rr)d2.push(rr);if(e.curso)d2.push('Curso '+String(e.curso).toUpperCase());
       if(d2.length)body+='<div class="ds">'+ESC(d2.join(' · '))+'</div>';
       var fi=F.ingreso&&F.ingreso.fecha,ff=e.fecha;if(fi&&ff){var a=new Date(fi),b=new Date(ff),mes=(b.getFullYear()-a.getFullYear())*12+b.getMonth()-a.getMonth()+(b.getDate()>=a.getDate()?0:-1);if(mes>=0)body+='<div class="ds">Semestres transcurridos: '+Math.max(1,Math.round(mes/6))+'</div>'}if(e.obs)body+='<div class="ds">'+ESCT(e.obs)+'</div>';
+      if(e.reingreso){var R=e.reingreso,dr=[];if(R.detalle)dr.push(R.detalle);var rrr=RT(R.resolucion,R.fecha);if(rrr)dr.push(rrr);
+        body+='<div class="ds" style="margin-top:10px;padding-top:10px;border-top:1px dashed #C9D6E6"><b>Reingreso'+(R.fecha?': '+fchL(R.fecha):'')+'</b></div>';
+        if(R.sinRegistro)body+='<div class="ds" style="color:#8A5A00">Hubo un reingreso, pero no quedó registrado en las bases: sin fecha ni contingente.</div>';
+        else if(dr.length)body+='<div class="ds">'+ESCT(dr.join(' · '))+'</div>'}
     }else if(e.tipo==='medalla'){
       titulo=TT(e.titulo);chipD=fch(e.fecha);if(e.categoria)titulo+=' <span class="sub">· '+ESCT(e.categoria.charAt(0)+e.categoria.slice(1).toLowerCase())+'</span>';
       if(e.motivo)body+='<div class="ds">'+ESCT(e.motivo)+'</div>';

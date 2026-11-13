@@ -961,6 +961,18 @@ function armarFicha(id, S) {
     }
   }
 
+  // Si hubo reingreso, el retiro y el reingreso van en la misma tarjeta.
+  {
+    const ir = linea.findIndex((e) => e.tipo === 'retiro');
+    if (ir >= 0) {
+      const rg = linea.map((e, i) => [e, i]).filter(([e, i]) => e.tipo === 'regreso' && i > ir)[0] || linea.map((e, i) => [e, i]).filter(([e]) => e.tipo === 'regreso')[0];
+      if (rg) {
+        linea[ir].reingreso = { fecha: rg[0].fecha || '', detalle: rg[0].detalle || '', resolucion: rg[0].resolucion || '', sinRegistro: !!rg[0].sinRegistro };
+        linea.splice(linea.indexOf(rg[0]), 1);
+      }
+    }
+  }
+
   // Nombre más completo entre las fuentes (si el corto está contenido en el largo): evita ver el segundo nombre en unas partes y en otras no.
   {
     const tk = (v) => sinTildes(v).split(/\s+/).filter(Boolean);
