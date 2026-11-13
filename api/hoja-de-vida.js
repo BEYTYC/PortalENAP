@@ -921,12 +921,7 @@ function armarFicha(id, S) {
   });
   if (nBecas) items.push({ k: 'beca', label: nBecas === 1 ? 'Beca' : 'Becas', n: nBecas, semestres: semsBeca });
   if (nExc) items.push({ k: 'excelencia', label: 'Excelencia Académica', n: nExc, semestres: semsExc.map((x) => x.sem).filter(Boolean) });
-  {
-    const pr = [], nH = ['mencion', 'laureado'].map((c) => [c, concesiones.filter((x) => x.clase === c).length]);
-    nH.forEach(([c, n]) => { if (n) pr.push(n + ' ' + ({ mencion: n === 1 ? 'mención de honor' : 'menciones de honor', merito: n === 1 ? 'meritorio' : 'meritorios', laureado: n === 1 ? 'laureado' : 'laureados' })[c]); });
-    const nP = nH.reduce((t, x) => t + x[1], 0);
-    if (nP) items.push({ k: 'premio', label: nP === 1 ? 'Premio' : 'Premios', n: nP, det: pr.join(' · ') });
-  }
+  // Mención de honor, meritorio, laureado y grado de honor van en la tarjeta de Titulación (título entregado), no en Logros.
   {
     // Solo la medalla Caldas de la promoción (la que quedó en la tarjeta de Escalafonamiento) cuenta como logro de la formación; las de cursos de ascenso u otros no.
     const escEv = linea.find((e) => e.tipo === 'escalafon'), nCP = escEv && escEv.medallas ? escEv.medallas.length : 0;
