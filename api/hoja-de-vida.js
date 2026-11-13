@@ -863,8 +863,12 @@ function armarFicha(id, S) {
     const dist = (e) => (tM != null ? Math.abs((e.t || 0) - tM) : 0);
     const libres = (L) => L.filter((e) => !(e.medallas && e.medallas.length));
     const mejor = (L) => { const F = libres(L); return (F.length ? F : []).sort((a, b) => dist(a) - dist(b))[0]; };
-    const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'escalafon'].includes(e.tipo) && e.t != null); // en cursos de extensión no se gana medalla Caldas
-    const casa = (e, k) => e.tipo === 'escalafon' ? /ESCALAF/.test(k) : (coincide(kt(e.titulo), k) || coincide(kt(e.programa || ''), k) || coincide(kt(e.tituloAcad || ''), k) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), k)));
+    // La Caldas de la promoción (la del programa profesional: Ciencias Navales, Náuticas, etc.) va en el Escalafonamiento, no en la titulación.
+    const hayEsc = linea.some((e) => e.tipo === 'escalafon' && e.t != null);
+    const esPre = (e) => e.tipo === 'grado' && !e.comp && !/ESPECIALIZ|MAESTR|DOCTOR|DIPLOMAD/.test(sinTildes(e.programa || e.tituloAcad || e.detalle || ''));
+    const preKeys = linea.filter(esPre).map((e) => kt(e.programa || e.tituloAcad || '')).filter(Boolean);
+    const tarjetas = linea.filter((e) => ['ley', 'grado', 'complementacion', 'escalafon'].includes(e.tipo) && e.t != null && !(hayEsc && esPre(e))); // en cursos de extensión no se gana medalla Caldas
+    const casa = (e, k) => e.tipo === 'escalafon' ? (/ESCALAF/.test(k) || preKeys.some((q) => coincide(q, k))) : (coincide(kt(e.titulo), k) || coincide(kt(e.programa || ''), k) || coincide(kt(e.tituloAcad || ''), k) || (e.tipo === 'complementacion' && coincide(kt(e.detalle || ''), k)));
     const poner = (ev) => { (ev.medallas = ev.medallas || []).push(m); };
     // 1. Por cada clave (general primero), tarjetas que coinciden y no tienen ya una Caldas; la del periodo más cercano.
     for (const k of claves) {
@@ -873,7 +877,7 @@ function armarFicha(id, S) {
     }
     // 2. Sin coincidencia por nombre: la tarjeta libre más cercana al periodo.
     if (tM != null) { const e = mejor(tarjetas); if (e) return poner(e); return; }
-    const gA = linea.find((e) => e.tipo === 'grado' && !e.comp && !(e.medallas && e.medallas.length)) || linea.find((e) => e.tipo === 'escalafon' && !(e.medallas && e.medallas.length));
+    const gA = linea.find((e) => e.tipo === 'escalafon' && !(e.medallas && e.medallas.length)) || linea.find((e) => e.tipo === 'grado' && !e.comp && !(e.medallas && e.medallas.length));
     if (gA) return poner(gA);
   });
   if (retiro) linea.push({ tipo: 'retiro', t: tFecha(retiro.retiro), fecha: retiro.retiro, anio: anioDe(retiro.retiro) || retiro.anioIng || null, titulo: 'Retiro', causal: retiro.causal, doc: retiro.doc, obs: retiro.obs, curso: retiro.curso, grado: (ing0 && esPuente(ing0.cont)) ? '' : retiro.grado, pv: retiro.pv });
