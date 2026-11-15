@@ -847,7 +847,7 @@ function armarFicha(id, S) {
     if (!dest) dest = comps.filter((e) => (e.inicio || e.fin) && (e.inicio || e.fin) <= (g.fecha || '9999')).sort((a, b) => String(a.inicio || a.fin).localeCompare(String(b.inicio || b.fin))).pop() || (comps.length === 1 ? comps[0] : null);
     if (!dest) return;
     dest.titulacion = { fecha: g.fecha || '', programa: g.programa || '', titulo: g.tituloAcad || '', trabajo: g.trabajo || '', pv: g.pv };
-    if (g.fecha) { dest.fecha = g.fecha; dest.anio = anioDe(g.fecha) || dest.anio; const tg = tFecha(g.fecha); if (tg != null) dest.t = tg; } // el chip de la tarjeta muestra la fecha de grado
+    // La tarjeta conserva la fecha que muestra su chip (inicio del CCP): por esa se ordena; la fecha de grado va dentro como Fecha de titulación.
     dest.programa = dest.programa || g.programa; dest.tituloAcad = dest.tituloAcad || g.tituloAcad; // para que la medalla Caldas siga encontrando la tarjeta
     g.quitar = true;
   });
