@@ -217,7 +217,8 @@ module.exports = async function handler(req, res) {
         if (d && d.meta && d.meta.periodo && !lista.includes(d.meta.periodo)) lista.push(d.meta.periodo);
       }
       lista.sort();
-      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista } : { meta: null, datos: null, periodos: lista });
+      const CV = require('./_cedulas-verificadas.json'); // contrastado con la cédula: ciudad de expedición y nombres
+      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom } : { meta: null, datos: null, periodos: lista });
       return;
     }
 
