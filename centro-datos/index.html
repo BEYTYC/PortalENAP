@@ -1543,7 +1543,10 @@ class Component extends DCLogic {
     if (!this._fsInit && typeof window !== 'undefined') {
       this._fsInit = true;
       try { const q = new URLSearchParams(window.location.search); this._modo = q.get('modo') || ''; if (this._modo === 'tablero') { const tb = q.get('tab'); Object.assign(this.state, { screen: 'app', tab: ['general', 'graduados', 'retiros', 'concesiones', 'reconoc', 'formacion', 'programas', 'analitica'].indexOf(tb) >= 0 ? tb : 'general' }); } if (this._modo) Object.assign(this.state, { vw: window.innerWidth, vh: window.innerHeight }); } catch (e) { this._modo = ''; }
-      const sync = () => { const on = !!document.fullscreenElement; if (this._fsReal && !on && this.state.fs) { this._fsReal = false; try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {} this.setState({ fs: false }); } };
+      const medir = () => { const w = window.innerWidth, h = window.innerHeight; if (this.state.vw !== w || this.state.vh !== h) this.setState({ vw: w, vh: h }); };
+      this._medir = () => { medir(); [60, 200, 450, 900].forEach((t) => setTimeout(medir, t)); };
+      const sync = () => { const on = !!document.fullscreenElement; if (on && this._fsReal && !this.state.fs) { this.setState({ fs: true, vw: window.innerWidth, vh: window.innerHeight }); try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: true }, '*'); } catch (e) {} this._medir(); } else if (!on && this._fsReal && this.state.fs) { this._fsReal = false; try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {} this.setState({ fs: false, fsBusy: false, vw: window.innerWidth, vh: window.innerHeight }); this._medir(); } };
+      try { if (window.ResizeObserver) new ResizeObserver(() => medir()).observe(document.documentElement); } catch (e) {}
       document.addEventListener('fullscreenchange', sync);
       window.addEventListener('resize', () => { if (this.state.fs || this._modo) this.setState({ vw: window.innerWidth, vh: window.innerHeight }); if (this.state.fsBusy) { clearTimeout(this._rt); this._rt = setTimeout(() => this.setState({ fsBusy: false, vw: window.innerWidth, vh: window.innerHeight }), 160); } });
       document.addEventListener('egh', (e) => { const h = (e && e.detail) || 0; if (this.state.egH !== h) this.setState({ egH: h }); });
@@ -1552,12 +1555,18 @@ class Component extends DCLogic {
     const fsOn = this.state.fs;
     const fsToggle = () => {
       const next = !this.state.fs;
-      this.setState({ fs: next, fsBusy: true, vw: window.innerWidth, vh: window.innerHeight });
-      clearTimeout(this._rt); this._rt = setTimeout(() => this.setState({ fsBusy: false, vw: window.innerWidth, vh: window.innerHeight }), 700);
-      try {
-        if (next) { const el = document.documentElement; if (el.requestFullscreen) { this._fsReal = true; el.requestFullscreen().catch(() => { this._fsReal = false; }); } try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: true }, '*'); } catch (e) {} }
-        else { try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {} if (document.fullscreenElement) { this._fsReal = false; document.exitFullscreen(); } }
-      } catch (e) {}
+      const el = document.documentElement;
+      if (next) {
+        // Pantalla completa real: se activa el diseño ampliado solo cuando el navegador ya entró (evita ver el portal a medias).
+        if (el.requestFullscreen) { this._fsReal = true; el.requestFullscreen().catch(() => { this._fsReal = false; this.setState({ fs: true, vw: window.innerWidth, vh: window.innerHeight }); try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: true }, '*'); } catch (e) {} }); }
+        else { this.setState({ fs: true, vw: window.innerWidth, vh: window.innerHeight }); try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: true }, '*'); } catch (e) {} }
+      } else if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      } else {
+        this._fsReal = false; this.setState({ fs: false, vw: window.innerWidth, vh: window.innerHeight });
+        try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (e) {}
+        if (this._medir) this._medir();
+      }
     };
     const fitMode = (this._modo === 'inicio' || this._modo === 'tablero') && !fsOn;
     const aw = this.state.vw, ah = (fitMode || fsOn) ? this.state.vh : this.state.vh - 88 - 58;
@@ -2768,7 +2777,7 @@ class Component extends DCLogic {
     const enter = (t) => () => { if (this._modo === 'inicio') { toParent({ type: 'centrodatos:abrir', tab: t }); return; } this.setState({ leaving: true }); setTimeout(() => this.setState({ screen: 'app', leaving: false, tab: t, dd: false }), 640); };
     const goHome = () => { if (this._modo === 'tablero') { toParent({ type: 'centrodatos:inicio' }); return; } this.setState({ screen: 'welcome', leaving: false, dd: false }); };
     const fechaAct = (() => { let raw = null; try { raw = (typeof window !== 'undefined' && (window.CDI_ACTUALIZADO || new URLSearchParams(window.location.search).get('actualizado'))) || null; } catch (e) { raw = null; } let d = raw ? new Date(raw) : new Date(); if (isNaN(d.getTime())) d = new Date(); try { return d.toLocaleString('es-CO', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' }).replace(/\./g, ''); } catch (e) { return d.toISOString().slice(0, 10); } })();
-    const exitDash = () => { if (this.state.fs) { this._fsReal = false; this.setState({ fs: false }); try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (err) {} if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (err) {} } } goHome(); };
+    const exitDash = () => { if (this.state.fs) { this._fsReal = false; this.setState({ fs: false }); try { window.parent.postMessage({ type: 'centrodatos:pantalla-completa', fs: false }, '*'); } catch (err) {} if (document.fullscreenElement) { try { document.exitFullscreen(); } catch (err) {} } } if (this._medir) this._medir(); goHome(); };
     const spark = (fn) => {
       const v = years.map((y) => data.filter((r) => r.year === y && fn(r)).length);
       const mx = Math.max(1, ...v);
