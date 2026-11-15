@@ -2498,7 +2498,7 @@ function armarBD(E,D0,quien){
   function premiosHoja(){
     var P=D0.premios,pcat=function(t){return /^placa/i.test(t)?'Placas':/espad/i.test(t)?'Espadas':/medalla|estrella|m[eé]rito|orden|honor/i.test(t)?'Medallas y condecoraciones':/estados unidos|armada espa|francia/i.test(t)?'Premios extranjeros':'Premios nacionales'};
     var ws=wb.addWorksheet('Premios',{views:[{state:'frozen',ySplit:6,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
-    var cols=[['N°',6],['CATEGORÍA',24],['PREMIO',52],['OTORGA',30],['RAZÓN',44],['PUESTO',9],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXPEDICIÓN',20],['DETALLE',34]];
+    var cols=[['N°',9],['CATEGORÍA',24],['PREMIO',52],['OTORGA',30],['RAZÓN',44],['PUESTO',9],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXPEDICIÓN',20],['DETALLE',34]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
     ws.mergeCellsWithoutStyle(2,1,2,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · Premios '+PERX;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(3,1);a2.value=texto;a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
@@ -2514,7 +2514,7 @@ function armarBD(E,D0,quien){
       ws.autoFilter={from:{row:6,column:1},to:{row:r-1,column:cols.length}}}}
   function reconocimiento(nombre,flag,titulo){
     var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:5,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
-    var cols=[['N°',6],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXPEDICIÓN',20],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
+    var cols=[['N°',9],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXPEDICIÓN',20],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
     ws.mergeCellsWithoutStyle(2,1,2,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
     var a2=ws.getCell(3,1);a2.value=texto;a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
