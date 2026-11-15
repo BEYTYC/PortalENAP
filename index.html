@@ -1520,7 +1520,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     <div id="hojaCarga" role="status" aria-live="polite"><i></i><span>Cargando sesión…</span></div>
     <!-- Hoja de vida del estudiante (hoja-de-vida/index.html, mismo origen). Solo sea@ y
          jestadisticaplen@; /api/hoja-de-vida valida el token y solo lee las bases. -->
-    <iframe id="hojaVidaFrame" class="registro-iframe" title="Trayectoria del estudiante" allow="fullscreen" allowfullscreen></iframe>
+    <iframe id="hojaVidaFrame" class="registro-iframe" title="Trayectoria del Estudiante" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewBajas" hidden>
@@ -3247,7 +3247,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Antigüedades ENAP', status: 'ok' },
         // Solo Estadística: trayectoria completa de un estudiante (cédula o nombre).
-        { nombre: 'Trayectoria del estudiante', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
+        { nombre: 'Trayectoria del Estudiante', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
       ],
     },
     {
@@ -3371,9 +3371,9 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
           }
-          else if (item.status === 'ok' && item.nombre === 'Trayectoria del estudiante') {
+          else if (item.status === 'ok' && item.nombre === 'Trayectoria del Estudiante') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
-            else { abrirSubsistema('viewHojaVida', 'Trayectoria del estudiante'); cargarHojaVida(); }
+            else { abrirSubsistema('viewHojaVida', 'Trayectoria del Estudiante'); cargarHojaVida(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
