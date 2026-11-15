@@ -1291,7 +1291,7 @@ class Component extends DCLogic {
             const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); }); if (j.cab[0] === 'N°') ws.getColumn(1).width = 9;
-            const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde el ascenso)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
+            const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde la terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow({ includeEmpty: true }, (row, n) => {
               if (n === 1 || n === 5) { row.height = 14.4; return; }
@@ -1300,7 +1300,7 @@ class Component extends DCLogic {
               if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 6 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
-                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : hh === 'Años desde el ascenso' ? 'General' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
+                if (n > 6) { const hh = j.cab[c - 1]; if (typeof cell.value === 'number') cell.numFmt = hh === 'Cédula' ? '#,##0' : hh === 'Años desde la terminación' ? 'General' : '0'; } cell.border = bd; cell.alignment = { vertical: 'middle', horizontal: izq[c - 1] ? 'left' : 'center', wrapText: n === 6, indent: izq[c - 1] ? 1 : 0 };
                 if (n === 6) { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' } }; cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C2050' } }; }
                 else { cell.font = { name: 'Aptos Display', size: 11, color: { argb: 'FF0C2050' } }; if (c === nc && cell.value === 'Sí') { cell.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFB45309' } }; } }
               });
@@ -1510,7 +1510,7 @@ class Component extends DCLogic {
           j.cab = keep.map((c) => j.cab[c]);
           const ipT = j.cab.indexOf('Periodo de terminación'), hoy = new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Bogota' })), perHoy = hoy.getFullYear() * 2 + (hoy.getMonth() >= 6 ? 1 : 0);
           const aniosEsc = (t) => { const m = /^(\d{4})-([12])$/.exec(String(t || '')); return m ? Math.max(0, (perHoy - (Number(m[1]) * 2 + Number(m[2]) - 1)) / 2) : ''; };
-          if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde el ascenso');
+          if (ipT >= 0) j.cab.splice(ipT + 1, 0, 'Años desde la terminación');
           const ipG = j.cab.indexOf('Programa académico'); if (ipG >= 0) j.cab.splice(ipG + 1, 0, 'Registro en SNIES');
           const lista = E.R.filter((r) => inR(r) && pm(r[1])).sort((x, y) => y[0] - x[0] || y[5] - x[5] || x[1] - y[1]).map((r) => [j.filas[r[6]], inc(r)]).filter((z) => z[0]).map((z) => { const f = z[0], v = keep.map((c) => f[c]); if (ipT >= 0) v.splice(ipT + 1, 0, aniosEsc(v[ipT])); if (ipG >= 0) v.splice(ipG + 1, 0, z[1] ? 'Después registro SNIES' : 'Antes registro SNIES'); return v.concat([iNota >= 0 ? f[iNota] || '' : '']); });
           const nombre = 'Egresados_no_graduados_con_nombres_' + (prog == null ? 'todos' : prog === 'C' ? 'ciencias' : prog === 'P' ? 'ccp' : PN[prog].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-')) + '.xlsx';
