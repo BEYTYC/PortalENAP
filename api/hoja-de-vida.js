@@ -1158,6 +1158,17 @@ module.exports = async function handler(req, res) {
       res.status(200).json({ cedula: dig, hallazgos });
       return;
     }
+    if (a === 'ranking') { // Solo Estadística: personas con más tarjetas en la trayectoria. Procesa por tandas para no pasar el límite de tiempo.
+      if (yo.correo !== 'jestadisticaplen@enap.edu.co') throw error('Solo disponible para la Oficina de Estadística.', 403);
+      const L = listaCache(Object.assign({}, S, { solo: true })), d = Math.max(0, +body.desde || 0), t0 = Date.now(), filas = [];
+      let i = d;
+      for (; i < L.length && Date.now() - t0 < 35000; i++) {
+        try { const f = armarFicha(L[i].id, S); filas.push([f.persona.nombre, f.persona.cedula, (f.linea || []).length]); } catch (e) { /* se omite */ }
+      }
+      filas.sort((x, y) => y[2] - x[2]);
+      res.status(200).json({ total: L.length, hasta: i, fin: i >= L.length, top: filas.slice(0, 15) });
+      return;
+    }
     if (a === 'fuentes') { res.status(200).json({ fuentes }); return; }
     if (a === 'buscar') { res.status(200).json(Object.assign(buscar(S, body.q), { fuentes: fuentes.filter((f) => !f.ok && true) })); return; }
     if (a === 'ficha') { res.status(200).json(Object.assign(armarFicha(body.id, S), { fuentes, actualizado: Object.values(MODS).sort().slice(-1)[0] || '' })); return; }
