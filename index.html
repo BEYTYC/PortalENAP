@@ -1429,7 +1429,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
            ("centrodatos:abrir") y el Portal abre la vista de Centro de Datos. -->
       <section class="cdi-home" id="cdiHome">
         <div class="cdi-home__stage" id="cdiHomeStage">
-          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional" allowtransparency="true" src="centro-datos/index.html?modo=inicio" loading="lazy"></iframe>
+          <iframe id="cdiHomeFrame" class="cdi-home__frame" title="Centro de Datos Institucional" allowtransparency="true" src="centro-datos/index.html?modo=inicio&v=20261115b" loading="lazy"></iframe>
         </div>
       </section>
     </div>
@@ -3452,7 +3452,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   function cargarCDI(tab) {
     const f = document.getElementById('cdeFrame');
     const t = ['general','graduados','retiros','concesiones','reconoc','formacion','programas'].indexOf(tab) >= 0 ? tab : 'general';
-    const url = 'centro-datos/index.html?modo=tablero&tab=' + t;
+    const url = 'centro-datos/index.html?v=20261115b&modo=tablero&tab=' + t;
     if (f.dataset.url !== url) { f.dataset.url = url; f.src = url; }
   }
 
