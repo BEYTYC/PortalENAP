@@ -2996,6 +2996,10 @@ function iniciar(){
         api('retiros',{desde:d.toISOString().slice(0,10)}).then(function(rt){var R=rt.retiros||{},D=window.__D,man={};(D.ediciones||[]).forEach(function(e){if((e.cambios||[]).some(function(c){return /^Estado:/.test(c)}))man[e.c]=1});
           var L=(D.esc||[]).concat(Object.keys(D.sheets||{}).reduce(function(a,k){return a.concat(D.sheets[k]||[])},[])),n=0;
           L.forEach(function(st){if(st.ce==null||man[st.c]||st.e==='Retirado')return;var ck=String(st.ce).replace(/[^0-9]/g,'').replace(/^0+/,'');var b=R[ck];if(!b)return;st.e='Retirado';st.rb=1;if(!st.ev)st.ev='Retirado según Bajas y Ascensos'+(b.causal?' · '+b.causal:'')+' · '+b.f;n++});
+          /* Nombres: el de CONGLOMERADO (por cédula) manda sobre el que venga de las notas, salvo que se haya editado a mano */
+          var NM=rt.nombres||{},sn=function(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')},mn={};
+          (D.ediciones||[]).forEach(function(e){if((e.cambios||[]).some(function(c){return /^Nombre/i.test(c)}))mn[e.c]=1});
+          L.forEach(function(st){if(st.ce==null||mn[st.c])return;var ck=String(st.ce).replace(/[^0-9]/g,'').replace(/^0+/,''),o=NM[ck];if(o&&sn(o)!==sn(st.n)){st.nOrig=st.n;st.n=o;D.nombresCorr=(D.nombresCorr||0)+1}});
           if(n)D.rbRerank=true}).catch(function(){}).then(seguir)})();
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
