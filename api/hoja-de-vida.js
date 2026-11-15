@@ -646,14 +646,14 @@ function jerarquiaPromo(promo, nac) {
   if (k === 'MER') return 'Teniente de Corbeta de la Reserva Activa';
   return 'Teniente de Corbeta';
 }
-/* Título de la tarjeta de ingreso según la especialidad con que ingresó; sin especialidad militar (civiles) solo "Ingreso como Aspirante". */
+/* Título de la tarjeta de ingreso según la especialidad con que ingresó; sin especialidad militar (civiles) solo "Ingresó como Aspirante". */
 const esPuente = (c) => /^(PUENTE|MAQUINAS?)\b/.test(sinTildes(c)); // civiles mercantes: no son cadetes ni llevan grado
 function tituloIngreso(sigla) {
   const e = sinTildes(sigla);
-  if (/\bIM\b|INFANTERIA/.test(e)) return 'Ingreso como Aspirante a Cadete de Infantería de Marina';
-  if (/\bMER\b|MERCANTE/.test(e)) return 'Ingreso como Aspirante a Cadete Mercante';
-  if (/\bNAV\b|NAVAL/.test(e)) return 'Ingreso como Aspirante a Cadete Naval';
-  return 'Ingreso como Aspirante';
+  if (/\bIM\b|INFANTERIA/.test(e)) return 'Ingresó como Aspirante a Cadete de Infantería de Marina';
+  if (/\bMER\b|MERCANTE/.test(e)) return 'Ingresó como Aspirante a Cadete Mercante';
+  if (/\bNAV\b|NAVAL/.test(e)) return 'Ingresó como Aspirante a Cadete Naval';
+  return 'Ingresó como Aspirante';
 }
 function jerarquiaEsc(esp, nac, cdprim) {
   const e = sinTildes(esp);
