@@ -1290,7 +1290,7 @@ class Component extends DCLogic {
             ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
             const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
-            j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); });
+            j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); }); if (j.cab[0] === 'N°') ws.getColumn(1).width = 9;
             const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde el ascenso)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow({ includeEmpty: true }, (row, n) => {
@@ -1311,7 +1311,7 @@ class Component extends DCLogic {
             ws.autoFilter = { from: { row: 6, column: 1 }, to: { row: 6, column: nc } };
             ws.pageSetup = { orientation: 'landscape', fitToPage: true, fitToWidth: 1, fitToHeight: 0 };
             return fetch('../assets/escudo-logo-excel.png').then((rs) => (rs.ok ? rs.arrayBuffer() : null)).catch(() => null).then((ab) => {
-              if (ab) { ws.addImage(wb.addImage({ buffer: ab, extension: 'png' }), { tl: { nativeCol: 0, nativeColOff: Math.max(0, Math.round((Math.round((ws.getColumn(1).width || 8.43) * 7 + 5) - 40) / 2 * 9525)), nativeRow: 1, nativeRowOff: 79000 }, ext: { width: 40, height: 54 } }); [2, 3, 4].forEach((r) => { const ce = ws.getCell(r, 1); ce.alignment = Object.assign({}, ce.alignment, { horizontal: 'left', vertical: r === 2 ? 'bottom' : r === 4 ? 'top' : 'middle', indent: 8 }); }); ws.getRow(1).height = 12; ws.getRow(2).height = 21; ws.getRow(3).height = 16; ws.getRow(4).height = 16; }
+              if (ab) { ws.addImage(wb.addImage({ buffer: ab, extension: 'png' }), { tl: { nativeCol: 0, nativeColOff: Math.max(0, Math.round((Math.round((ws.getColumn(1).width || 8.43) * 7 + 5) - 46) / 2 * 9525)), nativeRow: 1, nativeRowOff: 41000 }, ext: { width: 46, height: 62 } }); [2, 3, 4].forEach((r) => { const ce = ws.getCell(r, 1); ce.alignment = Object.assign({}, ce.alignment, { horizontal: 'left', vertical: r === 2 ? 'bottom' : r === 4 ? 'top' : 'middle', indent: 8 }); }); ws.getRow(1).height = 12; ws.getRow(2).height = 21; ws.getRow(3).height = 16; ws.getRow(4).height = 16; }
               return wb.xlsx.writeBuffer().then((buf) => window.JSZip.loadAsync(buf).then((z) => z.file('xl/worksheets/sheet1.xml').async('string').then((x) => {
                 const m = x.match(/<picture [^>]*\/>/), l = x.match(/<legacyDrawing [^>]*\/>/);
                 if (m && l && x.indexOf(m[0]) < x.indexOf(l[0])) { x = x.replace(m[0], '').replace(l[0], l[0] + m[0]); z.file('xl/worksheets/sheet1.xml', x); }
