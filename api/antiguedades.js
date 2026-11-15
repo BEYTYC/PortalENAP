@@ -284,7 +284,33 @@ module.exports = async function handler(req, res) {
         if (!ck || !f || f < desde) continue;
         if (!out[ck] || f > out[ck].f) out[ck] = { f, causal: String(r[20] == null ? '' : r[20]).trim(), doc: String(r[16] == null ? '' : r[16]).trim() };
       }
-      res.status(200).json({ retiros: out, archivo: L[0].name, modificado: L[0].lastModifiedDateTime });
+      /* nombres oficiales: CONGLOMERADO por cédula (corrige nombres mal escritos que vienen de las notas) */
+      const nombres = {};
+      try {
+        const base = 'Estadística/Bases de Datos/B.D Ingresos/';
+        let rc = null;
+        for (const nm of ['CONGLOMERADO.xlsm', 'CONGLOMERADO.xlsx']) {
+          const x = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(dueno)}/drive/root:/${enc(base + nm)}:/content`, { headers: H });
+          if (x.ok) { rc = x; break; }
+        }
+        if (rc) {
+          const lc = XLSX.abrir(Buffer.from(await rc.arrayBuffer()));
+          const hoja = lc.hojas.find((h) => /todos los ingresos/i.test(h)) || lc.hojas[0];
+          const FC = lc.leer(hoja, { maxCols: 30 });
+          const nh = (v) => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/\s+/g, ' ').trim();
+          const HH = (FC[0] || []).map(nh);
+          const iN = HH.indexOf('APELLIDOS Y NOMBRES'), iC = HH.indexOf('CEDULA'), iF = HH.indexOf('FECHA INGRESO');
+          if (iN >= 0 && iC >= 0) {
+            for (let i = 1; i < FC.length; i++) {
+              const r = FC[i], ck = ced(r[iC]), f = iF >= 0 ? iso(r[iF]) : '';
+              if (!ck || !r[iN] || (f && f < desde)) continue;
+              if (!nombres[ck] || f >= nombres[ck].f) nombres[ck] = { f, n: nh(r[iN]) };
+            }
+            Object.keys(nombres).forEach((k) => { nombres[k] = nombres[k].n; });
+          }
+        }
+      } catch (e) { /* si CONGLOMERADO no se puede leer, los retiros siguen funcionando */ }
+      res.status(200).json({ retiros: out, nombres, archivo: L[0].name, modificado: L[0].lastModifiedDateTime });
       return;
     }
 
