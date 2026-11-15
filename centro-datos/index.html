@@ -1491,7 +1491,7 @@ class Component extends DCLogic {
     const topY = Object.keys(yc).map((k) => [k, yc[k]]).sort((a, b) => b[1] - a[1]).slice(0, 6);
     const egTopY = hb(topY.map((c) => ({ label: 'Año ' + c[0], v: c[1], val: fmt(c[1]), sub: 'tasa ' + pc(c[1], den(+c[0], prog)) + ' de ' + fmt(den(+c[0], prog)) + ' escalafonados' })), '#E8702A');
     const egSem = [[null, 'Ambos semestres'], [1, 'Semestre I'], [2, 'Semestre II']].map((o) => chip(sem === o[0], o[1], setE({ sem: o[0] })));
-    const egProgOpts = [['N', 'Todos los programas']].concat(PN.map((n, k) => [String(k), (k < NC ? 'Ciencias · ' : k === 8 ? 'Especialización · ' : 'CCP · ') + n])).map((o) => ({ v: o[0], t: o[1], sel: (prog == null ? 'N' : String(prog)) === o[0] }));
+    const egProgOpts = [['N', 'Todos los programas']].concat(PN.map((n, k) => [String(k), n])).map((o) => ({ v: o[0], t: o[1], sel: (prog == null ? 'N' : String(prog)) === o[0] }));
     const egProgSet = (e) => { const v = e && e.target ? e.target.value : 'N'; this.setState({ eg: Object.assign({}, eg, { prog: v === 'N' ? null : (v === 'C' || v === 'P') ? v : +v }) }); };
     const dl = () => {
       const PP = PN;
