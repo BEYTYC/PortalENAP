@@ -1291,7 +1291,7 @@ class Component extends DCLogic {
             const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
             ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); }); if (j.cab[0] === 'N°') ws.getColumn(1).width = 9;
-            const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde la terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = 14; });
+            const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde la terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = j.cab[c] === 'Años desde la terminación' ? 14.5 : 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow({ includeEmpty: true }, (row, n) => {
               if (n === 1 || n === 5) { row.height = 14.4; return; }
