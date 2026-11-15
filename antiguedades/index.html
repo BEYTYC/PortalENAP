@@ -2999,7 +2999,11 @@ function iniciar(){
           /* Nombres: el de CONGLOMERADO (por cédula) manda sobre el que venga de las notas, salvo que se haya editado a mano */
           var NM=rt.nombres||{},sn=function(v){return String(v==null?'':v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'')},mn={};
           (D.ediciones||[]).forEach(function(e){if((e.cambios||[]).some(function(c){return /^Nombre/i.test(c)}))mn[e.c]=1});
-          L.forEach(function(st){if(st.ce==null||mn[st.c])return;var ck=String(st.ce).replace(/[^0-9]/g,'').replace(/^0+/,''),o=NM[ck];if(o&&sn(o)!==sn(st.n)){st.nOrig=st.n;st.n=o;D.nombresCorr=(D.nombresCorr||0)+1}});
+          var PN={},dup={};Object.keys(NM).forEach(function(k){var q=sn(NM[k]);if(PN[q]&&PN[q]!==k)dup[q]=1;PN[q]=k});
+          L.forEach(function(st){if(st.ce==null||mn[st.c])return;var ck=String(st.ce).replace(/[^0-9]/g,'').replace(/^0+/,''),o=NM[ck];
+            /* cédula mal digitada: no existe en CONGLOMERADO pero el nombre coincide con una sola persona */
+            if(!o){var k2=PN[sn(st.n)];if(k2&&!dup[sn(st.n)]&&!NM[ck]){st.ceOrig=st.ce;st.ce=typeof st.ce==='number'?+k2:k2;D.cedCorr=(D.cedCorr||0)+1;return}}
+            if(o&&sn(o)!==sn(st.n)){st.nOrig=st.n;st.n=o;D.nombresCorr=(D.nombresCorr||0)+1}});
           if(n)D.rbRerank=true}).catch(function(){}).then(seguir)})();
       if(esAdmin){var va2=document.getElementById('va');va2.onclick=function(){var ad=document.getElementById('admin'),a=ad.hidden;ad.hidden=!a;document.getElementById('pub').hidden=a;va2.setAttribute('aria-pressed',String(a))}}
     })
