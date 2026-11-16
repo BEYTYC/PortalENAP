@@ -883,7 +883,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <!-- ============ PROGRAMAS ============ -->
 <sc-if value="{{ pProgramas }}" hint-placeholder-val="{{ false }}">
-<div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto auto minmax(0,1fr);gap:14px">
+<div style="{{ spGridSt }}display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:{{ spRows }};gap:14px">
 
 <div class="rise d2" style="{{ panel }};grid-column:span 12">
 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><div style="font-size:17px;font-weight:700;color:#0C2050">Tasa de deserción por programa</div><div style="font-size:11.5px;color:#6B7A94">{{ dsSub }}</div></div>
@@ -898,6 +898,15 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </sc-for>
 </div>
 </div>
+
+<sc-if value="{{ rsOn }}" hint-placeholder-val="{{ false }}">
+<div class="rise d2" style="{{ panel }};grid-column:span 12">
+<div style="font-size:15px;font-weight:600;color:#0C2050">Tasa de retiro por semestre</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ rsSub }}</div>
+<div style="margin-top:12px;display:flex;align-items:flex-end;gap:2px;height:{{ rsH }}px">
+<sc-for list="{{ rsBars }}" as="b" hint-placeholder-count="30"><div title="{{ b.tip }}" style="{{ b.col }}"><div style="font-size:9.5px;color:#C4501F;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;margin-bottom:2px">{{ b.val }}</div><div style="{{ b.bar }}"></div><div style="margin-top:4px;height:12px;font-size:10px;color:#6B7A94;white-space:nowrap">{{ b.lbl }}</div></div></sc-for>
+</div>
+</div>
+</sc-if>
 
 <div class="rise d3" style="{{ panel }};grid-column:span 8">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ spYTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ spYSub }}. Toca una fila para filtrar por año</div></div>
@@ -2935,6 +2944,22 @@ class Component extends DCLogic {
       const dsSem = (st, i) => { let t = 0; RR.forEach((r) => { if (r[0] === st && r[1] === i && r[2] === PERs && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'prog')) t += r[5]; }); return t; };
       const dsRaw = [0, 1, 2, 3].map((i) => { const ret = dsSem(5, i), ing = dsSem(3, i); return { i: i, name: SN.PR[i][0], ret: ret, ing: ing, rt: ing ? ret / ing : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
       const dsMx = Math.max(0.01, ...dsRaw.map((x) => x.rt));
+      // más datos en las tarjetas (tasas del periodo mostrado)
+      const exSet = (lab, a, b) => { const q = sk.find((x) => x.label === lab); if (!q) return; if (a) { q.ex1 = true; q.ex1l = a[0]; q.ex1v = a[1]; } if (b) { q.ex2 = true; q.ex2l = b[0]; q.ex2v = b[1]; } };
+      exSet('Admitidos', ['Admisión', pct(tot[1], tot[0])]);
+      exSet('Primer curso', ['De matrículas', pct(tot[2], tot[3])]);
+      exSet('Graduados', ['Graduación', pct(tot[4], tot[4] + tot[5])]);
+      const dsAgg = (yr) => { let a = 0, b = 0; RR.forEach((r) => { if (r[1] < 4 && r[2] === yr && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'year')) { if (r[0] === 5) a += r[5]; else if (r[0] === 3) b += r[5]; } }); return [a, b]; };
+      const dsC = dsAgg(PERs), dsP = dsAgg(PRVs);
+      exSet('Retirados', ['Deserción sem.', pct(dsC[0], dsC[1])], ['Deserción ' + PRVs, pct(dsP[0], dsP[1])]);
+      // gráfica de la tasa de retiro por semestre (cuando se elige Retirados)
+      const rsMap = {}; RR.forEach((r) => { if (r[1] < 4 && r[2] > 0 && (r[0] === 5 || r[0] === 3) && sPass(r, 'year')) { const key = r[2] * 10 + r[3]; const o = rsMap[key] || (rsMap[key] = { y: r[2], s: r[3], ret: 0, mat: 0 }); if (r[0] === 5) o.ret += r[5]; else o.mat += r[5]; } });
+      const rsList = Object.keys(rsMap).map((x) => rsMap[x]).filter((x) => x.mat > 0).sort((a, b) => a.y - b.y || a.s - b.s);
+      const rsMx = Math.max(0.001, ...rsList.map((x) => x.ret / x.mat)), RSH = 150;
+      const rsBars = rsList.map((x) => { const rt = x.ret / x.mat, on = x.y === PERs; return { lbl: x.s === 1 ? String(x.y).slice(2) : '', tip: x.y + '-' + x.s + ': ' + pct(x.ret, x.mat) + ' (' + fmt(x.ret) + ' retirados de ' + fmt(x.mat) + ' matriculados)', val: rsList.length <= 30 ? pct(x.ret, x.mat).replace('%', '') : '', col: 'flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:' + (RSH + 34) + 'px', bar: 'width:100%;height:' + Math.max(1, rt / rsMx * RSH).toFixed(1) + 'px;border-radius:4px 4px 1px 1px;background:' + (on ? 'linear-gradient(180deg,#F08A5E,#E0653A)' : 'linear-gradient(180deg,#F5B79A,#EE9A74)') }; });
+      const rsAvg = (() => { let a = 0, b = 0; rsList.forEach((x) => { a += x.ret; b += x.mat; }); return b ? a / b : 0; })();
+      const rsTop = rsList.slice().sort((a, b) => b.ret / b.mat - a.ret / a.mat)[0];
+      const rsSub = rsList.length ? 'Retirados / matriculados de cada semestre (programas de ciencias). Promedio ' + pct(rsAvg * 1000, 1000) + (rsTop ? ' · mayor: ' + rsTop.y + '-' + rsTop.s + ' con ' + pct(rsTop.ret, rsTop.mat) : '') : '';
       const dsProgs = dsRaw.map((x) => { const w = (x.rt / dsMx * 100).toFixed(1); return { label: x.name, rate: pct(x.ret, x.ing), cnt: fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados', tip: x.name + ': ' + fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados en ' + PERs, go: () => {}, st: 'text-align:left;font:inherit;cursor:default;padding:12px 14px;border-radius:16px;background:#FFF7F2;border:1.5px solid #F6DCCD', track: 'position:relative;margin-top:10px;height:10px;background:linear-gradient(#F0D9CC,#F0D9CC) 0 4px / 100% 2px no-repeat', fill: 'position:absolute;left:0;top:4px;height:2px;border-radius:1px;background:#E0653A;width:' + w + '%;transition:width .55s cubic-bezier(.22,.8,.24,1)', dot: 'position:absolute;top:0;width:10px;height:10px;border-radius:50%;background:#E0653A;left:calc(' + w + '% - 5px);transition:left .55s cubic-bezier(.22,.8,.24,1)' }; });
       // ciudades
       const cst = mt[2] >= 2 ? mt[2] : 3, cLab = cst === 2 ? 'primer curso' : cst === 4 ? 'graduados' : cst === 5 ? 'retirados' : 'matrículas';
@@ -2981,7 +3006,7 @@ class Component extends DCLogic {
       spo = {
         kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(' + sk.length + ',minmax(0,1fr));gap:10px;height:120px',
         spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: 'Desde ' + yMin + (yNoDate ? ' · ' + fmt(yNoDate) + ' sin fecha' : ''), spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
-        dsProgs: dsProgs, dsSub: 'Tasa semestral = retirados / matriculados del semestre · ' + PERs + (semSet ? ' (semestre ' + semSet.join(', ') + ')' : '') + ' · programas de ciencias', spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
+        spRows: sp.metric === 'ret' && rsList.length > 0 ? 'auto auto auto 360px' : 'auto auto minmax(0,1fr)', spGridSt: sp.metric === 'ret' && rsList.length > 0 ? 'flex:none;' : 'flex:1;min-height:0;', rsOn: sp.metric === 'ret' && rsList.length > 0, rsBars: rsBars, rsSub: rsSub, rsH: RSH + 34, dsProgs: dsProgs, dsSub: 'Tasa semestral = retirados / matriculados del semestre · ' + PERs + (semSet ? ' (semestre ' + semSet.join(', ') + ')' : '') + ' · programas de ciencias', spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
         railPd: true, pdRows: pdRows2, pdLabel: pdLabel2, pdSub: fmt(tot[mI]) + ' ' + mt[1].toLowerCase(), pdClear: () => upS({ periods: null }), pdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (pdOn ? '#D9B25A' : '#DDE3EE') + ';background:' + (pdOn ? '#FBF3DE' : '#fff') + ';color:' + (pdOn ? '#7A5510' : '#26364F'),
         railSexo: false, estLbl: 'Nivel', rngOn: false, railDh: true, estadoBtns: nivBtns, rangoBtns: [], dhDY: dhDY, dhDS: dhDS, dhHY: dhHY, dhHS: dhHS, dhDOn: !!sp.desde, dhHOn: !!sp.hasta, dhDYOpts: dhYOpt(sp.desde, 'Desde el inicio'), dhHYOpts: dhYOpt(sp.hasta, 'Hasta hoy'), dhDSOpts: dhSOpt(sp.desde), dhHSOpts: dhSOpt(sp.hasta), progLabel: 'Programa', rdOptions: progOpts, ddOptions: progOpts, ddLabel: progSel, rdLabel: progSel, rdSub: fmt(pc2.reduce((a, b) => a + b, 0)) + ' ' + mt[1].toLowerCase(),
