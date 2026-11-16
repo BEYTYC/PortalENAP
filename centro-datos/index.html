@@ -3071,5 +3071,33 @@ class Component extends DCLogic {
   }
 }
 </script>
+<script>(function(){
+  function fmtSel(sel){
+    var rg=sel.getRangeAt(0);
+    function tx(n){
+      if(n.nodeType===3){var t=n.nodeValue;if(n===rg.endContainer)t=t.slice(0,rg.endOffset);if(n===rg.startContainer)t=t.slice(rg.startOffset);t=t.replace(/\s+/g,' ').trim();return t?[t]:[];}
+      if(n.nodeType!==1||!rg.intersectsNode(n))return [];
+      var tg=n.tagName;if(tg==='SCRIPT'||tg==='STYLE'||tg==='NOSCRIPT'||tg==='SELECT'||tg==='OPTION'||tg==='BUTTON')return [];
+      var cs=getComputedStyle(n);if(cs.display==='none'||cs.visibility==='hidden')return [];
+      var parts=[];for(var c=n.firstChild;c;c=c.nextSibling){var r=tx(c);for(var i=0;i<r.length;i++)parts.push(r[i]);}
+      if(!parts.length)return [];
+      var d=cs.display,row=false,inl=false;
+      if(tg==='TR')row=true;
+      else if(/flex/.test(d)&&/row/.test(cs.flexDirection))row=true;
+      else if(/grid/.test(d)&&n.children.length>1&&!/^\s*none/.test(cs.gridTemplateColumns)&&cs.gridTemplateColumns.split(' ').length>1)row=true;
+      else if(/^inline/.test(d)||d==='contents')inl=true;
+      if(row){var kids=[],big=false;for(var k=0;k<n.children.length;k++){var kk=tx(n.children[k]);if(kk.length>3)big=true;if(kk.length)kids.push(kk);}if(big){var fl=[];kids.forEach(function(q){q.forEach(function(z){fl.push(z)})});return fl;}return [kids.map(function(q){return q.join(' ')}).join('\t')];}
+      if(inl)return [parts.join(' ')];
+      return parts;
+    }
+    return tx(rg.commonAncestorContainer.nodeType===1?rg.commonAncestorContainer:rg.commonAncestorContainer.parentNode).join('\n');
+  }
+  document.addEventListener('copy',function(e){
+    if(e.defaultPrevented)return;var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+    var s=window.getSelection();if(!s||s.isCollapsed||!s.rangeCount)return;
+    try{var txt=fmtSel(s);if(!txt)return;e.clipboardData.setData('text/plain',txt);e.preventDefault();}catch(x){}
+  });
+})();
+</script>
 </body>
 </html>
