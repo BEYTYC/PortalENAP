@@ -1428,8 +1428,10 @@ html,body{max-width:100%;overflow-x:hidden}@supports (overflow:clip){html,body{o
 @media(max-width:700px){.pst li span::before{display:none!important}.pst li span{margin:0!important;padding:0!important}.pst li em{margin:0!important;padding:0!important;white-space:normal!important;font-weight:600;color:#3F5A7D}}
 /* ================= CELULAR (≤700px) ================= */
 @media(max-width:700px){
-  /* sin descarga ni configuración en el celular */
-  #dl,#va,.dlb,.gearb{display:none!important}
+  /* sin configuración en el celular; la descarga del Excel queda solo para el administrador */
+  #va,.gearb{display:none!important}
+  body:not(.has-gear) #dl,body:not(.has-gear) .dlb{display:none!important}
+  body.has-gear .dlb:not([hidden]){display:inline-flex!important;position:fixed!important;top:12px!important;right:12px!important}
   /* cabecera del estudiante reorganizada: Volver arriba a la derecha, luego código y nombre */
   .stu .hd{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:4px!important;padding-right:0!important}
   .stu .hd .back,.stu .hd #back{align-self:flex-end;order:-1;margin:0 0 4px!important}
