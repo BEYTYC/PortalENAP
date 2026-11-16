@@ -389,7 +389,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <div class="rise d3" style="{{ panel }};grid-column:span 12;display:flex;flex-direction:column">
 <div class="gh" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por año y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSub }}</div></div>
-<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:#3D4D69"><span style="display:inline-flex;align-items:center;gap:5px">Desde <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gFromSet }}"><sc-for list="{{ gFromOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select> hasta <select class="egsel" style="min-width:84px;padding:5px 26px 5px 10px" onChange="{{ gToSet }}"><sc-for list="{{ gToOpts }}" as="o" hint-placeholder-count="30"><option value="{{ o.v }}" selected="{{ o.sel }}">{{ o.t }}</option></sc-for></select></span><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:#3D4D69"><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
 <div class="gbx" style="{{ gBox }}">
 <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ gYearCols }}" as="y" hint-placeholder-count="17">
@@ -2059,7 +2059,7 @@ class Component extends DCLogic {
       const dsp = (b) => (b ? 'display:contents' : 'display:none');
       const gs = (b, sp) => (b ? 'grid-column:span ' + sp : 'display:none');
       const isM = ({ all: 1, ing: 1, esc: 1, ret: 1, prog: 1 })[T];
-      const kmOn = ({ all: 1, esc: 1, ret: 1, prog: 1 })[T], pjOn = ({ all: 1, ing: 1, esc: 1, ret: 1 })[T], retOn = T === 'ret';
+      const kmOn = ({ all: 1, esc: 1, ret: 1, prog: 1 })[T], pjOn = false, retOn = T === 'ret';
       const dynOn = ({ ext: 1, con: 1, act: 1 })[T];
       // ---------- paneles dinámicos: extranjeros, concesiones, estudiando
       const rowsAll = this._data, cerr = rowsAll.filter((r) => r.year >= +S0 && r.year <= 2019 && r.estado !== 'activo');
@@ -2157,7 +2157,7 @@ class Component extends DCLogic {
         early: dsp(retOn), brk: brkShown.length && isM ? dsp(1) : 'display:none',
         km: kmOn ? (sigF && retOn || T === 'all' && sigF ? 'grid-column:span 7' : 'grid-column:span 12') : 'display:none',
         forest: (retOn || T === 'all') && sigF ? 'grid-column:span 5' : 'display:none',
-        pj: pjOn ? (retOn ? 'grid-column:span 7' : 'grid-column:span 12') : 'display:none', calc: retOn ? 'grid-column:span 5' : 'display:none',
+        pj: pjOn ? (retOn ? 'grid-column:span 7' : 'grid-column:span 12') : 'display:none', calc: retOn ? 'grid-column:span 12' : 'display:none',
         heat: dsp(retOn || T === 'prog'), coh: dsp(retOn || T === 'ing'), dyn: dsp(dynOn), gloss: (retOn || T === 'all' || T === 'esc') ? 'display:block' : 'display:none'
       };
       v.topicName = TNM[T]; v.toData = () => this.setState({ view: 'datos' }); v.toAna = () => this.setState({ view: 'ana' }); v.ana = ana;
@@ -2375,6 +2375,8 @@ class Component extends DCLogic {
     const gFromSet = (e) => { const v = +(e && e.target ? e.target.value : 1935); this.setState({ gFrom: v, gTo: Math.max(v, gHasta) }); };
     const gToSet = (e) => { const v = +(e && e.target ? e.target.value : 2026); this.setState({ gTo: v, gFrom: Math.min(v, gDesde) }); };
     const gYear = yearsAll.filter((y) => y >= gDesde && y <= gHasta).map((y) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); return { y: y, c: c }; });
+    while (gYear.length > 1 && gYear[0].c.t === 0) gYear.shift();
+    while (gYear.length > 1 && gYear[gYear.length - 1].c.t === 0) gYear.pop();
     const gMax = Math.max(1, ...gYear.map((o) => o.c.t));
     const mobGq = !!document.querySelector('.mob'), mobStep = gYear.length > 45 ? 20 : gYear.length > 24 ? 5 : gYear.length > 12 ? 2 : 1;
     const gYearCols = gYear.map((o) => {
@@ -3034,7 +3036,7 @@ class Component extends DCLogic {
     const egV = this.egres();
     const vals = {
       credStyle: credStyle, welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railDhG: tab === 'general', gdhDY: gdhDY, gdhDS: gdhDS, gdhHY: gdhHY, gdhHS: gdhHS, gdhDOn: !!f.desde, gdhHOn: !!f.hasta, gdhDYOpts: gdhYOpt(f.desde, 'Desde el inicio'), gdhHYOpts: gdhYOpt(f.hasta, 'Hasta hoy'), gdhDSOpts: gdhSOpt(f.desde), gdhHSOpts: gdhSOpt(f.hasta), railSexo: true, rngOn: true, railDh: false, estLbl: 'Estado', rngLbl: 'Año de ingreso',
-      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + gDesde + ' hasta ' + gHasta + '. Toca una fila para filtrar por año de ingreso',
+      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + (gYear.length ? gYear[0].y : gDesde) + ' hasta ' + (gYear.length ? gYear[gYear.length - 1].y : gHasta) + '. Toca una fila para filtrar por año de ingreso',
       gTrP: gTr.p, gTrS: gTr.s, gradTrP: gradCols.tr.p, gradTrS: gradCols.tr.s, conTrP: conCols.tr.p, conTrS: conCols.tr.s, recTrP: recCols.tr.p, recTrS: recCols.tr.s, yrTrP: yrT.p, yrTrS: yrT.s,
       gBox: 'position:relative;margin-top:6px;display:flex;align-items:stretch;gap:2px;flex:1;min-height:170px;width:100%;max-width:' + Math.max(gYearCols.length, 1) * 150 + 'px;align-self:center', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, genDonut: genDonut, genTotal: fmt(gTot), paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle + fadeS, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, exitDash: exitDash, stageCls: mob ? 'mob' : (mobIni ? 'mobi' : ''), appPad: fsOn ? '22px 26px' : (scr && mobq) ? '12px' : '34px 90px', enterGeneral: enter('general'),
