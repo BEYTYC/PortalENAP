@@ -388,7 +388,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px">
 
 <div class="rise d3" style="{{ panel }};grid-column:span 12;display:flex;flex-direction:column">
-<div class="gh" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por año y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSub }}</div></div>
+<div class="gh" style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">Ingresos por semestre y destino</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ gSub }}</div></div>
 <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end;font-size:11px;color:#3D4D69"><sc-for list="{{ gLeg }}" as="l" hint-placeholder-count="3"><span style="display:inline-flex;align-items:center;gap:5px"><span style="{{ l.dot }}"></span>{{ l.label }}</span></sc-for></div></div>
 <div class="gbx" style="{{ gBox }}">
 <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ gTrS }}"><polyline points="{{ gTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
@@ -2374,16 +2374,16 @@ class Component extends DCLogic {
     const gFromOpts = gYrOpts(gDesde), gToOpts = gYrOpts(gHasta);
     const gFromSet = (e) => { const v = +(e && e.target ? e.target.value : 1935); this.setState({ gFrom: v, gTo: Math.max(v, gHasta) }); };
     const gToSet = (e) => { const v = +(e && e.target ? e.target.value : 2026); this.setState({ gTo: v, gFrom: Math.min(v, gDesde) }); };
-    const gYear = yearsAll.filter((y) => y >= gDesde && y <= gHasta).map((y) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); return { y: y, c: c }; });
+    const gYear = []; yearsAll.filter((y) => y >= gDesde && y <= gHasta).forEach((y) => { [1, 2].forEach((sm) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y && (r.periodo === 'II' ? 2 : 1) === sm) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); gYear.push({ y: y, s: sm, c: c }); }); });
     while (gYear.length > 1 && gYear[0].c.t === 0) gYear.shift();
     while (gYear.length > 1 && gYear[gYear.length - 1].c.t === 0) gYear.pop();
     const gMax = Math.max(1, ...gYear.map((o) => o.c.t));
-    const mobGq = !!document.querySelector('.mob'), mobStep = gYear.length > 45 ? 20 : gYear.length > 24 ? 5 : gYear.length > 12 ? 2 : 1;
+    const mobGq = !!document.querySelector('.mob'), mobStep = gYear.length > 90 ? 20 : gYear.length > 48 ? 5 : gYear.length > 24 ? 2 : 1;
     const gYearCols = gYear.map((o) => {
       const seg = (n, col) => 'height:' + (o.c.t ? n / o.c.t * 100 : 0).toFixed(2) + '%;background:' + col + ';display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;font-variant-numeric:tabular-nums';
       const pl = (n, t) => (gYear.length <= 45 && t > 0 && n / gMax * 300 >= 14 ? Math.round(n / t * 100) + '%' : '');
       return {
-        label: mobGq ? (o.y % mobStep !== 0 ? '' : (mobStep === 1 ? "'" + String(o.y).slice(2) : String(o.y))) : ((gYear.length > 45 && o.y % 5 !== 0) ? '' : String(o.y).slice(gYear.length > 45 ? 0 : 2)), total: (gYear.length > 45 || (mobGq && gYear.length > 16)) ? '' : fmt(o.c.t), aria: 'Ingreso ' + o.y + ': ' + o.c.t + ' estudiantes', go: tog('year', o.y),
+        label: mobGq ? ((o.s !== 1 || o.y % mobStep !== 0) ? '' : (mobStep === 1 ? "'" + String(o.y).slice(2) : String(o.y))) : (gYear.length > 45 ? ((o.s !== 1 || o.y % 5 !== 0) ? '' : String(o.y)) : String(o.y).slice(2) + '-' + o.s), total: (gYear.length > 45 || (mobGq && gYear.length > 16)) ? '' : fmt(o.c.t), aria: 'Ingreso ' + o.y + '-' + o.s + ': ' + o.c.t + ' estudiantes', go: tog('year', o.y),
         wrap: 'position:absolute;left:0;right:0;bottom:0;height:' + (o.c.t / gMax * 100).toFixed(2) + '%', stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (dimYear(o.y) ? 0.3 : 1) + ';outline:' + (f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
         sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc), pr: pl(o.c.ret, o.c.t), pa: pl(o.c.est, o.c.t), pg: pl(o.c.esc, o.c.t)
       };
@@ -3036,7 +3036,7 @@ class Component extends DCLogic {
     const egV = this.egres();
     const vals = {
       credStyle: credStyle, welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railDhG: tab === 'general', gdhDY: gdhDY, gdhDS: gdhDS, gdhHY: gdhHY, gdhHS: gdhHS, gdhDOn: !!f.desde, gdhHOn: !!f.hasta, gdhDYOpts: gdhYOpt(f.desde, 'Desde el inicio'), gdhHYOpts: gdhYOpt(f.hasta, 'Hasta hoy'), gdhDSOpts: gdhSOpt(f.desde), gdhHSOpts: gdhSOpt(f.hasta), railSexo: true, rngOn: true, railDh: false, estLbl: 'Estado', rngLbl: 'Año de ingreso',
-      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + (gYear.length ? gYear[0].y : gDesde) + ' hasta ' + (gYear.length ? gYear[gYear.length - 1].y : gHasta) + '. Toca una fila para filtrar por año de ingreso',
+      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + (gYear.length ? gYear[0].y + '-' + gYear[0].s : gDesde) + ' hasta ' + (gYear.length ? gYear[gYear.length - 1].y + '-' + gYear[gYear.length - 1].s : gHasta) + '. Toca una fila para filtrar por año de ingreso',
       gTrP: gTr.p, gTrS: gTr.s, gradTrP: gradCols.tr.p, gradTrS: gradCols.tr.s, conTrP: conCols.tr.p, conTrS: conCols.tr.s, recTrP: recCols.tr.p, recTrS: recCols.tr.s, yrTrP: yrT.p, yrTrS: yrT.s,
       gBox: 'position:relative;margin-top:6px;display:flex;align-items:stretch;gap:2px;flex:1;min-height:170px;width:100%;max-width:' + Math.max(gYearCols.length, 1) * 150 + 'px;align-self:center', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, genDonut: genDonut, genTotal: fmt(gTot), paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle + fadeS, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, exitDash: exitDash, stageCls: mob ? 'mob' : (mobIni ? 'mobi' : ''), appPad: fsOn ? '22px 26px' : (scr && mobq) ? '12px' : '34px 90px', enterGeneral: enter('general'),
