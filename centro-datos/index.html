@@ -2953,7 +2953,7 @@ class Component extends DCLogic {
       const spProgs = pOrd.map((i) => ({ label: SN.PR[i][0], num: fmt(pc2[i]), go: togS('prog', i), rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:16px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + ((sp.prog !== null && sp.prog !== i) || !pc2[i] ? 0.4 : 1), bar: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + (SN.PR[i][1] === 'P' ? '#2F6FE0AA,#2F6FE0' : '#E3A92EAA,#E3A92E') + ');width:' + (pc2[i] / pMx * 100).toFixed(1) + '%' }));
       // tasa de deserción semestral por programa: retirados del semestre / matriculados del semestre (programas de ciencias)
       const dsSem = (st, i) => { let t = 0; RR.forEach((r) => { if (r[0] === st && r[1] === i && r[2] === PERs && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'prog')) t += r[5]; }); return t; };
-      const dsRaw = [0, 1, 2, 3].map((i) => { const ret = dsSem(5, i), ing = dsSem(3, i); return { i: i, name: SN.PR[i][0], ret: ret, ing: ing, rt: ing ? ret / ing : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
+      const dsRaw = [0, 1, 3].map((i) => { const ret = dsSem(5, i), ing = dsSem(3, i); return { i: i, name: SN.PR[i][0], ret: ret, ing: ing, rt: ing ? ret / ing : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
       const dsMx = Math.max(0.01, ...dsRaw.map((x) => x.rt));
       const dsAvg = (() => { let a = 0, b = 0; dsRaw.forEach((x) => { a += x.ret; b += x.ing; }); return b ? a / b : 0; })();
       // más datos en las tarjetas (tasas del periodo mostrado)
