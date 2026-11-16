@@ -153,6 +153,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mob main > div:nth-child(3),.mob main > .egg > div:nth-child(1){grid-template-columns:repeat(2,minmax(0,1fr)) !important;height:auto !important}
 .mob main > div:first-child{height:auto !important;flex-wrap:wrap}
 .mob .mobhide{display:none !important}
+.mob .mobh{flex:none !important;height:210px !important}
 .mob .gh{flex-wrap:wrap}.mob svg[aria-label="Mapa de procedencia"]{height:230px !important;max-width:48% !important}.mob .gbx{height:270px !important;flex:none !important;gap:1px !important}.mob .egbh{height:250px !important;flex:none !important;gap:3px !important}.mob .egh{min-width:640px}
 .mobi .inib{display:none}.mobi .core{cursor:pointer}.mobent{display:none}.mobi .mobent{display:inline-block;margin-top:9px;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.55);font-size:13px;font-weight:600;letter-spacing:.02em}
 .egscr > *{flex-shrink:0}.egf{display:flex;flex-direction:column;gap:5px}.egf label{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#6B7A94;text-transform:uppercase}.egsel{appearance:none;-webkit-appearance:none;padding:10px 38px 10px 14px;border-radius:12px;border:1px solid #C9D3E3;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%230C2050' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;color:#0C2050;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(12,32,80,.06);max-width:100%}.egside .egsel{width:100%;box-sizing:border-box}.egside div[style*="gap:8px"] > *{flex:1;min-width:0}@keyframes egw{from{transform:scaleX(0)}}@keyframes egh{from{transform:scaleY(0)}}@media (prefers-reduced-motion:reduce){[style*="egw"],[style*="egh"]{animation:none !important}}.egsel:hover{border-color:#0C2050}.mobi .node{justify-content:center}.mobi .node > span:first-child{display:none !important}.mobi .node:nth-of-type(2),.mobi .node:nth-of-type(3),.mobi .node:nth-of-type(4),.mobi .node:nth-of-type(5){width:146px;box-sizing:border-box}.mobi .node span[style*="text-align"]{text-align:center !important}.mobi .inip{margin:10px auto 0 !important;max-width:520px !important;font-size:20px !important;line-height:1.45 !important}.mobi .inic{display:none !important}.mobi .inic .glass{padding:6px 14px 4px !important}.mobi .inic .glass svg{height:20px;display:block}.mobi .inic .glass > div:nth-child(2){font-size:24px !important;margin-top:0 !important}
@@ -595,7 +596,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <div class="rise d4" style="{{ panel }};display:flex;flex-direction:column">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ permTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ permSub }}</div>
-<div style="margin-top:12px;display:flex;align-items:flex-end;gap:7px;flex:1;min-height:60px">
+<div class="mobh" style="margin-top:12px;display:flex;align-items:flex-end;gap:7px;flex:1;min-height:60px">
 <sc-for list="{{ permCols }}" as="c" hint-placeholder-count="5">
 <div title="{{ c.aria }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch">
 <div style="margin-bottom:3px;font-size:10.5px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums">{{ c.num }}</div>
@@ -611,7 +612,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <div class="rise d5" style="{{ panel }};display:flex;flex-direction:column">
 <div style="font-size:15px;font-weight:600;color:#0C2050">{{ cursoTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ cursoSub }}</div>
-<div style="margin-top:12px;display:flex;align-items:flex-end;gap:8px;flex:1;min-height:60px">
+<div class="mobh" style="margin-top:12px;display:flex;align-items:flex-end;gap:8px;flex:1;min-height:60px">
 <sc-for list="{{ cursoCols }}" as="c" hint-placeholder-count="5">
 <div title="{{ c.aria }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch">
 <div style="margin-bottom:1px;font-size:11px;font-weight:600;color:#0C2050;text-align:center;font-variant-numeric:tabular-nums">{{ c.num }}</div>
@@ -637,7 +638,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <div class="rise d5" style="{{ panel }};display:flex;flex-direction:column;overflow:hidden">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Deserción por semestre</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ semSub }}</div>
-<div style="margin-top:10px;display:flex;align-items:flex-end;gap:5px;flex:1;min-height:60px">
+<div class="mobh" style="margin-top:10px;display:flex;align-items:flex-end;gap:5px;flex:1;min-height:60px">
 <sc-for list="{{ semCols }}" as="c" hint-placeholder-count="8">
 <div title="{{ c.aria }}" style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch">
 <div style="margin-bottom:2px;font-size:9.5px;font-weight:600;color:#0C2050;text-align:center;font-variant-numeric:tabular-nums">{{ c.tasa }}</div>
@@ -652,7 +653,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <div class="rise d6" style="{{ panel }};display:flex;flex-direction:column;overflow:hidden">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Retirados por año de retiro</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Año estimado del retiro. Toca una fila para filtrar.</div>
-<div style="position:relative;margin-top:10px;display:flex;align-items:flex-end;gap:2px;flex:1;min-height:60px">
+<div class="mobh" style="position:relative;margin-top:10px;display:flex;align-items:flex-end;gap:2px;flex:1;min-height:60px">
 <svg viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" style="{{ yrTrS }}"><polyline points="{{ yrTrP }}" fill="none" stroke="#0C2050" stroke-opacity=".5" stroke-width="1.8" stroke-dasharray="6 5" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <sc-for list="{{ yrCols }}" as="y" hint-placeholder-count="26">
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;cursor:pointer;border-radius:4px">
@@ -894,8 +895,9 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <button class="hov x" onClick="{{ d.go }}" title="{{ d.tip }}" style="{{ d.st }}">
 <div style="font-size:12.5px;font-weight:600;color:#0C2050;line-height:1.2;min-height:30px">{{ d.label }}</div>
 <div style="margin-top:6px;font-size:34px;line-height:1;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#C4501F">{{ d.rate }}</div>
-<div style="{{ d.track }}"><div style="{{ d.fill }}"></div><div style="{{ d.dot }}"></div></div>
+<div style="{{ d.track }}"><div style="{{ d.avgTick }}"></div><div style="{{ d.fill }}"></div><div style="{{ d.dot }}"></div></div>
 <div style="margin-top:6px;font-size:11px;color:#6B7A94;font-variant-numeric:tabular-nums">{{ d.cnt }}</div>
+<div style="{{ d.vsSt }}">{{ d.vs }}</div>
 </button>
 </sc-for>
 </div>
@@ -2953,6 +2955,7 @@ class Component extends DCLogic {
       const dsSem = (st, i) => { let t = 0; RR.forEach((r) => { if (r[0] === st && r[1] === i && r[2] === PERs && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'prog')) t += r[5]; }); return t; };
       const dsRaw = [0, 1, 2, 3].map((i) => { const ret = dsSem(5, i), ing = dsSem(3, i); return { i: i, name: SN.PR[i][0], ret: ret, ing: ing, rt: ing ? ret / ing : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
       const dsMx = Math.max(0.01, ...dsRaw.map((x) => x.rt));
+      const dsAvg = (() => { let a = 0, b = 0; dsRaw.forEach((x) => { a += x.ret; b += x.ing; }); return b ? a / b : 0; })();
       // más datos en las tarjetas (tasas del periodo mostrado)
       const exSet = (lab, a, b) => { const q = sk.find((x) => x.label === lab); if (!q) return; if (a) { q.ex1 = true; q.ex1l = a[0]; q.ex1v = a[1]; } if (b) { q.ex2 = true; q.ex2l = b[0]; q.ex2v = b[1]; } };
       exSet('Admitidos', ['Admisión', pct(tot[1], tot[0])]);
@@ -2975,7 +2978,7 @@ class Component extends DCLogic {
       const rsAvg = (() => { let a = 0, b = 0; rsList.forEach((x) => { a += x.ret; b += x.mat; }); return b ? a / b : 0; })();
       const rsTop = rsList.slice().sort((a, b) => b.ret / b.mat - a.ret / a.mat)[0];
       const rsSub = rsList.length ? 'Retirados ÷ matriculados de cada semestre (programas de ciencias). Promedio ' + pct(rsAvg * 1000, 1000) + (rsTop ? ' · mayor: ' + rsTop.y + '-' + rsTop.s + ' con ' + pct(rsTop.ret, rsTop.mat) : '') : '';
-      const dsProgs = dsRaw.map((x) => { const w = (x.rt / dsMx * 100).toFixed(1); return { label: x.name, rate: pct(x.ret, x.ing), cnt: fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados', tip: x.name + ': ' + fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados en ' + PERs, go: () => {}, st: 'text-align:left;font:inherit;cursor:default;padding:12px 14px;border-radius:16px;background:#FFF7F2;border:1.5px solid #F6DCCD', track: 'position:relative;margin-top:10px;height:10px;background:linear-gradient(#F0D9CC,#F0D9CC) 0 4px / 100% 2px no-repeat', fill: 'position:absolute;left:0;top:4px;height:2px;border-radius:1px;background:#E0653A;width:' + w + '%;transition:width .55s cubic-bezier(.22,.8,.24,1)', dot: 'position:absolute;top:0;width:10px;height:10px;border-radius:50%;background:#E0653A;left:calc(' + w + '% - 5px);transition:left .55s cubic-bezier(.22,.8,.24,1)' }; });
+      const dsProgs = dsRaw.map((x) => { const w = (x.rt / dsMx * 100).toFixed(1), df = (x.rt - dsAvg) * 100, up = df > 0.05, dn = df < -0.05; return { label: x.name, rate: pct(x.ret, x.ing), cnt: fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados', tip: x.name + ': ' + fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' matriculados en ' + PERs, vs: (up ? '▲ ' : dn ? '▼ ' : '= ') + (up || dn ? Math.abs(df).toFixed(1).replace('.', ',') + ' pp ' : '') + 'vs promedio ' + pct(dsAvg * 1000, 1000), vsSt: 'margin-top:4px;font-size:11px;font-weight:700;color:' + (up ? '#C8352B' : dn ? '#0F8A5F' : '#6B7A94'), avgTick: 'position:absolute;top:-1px;width:2px;height:12px;background:#0C2050;opacity:.55;left:calc(' + (dsAvg / dsMx * 100).toFixed(1) + '% - 1px)', go: () => {}, st: 'text-align:left;font:inherit;cursor:default;padding:12px 14px;border-radius:16px;background:#FFF7F2;border:1.5px solid #F6DCCD', track: 'position:relative;margin-top:10px;height:10px;background:linear-gradient(#F0D9CC,#F0D9CC) 0 4px / 100% 2px no-repeat', fill: 'position:absolute;left:0;top:4px;height:2px;border-radius:1px;background:#E0653A;width:' + w + '%;transition:width .55s cubic-bezier(.22,.8,.24,1)', dot: 'position:absolute;top:0;width:10px;height:10px;border-radius:50%;background:#E0653A;left:calc(' + w + '% - 5px);transition:left .55s cubic-bezier(.22,.8,.24,1)' }; });
       // ciudades
       const cst = mt[2] >= 2 ? mt[2] : 3, cLab = cst === 2 ? 'primer curso' : cst === 4 ? 'graduados' : cst === 5 ? 'retirados' : 'matrículas';
       const cc = {}; RR.forEach((r) => { if (r[0] === cst && sPass(r, 'ciudad')) { const k = cn(r[4]); cc[k] = (cc[k] || 0) + r[5]; } });
