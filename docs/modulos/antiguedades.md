@@ -67,6 +67,8 @@ escalafonamiento de los 4.2. Muestra una vista consultable y genera el Excel
 - Distintos por especialidad (NAV-IM, CDPRIM, PR, Extranjero).
 - Especialidad impresa: SPA/SPE/SPO = ESP; ING = EIN; LA = LADM; IM = CIM.
 - El lugar de expedición no se guarda: sale vacío y en amarillo para completarlo.
+- Las cédulas verificadas (ciudad de expedición y nombres contrastados) se guardan en
+  SharePoint (`cedulas-verificadas.json`), nunca en el repositorio.
 - PR, CDPRIM, CDPRON y CEXTIM terminan como escalafonados.
 
 ## Regla permanente

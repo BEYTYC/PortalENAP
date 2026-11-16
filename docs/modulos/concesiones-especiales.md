@@ -27,8 +27,7 @@ Resolución 0230 de 2025 y la 0010 de 2026 (fechas de cargue).
   anterior; periodo 2 = Batallón 30 de mayo, Aspirantes 10 de junio. Editables.
 - Si cae en fin de semana o festivo, pasa al día hábil siguiente.
 - Abre sola 2 meses antes del cierre. Cerrada, el botón muestra la fecha de apertura.
-- Pendiente de confirmar: la hora de cierre (regla original 22:00; el recordatorio
-  del día de cierre dice 11:59 p. m.).
+- Hora de cierre: 11:59 p. m. del día de cierre (antes 22:00).
 
 ## Solicitud del estudiante
 - Primero elige la concesión y luego escribe el documento; el sistema revisa en vivo
