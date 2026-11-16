@@ -153,7 +153,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mob main > div:nth-child(3),.mob main > .egg > div:nth-child(1){grid-template-columns:repeat(2,minmax(0,1fr)) !important;height:auto !important}
 .mob main > div:first-child{height:auto !important;flex-wrap:wrap}
 .mob .mobhide{display:none !important}
-.mob .mobh{flex:none !important;height:210px !important}
+.mob .rsw{--rsalt:none}.mob .mobh{flex:none !important;height:210px !important}
 .mob .gh{flex-wrap:wrap}.mob svg[aria-label="Mapa de procedencia"]{height:230px !important;max-width:48% !important}.mob .gbx{height:270px !important;flex:none !important;gap:1px !important}.mob .egbh{height:250px !important;flex:none !important;gap:3px !important}.mob .egh{min-width:640px}
 .mobi .inib{display:none}.mobi .core{cursor:pointer}.mobent{display:none}.mobi .mobent{display:inline-block;margin-top:9px;padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.55);font-size:13px;font-weight:600;letter-spacing:.02em}
 .egscr > *{flex-shrink:0}.egf{display:flex;flex-direction:column;gap:5px}.egf label{font-size:10.5px;font-weight:700;letter-spacing:.07em;color:#6B7A94;text-transform:uppercase}.egsel{appearance:none;-webkit-appearance:none;padding:10px 38px 10px 14px;border-radius:12px;border:1px solid #C9D3E3;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%230C2050' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;color:#0C2050;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;box-shadow:0 2px 6px rgba(12,32,80,.06);max-width:100%}.egside .egsel{width:100%;box-sizing:border-box}.egside div[style*="gap:8px"] > *{flex:1;min-width:0}@keyframes egw{from{transform:scaleX(0)}}@keyframes egh{from{transform:scaleY(0)}}@media (prefers-reduced-motion:reduce){[style*="egw"],[style*="egh"]{animation:none !important}}.egsel:hover{border-color:#0C2050}.mobi .node{justify-content:center}.mobi .node > span:first-child{display:none !important}.mobi .node:nth-of-type(2),.mobi .node:nth-of-type(3),.mobi .node:nth-of-type(4),.mobi .node:nth-of-type(5){width:146px;box-sizing:border-box}.mobi .node span[style*="text-align"]{text-align:center !important}.mobi .inip{margin:10px auto 0 !important;max-width:520px !important;font-size:20px !important;line-height:1.45 !important}.mobi .inic{display:none !important}.mobi .inic .glass{padding:6px 14px 4px !important}.mobi .inic .glass svg{height:20px;display:block}.mobi .inic .glass > div:nth-child(2){font-size:24px !important;margin-top:0 !important}
@@ -888,7 +888,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <sc-if value="{{ pProgramas }}" hint-placeholder-val="{{ false }}">
 <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:{{ spRows }};gap:14px">
 
-<sc-if value="{{ rsOn }}" hint-placeholder-val="{{ false }}">
+<sc-if value="{{ dsOn }}" hint-placeholder-val="{{ false }}">
 <div class="rise d2" style="{{ panel }};grid-column:span 12">
 <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><div style="font-size:17px;font-weight:700;color:#0C2050">Tasa de deserción por programa</div><div style="font-size:11.5px;color:#6B7A94">{{ dsSub }}</div></div>
 <div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
@@ -908,11 +908,11 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <sc-if value="{{ rsOn }}" hint-placeholder-val="{{ false }}">
 <div class="rise d3" style="{{ panel }};grid-column:span 8;min-width:0">
 <div style="font-size:15px;font-weight:600;color:#0C2050">Tasa de deserción por periodo</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ rsSub }}</div>
-<div style="margin-top:14px;margin-bottom:26px;position:relative;height:{{ rsH }}px;padding-left:34px">
+<div class="rsw" style="margin-top:62px;margin-bottom:26px;position:relative;height:{{ rsH }}px;padding-left:34px">
 <sc-for list="{{ rsGrid }}" as="g" hint-placeholder-count="2"><div style="{{ g.st }}"><span style="{{ g.tx }}">{{ g.t }}</span></div></sc-for>
 <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;left:34px;right:0;top:0;width:calc(100% - 34px);height:100%;overflow:visible" aria-hidden="true"><polygon points="{{ rsArea }}" fill="rgba(224,101,58,.12)"></polygon><polyline points="{{ rsLine }}" fill="none" stroke="#E0653A" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"></polyline></svg>
 <div style="position:relative;display:flex;height:100%">
-<sc-for list="{{ rsBars }}" as="b" hint-placeholder-count="30"><div title="{{ b.tip }}" style="{{ b.col }}"><div style="{{ b.bar }}"></div><div style="{{ b.lblSt }}">{{ b.lbl }}</div></div></sc-for>
+<sc-for list="{{ rsBars }}" as="b" hint-placeholder-count="30"><div title="{{ b.tip }}" style="{{ b.col }}"><div class="rsl" style="{{ b.pvSt }}">{{ b.pv }}</div><div style="{{ b.bar }}"></div><div style="{{ b.lblSt }}">{{ b.lbl }}</div></div></sc-for>
 </div>
 </div>
 </div>
@@ -2901,7 +2901,7 @@ class Component extends DCLogic {
       const RR = SN.R.concat(stuRows);
       const yMinOf = (st) => RR.reduce((a, r) => (r[0] === st && r[2] > 0 && r[2] < a ? r[2] : a), 2026);
       const sPass = (r, ex) => {
-        if (ex !== 'prog' && sp.prog !== null && r[1] !== sp.prog) return false;
+        if (ex !== 'prog' && sp.prog !== null && sp.prog.indexOf(r[1]) < 0) return false;
         if (ex !== 'nivel' && sp.nivel && lv(r[1]) !== sp.nivel) return false;
         if (ex !== 'year' && sp.periods && sp.periods.indexOf(r[2] + '-' + r[3]) < 0) return false;
         if (ex !== 'year' && sp.year && r[2] !== sp.year) return false;
@@ -2946,7 +2946,7 @@ class Component extends DCLogic {
       // programas
       const pc2 = SN.PR.map((q, i) => { let t = 0; RR.forEach((r) => { if (r[0] === mt[2] && r[1] === i && sPass(r, 'prog')) t += r[5]; }); return t; });
       const pOrd = SN.PR.map((q, i) => i).sort((a, b) => pc2[b] - pc2[a]), pMx = Math.max(1, ...pc2);
-      const spProgs = pOrd.map((i) => ({ label: SN.PR[i][0], num: fmt(pc2[i]), go: togS('prog', i), rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:16px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + ((sp.prog !== null && sp.prog !== i) || !pc2[i] ? 0.4 : 1), bar: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + (SN.PR[i][1] === 'P' ? '#2F6FE0AA,#2F6FE0' : '#E3A92EAA,#E3A92E') + ');width:' + (pc2[i] / pMx * 100).toFixed(1) + '%' }));
+      const spProgs = pOrd.map((i) => ({ label: SN.PR[i][0], num: fmt(pc2[i]), go: () => { const c = this.state.sp.prog || []; const n = c.indexOf(i) >= 0 ? c.filter((z) => z !== i) : c.concat([i]); upS({ prog: n.length ? n : null }); }, rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:16px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + ((sp.prog !== null && sp.prog.indexOf(i) < 0) || !pc2[i] ? 0.4 : 1), bar: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + (SN.PR[i][1] === 'P' ? '#2F6FE0AA,#2F6FE0' : '#E3A92EAA,#E3A92E') + ');width:' + (pc2[i] / pMx * 100).toFixed(1) + '%' }));
       // tasa de deserción semestral por programa: retirados del semestre / matriculados del semestre (programas de ciencias)
       const dsSem = (st, i) => { let t = 0; RR.forEach((r) => { if (r[0] === st && r[1] === i && r[2] === PERs && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'prog')) t += r[5]; }); return t; };
       const dsRaw = [0, 1, 3].map((i) => { const ret = dsSem(5, i), ing = dsSem(3, i); return { i: i, name: SN.PR[i][0], ret: ret, ing: ing, rt: ing ? ret / ing : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
@@ -2962,14 +2962,14 @@ class Component extends DCLogic {
       exSet('Retirados', ['Deserción sem.', pct(dsC[0], dsC[1])], ['Deserción ' + PRVs, pct(dsP[0], dsP[1])]);
       // gráfica de la tasa de retiro por semestre (cuando se elige Retirados)
       const rsMap = {}; RR.forEach((r) => { if (r[1] < 4 && r[2] > 0 && (r[0] === 5 || r[0] === 3) && sPass(r, 'year')) { const key = r[2] * 10 + r[3]; const o = rsMap[key] || (rsMap[key] = { y: r[2], s: r[3], ret: 0, mat: 0 }); if (r[0] === 5) o.ret += r[5]; else o.mat += r[5]; } });
-      const rsList = Object.keys(rsMap).map((x) => rsMap[x]).filter((x) => x.mat > 0).sort((a, b) => a.y - b.y || a.s - b.s);
+      const rsList = Object.keys(rsMap).map((x) => rsMap[x]).filter((x) => x.mat > 0 && x.y >= 2000).sort((a, b) => a.y - b.y || a.s - b.s);
       const rsMx = Math.max(0.001, ...rsList.map((x) => x.ret / x.mat)), RSH = 150;
       const RSB = 150;
-      const rsMxN = Math.ceil(rsMx * 100 / 5) * 5 / 100 || 0.05;
+      const rsMxN = Math.ceil(rsMx * 1.05 * 100 / 5) * 5 / 100 || 0.05;
       const rsN = Math.max(rsList.length, 1), rsXY = rsList.map((x, ix) => [((ix + 0.5) / rsN * 100), 100 - (x.ret / x.mat) / rsMxN * 100]);
       const rsLine = rsXY.map((q) => q[0].toFixed(2) + ',' + q[1].toFixed(2)).join(' ');
       const rsArea = rsXY.length ? '0,100 ' + rsLine + ' 100,100' : '';
-      const rsBars = rsList.map((x, ix) => { const rt = x.ret / x.mat, on = x.y === PERs || ix === rsList.length - 1, showL = x.s === 1 && (x.y % 4 === 0 || ix === 0); return { lbl: showL ? String(x.y).slice(2) : '', lblSt: 'position:absolute;top:' + (RSB + 6) + 'px;left:50%;font-size:10px;color:#6B7A94;white-space:nowrap;transform:translateX(-50%)', tip: x.y + '-' + x.s + ': ' + pct(x.ret, x.mat) + ' (' + fmt(x.ret) + ' retirados de ' + fmt(x.mat) + ' matriculados)', col: 'flex:1;min-width:0;position:relative;height:' + RSB + 'px', bar: on ? 'position:absolute;left:50%;width:9px;height:9px;border-radius:50%;background:#E0653A;border:2px solid #fff;box-sizing:content-box;transform:translate(-50%,50%);bottom:' + (rt / rsMxN * 100).toFixed(2) + '%' : 'position:absolute;inset:0' }; });
+      const rsBars = rsList.map((x, ix) => { const rt = x.ret / x.mat, on = x.y === PERs || ix === rsList.length - 1, showL = x.s === 1 && (x.y % 2 === 0 || ix === 0); return { lbl: showL ? String(x.y).slice(2) : '', lblSt: 'position:absolute;top:' + (RSB + 6) + 'px;left:50%;font-size:10px;color:#6B7A94;white-space:nowrap;transform:translateX(-50%)', tip: x.y + '-' + x.s + ': ' + pct(x.ret, x.mat) + ' (' + fmt(x.ret) + ' retirados de ' + fmt(x.mat) + ' matriculados)', col: 'flex:1;min-width:0;position:relative;height:' + RSB + 'px', pv: pct(x.ret, x.mat), pvSt: 'position:absolute;left:50%;top:-50px;transform:translateX(-50%) rotate(180deg);writing-mode:vertical-rl;font-size:8.5px;font-weight:700;color:#C4501F;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1;' + (ix % 2 ? 'display:var(--rsalt,block)' : ''), bar: on ? 'position:absolute;left:50%;width:9px;height:9px;border-radius:50%;background:#E0653A;border:2px solid #fff;box-sizing:content-box;transform:translate(-50%,50%);bottom:' + (rt / rsMxN * 100).toFixed(2) + '%' : 'position:absolute;inset:0' }; });
       const rsGrid = [0.5, 1].map((q) => ({ t: pct(rsMxN * q * 1000, 1000).replace(',0%', '%'), st: 'position:absolute;left:34px;right:0;bottom:' + (q * RSB) + 'px;border-top:1px dashed #E1E6EF;height:0', tx: 'position:absolute;left:-34px;top:-7px;font-size:10px;color:#6B7A94;font-variant-numeric:tabular-nums' }));
       const rsAvg = (() => { let a = 0, b = 0; rsList.forEach((x) => { a += x.ret; b += x.mat; }); return b ? a / b : 0; })();
       const rsTop = rsList.slice().sort((a, b) => b.ret / b.mat - a.ret / a.mat)[0];
@@ -2988,8 +2988,8 @@ class Component extends DCLogic {
       const spDots = YC2.filter((y) => cc[y[0]]).map((y) => ({ tip: y[0] + ': ' + fmt(cc[y[0]]), cx: mx2(y[2]), cy: my2(y[1]), r: (3 + Math.sqrt(cc[y[0]] / cMx) * 15).toFixed(1), fill: cCol, op: !sp.ciudad || sp.ciudad === y[0] ? 0.78 : 0.2, go: togS('ciudad', y[0]) }));
       const spLab = YC2.filter((y) => cc[y[0]] && cc[y[0]] / cMx > 0.12).map((y) => ({ t: y[0], x: (parseFloat(mx2(y[2])) + 6 + Math.sqrt(cc[y[0]] / cMx) * 15).toFixed(1), y: (parseFloat(my2(y[1])) + 3).toFixed(1) }));
       // panel izquierdo y barra superior
-      const progOpts = [[null, 'Todos los programas']].concat(SN.PR.map((q, i) => [i, q[0]])).map((a) => { const n = a[0] === null ? sSum(mt[2], 'prog') : sSum(mt[2], 'prog') * 0 + RR.reduce((t, r) => t + (r[0] === mt[2] && r[1] === a[0] && sPass(r, 'prog') ? r[5] : 0), 0); const on = sp.prog === a[0]; return { label: a[1], sub: fmt(n) + ' ' + mt[1].toLowerCase(), go: () => this.setState({ rd: false, dd: false, sp: Object.assign({}, this.state.sp, { prog: a[0] }) }), style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border:0;border-radius:10px;font-size:12.5px;font-weight:' + (on ? 700 : 500) + ';cursor:pointer;text-align:left;background:' + (on ? '#FBF3DE' : 'transparent') + ';color:#14233F' }; });
-      const progSel = sp.prog !== null ? SN.PR[sp.prog][0] : 'Todos los programas';
+      const progOpts = [[null, 'Todos los programas']].concat(SN.PR.map((q, i) => [i, q[0]])).map((a) => { const n = a[0] === null ? sSum(mt[2], 'prog') : sSum(mt[2], 'prog') * 0 + RR.reduce((t, r) => t + (r[0] === mt[2] && r[1] === a[0] && sPass(r, 'prog') ? r[5] : 0), 0); const on = a[0] === null ? sp.prog === null : (sp.prog !== null && sp.prog.indexOf(a[0]) >= 0); return { label: (on && a[0] !== null ? '✓ ' : '') + a[1], sub: fmt(n) + ' ' + mt[1].toLowerCase(), go: () => { if (a[0] === null) { this.setState({ rd: false, sp: Object.assign({}, this.state.sp, { prog: null }) }); return; } const c = this.state.sp.prog || []; const nn = c.indexOf(a[0]) >= 0 ? c.filter((z) => z !== a[0]) : c.concat([a[0]]); this.setState({ sp: Object.assign({}, this.state.sp, { prog: nn.length ? nn : null }) }); }, style: 'display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:8px 10px;border:0;border-radius:10px;font-size:12.5px;font-weight:' + (on ? 700 : 500) + ';cursor:pointer;text-align:left;background:' + (on ? '#FBF3DE' : 'transparent') + ';color:#14233F' }; });
+      const progSel = sp.prog === null ? 'Todos los programas' : sp.prog.length === 1 ? SN.PR[sp.prog[0]][0] : sp.prog.length + ' programas seleccionados';
       const nivBtns = [['P', 'Pregrado', '#2F6FE0'], ['S', 'Posgrado', '#E3A92E']].map((a) => ({ label: a[1], dot: dot(a[2]), sub: fmt(RR.reduce((t, r) => t + (r[0] === mt[2] && lv(r[1]) === a[0] && sPass(r, 'nivel') ? r[5] : 0), 0)) + ' ' + mt[1].toLowerCase(), subStyle: subSt, go: togS('nivel', a[0]), style: btnCol(sp.nivel === a[0]) }));
       let dhMin = 2026; RR.forEach((r) => { if (r[0] === mt[2] && r[2] > 0 && r[2] < dhMin) dhMin = r[2]; });
       const dhYears = []; for (let y = dhMin; y <= 2026; y++) dhYears.push(y);
@@ -3009,7 +3009,7 @@ class Component extends DCLogic {
       const pdLabel2 = !sp.periods ? 'Todos los periodos' : (sp.periods.length === 1 ? sp.periods[0] : sp.periods.length + ' periodos');
       const sChips = [];
       if (sp.periods) sChips.push({ label: sp.periods.length > 3 ? sp.periods.length + ' periodos' : 'Periodo ' + sp.periods.slice().sort().join(', '), go: () => upS({ periods: null }) });
-      if (sp.prog !== null) sChips.push({ label: SN.PR[sp.prog][0], go: () => upS({ prog: null }) });
+      if (sp.prog !== null) sp.prog.forEach((pi) => sChips.push({ label: SN.PR[pi][0], go: () => { const n = this.state.sp.prog.filter((z) => z !== pi); upS({ prog: n.length ? n : null }); } }));
       if (sp.nivel) sChips.push({ label: sp.nivel === 'P' ? 'Pregrado' : 'Posgrado', go: () => upS({ nivel: null }) });
       if (sp.desde) sChips.push({ label: 'Desde ' + sp.desde[0] + '-' + sp.desde[1], go: () => upS({ desde: null }) });
       if (sp.hasta) sChips.push({ label: 'Hasta ' + sp.hasta[0] + '-' + sp.hasta[1], go: () => upS({ hasta: null }) });
@@ -3019,8 +3019,8 @@ class Component extends DCLogic {
       const pdOn = !!sp.periods;
       spo = {
         kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(' + sk.length + ',minmax(0,1fr));gap:10px;height:120px',
-        spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: 'Desde ' + yMin + (yNoDate ? ' · ' + fmt(yNoDate) + ' sin fecha' : ''), spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
-        spRows: sp.metric === 'ret' && rsList.length > 0 ? 'auto auto minmax(0,1fr)' : 'auto minmax(0,1fr)', rsOn: sp.metric === 'ret' && rsList.length > 0, rsOff: !(sp.metric === 'ret' && rsList.length > 0), rsGrid: rsGrid, rsLine: rsLine, rsArea: rsArea, rsBars: rsBars, rsSub: rsSub, rsH: RSB, dsProgs: dsProgs, dsSub: 'Tasa semestral = retirados / matriculados del semestre · ' + PERs + (semSet ? ' (semestre ' + semSet.join(', ') + ')' : '') + ' · programas de ciencias', spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
+        spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: 'Desde ' + yMin + (yNoDate ? ' · ' + fmt(yNoDate) + ' sin fecha' : ''), spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + sp.prog.map((z) => SN.PR[z][0]).join(', ') : ''),
+        spRows: sp.metric === 'ret' && rsList.length > 0 && sp.prog === null ? 'auto auto minmax(0,1fr)' : 'auto minmax(0,1fr)', rsOn: sp.metric === 'ret' && rsList.length > 0, dsOn: sp.metric === 'ret' && rsList.length > 0 && sp.prog === null, rsOff: !(sp.metric === 'ret' && rsList.length > 0), rsGrid: rsGrid, rsLine: rsLine, rsArea: rsArea, rsBars: rsBars, rsSub: rsSub, rsH: RSB, dsProgs: dsProgs, dsSub: 'Tasa semestral = retirados / matriculados del semestre · ' + PERs + (semSet ? ' (semestre ' + semSet.join(', ') + ')' : '') + ' · programas de ciencias', spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
         railPd: true, pdRows: pdRows2, pdLabel: pdLabel2, pdSub: fmt(tot[mI]) + ' ' + mt[1].toLowerCase(), pdClear: () => upS({ periods: null }), pdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (pdOn ? '#D9B25A' : '#DDE3EE') + ';background:' + (pdOn ? '#FBF3DE' : '#fff') + ';color:' + (pdOn ? '#7A5510' : '#26364F'),
         railSexo: false, estLbl: 'Nivel', rngOn: false, railDh: true, estadoBtns: nivBtns, rangoBtns: [], dhDY: dhDY, dhDS: dhDS, dhHY: dhHY, dhHS: dhHS, dhDOn: !!sp.desde, dhHOn: !!sp.hasta, dhDYOpts: dhYOpt(sp.desde, 'Desde el inicio'), dhHYOpts: dhYOpt(sp.hasta, 'Hasta hoy'), dhDSOpts: dhSOpt(sp.desde), dhHSOpts: dhSOpt(sp.hasta), progLabel: 'Programa', rdOptions: progOpts, ddOptions: progOpts, ddLabel: progSel, rdLabel: progSel, rdSub: fmt(pc2.reduce((a, b) => a + b, 0)) + ' ' + mt[1].toLowerCase(),
