@@ -106,6 +106,20 @@ async function escribirBinario(nombre, buffer) {
   if (!resp.ok) throw error(`No se pudo guardar ${nombre} en SharePoint (${resp.status}). ${(await resp.text()).slice(0, 300)}`, 502);
 }
 
+/* Cédulas verificadas (ciudad de expedición y nombres contrastados con la cédula).
+ * Viven en SharePoint, no en el repositorio. Mientras se completa el traslado: si aún
+ * no están en SharePoint se toman de la copia local y se guardan allá. Si SharePoint
+ * falla, se sigue con la copia local para no interrumpir la consulta. */
+async function cedulasVerificadas() {
+  try {
+    const sp = await leerJson('cedulas-verificadas.json');
+    if (sp && sp.lx && sp.nom) return sp;
+  } catch (e) { /* sigue con la copia local */ }
+  const local = require('./_cedulas-verificadas.json');
+  try { await escribirJson('cedulas-verificadas.json', local); } catch (e) { /* se reintenta en la próxima consulta */ }
+  return local;
+}
+
 /* --------------------------------- Reglas --------------------------------- */
 
 const REGEX_PERIODO = /^\d{4}-[12]$/;
@@ -217,7 +231,7 @@ module.exports = async function handler(req, res) {
         if (d && d.meta && d.meta.periodo && !lista.includes(d.meta.periodo)) lista.push(d.meta.periodo);
       }
       lista.sort();
-      const CV = require('./_cedulas-verificadas.json'); // contrastado con la cédula: ciudad de expedición y nombres
+      const CV = await cedulasVerificadas(); // contrastado con la cédula: ciudad de expedición y nombres
       res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom } : { meta: null, datos: null, periodos: lista });
       return;
     }
