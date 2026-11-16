@@ -144,6 +144,7 @@ html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 .mob .eak{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
 .egscr2>*{flex-shrink:0}
 .mob .egk{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+.mob .eghd{flex-direction:column !important;align-items:stretch !important;gap:12px !important}.mob .eghd>div:last-child{align-items:stretch !important;width:100%}.mob .eghd>div:last-child>*{width:100%;justify-content:center;box-sizing:border-box}
 .mob main div[style*="grid-template-rows"]{display:flex !important;flex-direction:column !important;gap:12px !important;height:auto !important}
 .mob main div.rise[style*="border-radius: 20px"]{height:auto !important;min-height:360px;flex:none !important;width:100%;box-sizing:border-box;grid-column:auto !important;grid-row:auto !important}
 .mob main div[style*="repeat(12"]{display:flex !important;flex-direction:column !important;gap:12px !important;height:auto !important}
@@ -340,7 +341,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </sc-if>
 <sc-if value="{{ egOn }}" hint-placeholder-val="{{ false }}">
 <div class="egscr" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;gap:14px">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:20px">
+<div class="eghd" style="display:flex;align-items:center;justify-content:space-between;gap:20px">
 <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0">
 <div><div style="font-size:20px;font-weight:700;color:#0C2050;letter-spacing:-.01em">Egresados no graduados</div><div style="margin-top:2px;font-size:12px;color:#6B7A94">Escalafonados que no obtuvieron el título de Ciencias Navales, y quienes hicieron un CCP (Administración, Administración Marítima, Oceanografía Física, Ingeniería Naval e Ingeniería Electrónica) y no obtuvieron el título.</div></div></div>
 <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex:none"><sc-if value="{{ egNomOn }}" hint-placeholder-val="{{ true }}"><button class="x" onClick="{{ egNomGo }}" title="Acceso restringido: se solicita a Estadística" style="padding:8px 18px;border-radius:12px;border:0;background:#0C2050;color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>{{ egNomTxt }}<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="M7 10.5l5 5 5-5"/><path d="M5 20h14"/></svg></button></sc-if><sc-if value="{{ nomAskOn }}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end"><div style="font-size:12px;font-weight:700;color:#C8352B">Acceso restringido</div><button class="x" onClick="{{ nomAskGo }}" style="padding:7px 14px;border-radius:10px;border:1.5px solid #0C2050;background:#fff;color:#0C2050;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer">Solicitar acceso a la Oficina de Estadística</button></div></sc-if><div style="font-size:11px;color:#6B7A94;max-width:340px;text-align:right">{{ egNomMsg }}</div></div>
@@ -882,7 +883,21 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
 <!-- ============ PROGRAMAS ============ -->
 <sc-if value="{{ pProgramas }}" hint-placeholder-val="{{ false }}">
-<div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:14px">
+<div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:auto auto minmax(0,1fr);gap:14px">
+
+<div class="rise d2" style="{{ panel }};grid-column:span 12">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><div style="font-size:17px;font-weight:700;color:#0C2050">Tasa de deserción por programa</div><div style="font-size:11.5px;color:#6B7A94">{{ dsSub }}</div></div>
+<div style="margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px">
+<sc-for list="{{ dsProgs }}" as="d" hint-placeholder-count="4">
+<button class="hov x" onClick="{{ d.go }}" title="{{ d.tip }}" style="{{ d.st }}">
+<div style="font-size:12.5px;font-weight:600;color:#0C2050;line-height:1.2;min-height:30px">{{ d.label }}</div>
+<div style="margin-top:6px;font-size:34px;line-height:1;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:#C4501F">{{ d.rate }}</div>
+<div style="{{ d.track }}"><div style="{{ d.fill }}"></div><div style="{{ d.dot }}"></div></div>
+<div style="margin-top:6px;font-size:11px;color:#6B7A94;font-variant-numeric:tabular-nums">{{ d.cnt }}</div>
+</button>
+</sc-for>
+</div>
+</div>
 
 <div class="rise d3" style="{{ panel }};grid-column:span 8">
 <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><div style="font-size:15px;font-weight:600;color:#0C2050">{{ spYTitle }}</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">{{ spYSub }}. Toca una fila para filtrar por año</div></div>
@@ -2893,15 +2908,15 @@ class Component extends DCLogic {
       const vsS = (c) => 'margin-top:5px;font-size:10.5px;font-weight:600;color:' + c + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
       const kStyle = (on, dim) => 'box-sizing:border-box;display:block;width:100%;text-align:left;font:inherit;cursor:' + (dim ? 'pointer' : 'default') + ';padding:10px 14px;border-radius:16px;background:' + (on ? '#FFFBF0' : '#fff') + ';border:1.5px solid ' + (on ? '#B8841F' : '#E3E8F0') + ';box-shadow:0 1px 2px rgba(20,35,63,.04),0 6px 18px rgba(20,35,63,.04)';
       const tot = MET2.map((m) => sSum(m[2], null));
-      const sk = MET.map((m, i) => { const cur = sSum(m[2], 'year', PERs), prv = sSum(m[2], 'year', PRVs), d = dlt(cur, prv, false, false); return { label: m[1], dot: dot(m[3]), value: fmt(tot[i]), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) , bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tot[i] / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: true, ex1l: 'Desde', ex1v: String(yMinOf(m[2])), ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) }; });
+      const sk = MET.map((m, i) => { const cur = sSum(m[2], 'year', PERs), prv = sSum(m[2], 'year', PRVs), d = dlt(cur, prv, false, false); return { label: m[1], dot: dot(m[3]), value: fmt(tot[i]), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) , bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tot[i] / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: false, ex1l: '', ex1v: '', ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) }; });
       const rt = (a, b) => (b > 0 ? a / b : 0);
       const rCur = rt(sSum(1, 'year', PERs), sSum(0, 'year', PERs)), rPrv = rt(sSum(1, 'year', PRVs), sSum(0, 'year', PRVs)), rd2 = dlt(rCur, rPrv, true, false);
       // graduados y retirados (cohorte de ingreso), desde la base de estudiantes: también son métricas seleccionables
       MET2.slice(4).forEach((m) => {
         const tt = tot[m[2]], cur = sSum(m[2], 'year', PERs), prv = sSum(m[2], 'year', PRVs), d = dlt(cur, prv, false, m[0] === 'ret');
-        sk.push({ label: m[1], dot: dot(m[3]), value: fmt(tt), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) , bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tt / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: true, ex1l: 'Desde', ex1v: String(yMinOf(m[2])), ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) });
+        sk.push({ label: m[1], dot: dot(m[3]), value: fmt(tt), vs: d.t, vsStyle: vsS(d.c), style: kStyle(sp.metric === m[0], true) , bar: 'height:4px;border-radius:2px;background:' + m[3] + ';width:' + (tot[0] > 0 ? Math.min(100, tt / Math.max(1, tot[0], tot[3]) * 100).toFixed(0) : 0) + '%', ex1: false, ex1l: '', ex1v: '', ex2: false, ex2l: '', ex2v: '', go: () => upS({ metric: m[0] }) });
       });
-      sk.push({ label: 'Egresados no graduados', dot: dot('#E8702A'), value: this.egres().egCard.value, vs: 'Tasa sin título ' + this.egres().egCard.tasa, vsStyle: vsS('#C8352B'), style: kStyle(false, true), bar: 'height:4px;border-radius:2px;background:#E8702A;width:' + Math.min(100, parseFloat(this.egres().egCard.tasa.replace(',', '.')) * 4 || 3) + '%', ex1: true, ex1l: 'Desde', ex1v: '1999', ex2: false, ex2l: '', ex2v: '', go: this.egres().egOpen });
+      sk.push({ label: 'Egresados no graduados', dot: dot('#E8702A'), value: this.egres().egCard.value, vs: 'Tasa sin título ' + this.egres().egCard.tasa, vsStyle: vsS('#C8352B'), style: kStyle(false, true), bar: 'height:4px;border-radius:2px;background:#E8702A;width:' + Math.min(100, parseFloat(this.egres().egCard.tasa.replace(',', '.')) * 4 || 3) + '%', ex1: false, ex1l: '', ex1v: '', ex2: false, ex2l: '', ex2v: '', go: this.egres().egOpen });
       // evolución por año
       const yMin = RR.reduce((a, r) => (r[0] === mt[2] && r[2] > 0 && r[2] < a ? r[2] : a), 2026), yNoDate = RR.reduce((a, r) => a + (r[0] === mt[2] && r[2] === 0 && sPass(r, 'year') ? r[5] : 0), 0), yStep = Math.ceil((2026 - yMin + 1) / 22); const yrs = []; for (let y = yMin; y <= 2026; y++) yrs.push(y);
       const yTot = yrs.map((y) => { let a = 0, b = 0; RR.forEach((r) => { if (r[0] === mt[2] && r[2] === y && sPass(r, 'year')) { if (lv(r[1]) === 'P') a += r[5]; else b += r[5]; } }); return [a, b]; });
@@ -2916,6 +2931,10 @@ class Component extends DCLogic {
       const pc2 = SN.PR.map((q, i) => { let t = 0; RR.forEach((r) => { if (r[0] === mt[2] && r[1] === i && sPass(r, 'prog')) t += r[5]; }); return t; });
       const pOrd = SN.PR.map((q, i) => i).sort((a, b) => pc2[b] - pc2[a]), pMx = Math.max(1, ...pc2);
       const spProgs = pOrd.map((i) => ({ label: SN.PR[i][0], num: fmt(pc2[i]), go: togS('prog', i), rowStyle: 'width:100%;display:flex;align-items:center;gap:6px;height:16px;padding:0 3px;border:0;background:none;cursor:pointer;border-radius:6px;flex:none;opacity:' + ((sp.prog !== null && sp.prog !== i) || !pc2[i] ? 0.4 : 1), bar: 'height:100%;border-radius:4px;background:linear-gradient(90deg,' + (SN.PR[i][1] === 'P' ? '#2F6FE0AA,#2F6FE0' : '#E3A92EAA,#E3A92E') + ');width:' + (pc2[i] / pMx * 100).toFixed(1) + '%' }));
+      // tasa de deserción por programa: retirados / estudiantes que ingresaron al programa (programas de ciencias)
+      const dsRaw = Object.keys(PLAB).map((k) => { const rs = data.filter((r) => r.prog === k); const ret = rs.filter(retF).length; return { i: k, name: PLAB[k], ret: ret, ing: rs.length, rt: rs.length ? ret / rs.length : 0 }; }).filter((x) => x.ing > 0).sort((x, y) => y.rt - x.rt);
+      const dsMx = Math.max(0.01, ...dsRaw.map((x) => x.rt));
+      const dsProgs = dsRaw.map((x) => { const w = (x.rt / dsMx * 100).toFixed(1); return { label: x.name, rate: pct(x.ret, x.ing), cnt: fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' ingresados', tip: x.name + ': ' + fmt(x.ret) + ' retirados de ' + fmt(x.ing) + ' ingresados', go: () => {}, st: 'text-align:left;font:inherit;cursor:default;padding:12px 14px;border-radius:16px;background:#FFF7F2;border:1.5px solid #F6DCCD', track: 'position:relative;margin-top:10px;height:10px;background:linear-gradient(#F0D9CC,#F0D9CC) 0 4px / 100% 2px no-repeat', fill: 'position:absolute;left:0;top:4px;height:2px;border-radius:1px;background:#E0653A;width:' + w + '%;transition:width .55s cubic-bezier(.22,.8,.24,1)', dot: 'position:absolute;top:0;width:10px;height:10px;border-radius:50%;background:#E0653A;left:calc(' + w + '% - 5px);transition:left .55s cubic-bezier(.22,.8,.24,1)' }; });
       // ciudades
       const cst = mt[2] >= 2 ? mt[2] : 3, cLab = cst === 2 ? 'primer curso' : cst === 4 ? 'graduados' : cst === 5 ? 'retirados' : 'matrículas';
       const cc = {}; RR.forEach((r) => { if (r[0] === cst && sPass(r, 'ciudad')) { const k = cn(r[4]); cc[k] = (cc[k] || 0) + r[5]; } });
@@ -2961,7 +2980,7 @@ class Component extends DCLogic {
       spo = {
         kpis: sk, kpiGrid: 'display:grid;grid-template-columns:repeat(' + sk.length + ',minmax(0,1fr));gap:10px;height:120px',
         spYears: spYears, spTrP: spTr.p, spTrS: spTr.s, spBoxH: BH + 40, spYTitle: mt[1] + ' por año', spYSub: 'Desde ' + yMin + (yNoDate ? ' · ' + fmt(yNoDate) + ' sin fecha' : ''), spFun: spFun, spPerTxt: PERs + ' frente a ' + PRVs + (sp.prog !== null ? ' · ' + SN.PR[sp.prog][0] : ''),
-        spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
+        dsProgs: dsProgs, dsSub: 'Retirados sobre estudiantes ingresados a cada programa de ciencias.', spProgs: spProgs, spPTitle: mt[1] + ' por programa', spPoly: COLP2.map((q) => mx2(q[0]) + ',' + my2(q[1])).join(' '), spDots: spDots, spLab: spLab, spCities: spCities,
         spCSub: fmt(cTot - (cc['Sin dato'] || 0)) + ' con ciudad registrada de ' + fmt(cTot) + ' (' + cLab + ')',
         railPd: true, pdRows: pdRows2, pdLabel: pdLabel2, pdSub: fmt(tot[mI]) + ' ' + mt[1].toLowerCase(), pdClear: () => upS({ periods: null }), pdBtnStyle: 'margin-top:6px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;border-radius:12px;font-size:12.5px;font-weight:600;cursor:pointer;text-align:left;border:1px solid ' + (pdOn ? '#D9B25A' : '#DDE3EE') + ';background:' + (pdOn ? '#FBF3DE' : '#fff') + ';color:' + (pdOn ? '#7A5510' : '#26364F'),
         railSexo: false, estLbl: 'Nivel', rngOn: false, railDh: true, estadoBtns: nivBtns, rangoBtns: [], dhDY: dhDY, dhDS: dhDS, dhHY: dhHY, dhHS: dhHS, dhDOn: !!sp.desde, dhHOn: !!sp.hasta, dhDYOpts: dhYOpt(sp.desde, 'Desde el inicio'), dhHYOpts: dhYOpt(sp.hasta, 'Hasta hoy'), dhDSOpts: dhSOpt(sp.desde), dhHSOpts: dhSOpt(sp.hasta), progLabel: 'Programa', rdOptions: progOpts, ddOptions: progOpts, ddLabel: progSel, rdLabel: progSel, rdSub: fmt(pc2.reduce((a, b) => a + b, 0)) + ' ' + mt[1].toLowerCase(),
