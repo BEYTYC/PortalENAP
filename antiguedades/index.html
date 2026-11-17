@@ -2426,8 +2426,8 @@ function armarBD(E,D0,quien){
   var D=D0.dl?{order:D0.dl.order,sheets:D0.dl.sheets,esc:D0.esc}:D0; // por programa a cursar
   var wb=new E.Workbook(),ahora=new Date();
   var fec=ahora.toLocaleString('es-CO',{timeZone:'America/Bogota',day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit',hour12:true}).replace(/ /g,' ');
-  var texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien;
-  var FUENTE='Fuente: Antigüedades ENAP - Portal de Servicios Digitales Oficina de Estadística',FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
+  var PORTAL='https://enap.vercel.app/',texto='Descargada el '+fec.replace(',',' ·')+' · por '+quien+' · '+PORTAL;
+  var FUENTE='Fuente de descarga:  Portal de Servicios Digitales Oficina de Estadística · Módulo: Antigüedades ENAP',FN='Aptos Display',AZ='FF1F3A5F',BL='FF2F6FD6',LN='FFC3CAD4',MB='FF8A97A8';
   var r3=function(v){return v==null?null:Math.round(v*1000)/1000};
   var PERX=(typeof window!=='undefined'&&window.__PER)||'2026-1',SOLO=!!D0.solo;
   var CAN=['1.1','1.2','2.1','2.2','3.1','3.2','4.1','4.2'];
@@ -2447,11 +2447,11 @@ function armarBD(E,D0,quien){
       bloques=Object.keys(cs).sort(function(a,c){return po(a)-po(c)})}
     else for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
       if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
-    var isM=k==='MER',nF=isM?7:8,nP=isM?1:5,wS=isM?1:4;
+    var isM=k==='MER',nF=isM?7:8,nm=isM?3:4,nP=isM?1:5,wS=isM?1:4;
     var conPf=(k==='4.1'||k==='4.2'||k==='ESC')&&lista.some(function(s){return s.pf!=null});
-    var ws=wb.addWorksheet(lb(k),{views:[{state:'frozen',xSplit:nF,ySplit:6,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
+    var ws=wb.addWorksheet(lb(k),{views:[{state:'frozen',xSplit:nm+1,ySplit:6,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
     var n=lista.length,last=n+6;
-    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n'+PERX,13],['CÓDIGO',14],['CÉDULA',14],['CIUDAD\nEXP.',20],['GRADO',12],['APELLIDOS Y NOMBRES',44]];if(isM)fijas.splice(6,1);
+    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n'+PERX,13],['GRADO',12],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD\nEXP.',20]];if(isM)fijas.splice(3,1);
     fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
     var grupos=[]; // {c0,c1,titulo,tipo}
     grupos.push({c0:1,c1:nF,tipo:'fija'});
@@ -2461,8 +2461,8 @@ function armarBD(E,D0,quien){
     var cPf=null;if(conPf){cPf=c;ws.getColumn(c).width=15}
     var cUlt=conPf?cPf:(bloques.length?c-2:nF+nP+1);
     // título y fecha
-    ws.mergeCellsWithoutStyle(2,1,2,cUlt);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2 · '+PERX:SOLO?lb(k)+' · '+PERX:k==='MER'?'Mercantes':'Programa a cursar '+lb(k)+' · puesto en el curso cursado');a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
-    var a2=ws.getCell(3,1);a2.value=texto;a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
+    ws.mergeCellsWithoutStyle(2,1,2,cUlt);ws.mergeCellsWithoutStyle(3,1,3,cUlt);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+(k==='ESC'?'Escalafonamiento 4.2 · '+PERX:SOLO?lb(k)+' · '+PERX:k==='MER'?'Mercantes':'Programa a cursar '+lb(k)+' · puesto en el curso cursado');a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    var a2=ws.getCell(3,1);a2.value={text:texto,hyperlink:PORTAL};a2.protection={locked:false};a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
     ws.getRow(5).height=22;ws.getRow(6).height=32;
     function celda(r,cc,v,o){var x=ws.getCell(r,cc);if(v!==undefined)x.value=v;x.font={name:FN,size:10,bold:!!o.b,color:{argb:o.fc||'FF000000'}};if(o.fill)fill(x,o.fill);x.alignment={horizontal:o.h||'center',vertical:'middle',wrapText:!!o.w};if(o.nf)x.numFmt=o.nf;return x}
     // fila 4 (bandas)
@@ -2475,16 +2475,16 @@ function armarBD(E,D0,quien){
     });
     if(cPf){var x=celda(5,cPf,'PONDERACIÓN',{b:1,fc:AZ,fill:'FFB7D1EE'});bd(x,true,true,true,false)}
     // fila 4
-    var enc=['PUESTO','ESTADO','CURSO\n'+PERX,'CÓDIGO','CÉDULA','CIUDAD\nEXP.','GRADO','APELLIDOS Y NOMBRES'];if(isM)enc.splice(6,1);
-    enc.forEach(function(t,i){var x=celda(6,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2||i===5,h:(i===nF-1||i===5)?'left':'center'});bd(x,i===0,i===nF-1,false,false)});
+    var enc=['PUESTO','ESTADO','CURSO\n'+PERX,'GRADO','APELLIDOS Y NOMBRES','CÓDIGO','CÉDULA','CIUDAD\nEXP.'];if(isM)enc.splice(3,1);
+    enc.forEach(function(t,i){var x=celda(6,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2||i===nF-1,h:(i===nm||i===nF-1)?'left':'center'});bd(x,i===0,i===nF-1,false,false)});
     (isM?['PROMEDIO ACADÉMICO']:['ACAD','APT. NAV','DISCIP','C.FIS','PROMEDIO FINAL']).forEach(function(t,i){var x=celda(6,nF+1+i,t,{b:1,fc:'FFFFFFFF',fill:i===nP-1?BL:'FF5AA2EA',w:1});bd(x,i===0,i===nP-1,false,false)});
     grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')(isM?['ACAD']:['ACAD','AN','DISC','C.FIS']).forEach(function(t,i){var x=celda(6,g.c0+i,t,{b:1,fc:AZ,fill:'FFDCE9F7'});bd(x,i===0,i===wS-1,false,false)})});
     if(cPf){var y=celda(6,cPf,'FACTOR DE PONDERACIÓN',{b:1,fc:AZ,fill:'FFDCE9F7',w:1});bd(y,true,true,false,false)}
     // datos
     lista.forEach(function(s,i){
       var r=7+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':(s.e==='Normal'&&/^Refuerzo/.test(s.ev||''))?'En refuerzo':s.e,s.cu,s.c,s.ce,lxOf(s.ce),s.g,s.n];if(isM)vals.splice(6,1);
-      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:(j===nF-1||j===5)?'left':'center',nf:j===4?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':(s.e==='Normal'&&/^Refuerzo/.test(s.ev||''))?'En refuerzo':s.e,s.cu,s.g,s.n,s.c,s.ce,lxOf(s.ce)];if(isM)vals.splice(3,1);
+      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:(j===nm||j===nF-1)?'left':'center',nf:j===nm+2?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
       (isM?[acp(s)]:[acp(s),s.an,s.di,s.cf,s.f]).forEach(function(v,j){var x=celda(r,nF+1+j,r3(v),{b:j===nP-1,fc:'FF14304F',fill:j===nP-1?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===nP-1,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
         var h=s.h.filter(function(z){return z[0]===g.cod})[0];
@@ -2502,8 +2502,8 @@ function armarBD(E,D0,quien){
     var ws=wb.addWorksheet('Premios',{views:[{state:'frozen',ySplit:6,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
     var cols=[['N°',9],['CATEGORÍA',24],['PREMIO',52],['OTORGA',30],['RAZÓN',44],['PUESTO',9],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXP.',20],['DETALLE',34]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
-    ws.mergeCellsWithoutStyle(2,1,2,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · Premios '+PERX;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
-    var a2=ws.getCell(3,1);a2.value=texto;a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
+    ws.mergeCellsWithoutStyle(2,1,2,cols.length);ws.mergeCellsWithoutStyle(3,1,3,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · Premios '+PERX;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    var a2=ws.getCell(3,1);a2.value={text:texto,hyperlink:PORTAL};a2.protection={locked:false};a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
     ws.getRow(5).height=14.4;ws.getRow(6).height=32;
     cols.forEach(function(c,i){var x=ws.getCell(6,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:AZ}};fill(x,'FFDCE9F7');x.alignment={horizontal:(i===8||i===11)?'left':'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,true,false)});
     var pool=(D.esc||[]).concat(D.sheets.PR||[],D.sheets.CDPRIM||[],D.sheets.CDP||[]),r=7,nn=0,ord=['Medallas y condecoraciones','Espadas','Premios extranjeros','Premios nacionales','Placas'];
@@ -2518,8 +2518,8 @@ function armarBD(E,D0,quien){
     var ws=wb.addWorksheet(nombre,{views:[{state:'frozen',ySplit:5,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
     var cols=[['N°',9],['CURSO',11],['GRADO',9],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD EXP.',20],['ACAD',11],['APT. NAV',11],['DISCIP',11],['C.FIS',11],['PROMEDIO FINAL',14],['MÍN. ASIGNATURA',14]];
     cols.forEach(function(c,i){ws.getColumn(i+1).width=c[1]});
-    ws.mergeCellsWithoutStyle(2,1,2,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
-    var a2=ws.getCell(3,1);a2.value=texto;a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
+    ws.mergeCellsWithoutStyle(2,1,2,cols.length);ws.mergeCellsWithoutStyle(3,1,3,cols.length);var a1=ws.getCell(2,1);a1.value='BD Antigüedades · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · '+titulo;a1.font={name:FN,size:12,bold:true,color:{argb:AZ}};a1.alignment={vertical:'bottom'};ws.getRow(1).height=22;
+    var a2=ws.getCell(3,1);a2.value={text:texto,hyperlink:PORTAL};a2.protection={locked:false};a2.font={name:FN,size:10,italic:true,color:{argb:'FF5E6B7D'}};a2.alignment={horizontal:'left',vertical:'middle'};var a3=ws.getCell(4,1);a3.value=FUENTE;a3.font={name:FN,size:10,italic:true,color:{argb:'FF1F3A5F'}};a3.alignment={horizontal:'left',vertical:'top'};a1.alignment={horizontal:'left',vertical:'bottom'};ws.getRow(1).height=14.4;ws.getRow(2).height=16;ws.getRow(3).height=13;ws.getRow(4).height=13;
     ws.getRow(5).height=32;
     cols.forEach(function(c,i){var x=ws.getCell(5,i+1);x.value=c[0];x.font={name:FN,size:10,bold:true,color:{argb:AZ}};fill(x,'FFDCE9F7');x.alignment={horizontal:(i===3||i===6)?'left':'center',vertical:'middle',wrapText:true};bd(x,i===0,i===cols.length-1,true,false)});
     var r=6,nn=0;
