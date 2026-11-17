@@ -312,7 +312,15 @@ module.exports = async function handler(req, res) {
       if (ceds.length > 600) throw error('El listado es demasiado grande.', 413);
       const meta = { actualizado: ahora(), por: yo.correo };
       await escribirJson('titulacion.json', { ...meta, fecha, ceds });
-      res.status(200).json({ ok: true, total: ceds.length, fecha, ...meta });
+      /* nombres contrastados con la cédula física (opcional): pasan al mapa de cédulas verificadas y corrigen el nombre en el reporte */
+      const nn = body.nombres && typeof body.nombres === 'object' ? body.nombres : {};
+      const cv = await cedulasVerificadas(); let cambios = 0;
+      Object.keys(nn).forEach((k) => {
+        const ck = String(k).replace(/[^0-9]/g, '').replace(/^0+/, ''), nm = String(nn[k] || '').toUpperCase().replace(/\s+/g, ' ').trim();
+        if (ck.length >= 6 && /^[A-ZÑ ]{5,80}$/.test(nm) && cv.nom[ck] !== nm) { cv.nom[ck] = nm; cambios++; }
+      });
+      if (cambios) await escribirJson('cedulas-verificadas.json', cv);
+      res.status(200).json({ ok: true, total: ceds.length, fecha, nombres: cambios, ...meta });
       return;
     }
 
