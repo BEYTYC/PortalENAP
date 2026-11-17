@@ -173,6 +173,28 @@ async function leerAccesos() {
 
 /* --------------------------------- Handler -------------------------------- */
 
+/* Graduados en Ciencias Navales: se lee "Graduados en la ENAP.xlsx" (OneDrive de Estadística) con el mismo lector del módulo Hoja de vida.
+   Devuelve { cédula: fecha } o null si no se pudo leer (así el Excel deja la columna vacía en vez de poner "No"). Se guarda 10 minutos. */
+let gdCache = null, gdCacheHora = 0;
+async function graduadosNavales() {
+  if (gdCache && Date.now() - gdCacheHora < 600000) return gdCache;
+  try {
+    const H = { Authorization: `Bearer ${appToken}` };
+    const ruta = 'Estadística/Bases de Datos/B.D Grados - Balances Académicos/Graduados en la ENAP.xlsx';
+    const r = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent('jestadisticaplen@enap.edu.co')}/drive/root:/${ruta.split('/').map(encodeURIComponent).join('/')}:/content`, { headers: H });
+    if (!r.ok) return null;
+    const lib = XLSX.abrir(Buffer.from(await r.arrayBuffer()));
+    const g = require('./hoja-de-vida.js')._test.procesarGraduados(lib);
+    const out = {};
+    Object.keys(g.porCed).forEach((k) => {
+      const navales = (g.porCed[k] || []).filter((x) => /CIENCIAS NAVALES/.test(String(x.programa || x.titulo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()));
+      if (navales.length) out[k.replace(/^0+/, '')] = navales[0].fecha || '1';
+    });
+    gdCache = Object.keys(out).length ? out : null; gdCacheHora = Date.now();
+    return gdCache;
+  } catch (e) { return null; }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -231,7 +253,8 @@ module.exports = async function handler(req, res) {
       }
       lista.sort();
       const CV = await cedulasVerificadas(); // contrastado con la cédula: ciudad de expedición y nombres
-      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom } : { meta: null, datos: null, periodos: lista });
+      const GD = await graduadosNavales(); // quién figura graduado en Ciencias Navales (null si no se pudo leer)
+      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom, gd: GD } : { meta: null, datos: null, periodos: lista });
       return;
     }
 

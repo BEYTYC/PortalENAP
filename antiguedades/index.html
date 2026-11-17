@@ -2432,6 +2432,7 @@ function armarBD(E,D0,quien){
   var PERX=(typeof window!=='undefined'&&window.__PER)||'2026-1',SOLO=!!D0.solo;
   var CAN=['1.1','1.2','2.1','2.2','3.1','3.2','4.1','4.2'];
   function acp(s){return (s.ac!=null&&s.ac>0)?s.ac:s.as}
+  function gdOf(ce){var g=(typeof window!=='undefined'&&window.__GD);if(!g)return null;var k=String(ce==null?'':ce).replace(/[^0-9]/g,'').replace(/^0+/,'');return g[k]?'Sí':'No'}
   function lxOf(ce){var m=(typeof window!=='undefined'&&window.__LX)||{},k=String(ce==null?'':ce).replace(/[^0-9]/g,'').replace(/^0+/,'');return m[k]||null}
   function col(n){var s='';while(n>0){var m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s}
   function bd(c,l,r,t,b){var o={},th={style:'thin',color:{argb:LN}},me={style:'medium',color:{argb:MB}};o.left=l?me:th;o.right=r?me:th;o.top=t?me:th;o.bottom=b?{style:'medium',color:{argb:'FFA7B4C6'}}:th;c.border=o}
@@ -2447,11 +2448,11 @@ function armarBD(E,D0,quien){
       bloques=Object.keys(cs).sort(function(a,c){return po(a)-po(c)})}
     else for(var i=0;i<=ix;i++){[D.order[i],D.order[i]+'A'].forEach(function(cod){
       if(lista.some(function(s){return s.h.some(function(h){return h[0]===cod})}))bloques.push(cod)})}
-    var isM=k==='MER',nF=isM?7:8,nm=isM?3:4,nP=isM?1:5,wS=isM?1:4;
+    var isM=k==='MER',nF=isM?7:9,cx=isM?6:7,nm=isM?3:4,nP=isM?1:5,wS=isM?1:4;
     var conPf=(k==='4.1'||k==='4.2'||k==='ESC')&&lista.some(function(s){return s.pf!=null});
     var ws=wb.addWorksheet(lb(k),{views:[{state:'frozen',xSplit:nm+1,ySplit:6,showGridLines:false,zoomScale:100,zoomScaleNormal:100}]});
     var n=lista.length,last=n+6;
-    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n'+PERX,13],['GRADO',12],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD\nEXP.',20]];if(isM)fijas.splice(3,1);
+    var fijas=[['PUESTO',9],['ESTADO',14],['CURSO\n'+PERX,13],['GRADO',12],['APELLIDOS Y NOMBRES',44],['CÓDIGO',14],['CÉDULA',14],['CIUDAD\nEXP.',20],['GRADUADO',12]];if(isM){fijas.splice(3,1);fijas.pop()}
     fijas.forEach(function(f,i){ws.getColumn(i+1).width=f[1]});
     var grupos=[]; // {c0,c1,titulo,tipo}
     grupos.push({c0:1,c1:nF,tipo:'fija'});
@@ -2475,16 +2476,16 @@ function armarBD(E,D0,quien){
     });
     if(cPf){var x=celda(5,cPf,'PONDERACIÓN',{b:1,fc:AZ,fill:'FFB7D1EE'});bd(x,true,true,true,false)}
     // fila 4
-    var enc=['PUESTO','ESTADO','CURSO\n'+PERX,'GRADO','APELLIDOS Y NOMBRES','CÓDIGO','CÉDULA','CIUDAD\nEXP.'];if(isM)enc.splice(3,1);
-    enc.forEach(function(t,i){var x=celda(6,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2||i===nF-1,h:(i===nm||i===nF-1)?'left':'center'});bd(x,i===0,i===nF-1,false,false)});
+    var enc=['PUESTO','ESTADO','CURSO\n'+PERX,'GRADO','APELLIDOS Y NOMBRES','CÓDIGO','CÉDULA','CIUDAD\nEXP.','GRADUADO'];if(isM){enc.splice(3,1);enc.pop()}
+    enc.forEach(function(t,i){var x=celda(6,i+1,t,{b:1,fc:AZ,fill:'FFDCE9F7',w:i===2||i===cx,h:(i===nm||i===cx)?'left':'center'});bd(x,i===0,i===nF-1,false,false)});
     (isM?['PROMEDIO ACADÉMICO']:['ACAD','APT. NAV','DISCIP','C.FIS','PROMEDIO FINAL']).forEach(function(t,i){var x=celda(6,nF+1+i,t,{b:1,fc:'FFFFFFFF',fill:i===nP-1?BL:'FF5AA2EA',w:1});bd(x,i===0,i===nP-1,false,false)});
     grupos.forEach(function(g){if(g.tipo==='sem'||g.tipo==='rep')(isM?['ACAD']:['ACAD','AN','DISC','C.FIS']).forEach(function(t,i){var x=celda(6,g.c0+i,t,{b:1,fc:AZ,fill:'FFDCE9F7'});bd(x,i===0,i===wS-1,false,false)})});
     if(cPf){var y=celda(6,cPf,'FACTOR DE PONDERACIÓN',{b:1,fc:AZ,fill:'FFDCE9F7',w:1});bd(y,true,true,false,false)}
     // datos
     lista.forEach(function(s,i){
       var r=7+i,u=(i===n-1);ws.getRow(r).height=20;
-      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':(s.e==='Normal'&&/^Refuerzo/.test(s.ev||''))?'En refuerzo':s.e,s.cu,s.g,s.n,s.c,s.ce,lxOf(s.ce)];if(isM)vals.splice(3,1);
-      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:(j===nm||j===nF-1)?'left':'center',nf:j===nm+2?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
+      var vals=[s.e==='Aplazado'||s.p==null?null:s.p,s.e==='Repitente'?'Retardado':(s.e==='Normal'&&/^Refuerzo/.test(s.ev||''))?'En refuerzo':s.e,s.cu,s.g,s.n,s.c,s.ce,lxOf(s.ce),gdOf(s.ce)];if(isM){vals.splice(3,1);vals.pop()}
+      vals.forEach(function(v,j){var x=celda(r,1+j,v==null?null:v,{h:(j===nm||j===cx)?'left':'center',nf:j===nm+2?'0':undefined});bd(x,j===0,j===nF-1,false,u)});
       (isM?[acp(s)]:[acp(s),s.an,s.di,s.cf,s.f]).forEach(function(v,j){var x=celda(r,nF+1+j,r3(v),{b:j===nP-1,fc:'FF14304F',fill:j===nP-1?'FFDCEBFC':'FFEEF5FE',nf:'0.000'});bd(x,j===0,j===nP-1,false,u)});
       grupos.forEach(function(g){if(g.tipo!=='sem'&&g.tipo!=='rep')return;
         var h=s.h.filter(function(z){return z[0]===g.cod})[0];
@@ -2970,7 +2971,7 @@ function cargando(on,v){var l=document.getElementById('ld');
 function cambiarPer(v){var pub=document.getElementById('pub');pub.style.opacity='.45';pub.style.pointerEvents='none';cargando(true,v);
   api('datos',{periodo:v}).then(function(r){if(!r.datos)throw new Error('Ese periodo no tiene datos.');
     ['q','em'].forEach(function(id){var o=document.getElementById(id);if(o){var n=o.cloneNode(true);n.value='';o.parentNode.replaceChild(n,o)}});
-    window.__LX=r.lx||{};window.__NV=r.nv||{};window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo)||v;window.__PERS=r.periodos||window.__PERS;
+    window.__LX=r.lx||{};window.__GD=r.gd||null;window.__NV=r.nv||{};window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo)||v;window.__PERS=r.periodos||window.__PERS;
     if(window.__adm)metaTxt(r.meta);
     arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0);window.scrollTo(0,0)
   }).catch(function(e){var m=document.getElementById('um');if(m)m.textContent=e.message}).then(function(){pub.style.opacity='';pub.style.pointerEvents='';cargando(false)})}
@@ -2992,7 +2993,7 @@ function iniciar(){
         va.onclick=function(){var a=ad.hidden;ad.hidden=!a;nd.hidden=a;va.setAttribute('aria-pressed',String(a))};
         document.getElementById('um').textContent='Todavía no hay datos: carga el archivo para empezar.';return}
         msg('Sin datos todavía','La Oficina de Estadística aún no ha cargado las antigüedades.');return}
-      window.__LX=r.lx||{};window.__NV=r.nv||{};window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);window.__PERS=r.periodos||[];selPer(window.__PERS,window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
+      window.__LX=r.lx||{};window.__GD=r.gd||null;window.__NV=r.nv||{};window.__D=r.datos;window.__PER=r.periodo||(r.meta&&r.meta.periodo);window.__PERS=r.periodos||[];selPer(window.__PERS,window.__PER);gate.hidden=true;mostrarDl(!!s.descarga,esAdmin);
       var seguir=function(){document.getElementById('app-src')&&arrancar(document.getElementById('app-src').textContent);if(window.__adm)setTimeout(vfInit,0)};
       /* Retirados: se definen con la base Bajas y Ascensos (los cambios manuales de estado se respetan) */
       (function(){var pr=String(window.__PER||'').match(/^(\d{4})-(\d)$/);var y=pr?+pr[1]:new Date().getFullYear(),h=pr?+pr[2]:1;var d=new Date(Date.UTC(y,h===2?6:0,1));d.setUTCMonth(d.getUTCMonth()-8);
