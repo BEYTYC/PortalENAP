@@ -174,7 +174,7 @@ async function leerAccesos() {
 /* --------------------------------- Handler -------------------------------- */
 
 /* Graduados en Ciencias Navales (NAV) o Ciencias Náuticas (NAU, mercantes): se lee "Graduados en la ENAP.xlsx" (OneDrive de Estadística) con el mismo lector del módulo Hoja de vida.
-   Devuelve { cédula: ['NAV'|'NAU'] } o null si no se pudo leer (así el Excel deja la columna vacía en vez de poner "No"). Se guarda 10 minutos. */
+   Devuelve { cédula: { t: ['NAV'|'NAU'], f: fecha de grado } } o null si no se pudo leer (así el Excel deja la columna vacía en vez de poner "No"). Se guarda 10 minutos. */
 let gdCache = null, gdCacheHora = 0;
 async function graduadosNavales() {
   if (gdCache && Date.now() - gdCacheHora < 600000) return gdCache;
@@ -193,7 +193,8 @@ async function graduadosNavales() {
         if (/CIENCIAS NAVALES/.test(t) && !tipos.includes('NAV')) tipos.push('NAV');
         if (/CIENCIAS NAUTICAS/.test(t) && !tipos.includes('NAU')) tipos.push('NAU');
       });
-      if (tipos.length) out[k.replace(/^0+/, '')] = tipos;
+      const fechas = (g.porCed[k] || []).map((x) => x.fecha || '').filter(Boolean).sort();
+      if (tipos.length) out[k.replace(/^0+/, '')] = { t: tipos, f: fechas.length ? fechas[fechas.length - 1] : '' };
     });
     gdCache = Object.keys(out).length ? out : null; gdCacheHora = Date.now();
     return gdCache;
