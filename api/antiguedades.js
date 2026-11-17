@@ -173,8 +173,8 @@ async function leerAccesos() {
 
 /* --------------------------------- Handler -------------------------------- */
 
-/* Graduados en Ciencias Navales: se lee "Graduados en la ENAP.xlsx" (OneDrive de Estadística) con el mismo lector del módulo Hoja de vida.
-   Devuelve { cédula: fecha } o null si no se pudo leer (así el Excel deja la columna vacía en vez de poner "No"). Se guarda 10 minutos. */
+/* Graduados en Ciencias Navales (NAV) o Ciencias Náuticas (NAU, mercantes): se lee "Graduados en la ENAP.xlsx" (OneDrive de Estadística) con el mismo lector del módulo Hoja de vida.
+   Devuelve { cédula: ['NAV'|'NAU'] } o null si no se pudo leer (así el Excel deja la columna vacía en vez de poner "No"). Se guarda 10 minutos. */
 let gdCache = null, gdCacheHora = 0;
 async function graduadosNavales() {
   if (gdCache && Date.now() - gdCacheHora < 600000) return gdCache;
@@ -187,8 +187,13 @@ async function graduadosNavales() {
     const g = require('./hoja-de-vida.js')._test.procesarGraduados(lib);
     const out = {};
     Object.keys(g.porCed).forEach((k) => {
-      const navales = (g.porCed[k] || []).filter((x) => /CIENCIAS NAVALES/.test(String(x.programa || x.titulo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase()));
-      if (navales.length) out[k.replace(/^0+/, '')] = navales[0].fecha || '1';
+      const tipos = [];
+      (g.porCed[k] || []).forEach((x) => {
+        const t = String(x.programa || x.titulo || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+        if (/CIENCIAS NAVALES/.test(t) && !tipos.includes('NAV')) tipos.push('NAV');
+        if (/CIENCIAS NAUTICAS/.test(t) && !tipos.includes('NAU')) tipos.push('NAU');
+      });
+      if (tipos.length) out[k.replace(/^0+/, '')] = tipos;
     });
     gdCache = Object.keys(out).length ? out : null; gdCacheHora = Date.now();
     return gdCache;
