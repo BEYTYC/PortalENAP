@@ -1342,7 +1342,7 @@ class Component extends DCLogic {
             ws.eachRow({ includeEmpty: true }, (row, n) => {
               if (n === 1 || n === 5) { row.height = 14.4; return; }
               if (n === 2) { row.height = 15.6; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 12, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              if (n === 3) { row.height = 15.6; const c2 = row.getCell(1); c2.value = { text: String(c2.value), hyperlink: 'https://enap.vercel.app/' }; c2.protection = { locked: false }; c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              if (n === 3) { row.height = 15.6; const c2 = row.getCell(1); { const U = 'https://enap.vercel.app/', s = String(c2.value); c2.value = { text: { richText: [{ text: s.slice(0, s.length - U.length), font: { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } } }, { text: U, font: { name: 'Aptos Display', size: 10, italic: true, underline: true, color: { argb: 'FF0563C1' } } }] }, hyperlink: U }; } c2.protection = { locked: false }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 6 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
