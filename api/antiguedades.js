@@ -145,10 +145,9 @@ function puedeDescargar(correo, accesos) {
   return !!(x && x.descarga === true);
 }
 
-/* ---- ACCESO TEMPORAL DE CONSULTA ----
- * Mientras dure el escalafonamiento 2026-2, quienes tienen en la lista de permisos del Portal
- * (la misma de Solicitud de Grado) el rol DECANO o JEFE_PROGRAMA, más los correos de abajo, entran como CONSULTA
- * (solo ven; no descargan ni administran). Para quitarlo: poner ACCESO_TEMPORAL = false. */
+/* ---- ACCESO DE CONSULTA PARA JEFES DE PROGRAMA Y DECANOS ----
+ * Quienes tienen en la lista de permisos del Portal (la misma de Solicitud de Grado) el rol DECANO o JEFE_PROGRAMA,
+ * más los correos de abajo, entran como CONSULTA (solo ven; no descargan ni administran). Es permanente. */
 const ACCESO_TEMPORAL = true;
 const ROLES_TEMPORALES = ['DECANO', 'JEFE_PROGRAMA'];
 const CORREOS_TEMPORALES = ['cben@enap.edu.co', 'sac@enap.edu.co', 'daen@enap.edu.co', 'denap@enap.edu.co', 'aspapen@enap.edu.co'];
