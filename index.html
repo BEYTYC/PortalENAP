@@ -200,6 +200,9 @@
     background:linear-gradient(90deg, rgba(201,162,39,.32) 0%, rgba(201,162,39,.32) 55%, transparent 100%);
   }
   .dropdown button:hover{ background:#F8FAFD; }
+  .dropdown button.locked{ color:#7B8CA6; }
+  .dropdown button.locked .label{ opacity:.75; }
+  .dropdown button .tag--lock{ display:inline-flex; align-items:center; margin-left:auto; padding:3px 6px; color:#B08A2E; background:#FBF3DD; border-radius:7px; }
   .dropdown button .label{flex:none; white-space:nowrap;}
   .dropdown button .tag{
     margin-left:auto; font-size:9.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--text-muted); flex:none; white-space:nowrap;
@@ -2562,13 +2565,16 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     const o = document.createElement('div');
     o.id = 'accesoDlg';
     o.style.cssText = 'position:fixed;inset:0;z-index:9999;display:grid;place-items:center;padding:20px;background:rgba(11,42,91,.35);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)';
-    o.innerHTML = '<div role="dialog" aria-modal="true" style="max-width:420px;width:100%;background:#fff;border-radius:16px;padding:26px 24px;text-align:center;box-shadow:0 20px 50px -20px rgba(11,42,91,.55);font-family:inherit">'
-      + '<div style="font-size:0.6887rem;letter-spacing:.18em;color:#6C86AD;font-weight:600;text-transform:uppercase">Acceso restringido</div>'
-      + '<h3 style="margin:8px 0 6px;color:#0B2A5B;font-size:1.1187rem">' + esc(modulo) + '</h3>'
-      + '<p id="accesoTxt" style="margin:0 0 18px;color:#3F5876;font-size:0.8988rem;line-height:1.5">' + esc(texto || 'Tu cuenta no tiene acceso a este módulo.') + '</p>'
-      + '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
-      + '<button type="button" id="accesoSolicitar" style="height:40px;padding:0 20px;border:0;border-radius:10px;background:linear-gradient(180deg,#1F4E96,#163C78);color:#fff;font-weight:600;cursor:pointer">Solicitar acceso</button>'
-      + '<button type="button" id="accesoCerrar" style="height:40px;padding:0 18px;border:1px solid #C9D9EE;border-radius:10px;background:#fff;color:#1F4E96;font-weight:600;cursor:pointer">Cerrar</button></div></div>';
+    o.innerHTML = '<div role="dialog" aria-modal="true" style="position:relative;overflow:hidden;max-width:440px;width:100%;background:#fff;border-radius:20px;padding:0;text-align:center;box-shadow:0 30px 70px -24px rgba(11,42,91,.6);font-family:inherit">'
+      + '<div style="padding:30px 26px 22px;background:linear-gradient(180deg,#F3F7FD 0%,#fff 100%)">'
+      + '<div style="width:68px;height:68px;margin:0 auto 14px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#EAF1FB,#D6E4F7);box-shadow:inset 0 0 0 1px #C9D9EE,0 8px 18px -10px rgba(31,78,150,.6)">'
+      + '<svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2.2" stroke="#1F4E96" stroke-width="1.8"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="#1F4E96" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.3" fill="#C8A24B"/></svg></div>'
+      + '<div style="font-size:0.6887rem;letter-spacing:.2em;color:#B08A2E;font-weight:700;text-transform:uppercase">Sin acceso</div>'
+      + '<h3 style="margin:8px 0 8px;color:#0B2A5B;font-size:1.2rem;letter-spacing:-.01em">' + esc(modulo) + '</h3>'
+      + '<p id="accesoTxt" style="margin:0;color:#3F5876;font-size:0.8988rem;line-height:1.55">' + esc(texto || 'Tu cuenta no tiene acceso a este módulo.') + '</p></div>'
+      + '<div style="padding:4px 26px 24px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      + '<button type="button" id="accesoSolicitar" style="height:42px;padding:0 22px;border:0;border-radius:11px;background:linear-gradient(180deg,#1F4E96,#163C78);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 10px 20px -12px rgba(22,60,120,.8)">Solicitar acceso al módulo</button>'
+      + '<button type="button" id="accesoCerrar" style="height:42px;padding:0 20px;border:1px solid #C9D9EE;border-radius:11px;background:#fff;color:#1F4E96;font-weight:600;cursor:pointer">Cerrar</button></div></div>';
     document.body.appendChild(o);
     o.addEventListener('click', (e) => { if (e.target === o) o.remove(); });
     o.querySelector('#accesoCerrar').addEventListener('click', () => o.remove());
@@ -2576,7 +2582,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     b.addEventListener('click', async () => {
       b.disabled = true; b.textContent = 'Enviando…';
       const ok = await registrarModulo(modulo, 'Solicitó acceso');
-      o.querySelector('#accesoTxt').textContent = ok ? 'Solicitud enviada. La Oficina de Estadística la revisará y te dará acceso si corresponde.' : 'No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.';
+      o.querySelector('#accesoTxt').textContent = ok ? 'Solicitud enviada. La Oficina de Estadística la revisará y, si corresponde, te dará acceso.' : 'No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.';
       if (ok) b.style.display = 'none'; else { b.disabled = false; b.textContent = 'Reintentar'; }
     });
   }
@@ -3227,7 +3233,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // (ver el src del iframe #titulacionFrame más arriba).
         { nombre: 'Solicitud de Grado', status: 'ok' },
         // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
-        { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
+        { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'], quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -3235,10 +3241,10 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       key: 'estadistica', nombre: 'Estadística', icon: 'estadistica',
       items: [
         // Solo Estadística (sea@ y jestadisticaplen@): registra los retiros en Bajas y Ascensos.
-        { nombre: 'Registro de bajas', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
+        { nombre: 'Registro de bajas', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'], quien: 'Este módulo es solo para la Oficina de Estadística.' },
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
         { nombre: 'Aprobación de Concesiones', status: 'ok' },
-        { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'] },
+        { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'], quien: 'Este módulo es solo para cuentas autorizadas.' },
       ],
     },
     {
@@ -3246,8 +3252,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
         { nombre: 'Antigüedades ENAP', status: 'ok' },
-        // Solo Estadística: trayectoria completa de un estudiante (cédula o nombre).
-        { nombre: 'Trayectoria del Estudiante', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'] },
+        // Abierto a toda cuenta institucional: trayectoria completa de un estudiante (cédula o nombre).
+        { nombre: 'Trayectoria del Estudiante', status: 'ok' },
       ],
     },
     {
@@ -3292,8 +3298,10 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Items con rolesPermitidos solo se muestran si la sesion activa
         // tiene alguno de esos roles -- sin sesion, o sin ese rol, ni
         // siquiera aparecen en el menu.
-        if (item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r))) continue;
-        if (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1) continue;
+        // Todos los submenús se ven siempre; si la cuenta no tiene acceso, el ítem queda con candado
+        // y al tocarlo sale la pantalla "Sin acceso" con el botón "Solicitar acceso al módulo".
+        const bloqueado = !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
+          || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1));
 
         // Submenu anidado (p. ej. "Descarga de Balances Académicos"): se abre
         // como flyout a la DERECHA del boton (con el mouse, con solo pasar
@@ -3353,6 +3361,18 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
         const btn = document.createElement('button');
         btn.type = 'button';
+        if (bloqueado) {
+          btn.className = 'locked';
+          btn.innerHTML = `<span class="label">${item.nombre}</span><span class="tag tag--lock" title="Sin acceso"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>`;
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (er) {}
+            window.PortalENAP.ventanaAcceso(item.nombre, item.quien || 'Tu cuenta no tiene acceso a este módulo.');
+            closeAllNav();
+          });
+          dd.appendChild(btn);
+          continue;
+        }
         btn.innerHTML = item.status === 'ok'
           ? `<span class="label">${item.nombre}</span>`
           : item.status === 'link'
