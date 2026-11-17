@@ -258,8 +258,9 @@ module.exports = async function handler(req, res) {
       }
       lista.sort();
       const CV = await cedulasVerificadas(); // contrastado con la cédula: ciudad de expedición y nombres
+      const TT = await leerJson('titulacion.json'); // listado aprobado por el Consejo Académico: cédulas + fecha de grado
       const GD = await graduadosNavales(); // quién figura graduado en Ciencias Navales (null si no se pudo leer)
-      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom, gd: GD } : { meta: null, datos: null, periodos: lista });
+      res.status(200).json(d ? { ...d, periodo: d.meta && d.meta.periodo, periodos: lista, lx: CV.lx, nv: CV.nom, gd: GD, tt: TT && TT.ceds ? { fecha: TT.fecha, ceds: TT.ceds } : null } : { meta: null, datos: null, periodos: lista });
       return;
     }
 
@@ -298,6 +299,20 @@ module.exports = async function handler(req, res) {
       await escribirJson('periodos.json', idx);
       await escribirJson('datos.json', { meta, datos }); // el último cargado queda como respaldo
       res.status(200).json({ ok: true, meta, periodos: idx.lista });
+      return;
+    }
+
+    /* ---- titulación del periodo: cédulas que se gradúan y fecha de grado (solo ADMIN). Vive en SharePoint, nunca en el repositorio. ---- */
+    if (accion === 'guardar-titulacion') {
+      const fecha = String(body.fecha || '').trim();
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || isNaN(Date.parse(fecha))) throw error('Escribe la fecha de grado completa.', 400);
+      const lista = Array.isArray(body.ceds) ? body.ceds : [];
+      const ceds = [...new Set(lista.map((c) => String(c == null ? '' : c).replace(/[^0-9]/g, '').replace(/^0+/, '')).filter((c) => c.length >= 6 && c.length <= 12))];
+      if (lista.length && !ceds.length) throw error('No se reconoció ninguna cédula en el listado.', 400);
+      if (ceds.length > 600) throw error('El listado es demasiado grande.', 413);
+      const meta = { actualizado: ahora(), por: yo.correo };
+      await escribirJson('titulacion.json', { ...meta, fecha, ceds });
+      res.status(200).json({ ok: true, total: ceds.length, fecha, ...meta });
       return;
     }
 
