@@ -33,7 +33,9 @@ const REMITENTE = 'jestadisticaplen@enap.edu.co';
 const AVISAR_A = 'jestadisticaplen@enap.edu.co';
 const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/';
 const CARPETA = 'Egresados';
-const MAX_BYTES = 3 * 1024 * 1024;
+const MAX_BYTES = 4 * 1024 * 1024;
+const LISTAS = { egresados: 'lista.json', extranjeros: 'lista-extranjeros.json', graduados: 'lista-graduados.json', retirados: 'lista-retirados.json' };
+const NOMBRE_LISTA = { egresados: 'egresados no graduados', extranjeros: 'extranjeros', graduados: 'graduados', retirados: 'retirados' };
 
 function error(mensaje, status) { const e = new Error(mensaje); e.status = status || 500; return e; }
 const ahora = () => new Date().toISOString();
@@ -66,18 +68,36 @@ async function escribirJson(n, v) {
   if (!r.ok) throw error(`No se pudo guardar ${n} en SharePoint (${r.status}). ${(await r.text()).slice(0, 300)}`, 502);
 }
 
+async function enviar(para, asunto, html) {
+  const r = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(REMITENTE)}/sendMail`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${appToken}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: para } }] }, saveToSentItems: true })
+  });
+  return r.ok;
+}
+async function avisarResolucion(s, aprobada) {
+  const html = `<div style="font-family:Aptos,'Segoe UI',Arial,sans-serif;max-width:640px;color:#071C3C">
+<div style="font-size:12px;letter-spacing:.16em;color:#A8861D;font-weight:600">OFICINA DE ESTADÍSTICA · ENAP</div>
+<h2 style="margin:6px 0 10px;font-size:20px">Su solicitud de descarga fue ${aprobada ? 'aprobada' : 'rechazada'}</h2>
+<p style="font-size:14px;color:#334155">${aprobada ? 'Ya puede descargar las bases de datos del Centro de Datos desde el Portal, con su cuenta institucional.' : 'La Oficina de Estadística no autorizó la descarga. Si necesita el acceso, comuníquese con la Oficina.'}</p>
+${aprobada ? `<p><a href="${esc(PORTAL_URL)}" style="display:inline-block;background:#0B2A5B;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px">Abrir el Portal</a></p>` : ''}
+<p style="font-size:12px;color:#94A3B8">Mensaje automático del Portal de servicios digitales Estadística.</p></div>`;
+  return enviar(s.correo, 'Solicitud de descarga ' + (aprobada ? 'aprobada' : 'rechazada'), html);
+}
+
 async function avisar(solicitud) {
   const html = `<div style="font-family:Aptos,'Segoe UI',Arial,sans-serif;max-width:640px;color:#071C3C">
 <div style="font-size:12px;letter-spacing:.16em;color:#A8861D;font-weight:600">OFICINA DE ESTADÍSTICA · ENAP</div>
-<h2 style="margin:6px 0 10px;font-size:20px">Solicitud de descarga: egresados no graduados</h2>
-<p style="font-size:14px;color:#334155"><b>${esc(solicitud.nombre)}</b> (${esc(solicitud.correo)}) pide autorización para descargar la lista con nombres y cédulas de los egresados no graduados.</p>
+<h2 style="margin:6px 0 10px;font-size:20px">Solicitud de descarga de bases de datos</h2>
+<p style="font-size:14px;color:#334155"><b>${esc(solicitud.nombre)}</b> (${esc(solicitud.correo)}) pide autorización para descargar las bases de datos con nombres y cédulas del Centro de Datos (${esc(solicitud.base || 'egresados no graduados')}).</p>
 <p style="font-size:14px;color:#334155">Para aprobarla o rechazarla, entre al Centro de Datos, vista "Egresados no graduados": en la parte inferior aparece el panel de solicitudes.</p>
 <p><a href="${esc(PORTAL_URL)}" style="display:inline-block;background:#0B2A5B;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px">Abrir el Portal</a></p>
 <p style="font-size:12px;color:#94A3B8">Mensaje automático del Portal de servicios digitales Estadística.</p></div>`;
   const r = await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(REMITENTE)}/sendMail`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${appToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ message: { subject: 'Solicitud de descarga: egresados no graduados', body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: AVISAR_A } }] }, saveToSentItems: true }),
+    body: JSON.stringify({ message: { subject: 'Solicitud de descarga de bases de datos', body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: AVISAR_A } }] }, saveToSentItems: true }),
   });
   return r.ok;
 }
@@ -101,7 +121,8 @@ module.exports = async function handler(req, res) {
     const mias = sols.filter((s) => s.correo === yo.correo).sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
     const autorizado = AUTORIZADOS.includes(yo.correo);
     // Misma autorización para las dos listas nominales: egresados no graduados (lista.json) y extranjeros (lista-extranjeros.json).
-    const LISTA = body.tipo === 'extranjeros' ? 'lista-extranjeros.json' : 'lista.json';
+    const TIPO = LISTAS[body.tipo] ? body.tipo : 'egresados';
+    const LISTA = LISTAS[TIPO];
     const aprobada = admin || autorizado || (mias[0] && mias[0].estado === 'aprobada');
 
     if (accion === 'sesion') {
@@ -113,7 +134,7 @@ module.exports = async function handler(req, res) {
     if (accion === 'solicitar') {
       if (aprobada) { res.status(200).json({ ok: true, estado: admin ? 'admin' : 'aprobada' }); return; }
       if (mias[0] && mias[0].estado === 'pendiente') { res.status(200).json({ ok: true, estado: 'pendiente' }); return; }
-      const s = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), correo: yo.correo, nombre: yo.nombre, fecha: ahora(), estado: 'pendiente' };
+      const s = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), correo: yo.correo, nombre: yo.nombre, fecha: ahora(), estado: 'pendiente', base: NOMBRE_LISTA[TIPO] };
       sols.push(s);
       await escribirJson('solicitudes.json', sols.slice(-500));
       let correoOk = false;
@@ -145,7 +166,9 @@ module.exports = async function handler(req, res) {
       s.estado = accion === 'revocar' ? 'rechazada' : (body.aprobar === true ? 'aprobada' : 'rechazada');
       s.resuelto = ahora(); s.por = yo.correo;
       await escribirJson('solicitudes.json', sols);
-      res.status(200).json({ ok: true });
+      let correoOk = false;
+      if (accion === 'resolver') { try { correoOk = await avisarResolucion(s, s.estado === 'aprobada'); } catch (e) { correoOk = false; } }
+      res.status(200).json({ ok: true, correo: correoOk });
       return;
     }
     if (accion === 'guardar-lista') {
