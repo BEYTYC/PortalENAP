@@ -1330,19 +1330,20 @@ class Component extends DCLogic {
             const izq = {}; j.cab.forEach((h, c) => { if (/^(Apellidos|Nombres|Programa académico|Registro en SNIES|País de nacimiento|Programa de ingreso|Correo|Otros grados en la ENAP|Apellidos y nombres|Título obtenido|Especialidad|Motivo de grado|Novedad|Nacionalidad|Programa de retiro|Causal de retiro|Observación|Ciudad de expedición)$/.test(h)) izq[c] = 1; }); const nc = j.cab.length;
             ws.addRow([]);
             ws.addRow(['Centro de Datos ENAP · Oficina de Estadística · Escuela Naval de Cadetes "Almirante Padilla" · ' + o.titulo]);
-            ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien + ' · https://enap.vercel.app/']);
+            ws.addRow(['Descargada el ' + fec.replace(',', ' ·') + ' · por ' + quien]);
             ws.addRow(['Fuente de descarga:  Portal de Servicios Digitales Oficina de Estadística · Módulo: Centro de Datos ENAP']);
             ws.addRow([]);
             ws.addRow(j.cab.map((h) => String(h).toUpperCase()));
             const cNum = j.cab.map((h) => (/^(Cédula|Teléfono)$/.test(h) ? 1 : 0)); lista.forEach((f) => ws.addRow(f.slice(0, nc).map((v, c) => { if (typeof v === 'number') return v; const t = v == null ? '' : String(v); return cNum[c] && /^\d{1,15}$/.test(t) ? Number(t) : t; })));
-            ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
+            const bs = nc >= 10 ? 3 : 2; ws.mergeCells(2, 1, 2, nc); ws.mergeCells(3, 1, 3, nc - bs); ws.mergeCells(3, nc - bs + 1, 3, nc); ws.mergeCells(4, 1, 4, nc);
             j.cab.forEach((h, c) => { let w = String(h).length; lista.forEach((f) => { w = Math.max(w, String(f[c] == null ? '' : f[c]).length); }); ws.getColumn(c + 1).width = Math.min(60, w + 4); }); if (j.cab[0] === 'N°') ws.getColumn(1).width = 9;
             const pw = j.cab.map((h, c) => (/^(Periodo de (ingreso|terminación)|Años desde la terminación)$/.test(h) ? c : -1)).filter((c) => c >= 0); pw.forEach((c) => { ws.getColumn(c + 1).width = j.cab[c] === 'Años desde la terminación' ? 15 : 14; });
             const borde = { style: 'thin', color: { argb: 'FFDDE3EE' } }, bd = { top: borde, bottom: borde, left: borde, right: borde };
             ws.eachRow({ includeEmpty: true }, (row, n) => {
               if (n === 1 || n === 5) { row.height = 14.4; return; }
               if (n === 2) { row.height = 15.6; const c0 = row.getCell(1); c0.font = { name: 'Aptos Display', size: 12, bold: true, color: { argb: 'FF0C2050' } }; c0.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
-              if (n === 3) { row.height = 15.6; const c2 = row.getCell(1); { const U = 'https://enap.vercel.app/', s = String(c2.value); c2.value = { text: { richText: [{ text: s.slice(0, s.length - U.length), font: { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } } }, { text: U, font: { name: 'Aptos Display', size: 10, italic: true, underline: true, color: { argb: 'FF0563C1' } } }] }, hyperlink: U }; } c2.protection = { locked: false }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
+              if (n === 3) { row.height = 22; const c2 = row.getCell(1); c2.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF5B6B85' } }; c2.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; c2.protection = { locked: false };
+                const bc = row.getCell(nc - bs + 1); bc.value = { text: '🔗  Ingrese al Portal', hyperlink: 'https://enap.vercel.app/' }; bc.font = { name: 'Aptos Display', size: 11, bold: true, color: { argb: 'FFFFFFFF' }, underline: false }; bc.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1F4E9E' } }; bc.alignment = { vertical: 'middle', horizontal: 'center' }; bc.border = { top: { style: 'thin', color: { argb: 'FF0C2050' } }, bottom: { style: 'thin', color: { argb: 'FF0C2050' } }, left: { style: 'thin', color: { argb: 'FF0C2050' } }, right: { style: 'thin', color: { argb: 'FF0C2050' } } }; bc.protection = { locked: false }; return; }
               if (n === 4) { row.height = 15.6; const c1 = row.getCell(1); c1.font = { name: 'Aptos Display', size: 10, italic: true, color: { argb: 'FF1F4E9E' } }; c1.alignment = { vertical: 'middle', horizontal: 'left', indent: 1 }; return; }
               row.height = n === 6 ? 32 : 20;
               row.eachCell({ includeEmpty: true }, (cell, c) => {
