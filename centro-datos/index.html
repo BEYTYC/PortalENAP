@@ -3008,7 +3008,6 @@ class Component extends DCLogic {
         const nPr = Object.keys(matP).length, y0 = matY.length ? Math.min.apply(null, matY) : 0, y1 = matY.length ? Math.max.apply(null, matY) : 0;
         const byL = {}; sk.forEach((x) => { byL[x.label] = x; });
         sk.length = 0;
-        sk.push(info('Programas', '#2F6FE0', fmt(nPr), 'con estudiantes matriculados', Math.min(100, nPr / SN.PR.length * 100).toFixed(0)));
         sk.push(info('Años de historia', '#0FA89A', matY.length ? String(y1 - y0 + 1) : '0', matY.length ? y0 + ' a ' + y1 : '', 100));
         sk.push(byL['Graduados'], info('Promociones', '#E3A92E', fmt(nProm), 'periodos con graduados', 100), byL['Retirados'], byL['Egresados no graduados']);
         sk.forEach((x) => { if (x.label === 'Graduados') { x.ex1 = true; x.ex1l = 'Graduación'; x.ex1v = pct(tot[4], tot[4] + tot[5]); x.ex2 = false; } });
