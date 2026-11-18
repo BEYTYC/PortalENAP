@@ -164,9 +164,8 @@ function htmlCorreo(o) {
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${cuerpo}
 <p style="font-size:14.5px;color:#334155;margin:0 0 18px">Si desea generar más certificados, ingrese al módulo Generación de Promedios Académicos del Portal de Servicios Digitales - Oficina de Estadística.</p>
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td align="center" bgcolor="#0b3d66" style="background:#0b3d66;border-radius:999px;mso-padding-alt:0">
-<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(PORTAL_URL)}" arcsize="30%" stroke="f" strokeweight="0" fillcolor="#0b3d66" style="height:34px;width:168px;v-text-anchor:middle"><w:anchorlock/><center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;line-height:34px;mso-line-height-rule:exactly">Abrir el Portal</center></v:roundrect><![endif]-->
-<!--[if !mso]><!--><a href="${esc(PORTAL_URL)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:8px 26px;border-radius:999px;font-size:14px;font-weight:600;line-height:18px;text-align:center;font-family:Aptos,'Segoe UI',Arial,sans-serif;box-shadow:0 3px 8px rgba(11,61,102,.28)">Abrir el Portal</a><!--<![endif]-->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
+<a href="${esc(PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(PORTAL_URL.replace(/\/?$/, '/') + 'assets/boton-abrir-portal.png')}" width="176" height="36" alt="Abrir el Portal" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
 </td></tr></table>
 </td></tr>
 <tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
