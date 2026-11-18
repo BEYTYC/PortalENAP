@@ -211,7 +211,14 @@
   function parseCedula(texto) {
     var t = String(texto || '').replace(/ /g, ' ');
     var r = { numero: '', numeroLinea: '', apellidos: '', nombres: '', lugar: '', lugarRaw: '', cara: { frente: false, reverso: false } };
-    var n = /(?:N[UÚ]MERO|NUIP)\s*:?\s*([\d.\s]{6,14})/i.exec(t); if (n) r.numero = n[1].replace(/\D/g, '');
+    /* el número puede aparecer varias veces (una lectura por cada pasada del lector): se elige el más completo y repetido */
+    var cands = [], puntos = {}, reN = /(?:N[UÚ]MERO|NUIP)[\s.:]{0,12}(\d[\d. ]{5,16})/gi, mN;
+    while ((mN = reN.exec(t))) { var dn = mN[1].replace(/\D/g, ''); if (dn.length >= 6) { cands.push(dn); if (/^\d{1,3}(\.\d{3}){1,3}$/.test(mN[1].trim())) puntos[dn] = true; } }
+    if (cands.length) {
+      var cuenta = {}; cands.forEach(function (x) { cuenta[x] = (cuenta[x] || 0) + 1; });
+      cands.sort(function (x, y) { if (!!puntos[x] !== !!puntos[y]) return puntos[x] ? -1 : 1; var px = (x.length >= 8 && x.length <= 10 ? 1 : 0), py = (y.length >= 8 && y.length <= 10 ? 1 : 0); return (py - px) || (cuenta[y] - cuenta[x]) || (y.length - x.length); });
+      r.numero = cands[0];
+    }
     var nuevo = /NUIP/i.test(t);                     /* cédula digital (formato nuevo): las etiquetas van ARRIBA del dato y la banda MRZ va abajo */
     /* línea de la banda del reverso: …-00XXXXXXXX- (documento con ceros a la izquierda) */
     var b = /-M?F?-?(\d{9,11})-\d{8}/.exec(t) || /-[MF]-(\d{9,11})-/.exec(t) || /[MmFf]{1,2}\d{6,7}\s?COL(\d{9,11})/.exec(t); if (b) r.numeroLinea = b[1].replace(/^0+/, '');

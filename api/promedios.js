@@ -217,18 +217,44 @@ async function carpetaPadreCopia() {
   }
   return (PADRE_COPIA = '');
 }
-async function copiarAOneDrive(codigo, archivo, buf) {
+async function copiarAOneDrive(codigo, reg, buf) {
   try {
     const f = new Date(Date.now() - 5 * 3600 * 1000), anio = f.getUTCFullYear(), per = f.getUTCMonth() < 7 ? 1 : 2;   /* hora de Colombia; ene–jul = periodo 1 */
-    const ruta = [await carpetaPadreCopia(), CARPETA_COPIA, String(anio), `${anio}-${per}`, archivo].filter(Boolean).join('/');
-    const r = await g(`/users/${encodeURIComponent(DUENO_COPIA)}/drive/root:/${encRuta(ruta)}:/content?@microsoft.graph.conflictBehavior=replace`, { method: 'PUT', body: buf, headers: { 'Content-Type': 'application/pdf' } });
-    if (!r.ok) throw new Error(`OneDrive ${r.status}: ${(await r.text()).slice(0, 160)}`);
-    await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) { x.copia = ruta; delete x.copiaError; } }).catch(() => {});
+    const limpioNombre = (t) => String(t || '').replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+    const nombre = limpioNombre(`${reg.apellidos || ''} ${reg.nombres || ''}`) || 'SIN NOMBRE';
+    const carpeta = [await carpetaPadreCopia(), CARPETA_COPIA, String(anio), `${anio}-${per}`, nombre].filter(Boolean).join('/');
+    const subir = async (archivo, datos, tipo) => {
+      const r = await g(`/users/${encodeURIComponent(DUENO_COPIA)}/drive/root:/${encRuta(carpeta + '/' + archivo)}:/content?@microsoft.graph.conflictBehavior=replace`, { method: 'PUT', body: datos, headers: { 'Content-Type': tipo } });
+      if (!r.ok) throw new Error(`OneDrive ${r.status}: ${(await r.text()).slice(0, 160)}`);
+    };
+    /* 1) el promedio (certificado) con el nombre de siempre; 2) la cédula y 3) el balance cargados */
+    await subir(limpioNombre(reg.archivo) || `${nombre}.pdf`, buf, 'application/pdf');
+    const MIME = { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' };
+    for (const [tipo, etiqueta] of [['cedula', 'CÉDULA'], ['balance', 'BALANCE']]) {
+      for (const ext of ['pdf', 'jpg', 'jpeg', 'png']) {
+        const orig = await leerBin(`Originales/${codigo}/${tipo}.${ext}`).catch(() => null);
+        if (orig) { await subir(`${etiqueta} - ${nombre}.${ext}`, orig, MIME[ext]); break; }
+      }
+    }
+    await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) { x.copia = carpeta; delete x.copiaError; } }).catch(() => {});
   } catch (e) {
     console.error('Copia a OneDrive:', e.message);
     await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) x.copiaError = String(e.message).slice(0, 200); }).catch(() => {});
   }
 }
+
+/* Un certificado se guarda solo como imagen (no editable): se rechaza un PDF que traiga texto. */
+function pdfTieneTexto(buf) {
+  const zlib = require('zlib'), s = buf.toString('latin1'); let i = 0;
+  while ((i = s.indexOf('stream', i)) >= 0) {
+    let ini = i + 6; if (s[ini] === '\r') ini++; if (s[ini] === '\n') ini++;
+    const fin = s.indexOf('endstream', ini); if (fin < 0) break;
+    try { const t = zlib.inflateSync(buf.subarray(ini, fin)).toString('latin1'); if (/\bBT\b[\s\S]{0,4000}?\bT[jJ]\b/.test(t)) return true; } catch (e) { /* imagen u otro flujo no comprimido con Flate */ }
+    i = fin + 9;
+  }
+  return false;
+}
+const ERR_PDF_TEXTO = 'El certificado debe generarse como imagen no editable. Recargue el Portal (Ctrl+F5) e intente de nuevo.';
 
 /* ------------------------------ Validación ------------------------------ */
 function datosRegistro(d, laxo) {
@@ -329,12 +355,22 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    if (a === 'guardar-original') {              /* cédula y balance tal como los cargó quien solicita (para guardarlos junto al certificado) */
+      const { codigo, tipo, ext, archivo } = body;
+      if (!/^PA-\d{4}-\d{6}$/.test(codigo || '') || !['cedula', 'balance'].includes(tipo) || !['pdf', 'jpg', 'jpeg', 'png'].includes(ext) || typeof archivo !== 'string') throw error('Datos incompletos.', 400);
+      const b = Buffer.from(archivo, 'base64'); if (b.length < 100 || b.length > 3.3 * 1024 * 1024) throw error('Archivo inválido.', 400);
+      const reg = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (!reg || !['reservado', 'revision'].includes(reg.estado)) throw error('El código no está reservado.', 409);
+      await escribirBin(`Originales/${codigo}/${tipo}.${ext}`, b, { pdf: 'application/pdf', jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png' }[ext]);
+      res.status(200).json({ ok: true }); return;
+    }
+
     if (a === 'emitir') {                        /* sube el PDF y deja el certificado emitido */
       const { codigo, pdf } = body; if (!/^PA-\d{4}-\d{6}$/.test(codigo || '') || typeof pdf !== 'string') throw error('Datos incompletos.', 400);
       const buf = Buffer.from(pdf, 'base64'); if (buf.length < 1000 || buf.length > 3.5 * 1024 * 1024 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
+      if (pdfTieneTexto(buf)) throw error(ERR_PDF_TEXTO, 409);
       await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'emitido'; r.emitido = ahora(); });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
-      const regE = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (regE && regE.archivo) await copiarAOneDrive(codigo, regE.archivo, buf);
+      const regE = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (regE) await copiarAOneDrive(codigo, regE, buf);
       res.status(200).json({ ok: true }); return;
     }
 
@@ -399,6 +435,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     if (a === 'revision-aprobar') {              /* Estadística corrigió/validó: el cliente ya generó el PDF con los datos finales */
       soloEst(); const { codigo, pdf } = body; const o = datosRegistro(body.datos || {});
       const buf = Buffer.from(String(pdf || ''), 'base64'); if (buf.length < 1000 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
+      if (pdfTieneTexto(buf)) throw error(ERR_PDF_TEXTO, 409);
       let loteId = null;
       await mutar('registros.json', () => [], (rs) => {
         const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'revision') throw error('El certificado no está en revisión.', 409);
@@ -406,7 +443,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
         Object.assign(r, o, { estado: 'emitido', emitido: ahora(), revisadoPor: yo.correo, archivo: archivoDe(o) }); delete r.motivoRevision; loteId = r.lote && r.lote.id;
       });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
-      await copiarAOneDrive(codigo, archivoDe(o), buf);
+      await copiarAOneDrive(codigo, { apellidos: o.apellidos, nombres: o.nombres, archivo: archivoDe(o) }, buf);
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
       /* si ya no queda nada en revisión en el lote, sale el segundo correo con todos los aprobados juntos */
       let envio = null;
@@ -458,4 +495,4 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     res.status(e.status || 500).json({ error: e.message || 'Error interno.' });
   }
 };
-module.exports._test = { copiarAOneDrive, zip, crc32, datosRegistro, archivoDe };
+module.exports._test = { pdfTieneTexto, copiarAOneDrive, zip, crc32, datosRegistro, archivoDe };

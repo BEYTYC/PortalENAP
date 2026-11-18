@@ -173,11 +173,11 @@
       var b64 = doc.output('datauristring').split(',')[1];
       /* PDF no editable: la página se convierte en una imagen de alta calidad y se arma un PDF solo con esa imagen (sin texto ni capas). */
       return window.Lector.pdfAImagen(b64, 3.5).then(function (jpg) {
-        var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true });
-        plano.setProperties({ title: doc.getProperties().title, creator: 'Portal de servicios digitales Estadística' });
+        var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true, encryption: { userPermissions: ['print'], ownerPassword: Math.random().toString(36).slice(2) + Date.now().toString(36) } });
+        plano.setProperties({ title: 'Certificado de promedio - ' + N.mayus(d.nombres + ' ' + d.apellidos), creator: 'Portal de servicios digitales Estadística' });
         plano.addImage(jpg, 'JPEG', 0, 0, 612, 792, undefined, 'SLOW');
         return plano.output('datauristring').split(',')[1];
-      }).catch(function () { return b64; });
+      }).catch(function (e) { throw new Error('No se pudo generar el certificado como imagen no editable. Recargue el Portal (Ctrl+F5) e intente de nuevo.'); });
     });
   }
 
@@ -199,6 +199,22 @@
       var c = x[0]; return { ced: { texto: c.map(function (r) { return r.texto; }).join('\n'), escaneado: c.some(function (r) { return r.escaneado; }), imagenes: [].concat.apply([], c.map(function (r) { return r.imagenes; })) }, bal: x[1] };
     });
   }
+  /* Cédula y balance tal como se cargaron: se guardan junto al certificado (carpeta del estudiante en OneDrive). */
+  function b64DeArchivo(file) { return file.arrayBuffer().then(function (buf) { var u8 = new Uint8Array(buf), t = '', k; for (k = 0; k < u8.length; k += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(k, k + 0x8000)); return btoa(t); }); }
+  function pdfDeImagenes(imgs) {
+    return imgs.reduce(function (p, src) { return p.then(function (doc) { return new Promise(function (ok) { var im = new Image(); im.onload = function () { var w = im.width * 0.75, h = im.height * 0.75; if (!doc) doc = new window.jspdf.jsPDF({ unit: 'pt', format: [w, h], orientation: w > h ? 'l' : 'p', compress: true }); else doc.addPage([w, h], w > h ? 'l' : 'p'); doc.addImage(src, 'JPEG', 0, 0, w, h); ok(doc); }; im.onerror = function () { ok(doc); }; im.src = src; }); }); }, Promise.resolve(null)).then(function (doc) { return doc ? doc.output('datauristring').split(',')[1] : null; });
+  }
+  function original(archivos, imagenes) {
+    var a0 = archivos[0], ext = a0 ? (a0.name.split('.').pop() || '').toLowerCase() : '';
+    if (archivos.length === 1 && a0.size <= 3 * 1024 * 1024 && ['pdf', 'jpg', 'jpeg', 'png'].indexOf(ext) >= 0) return b64DeArchivo(a0).then(function (b) { return { ext: ext, b64: b }; });
+    if (!imagenes || !imagenes.length) return Promise.resolve(null);
+    return pdfDeImagenes(imagenes).then(function (b) { return b ? { ext: 'pdf', b64: b } : null; });
+  }
+  function guardarOriginales(codigo, f, lec) {
+    return original(f.ced, lec.ced.imagenes).then(function (c) { return c ? api('guardar-original', { codigo: codigo, tipo: 'cedula', ext: c.ext, archivo: c.b64 }) : null; })
+      .then(function () { return original([f.bal], lec.bal.imagenes); }).then(function (b) { return b ? api('guardar-original', { codigo: codigo, tipo: 'balance', ext: b.ext, archivo: b.b64 }) : null; })
+      .catch(function () {});
+  }
   function procesar(f, i, correo) {
     return leerFila(f, i).then(function (lec) {
       var a = analizar(lec.ced, lec.bal), r = RESULT[i];
@@ -207,6 +223,7 @@
       var revision = a.tipo === 'revision';
       return api('reservar', { datos: a.datos, loteId: LOTE, correo: correo, revision: revision }).then(function (res) {
         r.codigo = res.codigo;
+        return guardarOriginales(res.codigo, f, lec).then(function () {
         if (revision) {
           var imgs = lec.ced.imagenes.concat(lec.bal.imagenes), et = lec.ced.imagenes.map(function () { return 'Cédula'; }).concat(lec.bal.imagenes.map(function () { return 'Balance'; }));
           if (!imgs.length) { imgs = []; }
@@ -215,6 +232,7 @@
         }
         return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
+        });
       }).catch(function (e) {
         if (e.http === 409 && e.datos && e.datos.duplicado) { r.estado = 'error'; r.chip = 'Ya existe un promedio'; r.nota = 'Esta cédula ya tiene certificado en este programa. Solicite la corrección a Estadística.'; r.promedio = e.datos.duplicado.promedio != null ? e.datos.duplicado.promedio : null; return; }
         throw e;
@@ -274,6 +292,7 @@
   function opcionesProg(sel) { return AJ.programas.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.nombre) + '</option>'; }).join(''); }
   var fmtFecha = function (iso) { var d = deISO(iso); return iso ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : ''; };
   var desdeFecha = function (t) { var d = N.parseFecha(t); return d ? aISO(d) : ''; };
+  var IMGREV = {}, GENPRE = 0;
   function revisar(lista, k) {
     var it = lista[k], d = it.datos;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select></div>' +
@@ -290,7 +309,7 @@
       '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap"><div style="display:flex;gap:10px">' + volver() + '<button class="btn sec" id="brech">Rechazar</button></div><button class="btn" id="bapr">Aprobar y emitir</button></div>');
     $('bvolver').onclick = inicio;
     $('selrev').onchange = function () { revisar(lista, +this.value); };
-    var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = {};
+    var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = (IMGREV[it.codigo] = IMGREV[it.codigo] || {});
     var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); var et0 = etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento', tot = etiquetas ? etiquetas.slice(0, it.nImagenes).filter(function (e) { return e === et0; }).length : it.nImagenes; b.textContent = et0 + (tot > 1 ? ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === et0; }).length : n) : ''); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
     if (!etiquetas || etiquetas.slice(0, it.nImagenes).indexOf('Balance') < 0) { var bb = document.createElement('button'); bb.className = 'tab'; bb.textContent = 'Balance'; bb.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); bb.classList.add('on'); var dc = $('doc'); dc.classList.remove('zoom'); dc.innerHTML = '<div class="vac">Este registro se cargó antes y no guardó la imagen del balance.<br>Recházalo sin avisar al jefe de programa y vuelve a cargarlo para ver el balance aquí.</div>'; }; tabs.appendChild(bb); }
     var z = 1;
@@ -306,6 +325,13 @@
     })();
     function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento" title="Doble clic para ampliar. Con zoom, arrastre para moverse">'; doc.firstChild.src = cache[n]; doc.firstChild.ondblclick = function () { zoomar(z >= 2 ? 1 : 2); }; zoomar(z); return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
     if (it.nImagenes) mostrar(1); else $('doc').textContent = 'Sin imágenes guardadas.';
+    /* precarga en segundo plano: el resto de imágenes de este estudiante y luego las de los demás pendientes, para que al elegir otro se vea enseguida */
+    (function () {
+      var gen = ++GENPRE, cola = [], j;
+      for (j = 2; j <= (it.nImagenes || 0); j++) cola.push([it, j]);
+      lista.forEach(function (x, q) { if (q !== k) for (var n = 1; n <= Math.min(x.nImagenes || 0, 4); n++) cola.push([x, n]); });
+      cola.reduce(function (pr, c) { return pr.then(function () { if (gen !== GENPRE) return; var m = (IMGREV[c[0].codigo] = IMGREV[c[0].codigo] || {}); if (m[c[1]]) return; return api('revision-imagen', { codigo: c[0].codigo, n: c[1] }).then(function (r) { m[c[1]] = r.imagen; }).catch(function () {}); }); }, Promise.resolve());
+    })();
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
       var pm = parseFloat(String($('f_pm').value).replace(',', '.'));
@@ -315,7 +341,7 @@
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
     document.querySelectorAll('#vista input,#vista select').forEach(function (e) { e.oninput = refrescar; e.onchange = refrescar; }); refrescar();
     function siguiente() { var rest = lista.filter(function (_, j) { return j !== k; }); PEND = rest.length; if (!rest.length) { toast('Revisión terminada.'); inicio(); } else revisar(rest, Math.min(k, rest.length - 1)); }
-    $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m, av) { api('revision-rechazar', { codigo: it.codigo, motivo: m, avisar: av }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { toast(e.message); }); }); };
+    $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m, av) { gate(true, av ? 'Rechazando y enviando el aviso por correo…' : 'Rechazando…'); api('revision-rechazar', { codigo: it.codigo, motivo: m, avisar: av }).then(function (r) { gate(false); toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { gate(false); toast(e.message); }); }); };
     $('bapr').onclick = function () {
       var x = refrescar(), err = $('f_err'), d = x.f.datos, falta = [];
       ['apellidos', 'nombres', 'cedula', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });

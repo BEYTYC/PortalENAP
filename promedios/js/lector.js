@@ -91,6 +91,19 @@
     return aLienzo(g, r.w, r.h, function (v) { var t = (v - lo) / (hi - lo); return t <= 0 ? 0 : t >= 1 ? 255 : Math.round(t * 255); });
   }
 
+  /* Contraste local: se resta el fondo desenfocado (sirve para cédulas fotografiadas con el número sobre un fondo oscuro o con reflejos).
+     binario = true devuelve blanco y negro; si no, grises estirados. */
+  function contrasteLocal(c, binario) {
+    var r = grisBorroso(c, Math.max(20, Math.round(c.width / 45))), orig = grisBorroso(c, 0), g = orig.g, f = r.g, n = g.length, i, out = new Float32Array(n), lo = 1e9, hi = -1e9;
+    for (i = 0; i < n; i++) { out[i] = g[i] - f[i]; if (out[i] < lo) lo = out[i]; if (out[i] > hi) hi = out[i]; }
+    return aLienzo(out, r.w, r.h, function (v) { return binario ? (v < -18 ? 0 : 255) : Math.round(255 * (v - lo) / ((hi - lo) || 1)); });
+  }
+  function cedulaCompleta(t) {
+    var num = /(?:N[UÚ]MERO|NUIP)\s*:?\s*([\d.\s]{6,14})/i.exec(t), ok = num && num[1].replace(/\D/g, '').length >= 6;
+    var lin = /-M?F?-?(\d{9,11})-\d{8}/.test(t) || /-[MF]-(\d{9,11})-/.test(t) || /[MmFf]{1,2}\d{6,7}\s?COL(\d{9,11})/.test(t);
+    return !!(ok && lin);
+  }
+
   /* Recuadro sombreado de totales: se desenfoca, se amplía y se prueba con varios umbrales (el texto sobre fondo gris no se lee bien directo). */
   function leerTotales(c, palabras) {
     var ref = palabras.filter(function (w) { return /PROMEDIO/i.test(w.text); }).sort(function (a, b) { return b.bbox.y0 - a.bbox.y0; })[0];
@@ -133,6 +146,10 @@
             var r = rotar(c, g); res.imagenes.push(jpeg(r, 1500, 0.7));
             return reconocer(r).then(function (o) {
               var t = o.data.text;
+              if (tipo === 'cedula' && !cedulaCompleta(t)) {   /* respaldo: foto oscura o con reflejos → se vuelve a leer con el contraste corregido */
+                progreso('Mejorando la lectura de la cédula…');
+                return reconocer(contrasteLocal(r, false)).then(function (o2) { return reconocer(contrasteLocal(r, true)).then(function (o3) { textos.push(t + '\n' + o2.data.text + '\n' + o3.data.text); }); });
+              }
               if (tipo !== 'balance') { textos.push(t); return; }
               return leerTotales(r, palabrasDe(o.data)).then(function (extra) {
                 var todo = t + '\n' + extra, hayPeriodo = /terminaci[oó]n\D{0,12}\d{4}\s*[-–]\s*[12]/i.test(todo), hayProm = /PROMEDIO\s+PONDERADO\D{0,25}\d{1,2}[.,]\d{1,3}/i.test(todo);
