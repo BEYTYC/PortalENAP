@@ -274,6 +274,7 @@
   function opcionesProg(sel) { return AJ.programas.map(function (p) { return '<option value="' + esc(p.id) + '"' + (p.id === sel ? ' selected' : '') + '>' + esc(p.nombre) + '</option>'; }).join(''); }
   var fmtFecha = function (iso) { var d = deISO(iso); return iso ? d.getDate() + '/' + (d.getMonth() + 1) + '/' + d.getFullYear() : ''; };
   var desdeFecha = function (t) { var d = N.parseFecha(t); return d ? aISO(d) : ''; };
+  var IMGREV = {}, GENPRE = 0;
   function revisar(lista, k) {
     var it = lista[k], d = it.datos;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select></div>' +
@@ -290,7 +291,7 @@
       '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap"><div style="display:flex;gap:10px">' + volver() + '<button class="btn sec" id="brech">Rechazar</button></div><button class="btn" id="bapr">Aprobar y emitir</button></div>');
     $('bvolver').onclick = inicio;
     $('selrev').onchange = function () { revisar(lista, +this.value); };
-    var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = {};
+    var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = (IMGREV[it.codigo] = IMGREV[it.codigo] || {});
     var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); var et0 = etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento', tot = etiquetas ? etiquetas.slice(0, it.nImagenes).filter(function (e) { return e === et0; }).length : it.nImagenes; b.textContent = et0 + (tot > 1 ? ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === et0; }).length : n) : ''); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
     if (!etiquetas || etiquetas.slice(0, it.nImagenes).indexOf('Balance') < 0) { var bb = document.createElement('button'); bb.className = 'tab'; bb.textContent = 'Balance'; bb.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); bb.classList.add('on'); var dc = $('doc'); dc.classList.remove('zoom'); dc.innerHTML = '<div class="vac">Este registro se cargó antes y no guardó la imagen del balance.<br>Recházalo sin avisar al jefe de programa y vuelve a cargarlo para ver el balance aquí.</div>'; }; tabs.appendChild(bb); }
     var z = 1;
@@ -306,6 +307,13 @@
     })();
     function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento" title="Doble clic para ampliar. Con zoom, arrastre para moverse">'; doc.firstChild.src = cache[n]; doc.firstChild.ondblclick = function () { zoomar(z >= 2 ? 1 : 2); }; zoomar(z); return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
     if (it.nImagenes) mostrar(1); else $('doc').textContent = 'Sin imágenes guardadas.';
+    /* precarga en segundo plano: el resto de imágenes de este estudiante y luego las de los demás pendientes, para que al elegir otro se vea enseguida */
+    (function () {
+      var gen = ++GENPRE, cola = [], j;
+      for (j = 2; j <= (it.nImagenes || 0); j++) cola.push([it, j]);
+      lista.forEach(function (x, q) { if (q !== k) for (var n = 1; n <= Math.min(x.nImagenes || 0, 4); n++) cola.push([x, n]); });
+      cola.reduce(function (pr, c) { return pr.then(function () { if (gen !== GENPRE) return; var m = (IMGREV[c[0].codigo] = IMGREV[c[0].codigo] || {}); if (m[c[1]]) return; return api('revision-imagen', { codigo: c[0].codigo, n: c[1] }).then(function (r) { m[c[1]] = r.imagen; }).catch(function () {}); }); }, Promise.resolve());
+    })();
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
       var pm = parseFloat(String($('f_pm').value).replace(',', '.'));
