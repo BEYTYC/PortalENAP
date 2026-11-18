@@ -393,6 +393,15 @@
       lista.forEach(function (x, q) { if (q !== k) for (var n = 1; n <= Math.min(x.nImagenes || 0, 4); n++) cola.push([x, n]); });
       cola.reduce(function (pr, c) { return pr.then(function () { if (gen !== GENPRE) return; var m = (IMGREV[c[0].codigo] = IMGREV[c[0].codigo] || {}); if (m[c[1]]) return; return api('revision-imagen', { codigo: c[0].codigo, n: c[1] }).then(function (r) { m[c[1]] = r.imagen; }).catch(function () {}); }); }, Promise.resolve());
     })();
+    /* lo que se edita queda en la lista: al elegir otro estudiante y volver no se pierde, y el nombre del selector se actualiza al escribir */
+    function sincronizar() {
+      var f = leerForm().datos, dd = it.datos;
+      ['apellidos', 'nombres', 'cedula', 'programaId', 'programa', 'sigla', 'nivel', 'facultad', 'periodoTerminacion', 'diplomado', 'fechaBalance'].forEach(function (c) { dd[c] = f[c]; });
+      dd.promedio = isFinite(f.promedio) ? f.promedio : null;
+      var op = $('selrev').options[k], nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre';
+      if (op) op.textContent = (k + 1) + ' de ' + lista.length + ' · ' + (dd.sigla ? dd.sigla + ' ' : '') + nm;
+    }
+    ['f_ap', 'f_no', 'f_ce', 'f_pr', 'f_pe', 'f_di', 'f_fe', 'f_pm'].forEach(function (id) { var e = $(id); if (e) { e.addEventListener('input', sincronizar); e.addEventListener('change', sincronizar); } });
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
       var pm = parseFloat(String($('f_pm').value).replace(',', '.'));
