@@ -152,7 +152,7 @@
     /* Respaldo si el OCR deformó la etiqueta: primer periodo (AAAA-1/2) que aparece antes de la tabla de materias */
     if (!r.periodoTerminacion) {
       var antes = t.split(/\r?\n/); var corte = antes.findIndex(function (l) { return /\b[A-Z]{1,3}\s?\d{3}\b.*\d[.,]?\d*\s*$/.test(l) && !/PERIODO|DIPLOMADO/i.test(l); });
-      var cab = (corte > 0 ? antes.slice(0, corte) : antes.slice(0, 14)).join('\n').replace(/Fecha\s+elaboraci[oó]n[^\n]*/ig, '');
+      var cab = (corte > 0 ? antes.slice(0, corte) : antes.slice(0, 14)).filter(function (l) { return !/DIPLOMADO/i.test(l); }).join('\n').replace(/Fecha\s+elaboraci[oó]n[^\n]*/ig, '');
       var pp = /\b(20\d{2})\s*[-–]\s*([12])\b/.exec(cab); if (pp) { r.periodoTerminacion = pp[1] + '-' + pp[2]; r.periodoPorRespaldo = true; }
     }
     var cr = /TOTAL\s+CR[ÉE]DITOS\s+APROBADOS[^\d]{0,12}(\d{1,3})\b/i.exec(t); r.creditosImpresos = cr ? parseInt(cr[1], 10) : null;
