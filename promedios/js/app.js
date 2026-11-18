@@ -158,10 +158,15 @@
     if (pb.promedioImpreso == null) { motivos.push('No se leyó el promedio impreso.'); ok = false; }
     else if (pb.promedioCalculado == null) { if (escaneado) { motivos.push('No se pudo recalcular el promedio con las materias.'); ok = false; } }
     else if (!calcOk) { motivos.push('El promedio recalculado (' + pb.promedioCalculado.toFixed(3) + ') no coincide con el impreso (' + pb.promedioImpreso.toFixed(3) + ').'); ok = false; }
-    if (!/^\d{6,11}$/.test(pc.numero)) { motivos.push('No se leyó con claridad el número de la cédula.'); ok = false; }
-    else if (pc.numeroLinea && pc.numeroLinea !== pc.numero.replace(/^0+/, '')) { motivos.push('El número de la cédula no coincide con su línea de lectura.'); ok = false; }
-    else if (!pc.numeroLinea && escaneado) { motivos.push('No se pudo contrastar el número con la línea de lectura de la cédula.'); ok = false; }
-    if (!rep || N.similitud(rep.apellidos, pc.apellidos || '') < 0.88 || (pc.nombres && N.similitud(rep.nombres, pc.nombres) < 0.8)) { motivos.push('El nombre del balance no coincide claramente con el de la cédula.'); ok = false; }
+    /* El número sale de la cédula (lo más importante); si el número impreso no se lee pero la línea de lectura sí, se usa esa. */
+    var num = /^\d{6,11}$/.test(pc.numero || '') ? pc.numero.replace(/^0+/, '') : '', lin = /^\d{6,11}$/.test(pc.numeroLinea || '') ? pc.numeroLinea.replace(/^0+/, '') : '';
+    if (!num && lin) { d.cedula = lin; num = lin; }
+    if (!num) { motivos.push('No se leyó con claridad el número de la cédula.'); ok = false; }
+    else if (lin && lin !== num) { motivos.push('El número de la cédula no coincide con su línea de lectura.'); ok = false; }
+    else if (!lin && escaneado) { motivos.push('No se pudo contrastar el número con la línea de lectura de la cédula.'); ok = false; }
+    /* El nombre sale del balance. La cédula solo sirve para detectar un documento de otra persona: si se leyó su apellido y es claramente distinto, va a revisión. */
+    if (!rep) { motivos.push('No se pudo separar el nombre del balance.'); ok = false; }
+    else if (pc.apellidos && N.similitud(rep.apellidos, pc.apellidos) < 0.6) { motivos.push('El nombre del balance no coincide con el de la cédula.'); ok = false; }
     if (!(ambas)) ok = false;
     salida.tipo = ok ? 'emitir' : 'revision'; salida.motivo = motivos.join(' '); salida.chip = ok ? '' : 'En revisión de Estadística';
     salida.nota = ok ? '' : 'Estadística lo revisa antes de firmar y enviar.';
