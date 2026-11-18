@@ -219,6 +219,12 @@
     /* quita ruido de OCR al inicio ("SAS BARRANCABERMEJA"): si no es conocido, prueba sin la primera palabra corta */
     var lg = lugarConTildes(r.lugarRaw);
     if (!lg.conocido) { var ws = r.lugarRaw.split(' '); while (ws.length > 1 && !lg.conocido) { ws.shift(); lg = lugarConTildes(ws.join(' ')); } if (!lg.conocido) lg = lugarConTildes(r.lugarRaw); } r.lugar = lg.texto; r.lugarConocido = lg.conocido;
+    /* Municipio fuera de la lista: se acepta tal como sale solo si se lee totalmente claro (palabras completas, sin símbolos ni restos del OCR). */
+    if (!lg.conocido) {
+      var limpio = norm(String(r.lugarRaw || '').replace(/\./g, ' ')), ws2 = limpio.split(' ').filter(Boolean);
+      var claro = ws2.length >= 1 && ws2.length <= 5 && ws2.every(function (w) { return /^(DE|DEL|LA|LAS|LOS|EL|Y)$/.test(w) || /^[A-Z]{3,}$/.test(w); }) && ws2.some(function (w) { return w.length >= 4; }) && !/FECHA|LUGAR|EXPEDICION|NACIMIENTO|ESTATURA|SEXO|REGISTRADOR|INDICE/.test(limpio);
+      if (!claro) r.lugar = '';
+    }
     r.cara.frente = /N[UÚ]MERO/i.test(t) && /APELLIDOS/i.test(t) && /(NOMBRES|OMBRES)/i.test(t);
     r.cara.reverso = /FECHA\s+DE\s+NACIMIENTO/i.test(t) || /LUGAR\s+DE\s+EXPEDICI/i.test(t) || /FECHA\s+Y\s+LUGAR/i.test(t);
     r.puntaje = (r.cara.frente ? 1 : 0) + (r.cara.reverso ? 1 : 0) + (/REPUBLICA|REPÚBLICA/i.test(t) ? 1 : 0) + (/CEDULA|CÉDULA/i.test(t) ? 1 : 0);
