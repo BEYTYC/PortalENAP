@@ -321,14 +321,14 @@ module.exports = async function handler(req, res) {
     const soloEst = () => { if (!esEst) throw error('Esta acción es solo de la Oficina de Estadística.', 403); };
     const a = body.accion;
 
-    if (a === 'sesion') { const cr = (await leerJson('correos.json')).valor || []; res.status(200).json({ correos: esEst ? cr.map((c) => c.correo) : [], correo: yo.correo, nombre: yo.nombre, estadistica: esEst, ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
+    if (a === 'sesion') { const cr = (await leerJson('correos.json')).valor || []; res.status(200).json({ correos: esEst ? cr.map((c) => c.correo) : [], correo: yo.correo, nombre: yo.nombre, estadistica: esEst, facultad: ((ajustes.usuarios || []).find((u) => String(u.correo).toLowerCase() === yo.correo) || {}).facultad || '', ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
 
     if (a === 'ajustes-guardar') {
       soloEst(); const n = body.ajustes || {}; const f = n.firmante || {};
       const nuevo = {
         firmante: { grado: limpio(f.grado, 20), nombre: limpio(f.nombre, 100), cargo: limpio(f.cargo, 160), firma: typeof f.firma === 'string' && /^data:image\/(png|jpeg);base64,/.test(f.firma) && f.firma.length < 900000 ? f.firma : null },
         programas: (n.programas || []).slice(0, 60).map((p) => ({ id: limpio(p.id, 60), nombre: limpio(p.nombre, 160), sigla: limpio(p.sigla, 40), nivel: p.nivel === 'posgrado' ? 'posgrado' : 'pregrado', facultad: limpio(p.facultad, 120) })).filter((p) => p.id && p.nombre),
-        usuarios: (n.usuarios || []).slice(0, 80).map((u) => ({ correo: limpio(u.correo, 120).toLowerCase(), nombre: limpio(u.nombre, 100), correoEnvio: limpio(u.correoEnvio, 120).toLowerCase() })).filter((u) => /@enap\.edu\.co$/.test(u.correo)),
+        usuarios: (n.usuarios || []).slice(0, 80).map((u) => ({ correo: limpio(u.correo, 120).toLowerCase(), nombre: limpio(u.nombre, 100), correoEnvio: limpio(u.correoEnvio, 120).toLowerCase(), facultad: limpio(u.facultad, 120) })).filter((u) => /@enap\.edu\.co$/.test(u.correo)),
         enlaceVerificacion: ajustes.enlaceVerificacion
       };
       if (!nuevo.firmante.nombre) throw error('El firmante necesita nombre.', 400);

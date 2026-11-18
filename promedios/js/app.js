@@ -126,9 +126,15 @@
   var titulo = function (s) { return String(s || '').toLowerCase().replace(/(^|\s)(\S)/g, function (_, a, b) { return a + b.toUpperCase(); }); };
 
   /* Devuelve { tipo:'emitir'|'revision'|'error', ... datos } */
+  /* Facultad del jefe de programa que carga (o, si carga Estadística, la del correo de destino): el programa del balance se busca entre los de esa facultad. */
+  function facultadDelJefe() {
+    if (!YO.estadistica) return YO.facultad || '';
+    var u = (AJ.usuarios || []).filter(function (x) { return String(x.correo).toLowerCase() === String(CORREO || '').toLowerCase(); })[0];
+    return u && u.facultad ? u.facultad : '';
+  }
   function analizar(ced, bal) {
     var pb = N.parseBalance(bal.texto), pc = N.parseCedula(ced.texto), escaneado = !!(ced.escaneado || bal.escaneado);
-    var motivos = [], prog = N.programaDe(pb.programaTexto, listaProgramas());
+    var motivos = [], lp = listaProgramas(), fac = facultadDelJefe(), prog = (fac && N.programaEnFacultad(pb.programaTexto, lp, fac)) || N.programaDe(pb.programaTexto, lp);
     var d = { cedula: pc.numero || pc.numeroLinea || '', lugar: '', programaId: prog ? prog.id : '', programa: prog ? prog.nombre : N.limpiarPrograma(pb.programaTexto), sigla: prog ? prog.sigla : '', nivel: prog ? prog.nivel : 'pregrado', facultad: prog ? prog.facultad : '',
       promedio: pb.promedioImpreso != null ? pb.promedioImpreso : pb.promedioCalculado, periodoTerminacion: pb.periodoTerminacion, diplomado: pb.diplomado, fechaBalance: pb.fechaElaboracion ? aISO(pb.fechaElaboracion) : '', apellidos: '', nombres: '' };
     var rep = pb.nombreCompleto ? N.repartirNombre(pb.nombreCompleto, pc.apellidos, pc.nombres) : null;
@@ -441,7 +447,7 @@
     ancho(1200); var f = AJ.firmante, us = (AJ.usuarios || []).slice(), prog = AJ.programas.map(function (p) { return Object.assign({}, p); }), firma = f.firma;
     function pintar() {
       var filasP = prog.map(function (p, i) { return '<div class="tr" style="grid-template-columns:1.5fr .7fr 1fr;margin-top:8px"><input class="inp" data-p="nombre" data-i="' + i + '" value="' + esc(p.nombre) + '"><input class="inp" data-p="sigla" data-i="' + i + '" value="' + esc(p.sigla) + '"><input class="inp" data-p="facultad" data-i="' + i + '" placeholder="Escriba la facultad" value="' + esc(p.facultad) + '"></div>'; }).join('');
-      var filasU = us.map(function (u, i) { return '<div class="tr" style="grid-template-columns:1fr 1fr 1fr auto;margin-top:8px"><input class="inp" data-u="correo" data-i="' + i + '" placeholder="usuario@enap.edu.co" value="' + esc(u.correo) + '"><input class="inp" data-u="nombre" data-i="' + i + '" placeholder="Nombre" value="' + esc(u.nombre) + '"><input class="inp" data-u="correoEnvio" data-i="' + i + '" placeholder="Correo donde recibe los certificados" value="' + esc(u.correoEnvio || '') + '"><button class="x" data-qu="' + i + '">&times;</button></div>'; }).join('');
+      var filasU = us.map(function (u, i) { return '<div class="tr" style="grid-template-columns:1fr 1fr 1fr 1fr auto;margin-top:8px"><input class="inp" data-u="correo" data-i="' + i + '" placeholder="usuario@enap.edu.co" value="' + esc(u.correo) + '"><input class="inp" data-u="nombre" data-i="' + i + '" placeholder="Nombre" value="' + esc(u.nombre) + '"><input class="inp" data-u="correoEnvio" data-i="' + i + '" placeholder="Correo donde recibe los certificados" value="' + esc(u.correoEnvio || '') + '"><input class="inp" data-u="facultad" list="a_facs" data-i="' + i + '" placeholder="Facultad del jefe" value="' + esc(u.facultad || '') + '"><button class="x" data-qu="' + i + '">&times;</button></div>'; }).join('') + '<datalist id="a_facs">' + prog.map(function (p) { return p.facultad; }).filter(function (v, k, a) { return v && a.indexOf(v) === k; }).map(function (v) { return '<option value="' + esc(v) + '">'; }).join('') + '</datalist>';
       vista('<div style="display:flex;gap:24px;flex:1;min-height:0" class="sdoc"><div style="flex:1;min-width:0;overflow:auto;padding-right:6px">' + cab('Solo Oficina de Estadística', 'Firmante del certificado', 'Estos datos salen en cada certificado nuevo. Los ya emitidos conservan el firmante con el que se emitieron.') +
         '<div class="g2" style="grid-template-columns:.6fr 1.4fr;margin-top:16px"><div><div class="lbl">Grado</div><input class="inp" id="a_gr" value="' + esc(f.grado) + '"></div><div><div class="lbl">Nombres y apellidos</div><input class="inp" id="a_no" value="' + esc(f.nombre) + '"></div></div>' +
         '<div style="margin-top:12px"><div class="lbl">Cargo</div><input class="inp" id="a_ca" value="' + esc(f.cargo) + '"></div>' +
@@ -455,7 +461,7 @@
       document.querySelectorAll('[data-p]').forEach(function (e) { e.oninput = function () { prog[+e.dataset.i][e.dataset.p] = e.value; }; });
       document.querySelectorAll('[data-u]').forEach(function (e) { e.oninput = function () { us[+e.dataset.i][e.dataset.u] = e.value; }; });
       document.querySelectorAll('[data-qu]').forEach(function (b) { b.onclick = function () { leerCampos(); us.splice(+b.dataset.qu, 1); pintar(); }; });
-      $('a_mu').onclick = function () { leerCampos(); us.push({ correo: '', nombre: '', correoEnvio: '' }); pintar(); };
+      $('a_mu').onclick = function () { leerCampos(); us.push({ correo: '', nombre: '', correoEnvio: '', facultad: '' }); pintar(); };
       $('a_fi').onchange = function (e) { var fl = e.target.files[0]; if (!fl) return; if (fl.size > 600000) { toast('La imagen pesa demasiado (máx. 600 KB).'); return; } var fr = new FileReader(); fr.onload = function () { leerCampos(); firma = fr.result; pintar(); }; fr.readAsDataURL(fl); };
       $('a_gu').onclick = function () {
         leerCampos(); var b = $('a_gu'); b.disabled = true;

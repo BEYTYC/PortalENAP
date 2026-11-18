@@ -135,6 +135,22 @@
   }
 
   /* ------------------------------ Balance ------------------------------ */
+  /* Programa dentro de la facultad del jefe de programa: el texto del balance solo tiene que parecerse a un programa de esa facultad (comparación por palabras significativas). */
+  var VACIAS = { DE: 1, DEL: 1, LA: 1, LAS: 1, LOS: 1, EL: 1, EN: 1, PARA: 1, Y: 1, E: 1, POR: 1 };
+  function palabrasClave(t) { return norm(limpiarPrograma(t)).split(' ').filter(function (w, i, a) { return w.length > 1 && !VACIAS[w] && a.indexOf(w) === i; }); }
+  function programaEnFacultad(texto, lista, facultad) {
+    var fac = norm(facultad || ''); if (!fac) return null;
+    var cand = (lista || PROGRAMAS).filter(function (p) { return norm(p.facultad || '') === fac; }); if (!cand.length) return null;
+    var exacto = programaDe(texto, cand); if (exacto) return exacto;
+    var pt = palabrasClave(texto); if (!pt.length) return null;
+    var mejor = null, ms = 0, segundo = 0;
+    cand.forEach(function (p) {
+      var nombres = [p.nombre].concat(p.alias || []), sc = 0;
+      nombres.forEach(function (n) { var pn = palabrasClave(n); if (!pn.length) return; var comunes = pn.filter(function (w) { return pt.some(function (x) { return x === w || similitud(x, w) >= 0.85; }); }).length; var v = comunes / Math.max(pn.length, pt.length * 0.75); sc = Math.max(sc, v); });
+      if (sc > ms) { segundo = ms; ms = sc; mejor = p; } else if (sc > segundo) segundo = sc;
+    });
+    return ms >= 0.5 && ms - segundo >= 0.15 ? mejor : null;
+  }
   function valorDespues(texto, etiqueta, hasta) {
     var re = new RegExp(etiqueta + '\\s*:?\\s*(.+?)' + (hasta ? '(?=' + hasta + '|\\n|$)' : '(?=\\n|$)'), 'i');
     var m = re.exec(texto); return m ? m[1].replace(/[|_—–]+/g, ' ').replace(/\s+/g, ' ').trim() : '';
@@ -303,7 +319,7 @@
   function nombreArchivo(sigla, apellidos, nombres) { return (sigla + ' - ' + mayus(apellidos) + ' ' + mayus(nombres)).replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim() + '.pdf'; }
 
   return {
-    PROGRAMAS: PROGRAMAS, sinTildes: sinTildes, norm: norm, mayus: mayus, similitud: similitud, limpiarPrograma: limpiarPrograma, programaDe: programaDe,
+    PROGRAMAS: PROGRAMAS, sinTildes: sinTildes, norm: norm, mayus: mayus, similitud: similitud, limpiarPrograma: limpiarPrograma, programaDe: programaDe, programaEnFacultad: programaEnFacultad,
     parsePeriodo: parsePeriodo, periodoDeFecha: periodoDeFecha, textoPeriodo: textoPeriodo, vigencia: vigencia,
     promedioEnLetras: promedioEnLetras, cedulaPuntos: cedulaPuntos, fechaCorta: fechaCorta, fechaLarga: fechaLarga, palabras99: palabras99, parseFecha: parseFecha,
     promedioPonderado: promedioPonderado, filasDelBalance: filasDelBalance, parseBalance: parseBalance, parseCedula: parseCedula, lugarConTildes: lugarConTildes,
