@@ -133,7 +133,7 @@
 
     /* Vigencia: si hay periodo leído y el balance está vencido, no se genera */
     var vig = d.periodoTerminacion ? N.vigencia({ nivel: d.nivel, terminacion: d.periodoTerminacion, diplomado: d.diplomado, hoy: new Date() }) : { estado: 'sin-dato' };
-    if (vig.estado === 'vencido') { salida.tipo = 'error'; salida.chip = 'Balance desactualizado'; salida.nota = 'Terminó en ' + d.periodoTerminacion + ' y no registra Diplomado de Actualización vigente. No se genera.'; return salida; }
+    if (vig.estado === 'vencido') { salida.tipo = 'error'; salida.chip = 'Balance desactualizado'; salida.nota = d.diplomado ? 'El Diplomado de Actualización se realizó en ' + d.diplomado + '; por tanto, a hoy el balance está vencido (venció en ' + vig.limite + '). No se genera.' : 'Terminó en ' + d.periodoTerminacion + ' y no registra Diplomado de Actualización vigente. No se genera.'; return salida; }
     d.estadoVigencia = vig.estado === 'actualizado' ? 'actualizado' : 'vigente';
 
     /* Cédula: ambas caras (sin cara confirmada en un digital → se bloquea; en un escaneado lo decide una persona) */
