@@ -258,7 +258,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <div style="font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:#6B7A94">{{ progLabel }}</div>
 <button class="x" onClick="{{ rdToggle }}" aria-haspopup="listbox" style="{{ rdBtnStyle }}"><span style="display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:0"><span style="white-space:nowrap">{{ rdLabel }}</span><span style="font-size:10.5px;font-weight:500;color:#6B7A94;font-variant-numeric:tabular-nums">{{ rdSub }}</span></span><span style="font-size:11px;color:#6B7A94">▾</span></button>
 <sc-if value="{{ rdOpen }}" hint-placeholder-val="{{ false }}">
-<div style="position:absolute;top:100%;left:0;right:0;margin-top:6px;z-index:60;padding:6px;border-radius:14px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 18px 40px rgba(20,35,63,.2);display:flex;flex-direction:column;gap:2px">
+<div style="position:absolute;top:100%;left:0;right:0;margin-top:6px;z-index:60;padding:6px;border-radius:14px;background:#fff;border:1px solid #E3E8F0;box-shadow:0 18px 40px rgba(20,35,63,.2);display:flex;flex-direction:column;gap:2px;max-height:calc(100vh - 300px);min-height:140px;overflow-y:auto;overscroll-behavior:contain">
 <sc-for list="{{ rdOptions }}" as="o" hint-placeholder-count="5"><button class="hov" onClick="{{ o.go }}" style="{{ o.style }}"><span>{{ o.label }}</span><span style="font-size:10.5px;font-weight:500;color:#6B7A94;font-variant-numeric:tabular-nums">{{ o.sub }}</span></button></sc-for>
 </div>
 </sc-if>
@@ -1419,7 +1419,7 @@ class Component extends DCLogic {
     const PN = E.P, PCOL = ['#2F6FE0', '#12A58F', '#E3A92E'].concat(E.P.slice(3).map((_, i) => ['#7B5BD8', '#C8352B', '#E8702A', '#0C2050', '#6B7A94', '#2F9E6A', '#B85BD8', '#3D8BC9', '#A8832B', '#8A5A3C'][i % 10]));
     const NC = E.nc || 3, inP = (j, k) => k == null || (k === 'C' ? j < NC : k === 'P' ? j >= NC : k === j), pm = (j) => inP(j, eg.prog), REG = { 0: 1999, 1: 1999, 2: 1999, 3: 1998, 4: 1998, 5: 1998, 6: 2012, 7: 2013, 8: 2005 }, incY = (y, k) => y >= (REG[k] || 0), inc = (r) => incY(r[0], r[1]), pLabel = (k) => k == null ? 'todos los programas' : k === 'C' ? 'Ciencias' : k === 'P' ? 'CCP' : PN[k];
     const dn = (y, k, sm) => { const d = E.D[y]; return d ? (sm ? d[k * 2 + sm - 1] : d[k * 2] + d[k * 2 + 1]) : 0; };
-    const SPM = { 0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 7, 7: 6, 8: 5 }, sp0 = st.sp || {};
+    const SPM = { 0: 0, 1: 1, 2: 2, 3: 2, 4: 3, 5: 4, 6: 7, 7: 6, 8: 5, 10: 8 }, sp0 = st.sp || {};
     const spL = sp0.prog == null ? null : [].concat(sp0.prog).map((q) => SPM[q]).filter((q) => q !== undefined), spP = spL == null ? null : spL.length === 1 ? spL[0] : spL.length ? -2 : -1;
     const spOk = (y, j) => (spL == null || spL.indexOf(j) >= 0) && (sp0.nivel !== 'S') && (!sp0.year || y === sp0.year) && (!sp0.range || (y >= sp0.range[0] && y <= sp0.range[1])) && (!sp0.desde || y >= sp0.desde[0]) && (!sp0.hasta || y <= sp0.hasta[0]);
     const spQ = (y, q) => (!sp0.periods || sp0.periods.indexOf(y + '-' + q) >= 0) && (!sp0.desde || y > sp0.desde[0] || (y === sp0.desde[0] && q >= sp0.desde[1])) && (!sp0.hasta || y < sp0.hasta[0] || (y === sp0.hasta[0] && q <= sp0.hasta[1]));
@@ -3002,6 +3002,17 @@ class Component extends DCLogic {
       const prSet = {}; RR.forEach((r) => { if (r[0] === 4 && r[5] > 0 && r[2] > 0 && sPass(r)) prSet[r[2] + '-' + r[3]] = 1; });
       const nProm = Object.keys(prSet).length;
       exSet('Graduados', ['Graduación', pct(tot[4], tot[4] + tot[5])], sp.prog !== null ? ['Promociones', fmt(nProm)] : null);
+      if (!(sp.year || sp.periods || sp.range || sp.desde || sp.hasta)) {
+        const matY = [], matP = {}; RR.forEach((r) => { if (r[0] === 3 && r[5] > 0 && r[2] > 0 && sPass(r)) { matY.push(r[2]); matP[r[1]] = 1; } });
+        const info = (label, color, value, sub, w) => ({ label: label, dot: dot(color), value: value, vs: sub, vsStyle: vsS('#6B7A94'), style: kStyle(false, false), bar: 'height:4px;border-radius:2px;background:' + color + ';width:' + w + '%', ex1: false, ex1l: '', ex1v: '', ex2: false, ex2l: '', ex2v: '', go: () => {} });
+        const nPr = Object.keys(matP).length, y0 = matY.length ? Math.min.apply(null, matY) : 0, y1 = matY.length ? Math.max.apply(null, matY) : 0;
+        const byL = {}; sk.forEach((x) => { byL[x.label] = x; });
+        sk.length = 0;
+        sk.push(info('Programas', '#2F6FE0', fmt(nPr), 'con estudiantes matriculados', Math.min(100, nPr / SN.PR.length * 100).toFixed(0)));
+        sk.push(info('Años de historia', '#0FA89A', matY.length ? String(y1 - y0 + 1) : '0', matY.length ? y0 + ' a ' + y1 : '', 100));
+        sk.push(byL['Graduados'], info('Promociones', '#E3A92E', fmt(nProm), 'periodos con graduados', 100), byL['Retirados'], byL['Egresados no graduados']);
+        sk.forEach((x) => { if (x.label === 'Graduados') { x.ex1 = true; x.ex1l = 'Graduación'; x.ex1v = pct(tot[4], tot[4] + tot[5]); x.ex2 = false; } });
+      }
       const dsAgg = (yr) => { let a = 0, b = 0; RR.forEach((r) => { if (r[1] < 4 && r[2] === yr && (!semSet || semSet.indexOf(r[3]) >= 0) && sPass(r, 'year')) { if (r[0] === 5) a += r[5]; else if (r[0] === 3) b += r[5]; } }); return [a, b]; };
       const dsC = dsAgg(PERs), dsP = dsAgg(PRVs);
       exSet('Retirados', ['Deserción sem.', pct(dsC[0], dsC[1])], ['Deserción ' + PRVs, pct(dsP[0], dsP[1])]);
