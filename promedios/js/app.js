@@ -150,7 +150,7 @@
     var faltan = [];
     if (!d.cedula) faltan.push('cédula'); if (!d.apellidos) faltan.push('nombre'); if (d.promedio == null) faltan.push('promedio'); if (!d.periodoTerminacion) faltan.push('periodo de terminación'); if (!d.fechaBalance) faltan.push('fecha de elaboración');
     if (!prog) faltan.push('programa'); else { if (!prog.facultad) faltan.push('facultad de ' + prog.sigla + ' (complétela en Ajustes)'); }
-    if (faltan.length) { salida.tipo = 'revision'; salida.manual = true; salida.chip = 'Se validará manualmente'; salida.nota = 'No se pudo identificar: ' + faltan.join(', ') + '. Estadística revisará los documentos.'; salida.motivo = 'No se identificó: ' + faltan.join(', ') + '.'; return salida; }
+    if (faltan.length) { salida.tipo = 'revision'; salida.manual = true; salida.chip = 'Estadística validará'; salida.nota = ''; salida.motivo = 'No se identificó: ' + faltan.join(', ') + '.'; return salida; }
 
     /* Controles cruzados: solo si todos pasan se emite sin revisión humana */
     var ok = true;
