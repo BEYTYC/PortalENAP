@@ -157,19 +157,19 @@ function htmlCorreo(o) {
   const logo = PORTAL_URL.replace(/\/?$/, '/') + 'assets/escudo.png';
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
-<tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="ENAP" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de servicios digitales Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
+<tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="ENAP" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
 <tr><td style="padding:26px 28px 8px">
 <div style="font-size:12px;letter-spacing:.2em;color:#8a6d0b;font-weight:700">GENERACIÓN DE PROMEDIOS ACADÉMICOS</div>
 <h2 style="margin:8px 0 14px;font-size:21px;color:#062a4a;font-weight:600">${titulo}</h2>
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${cuerpo}
-<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Si desea generar más certificados, ingrese al módulo Generación de Promedios Académicos del Portal de servicios digitales Estadística.</p>
+<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Si desea generar más certificados, ingrese al módulo Generación de Promedios Académicos del Portal de Servicios Digitales - Oficina de Estadística.</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td align="center" bgcolor="#0b3d66" style="background:#0b3d66;border-radius:999px;mso-padding-alt:0">
-<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(PORTAL_URL)}" arcsize="50%" stroke="f" fillcolor="#0b3d66" style="height:46px;width:200px;v-text-anchor:middle"><w:anchorlock/><center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:15px;font-weight:600">Abrir el Portal</center></v:roundrect><![endif]-->
-<!--[if !mso]><!--><a href="${esc(PORTAL_URL)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:13px 30px;border-radius:999px;font-size:15px;font-weight:600;line-height:20px;font-family:Aptos,'Segoe UI',Arial,sans-serif;box-shadow:0 3px 8px rgba(11,61,102,.28)">Abrir el Portal</a><!--<![endif]-->
+<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(PORTAL_URL)}" arcsize="30%" stroke="f" strokeweight="0" fillcolor="#0b3d66" style="height:34px;width:168px;v-text-anchor:middle"><w:anchorlock/><center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:14px;font-weight:600;line-height:34px;mso-line-height-rule:exactly">Abrir el Portal</center></v:roundrect><![endif]-->
+<!--[if !mso]><!--><a href="${esc(PORTAL_URL)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:8px 26px;border-radius:999px;font-size:14px;font-weight:600;line-height:18px;text-align:center;font-family:Aptos,'Segoe UI',Arial,sans-serif;box-shadow:0 3px 8px rgba(11,61,102,.28)">Abrir el Portal</a><!--<![endif]-->
 </td></tr></table>
 </td></tr>
-<tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de servicios digitales Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
+<tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
 </table></div>`;
 }
 

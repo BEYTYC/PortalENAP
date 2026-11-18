@@ -34,6 +34,15 @@
   function escalar(src, ancho) {
     var f = Math.min(1, ancho / src.width), c = lienzo(src.width * f, src.height * f); c.getContext('2d').drawImage(src, 0, 0, c.width, c.height); return c;
   }
+  /* Recorta los márgenes en blanco y amplía hasta `ancho`: la letra pequeña de la cédula (p. ej. el lugar de expedición) se lee mucho mejor así. */
+  function recortarContenido(src, ancho) {
+    var w = src.width, h = src.height, im = src.getContext('2d').getImageData(0, 0, w, h).data, x0 = w, x1 = -1, y0 = h, y1 = -1, paso = 2, x, y;
+    for (y = 0; y < h; y += paso) for (x = 0; x < w; x += paso) { var i = (y * w + x) * 4; if (im[i + 3] > 20 && (im[i] + im[i + 1] + im[i + 2]) / 3 < 235) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; } }
+    if (x1 < 0 || x1 - x0 < w * 0.15 || y1 - y0 < h * 0.1) return src;
+    var m = 12; x0 = Math.max(0, x0 - m); y0 = Math.max(0, y0 - m); x1 = Math.min(w, x1 + m); y1 = Math.min(h, y1 + m);
+    var cw = x1 - x0, ch = y1 - y0, f = Math.min(ancho / cw, Math.sqrt(12000000 / (cw * ch)));
+    var c = lienzo(cw * f, ch * f), g = c.getContext('2d'); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(src, x0, y0, cw, ch, 0, 0, c.width, c.height); return c;
+  }
   function jpeg(src, ancho, q) { return escalar(src, ancho).toDataURL('image/jpeg', q || 0.72); }
 
   /* Texto con OCR de un lienzo; "palabras" para ubicar etiquetas */
@@ -119,6 +128,7 @@
       return lienzos.reduce(function (p, c, i) {
         return p.then(function () {
           progreso('Leyendo página ' + (i + 1) + ' de ' + lienzos.length + '…');
+          if (tipo === 'cedula') c = recortarContenido(c, 2800);
           return mejorGiro(c, tipo).then(function (g) {
             var r = rotar(c, g); res.imagenes.push(jpeg(r, 1500, 0.7));
             return reconocer(r).then(function (o) {
