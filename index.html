@@ -1465,7 +1465,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     <iframe
       id="titulacionFrame"
       class="registro-iframe"
-      title="Solicitud de Grado"
+      title="Aprobación de Grados"
     ></iframe>
   </div>
 
@@ -3241,7 +3241,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Abre embebido aquí mismo (viewTitulacion/iframe) el formulario de
         // "Solicitud de Grado" que Beyty construyó en Google Apps Script
         // (ver el src del iframe #titulacionFrame más arriba).
-        { nombre: 'Solicitud de Grado', status: 'ok' },
+        { nombre: 'Aprobación de Grados', status: 'ok' },
         // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
         { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co'], soloParaPermitidos: true, quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         // Certificado de promedio desde cédula + balance. Estadística; /api/promedios valida además a los usuarios autorizados en Ajustes.
@@ -3271,7 +3271,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     {
       key: 'protocolos', nombre: 'Manuales', icon: 'protocolos',
       items: [
-        { nombre: 'Manual Uso Solicitud de Grado', status: 'soon' },
+        { nombre: 'Manual Uso Aprobación de Grados', status: 'soon' },
         { nombre: 'Manual Uso Solicitud Concesiones Especiales', status: 'ok' },
         { nombre: 'Manual Uso Antigüedades ENAP', status: 'ok' },
       ],
@@ -3395,7 +3395,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         btn.addEventListener('click', (e) => {
           e.stopPropagation();
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
-          else if (item.status === 'ok' && item.nombre === 'Solicitud de Grado') { abrirSubsistema('viewTitulacion', 'Solicitud de Grado'); cargarTitulacion(); }
+          else if (item.status === 'ok' && item.nombre === 'Aprobación de Grados') { abrirSubsistema('viewTitulacion', 'Aprobación de Grados'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para una cuenta autorizada.'); } catch (e) { showToast('Este módulo es solo para la cuenta autorizada.'); } }
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
