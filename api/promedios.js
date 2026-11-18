@@ -37,6 +37,18 @@ const limpio = (v, max) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g
 
 /* ------------------------------ Graph ------------------------------ */
 let TOKEN = null, SITE = null;
+/* Facultad (o programa) del jefe según la lista de permisos del Portal: se toma la primera columna llamada Facultad, Programa o Dependencia que traiga la fila. Si la lista no tiene esa columna, no se inventa nada. */
+function facultadDeFila(campos) {
+  const k = Object.keys(campos || {}).find((x) => /^(facultad|programa|dependencia)/i.test(x) && String(campos[x] || '').trim());
+  return k ? limpio(campos[k], 120) : '';
+}
+async function facultadesDeRoles() {
+  try {
+    const t = await roles.getAppAccessToken(), sid = await roles.resolveSiteId(t), lid = await roles.resolveListId(t, sid), mapa = {};
+    (await roles.leerFilas(t, sid, lid)).forEach((f) => { const c = f.fields || {}; if (String(c.Estado || '').trim().toLowerCase() !== 'activo') return; const v = facultadDeFila(c); if (v) mapa[String(c.Title || '').trim().toLowerCase()] = v; });
+    return mapa;
+  } catch (e) { return {}; }
+}
 async function ctx() { TOKEN = await roles.getAppAccessToken(); SITE = await roles.resolveSiteId(TOKEN); }
 async function g(url, op) {
   op = op || {};
@@ -321,7 +333,7 @@ module.exports = async function handler(req, res) {
     const soloEst = () => { if (!esEst) throw error('Esta acción es solo de la Oficina de Estadística.', 403); };
     const a = body.accion;
 
-    if (a === 'sesion') { const cr = (await leerJson('correos.json')).valor || []; res.status(200).json({ correos: esEst ? cr.map((c) => c.correo) : [], correo: yo.correo, nombre: yo.nombre, estadistica: esEst, facultad: ((ajustes.usuarios || []).find((u) => String(u.correo).toLowerCase() === yo.correo) || {}).facultad || '', ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
+    if (a === 'sesion') { const cr = (await leerJson('correos.json')).valor || []; res.status(200).json({ correos: esEst ? cr.map((c) => c.correo) : [], correo: yo.correo, nombre: yo.nombre, estadistica: esEst, facultad: (((ajustes.usuarios || []).find((u) => String(u.correo).toLowerCase() === yo.correo) || {}).facultad) || (await facultadesDeRoles())[yo.correo] || '', facultades: esEst ? await facultadesDeRoles() : undefined, ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
 
     if (a === 'ajustes-guardar') {
       soloEst(); const n = body.ajustes || {}; const f = n.firmante || {};
