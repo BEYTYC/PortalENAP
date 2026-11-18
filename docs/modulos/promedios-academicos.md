@@ -33,3 +33,6 @@ NAV, IM, MC, MM, CCPAD, CCPAM, CCPEL, CCPIN, CCPOF, ESP LOGÍSTICA, ESP POLÍTIC
 
 ## Lugar de expedición
 El lugar de expedición de la cédula **no se usa**: no sale en el certificado, no se pide en la revisión y no cuenta en los cruces. El certificado dice «cédula de ciudadanía No. X» sin lugar.
+
+## Copia en OneDrive de programacion.ditic
+Cada certificado emitido se copia además a `Promedios Académicos/<año>/<año-periodo>/<SIGLA - APELLIDOS NOMBRES>.pdf` en el OneDrive de programacion.ditic@enap.edu.co, dentro de la carpeta donde están "Concesiones Especiales" y "Titulación" (el servidor busca esa carpeta; alternativa: variable `PROMEDIOS_ONEDRIVE_RUTA`, o la raíz). Año y periodo salen de la fecha de emisión (enero a julio = 1, agosto a diciembre = 2, hora de Colombia). Si la copia falla, la emisión sigue y el registro guarda `copiaError`. La copia principal (verificación QR y consulta) sigue en `Promedios/` del sitio de SharePoint.

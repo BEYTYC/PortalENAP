@@ -198,6 +198,38 @@ async function enviarPendientesDelLote(loteId) {
   return { enviados: lista.length, a: para };
 }
 
+
+/* ------------------------------ Copia en OneDrive de programacion.ditic ------------------------------
+   Cada certificado emitido se copia también a "Promedios Académicos/<año>/<año-periodo>/<archivo>.pdf" en el OneDrive de
+   programacion.ditic@enap.edu.co, en la misma carpeta donde están "Concesiones Especiales" y "Titulación" (se busca esa carpeta;
+   si no se encuentra se usa PROMEDIOS_ONEDRIVE_RUTA o la raíz). Es una copia: si falla, la emisión no se detiene. */
+const DUENO_COPIA = 'programacion.ditic@enap.edu.co', CARPETA_COPIA = 'Promedios Académicos';
+let PADRE_COPIA = null;
+const encRuta = (r) => r.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+async function carpetaPadreCopia() {
+  if (PADRE_COPIA !== null) return PADRE_COPIA;
+  if (process.env.PROMEDIOS_ONEDRIVE_RUTA) return (PADRE_COPIA = process.env.PROMEDIOS_ONEDRIVE_RUTA.replace(/^\/+|\/+$/g, ''));
+  for (const q of ['Concesiones Especiales', 'Titulación', 'Titulacion']) {
+    const r = await g(`/users/${encodeURIComponent(DUENO_COPIA)}/drive/root/search(q='${encodeURIComponent(q)}')?$select=name,folder,parentReference&$top=50`);
+    if (!r.ok) continue;
+    const it = ((await r.json()).value || []).find((x) => x.folder && x.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase() === q.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase());
+    if (it) { const pr = (it.parentReference && it.parentReference.path) || ''; return (PADRE_COPIA = decodeURIComponent(pr.replace(/^.*?root:/, '')).replace(/^\/+|\/+$/g, '')); }
+  }
+  return (PADRE_COPIA = '');
+}
+async function copiarAOneDrive(codigo, archivo, buf) {
+  try {
+    const f = new Date(Date.now() - 5 * 3600 * 1000), anio = f.getUTCFullYear(), per = f.getUTCMonth() < 7 ? 1 : 2;   /* hora de Colombia; ene–jul = periodo 1 */
+    const ruta = [await carpetaPadreCopia(), CARPETA_COPIA, String(anio), `${anio}-${per}`, archivo].filter(Boolean).join('/');
+    const r = await g(`/users/${encodeURIComponent(DUENO_COPIA)}/drive/root:/${encRuta(ruta)}:/content?@microsoft.graph.conflictBehavior=replace`, { method: 'PUT', body: buf, headers: { 'Content-Type': 'application/pdf' } });
+    if (!r.ok) throw new Error(`OneDrive ${r.status}: ${(await r.text()).slice(0, 160)}`);
+    await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) { x.copia = ruta; delete x.copiaError; } }).catch(() => {});
+  } catch (e) {
+    console.error('Copia a OneDrive:', e.message);
+    await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) x.copiaError = String(e.message).slice(0, 200); }).catch(() => {});
+  }
+}
+
 /* ------------------------------ Validación ------------------------------ */
 function datosRegistro(d, laxo) {
   const o = {
@@ -302,6 +334,7 @@ module.exports = async function handler(req, res) {
       const buf = Buffer.from(pdf, 'base64'); if (buf.length < 1000 || buf.length > 3.5 * 1024 * 1024 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
       await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'emitido'; r.emitido = ahora(); });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
+      const regE = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (regE && regE.archivo) await copiarAOneDrive(codigo, regE.archivo, buf);
       res.status(200).json({ ok: true }); return;
     }
 
@@ -373,6 +406,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
         Object.assign(r, o, { estado: 'emitido', emitido: ahora(), revisadoPor: yo.correo, archivo: archivoDe(o) }); delete r.motivoRevision; loteId = r.lote && r.lote.id;
       });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
+      await copiarAOneDrive(codigo, archivoDe(o), buf);
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
       /* si ya no queda nada en revisión en el lote, sale el segundo correo con todos los aprobados juntos */
       let envio = null;
@@ -424,4 +458,4 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     res.status(e.status || 500).json({ error: e.message || 'Error interno.' });
   }
 };
-module.exports._test = { zip, crc32, datosRegistro, archivoDe };
+module.exports._test = { copiarAOneDrive, zip, crc32, datosRegistro, archivoDe };
