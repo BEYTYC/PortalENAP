@@ -142,7 +142,9 @@
         return idx.reduce(function (p, i) { return p.then(function () { return pdf.getPage(i).then(function (pg) { pags.push(pg); return pdfTexto(pg).then(function (t) { textos.push(t); }); }); }); }, Promise.resolve()).then(function () {
           var t = textos.join('\n'), util = t.replace(/\s+/g, '').length;
           if (util >= 120 && (tipo !== 'cedula' || /NUMERO|N[ÚU]MERO|APELLIDOS/i.test(t))) {
-            res.texto = t; return res;                      /* PDF digital: se lee directo, sin OCR */
+            res.texto = t;                                  /* PDF digital: se lee directo, sin OCR */
+            /* Se guardan también las imágenes de las páginas para que Estadística pueda ver el documento si hay que revisarlo. */
+            return pags.slice(0, 3).reduce(function (p, pg) { return p.then(function () { return pdfLienzo(pg, 2.5).then(function (c) { res.imagenes.push(jpeg(c, 1600, 0.72)); }); }); }, Promise.resolve()).catch(function () {}).then(function () { return res; });
           }
           progreso('Documento escaneado: preparando la lectura…');
           return pags.reduce(function (p, pg) { return p.then(function (arr) { return pdfLienzo(pg, 4).then(function (c) { arr.push(c); return arr; }); }); }, Promise.resolve([])).then(ocrLienzos);

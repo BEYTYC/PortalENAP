@@ -120,9 +120,17 @@ function zip(archivos) { /* [{nombre:'Carpeta/a.pdf', datos:Buffer}] */
 }
 
 /* ------------------------------ Correo ------------------------------ */
+/* Sale de Certificaciones; si Microsoft rechaza ese buzón, se intenta con el de Estadística y se informa cuál salió. Devuelve el buzón usado. */
 async function enviarCorreo(para, asunto, html, adjunto) {
+  try { await enviarDesde(REMITENTE, para, asunto, html, adjunto); return REMITENTE; }
+  catch (e1) {
+    try { await enviarDesde(DUENO, para, asunto, html, adjunto); return DUENO; }
+    catch (e2) { throw error(`${e1.message} | Respaldo (${DUENO}): ${e2.message}`.slice(0, 500), 502); }
+  }
+}
+async function enviarDesde(remitente, para, asunto, html, adjunto) {
   const mensaje = { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: para } }] };
-  const base = `/users/${encodeURIComponent(REMITENTE)}`;
+  const base = `/users/${encodeURIComponent(remitente)}`;
   if (!adjunto || adjunto.datos.length <= 2.5 * 1024 * 1024) {
     if (adjunto) mensaje.attachments = [{ '@odata.type': '#microsoft.graph.fileAttachment', name: adjunto.nombre, contentType: 'application/zip', contentBytes: adjunto.datos.toString('base64') }];
     const r = await g(base + '/sendMail', { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
@@ -156,7 +164,10 @@ function htmlCorreo(o) {
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${cuerpo}
 <p style="font-size:14.5px;color:#334155;margin:0 0 18px">Si desea generar más certificados, ingrese al módulo Generación de Promedios Académicos del Portal de servicios digitales Estadística.</p>
-<p style="margin:0 0 22px"><a href="${esc(PORTAL_URL)}" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:11px 20px;border-radius:9px;font-size:14.5px;font-weight:600">Abrir el Portal</a></p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td align="center" bgcolor="#0b3d66" style="background:#0b3d66;border-radius:999px;mso-padding-alt:0">
+<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(PORTAL_URL)}" arcsize="50%" stroke="f" fillcolor="#0b3d66" style="height:46px;width:200px;v-text-anchor:middle"><w:anchorlock/><center style="color:#ffffff;font-family:Segoe UI,Arial,sans-serif;font-size:15px;font-weight:600">Abrir el Portal</center></v:roundrect><![endif]-->
+<!--[if !mso]><!--><a href="${esc(PORTAL_URL)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:13px 30px;border-radius:999px;font-size:15px;font-weight:600;line-height:20px;font-family:Aptos,'Segoe UI',Arial,sans-serif;box-shadow:0 3px 8px rgba(11,61,102,.28)">Abrir el Portal</a><!--<![endif]-->
+</td></tr></table>
 </td></tr>
 <tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de servicios digitales Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
 </table></div>`;
@@ -293,9 +304,26 @@ module.exports = async function handler(req, res) {
       res.status(200).json({ ok: true }); return;
     }
 
+    if (a === 'a-revision-imagen') {             /* una imagen por petición (el límite de tamaño de la petición es bajo) */
+      const codigo = body.codigo, n = parseInt(body.n, 10); if (!/^PA-\d{4}-\d{6}$/.test(codigo || '') || !(n >= 1 && n <= 8)) throw error('Datos inválidos.', 400);
+      const b = Buffer.from(String(body.imagen || '').replace(/^data:image\/jpeg;base64,/, ''), 'base64'); if (!b.length || b.length > 3 * 1024 * 1024) throw error('La imagen está vacía o pesa demasiado.', 413);
+      const { valor } = await leerJson('registros.json'); const r = (valor || []).find((x) => x.codigo === codigo);
+      if (!r || r.estado !== 'revision' || (!esEst && r.por !== yo.correo)) throw error('No se puede agregar la imagen.', 409);
+      await escribirBin(`Revision/${codigo}/${n}.jpg`, b, 'image/jpeg');
+      await mutar('registros.json', () => [], (rs) => { const x = rs.find((y) => y.codigo === codigo); if (x) x.nImagenes = Math.max(x.nImagenes || 0, n); });
+      res.status(200).json({ ok: true }); return;
+    }
+
     if (a === 'liberar') {                       /* cancela una reserva que no llegó a emitirse */
       await mutar('registros.json', () => [], (rs) => { const i = rs.findIndex((x) => x.codigo === body.codigo && x.estado === 'reservado' && x.por === yo.correo); if (i >= 0) rs.splice(i, 1); });
       res.status(200).json({ ok: true }); return;
+    }
+
+    if (a === 'probar-correo') {                 /* prueba de envío: llega al correo de quien la pide y devuelve el error exacto si falla */
+      soloEst();
+      try { const de = await enviarCorreo(yo.correo, 'Prueba de correo del Portal', htmlCorreo({ titulo: 'Prueba de correo', cuerpo: '<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Si usted ve este mensaje, los correos del módulo Generación de Promedios Académicos están saliendo bien.</p>' })); res.status(200).json({ ok: true, de, a: yo.correo }); }
+      catch (e) { res.status(200).json({ ok: false, error: e.message }); }
+      return;
     }
 
     if (a === 'avisar-lote') {                   /* avisa a Estadística que llegó un lote nuevo (una sola vez por lote) */
@@ -308,8 +336,8 @@ module.exports = async function handler(req, res) {
       const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Hay un <b>nuevo lote</b> de certificados de promedio académico.</p>
 <p style="font-size:14.5px;color:#334155;margin:0 0 6px"><b>Solicitado por:</b> ${esc(yo.nombre || yo.correo)} (${esc(yo.correo)})<br><b>Enviar a:</b> ${esc(regs[0].lote.correo)}<br><b>Estudiantes:</b> ${regs.length} · <b>Emitidos:</b> ${cuenta('emitido')} · <b>En revisión:</b> ${rev.length}</p>
 ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>Por revisar:</b></p><ul style="font-size:14.5px;color:#062a4a;margin:0 0 12px;padding-left:20px">${rev.map((r) => `<li>${nom(r)}${r.programa ? ' — ' + esc(r.programa) : ''}</li>`).join('')}</ul><p style="font-size:14.5px;color:#334155;margin:0 0 10px">Ingrese a «Revisión de escaneados» en el módulo para validarlos.</p>` : ''}`;
-      let aviso = true; try { await enviarCorreo(DUENO, 'Nuevo lote de certificados de promedio', htmlCorreo({ titulo: 'Nuevo lote recibido', cuerpo })); } catch (e) { aviso = false; }
-      res.status(200).json({ avisado: aviso }); return;
+      let aviso = true, detalle = ''; try { await enviarCorreo(DUENO, 'Nuevo lote de certificados de promedio', htmlCorreo({ titulo: 'Nuevo lote recibido', cuerpo })); } catch (e) { aviso = false; detalle = e.message; }
+      res.status(200).json({ avisado: aviso, error: detalle }); return;
     }
 
     if (a === 'enviar-lote') { const r = await enviarPendientesDelLote(limpio(body.loteId, 40)); res.status(200).json(r); return; }
