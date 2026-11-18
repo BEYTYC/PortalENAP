@@ -155,11 +155,25 @@
     var re = new RegExp(etiqueta + '\\s*:?\\s*(.+?)' + (hasta ? '(?=' + hasta + '|\\n|$)' : '(?=\\n|$)'), 'i');
     var m = re.exec(texto); return m ? m[1].replace(/[|_—–]+/g, ' ').replace(/\s+/g, ' ').trim() : '';
   }
+  /* El nombre del estudiante en el balance: los formatos cambian ("NOMBRES Y APELLIDOS", "APELLIDOS Y NOMBRES", "ESTUDIANTE"...), pero siempre hay una etiqueta y el nombre en MAYÚSCULA. */
+  function nombreDelBalance(t) {
+    var PARAR = 'Fecha\\s+(?:de\\s+)?elaboraci[oó]n|Fecha\\b|PROGRAMA\\b|Periodo\\b|C[ÉE]DULA\\b|Documento\\b|Identificaci[oó]n\\b';
+    var ETIQUETAS = ['N[O0]MBRES?\\s*(?:Y|/|E)\\s*APELL?IDOS', 'APELL?IDOS\\s*(?:Y|/|E)\\s*N[O0]MBRES?', 'N[O0]MBRE\\s+(?:DEL|DE\\s+LA)\\s+(?:ESTUDIANTE|ALUMNO|CADETE)', '(?:ESTUDIANTE|ALUMNO|CADETE)', 'N[O0]MBRES?'];
+    function limpiar(v) { return String(v || '').replace(/[|_—–:;,.()\[\]{}0-9]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+    for (var i = 0; i < ETIQUETAS.length; i++) {
+      var v = limpiar(valorDespues(t, '(?:^|\\n|\\s)' + ETIQUETAS[i], PARAR));
+      if (v.split(' ').filter(function (w) { return w.length > 1; }).length >= 2 && v.length >= 5 && v.length <= 80) return v;
+    }
+    /* Respaldo: la línea de texto en mayúscula justo antes de "PROGRAMA ACADÉMICO" */
+    var L = String(t).split(/\r?\n/), j = L.findIndex(function (l) { return /PROGRAMA\s+ACAD/i.test(l); });
+    for (var q = j - 1; q >= 0 && q >= j - 3; q--) { var c = limpiar(L[q].replace(/(Fecha|Periodo).*$/i, '')); if (/^[A-ZÁÉÍÓÚÑÜ ]{6,80}$/.test(c) && c.split(' ').length >= 2 && !/BALANCE|PROCESO|AUTORIDAD/.test(c)) return c; }
+    return '';
+  }
   function parseBalance(texto, opciones) {
     opciones = opciones || {};
     var t = String(texto || '').replace(/ /g, ' ');
     var r = { campos: {}, avisos: [] };
-    r.nombreCompleto = valorDespues(t, 'NOMBRES\\s+Y\\s+APELLIDOS', 'Fecha\\s+elaboraci[oó]n');
+    r.nombreCompleto = nombreDelBalance(t);
     r.programaTexto = valorDespues(t, 'PROGRAMA\\s+ACAD[ÉE]MICO', 'Periodo\\s+de\\s+terminaci[oó]n');
     var f = /Fecha\s+elaboraci[oó]n\s*:?\s*(\d{1,2}\s*[\/\-.]\s*\d{1,2}\s*[\/\-.]\s*\d{4})/i.exec(t); r.fechaElaboracion = f ? parseFecha(f[1]) : null;
     var p = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{4}\s*[-–]\s*[12])(?!\s*\d)/i.exec(t); r.periodoTerminacion = p ? p[1].replace(/\s+/g, '').replace('–', '-') : '';
@@ -299,20 +313,26 @@
   function repartirNombre(nombreBalance, apellidosCedula, nombresCedula) {
     var palabras = mayus(nombreBalance).split(' ').filter(Boolean);
     if (palabras.length < 2) return null;
-    var mejor = null;
-    /* Sin pista de la cédula, lo más común en Colombia es dos apellidos (si hay 3 o más palabras); también se usa la cantidad de palabras que la cédula traiga en apellidos. */
-    var kCed = String(apellidosCedula || '').trim().split(/\s+/).filter(function (w) { return w.length > 1; }).length;
-    var kBase = palabras.length >= 3 ? 2 : 1, hayCed = !!(apellidosCedula || nombresCedula);
-    /* Hay balances con "APELLIDOS NOMBRES" y otros con "NOMBRES APELLIDOS": se prueban los dos órdenes contra la cédula. */
-    [false, true].forEach(function (inv) {
-      for (var k = 1; k <= Math.min(4, palabras.length - 1); k++) {
-        var ap = inv ? palabras.slice(palabras.length - k).join(' ') : palabras.slice(0, k).join(' ');
-        var no = inv ? palabras.slice(0, palabras.length - k).join(' ') : palabras.slice(k).join(' ');
-        var s = similitud(ap, apellidosCedula || '') * 0.6 + similitud(no, nombresCedula || '') * 0.4 + (k === kBase ? 0.05 : 0) + (kCed && k === kCed ? 0.1 : 0) + (hayCed ? 0 : 0.5 * (fraccionNombres(no) - fraccionNombres(ap)) - (inv ? 0.05 : 0));
-        if (!mejor || s > mejor.s) mejor = { apellidos: ap, nombres: no, s: s, k: k, invertido: inv };
-      }
-    });
-    return mejor;
+    /* El nombre sale del balance. Primero se decide solo con lo que dice el balance (nombres de pila conocidos, dos apellidos); la cédula solo ayuda a desempatar cuando el balance no da una señal clara
+       (en cédulas antiguas la etiqueta va debajo del valor y es fácil que se lean cambiados apellidos y nombres). */
+    function buscar(apCed, noCed) {
+      var mejor = null, hayCed = !!(apCed || noCed);
+      var kCed = String(apCed || '').trim().split(/\s+/).filter(function (w) { return w.length > 1; }).length;
+      var kBase = palabras.length >= 3 ? 2 : 1;
+      [false, true].forEach(function (inv) {
+        for (var k = 1; k <= Math.min(4, palabras.length - 1); k++) {
+          var ap = inv ? palabras.slice(palabras.length - k).join(' ') : palabras.slice(0, k).join(' ');
+          var no = inv ? palabras.slice(0, palabras.length - k).join(' ') : palabras.slice(k).join(' ');
+          var m = fraccionNombres(no) - fraccionNombres(ap);
+          var s = (hayCed ? similitud(ap, apCed || '') * 0.6 + similitud(no, noCed || '') * 0.4 : 0.5 * m - (inv ? 0.05 : 0)) + (k === kBase ? 0.05 : 0) + (kCed && k === kCed ? 0.1 : 0);
+          if (!mejor || s > mejor.s) mejor = { apellidos: ap, nombres: no, s: s, k: k, invertido: inv, m: m };
+        }
+      });
+      return mejor;
+    }
+    var solo = buscar('', '');
+    if (solo && solo.m >= 0.4) return solo;
+    return (apellidosCedula || nombresCedula) ? buscar(apellidosCedula, nombresCedula) : solo;
   }
 
   /* ------------------------------ Archivo ------------------------------ */
