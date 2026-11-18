@@ -50,7 +50,7 @@
 
   /* Texto de programa del balance → programa. Quita cohorte, paréntesis y guiones finales. */
   function limpiarPrograma(t) {
-    return String(t || '').replace(/\(.*?\)/g, ' ').replace(/[-–—]\s*COHORTE.*$/i, ' ').replace(/\bCOHORTE\b.*$/i, ' ').replace(/[-–—\s]+$/g, '').replace(/\s+/g, ' ').trim();
+    return String(t || '').replace(/\(.*?\)/g, ' ').replace(/[-–—]\s*COHORTE.*$/i, ' ').replace(/\bCOHORTE\b.*$/i, ' ').replace(/\s+VALIDACI[OÓ]N\s*$/i, ' ').replace(/[-–—\s]+$/g, '').replace(/\s+/g, ' ').trim();
   }
   function programaDe(texto, lista) {
     lista = lista || PROGRAMAS;
