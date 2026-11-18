@@ -8,7 +8,7 @@
   var N = window.PromediosNucleo, CERT = window.PromediosCertificado;
   var $ = function (i) { return document.getElementById(i); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var YO = null, AJ = null, FILAS = [], LOTE = null, CORREO = '', RESULT = [], PEND = 0;
+  var YO = null, AJ = null, FILAS = [], LOTE = null, CORREO = '', RESULT = [], PEND = 0, CORREOS = [];
 
   /* ------------------------------ Servidor ------------------------------ */
   function tok() {
@@ -19,7 +19,7 @@
   function api(accion, extra) {
     return tok().then(function (t) {
       return fetch('/api/promedios', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: t, accion: accion }, extra || {})) })
-        .catch(function () { throw new Error('No se pudo conectar con el servidor. Revise la conexión a internet.'); })
+        .catch(function () { throw new Error('No se pudo conectar con el servidor (paso: ' + accion + '). Revise la conexión e intente de nuevo.'); })
         .then(function (r) { return r.text().then(function (tx) { var j = null; try { j = JSON.parse(tx); } catch (_) {} if (!r.ok || !j) { var e = new Error(j && j.error ? j.error : 'Error ' + r.status + ' del servidor.'); e.http = r.status; e.datos = j; throw e; } return j; }); });
     });
   }
@@ -69,10 +69,12 @@
     }).join('');
     var completas = FILAS.filter(function (f) { return f.ced.length && f.bal; }).length;
     vista(cab('Generar certificados de promedio', 'Cargue los documentos de cada estudiante', 'Una fila por estudiante. Puede cargar varios a la vez.') +
-      '<div style="margin-top:14px;display:flex;align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '>' + (YO.estadistica ? '' : '<span class="chip rev">Solo Estadística lo puede cambiar</span>') + '</div>' +
+      '<div style="margin-top:14px;display:flex;align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" list="correos" autocomplete="off" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '><datalist id="correos">' + CORREOS.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>' + (YO.estadistica ? '' : '<span class="chip rev">Solo Estadística lo puede cambiar</span>') + '</div>' +
+      (YO.estadistica && CORREOS.length ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="lbl" style="margin:0">Usados antes:</span>' + CORREOS.slice(0, 5).map(function (c) { return '<button class="tab" data-correo="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' : '') +
       '<div style="margin-top:10px;overflow:auto;min-height:0">' + filas + '</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px"><div style="display:flex;gap:10px"><button class="btn sec" id="bmas">+ Agregar estudiante</button>' + volver() + '</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:13px;color:#566370">' + completas + ' de ' + FILAS.length + ' filas completas</span><button class="btn" id="bgen"' + (completas ? '' : ' disabled') + '>Generar certificados</button></div></div>' +
       '<input type="file" id="fin" hidden>');
+    document.querySelectorAll('[data-correo]').forEach(function (b) { b.onclick = function () { $('correo').value = b.dataset.correo; }; });
     $('bvolver').onclick = inicio; $('bmas').onclick = function () { guardarCorreo(); FILAS.push(nuevaFila()); carga(); };
     document.querySelectorAll('[data-q]').forEach(function (b) { b.onclick = function () { guardarCorreo(); FILAS.splice(+b.dataset.q, 1); carga(); }; });
     document.querySelectorAll('[data-slot]').forEach(function (s) {
@@ -156,6 +158,7 @@
 
   /* ------------------------------ Generar lote ------------------------------ */
   function generar() {
+    if (YO.estadistica && CORREO && CORREOS.indexOf(CORREO) < 0) CORREOS.unshift(CORREO);
     var filas = FILAS.filter(function (f) { return f.ced.length && f.bal; }); LOTE = 'L' + Date.now().toString(36); var correo = CORREO;
     RESULT = filas.map(function (f) { return { nombre: '(leyendo documentos…)', programa: '', promedio: null, estado: 'leyendo' }; }); resultado();
     var p = Promise.resolve();
@@ -182,7 +185,7 @@
         if (revision) {
           var imgs = lec.ced.imagenes.concat(lec.bal.imagenes), et = lec.ced.imagenes.map(function () { return 'Cédula'; }).concat(lec.bal.imagenes.map(function () { return 'Balance'; }));
           if (!imgs.length) { imgs = []; }
-          return api('a-revision', { codigo: res.codigo, motivo: a.motivo, imagenes: imgs, etiquetas: et }).then(function () { r.estado = a.manual ? 'manual' : 'revision'; r.chip = a.chip; r.nota = a.nota; });
+          return api('a-revision', { codigo: res.codigo, motivo: a.motivo, imagenes: imgs, etiquetas: et, ocr: (lec.bal.texto || '').slice(0, 1800) + '\n---\n' + (lec.ced.texto || '').slice(0, 900) }).then(function () { r.estado = a.manual ? 'manual' : 'revision'; r.chip = a.chip; r.nota = a.nota; });
         }
         return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
@@ -260,6 +263,7 @@
       '<div class="g2" style="margin-top:12px"><div><div class="lbl">Facultad (según el programa)</div><input class="inp" id="f_fa" readonly></div><div><div class="lbl">Periodo de terminación</div><input class="inp" id="f_pe" placeholder="2026-1" value="' + esc(d.periodoTerminacion) + '"></div>' +
       '<div><div class="lbl">Diplomado de actualización (periodo)</div><input class="inp" id="f_di" placeholder="Opcional · 2026-1" value="' + esc(d.diplomado) + '"></div><div><div class="lbl">Fecha de elaboración (dd/mm/aaaa)</div><input class="inp" id="f_fe" value="' + esc(fmtFecha(d.fechaBalance)) + '"></div>' +
       '<div><div class="lbl">Promedio ponderado</div><input class="inp" id="f_pm" inputmode="decimal" value="' + (d.promedio != null ? Number(d.promedio).toFixed(3) : '') + '"></div><div><div class="lbl">Vigencia</div><input class="inp" id="f_vi" readonly></div></div>' +
+      (it.ocr ? '<details style="margin-top:12px"><summary style="font-size:12.5px;color:#566370;font-weight:600">Texto leído por el lector</summary><pre style="white-space:pre-wrap;font-size:11.5px;color:#3b4754;max-height:160px;overflow:auto;margin:6px 0 0">' + esc(it.ocr) + '</pre></details>' : '') +
       '<div id="f_err" class="chip err" style="margin-top:12px;white-space:normal;border-radius:10px" hidden></div></div></div>' +
       '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap"><div style="display:flex;gap:10px">' + volver() + '<button class="btn sec" id="brech">Rechazar</button></div><button class="btn" id="bapr">Aprobar y emitir</button></div>');
     $('bvolver').onclick = inicio;
@@ -276,7 +280,7 @@
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
     document.querySelectorAll('#vista input,#vista select').forEach(function (e) { e.oninput = refrescar; e.onchange = refrescar; }); refrescar();
     function siguiente() { var rest = lista.filter(function (_, j) { return j !== k; }); PEND = rest.length; if (!rest.length) { toast('Revisión terminada.'); inicio(); } else revisar(rest, Math.min(k, rest.length - 1)); }
-    $('brech').onclick = function () { var m = prompt('Motivo del rechazo (opcional)'); if (m === null) return; api('revision-rechazar', { codigo: it.codigo, motivo: m }).then(function () { toast('Certificado rechazado.'); siguiente(); }).catch(function (e) { toast(e.message); }); };
+    $('brech').onclick = function () { var m = prompt('Motivo del rechazo (opcional)'); if (m === null) return; api('revision-rechazar', { codigo: it.codigo, motivo: m }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado y correo enviado al jefe de programa.'); siguiente(); }).catch(function (e) { toast(e.message); }); };
     $('bapr').onclick = function () {
       var x = refrescar(), err = $('f_err'), d = x.f.datos, falta = [];
       ['apellidos', 'nombres', 'cedula', 'lugar', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });
@@ -323,6 +327,6 @@
   gate(true, 'Cargando sesión…');
   api('sesion').then(function (s) {
     YO = s; AJ = { firmante: s.ajustes.firmante, programas: s.ajustes.programas, enlaceVerificacion: s.ajustes.enlaceVerificacion, usuarios: s.ajustes.usuarios || [] };
-    CORREO = s.estadistica ? '' : s.correo; gate(false); return pendientes();
+    CORREOS = s.correos || []; CORREO = s.estadistica ? (CORREOS[0] || '') : s.correo; gate(false); return pendientes();
   }).then(function () { inicio(); }).catch(function (e) { gate(false); vista('<div class="vac"><b style="color:#062a4a;font-size:17px">No se pudo abrir el módulo</b><br>' + esc(e.message) + '</div>'); ancho(640); });
 })();

@@ -142,16 +142,19 @@ async function enviarCorreo(para, asunto, html, adjunto) {
   }
   const e = await g(`${base}/messages/${id}/send`, { method: 'POST' }); if (!e.ok) throw error(`No se pudo enviar el correo (${e.status}).`, 502);
 }
-function htmlCorreo(n) {
+function htmlCorreo(o) {
+  o = o || {};
+  const titulo = o.titulo || 'Certificados de promedio académico';
+  const cuerpo = o.cuerpo || `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta un archivo comprimido con los certificados de promedio académico solicitados, uno por estudiante.</p>`;
   const logo = PORTAL_URL.replace(/\/?$/, '/') + 'assets/escudo.png';
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
 <tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="ENAP" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de servicios digitales Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
 <tr><td style="padding:26px 28px 8px">
 <div style="font-size:12px;letter-spacing:.2em;color:#8a6d0b;font-weight:700">GENERACIÓN DE PROMEDIOS ACADÉMICOS</div>
-<h2 style="margin:8px 0 14px;font-size:21px;color:#062a4a;font-weight:600">Certificados de promedio académico</h2>
+<h2 style="margin:8px 0 14px;font-size:21px;color:#062a4a;font-weight:600">${titulo}</h2>
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
-<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta un archivo comprimido con los certificados de promedio académico solicitados, uno por estudiante.</p>
+${cuerpo}
 <p style="font-size:14.5px;color:#334155;margin:0 0 18px">Si desea generar más certificados, ingrese al módulo Generación de Promedios Académicos del Portal de servicios digitales Estadística.</p>
 <p style="margin:0 0 22px"><a href="${esc(PORTAL_URL)}" style="display:inline-block;background:#0b3d66;color:#ffffff;text-decoration:none;padding:11px 20px;border-radius:9px;font-size:14.5px;font-weight:600">Abrir el Portal</a></p>
 </td></tr>
@@ -232,7 +235,7 @@ module.exports = async function handler(req, res) {
     const soloEst = () => { if (!esEst) throw error('Esta acción es solo de la Oficina de Estadística.', 403); };
     const a = body.accion;
 
-    if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre, estadistica: esEst, ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
+    if (a === 'sesion') { const cr = (await leerJson('correos.json')).valor || []; res.status(200).json({ correos: esEst ? cr.map((c) => c.correo) : [], correo: yo.correo, nombre: yo.nombre, estadistica: esEst, ajustes: { firmante: ajustes.firmante, programas: ajustes.programas, enlaceVerificacion: ajustes.enlaceVerificacion, usuarios: esEst ? ajustes.usuarios : undefined } }); return; }
 
     if (a === 'ajustes-guardar') {
       soloEst(); const n = body.ajustes || {}; const f = n.firmante || {};
@@ -255,13 +258,14 @@ module.exports = async function handler(req, res) {
       const salida = await mutar('registros.json', () => [], (rs) => {
         reemplazados.length = 0;
         const d = duplicado(rs, o); if (d) return { duplicado: resumen(d) };
-        for (let i = rs.length - 1; i >= 0; i--) if (mismoPendiente(rs[i], o)) { reemplazados.push(rs[i].codigo); rs.splice(i, 1); }
+        for (let i = rs.length - 1; i >= 0; i--) if (mismoPendiente(rs[i], o)) { reemplazados.push([rs[i].codigo, rs[i].nImagenes || 0]); rs.splice(i, 1); }
         const sec = rs.filter((r) => r.codigo.startsWith(`PA-${y}-`)).reduce((m, r) => Math.max(m, parseInt(r.codigo.slice(-6), 10)), 0) + 1;
         const codigo = `PA-${y}-${String(sec).padStart(6, '0')}`;
         rs.push(Object.assign({ codigo, estado: 'reservado', fecha: ahora(), por: yo.correo, lote, archivo: o.sigla ? archivoDe(o) : '' }, o));
         return { codigo, archivo: o.sigla ? archivoDe(o) : '' };
       });
-      for (const c of reemplazados) for (let i = 1; i <= 8; i++) await borrar(`Revision/${c}/${i}.jpg`).catch(() => {});
+      for (const [c, n] of reemplazados) for (let i = 1; i <= n; i++) await borrar(`Revision/${c}/${i}.jpg`).catch(() => {});
+      if (esEst && !salida.duplicado && lote.correo) await mutar('correos.json', () => [], (cs) => { const i = cs.findIndex((c) => c.correo === lote.correo); if (i >= 0) cs.splice(i, 1); cs.unshift({ correo: lote.correo, fecha: ahora() }); cs.length = Math.min(cs.length, 40); }).catch(() => {});
       res.status(salida.duplicado ? 409 : 200).json(salida.duplicado ? { error: 'Ya existe un certificado de promedio para esta cédula y programa. Una corrección solo la hace Estadística.', duplicado: salida.duplicado } : salida);
       return;
     }
@@ -278,7 +282,7 @@ module.exports = async function handler(req, res) {
       const { codigo, motivo, imagenes } = body; if (!/^PA-\d{4}-\d{6}$/.test(codigo || '')) throw error('Código inválido.', 400);
       const imgs = (imagenes || []).slice(0, 8); let total = 0;
       for (let i = 0; i < imgs.length; i++) { const b = Buffer.from(String(imgs[i]).replace(/^data:image\/jpeg;base64,/, ''), 'base64'); total += b.length; if (total > 4 * 1024 * 1024) throw error('Las imágenes pesan demasiado.', 413); await escribirBin(`Revision/${codigo}/${i + 1}.jpg`, b, 'image/jpeg'); }
-      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'revision'; r.motivoRevision = limpio(motivo, 300); r.nImagenes = imgs.length; r.etiquetas = (body.etiquetas || []).slice(0, 8).map((x) => limpio(x, 30)); });
+      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'revision'; r.motivoRevision = limpio(motivo, 300); r.nImagenes = imgs.length; r.etiquetas = (body.etiquetas || []).slice(0, 8).map((x) => limpio(x, 30)); r.ocr = String(body.ocr || '').replace(/[\u0000-\u0008\u000b-\u001f]/g, ' ').slice(0, 2800); });
       res.status(200).json({ ok: true }); return;
     }
 
@@ -297,7 +301,7 @@ module.exports = async function handler(req, res) {
       res.status(200).json({ lista: rs.filter((r) => r.estado !== 'reservado').slice(-500).map(resumen) }); return;
     }
 
-    if (a === 'revision-lista') { soloEst(); const { valor } = await leerJson('registros.json'); res.status(200).json({ lista: (valor || []).filter((r) => r.estado === 'revision').map((r) => Object.assign(resumen(r), { datos: { cedula: r.cedula, nombres: r.nombres, apellidos: r.apellidos, lugar: r.lugar, programaId: r.programaId, programa: r.programa, sigla: r.sigla, nivel: r.nivel, facultad: r.facultad, promedio: r.promedio, periodoTerminacion: r.periodoTerminacion, diplomado: r.diplomado, fechaBalance: r.fechaBalance, estadoVigencia: r.estadoVigencia }, nImagenes: r.nImagenes || 0, etiquetas: r.etiquetas || [] })) }); return; }
+    if (a === 'revision-lista') { soloEst(); const { valor } = await leerJson('registros.json'); res.status(200).json({ lista: (valor || []).filter((r) => r.estado === 'revision').map((r) => Object.assign(resumen(r), { datos: { cedula: r.cedula, nombres: r.nombres, apellidos: r.apellidos, lugar: r.lugar, programaId: r.programaId, programa: r.programa, sigla: r.sigla, nivel: r.nivel, facultad: r.facultad, promedio: r.promedio, periodoTerminacion: r.periodoTerminacion, diplomado: r.diplomado, fechaBalance: r.fechaBalance, estadoVigencia: r.estadoVigencia }, nImagenes: r.nImagenes || 0, etiquetas: r.etiquetas || [], ocr: r.ocr || '' })) }); return; }
 
     if (a === 'revision-imagen') { soloEst(); const b = await leerBin(`Revision/${limpio(body.codigo, 20)}/${parseInt(body.n, 10) || 1}.jpg`); if (!b) throw error('Imagen no encontrada.', 404); res.status(200).json({ imagen: 'data:image/jpeg;base64,' + b.toString('base64') }); return; }
 
@@ -319,10 +323,24 @@ module.exports = async function handler(req, res) {
     }
 
     if (a === 'revision-rechazar') {
-      soloEst(); const { codigo } = body; let ok = false;
-      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo && x.estado === 'revision'); if (r) { r.estado = 'rechazado'; r.motivoRechazo = limpio(body.motivo, 300); r.revisadoPor = yo.correo; ok = true; } });
+      soloEst(); const { codigo } = body; let ok = false, reg = null;
+      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo && x.estado === 'revision'); if (r) { r.estado = 'rechazado'; r.motivoRechazo = limpio(body.motivo, 300); r.revisadoPor = yo.correo; ok = true; reg = JSON.parse(JSON.stringify(r)); } });
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
-      res.status(200).json({ ok }); return;
+      let envio = null, avisoError = '';
+      if (ok && reg && reg.lote && reg.lote.correo) {
+        try {
+          const nom = [reg.sigla, reg.apellidos, reg.nombres].filter(Boolean).join(' ') || 'Estudiante';
+          const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Estadística no pudo generar el certificado de promedio académico del siguiente estudiante:</p>
+<p style="font-size:14.5px;color:#062a4a;margin:0 0 10px"><b>${esc(nom)}</b>${reg.programa ? '<br>' + esc(reg.programa) : ''}</p>
+${reg.motivoRechazo ? `<p style="font-size:14.5px;color:#334155;margin:0 0 10px"><b>Motivo:</b> ${esc(reg.motivoRechazo)}</p>` : ''}
+<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Para generarlo, vuelva a enviar la solicitud con los documentos corregidos.</p>`;
+          await enviarCorreo(reg.lote.correo, 'Solicitud de certificado de promedio no procesada', htmlCorreo({ titulo: 'Solicitud no procesada', cuerpo }));
+          await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (r) r.rechazoEnviado = { fecha: ahora(), a: reg.lote.correo }; });
+        } catch (e) { avisoError = e.message || 'No se pudo enviar el correo de rechazo.'; }
+        /* si ya no queda nada en revisión en el lote, sale el segundo correo con los aprobados */
+        try { const { valor } = await leerJson('registros.json'); if (!(valor || []).some((r) => r.lote && r.lote.id === reg.lote.id && r.estado === 'revision')) envio = await enviarPendientesDelLote(reg.lote.id); } catch (e) { avisoError = avisoError || e.message; }
+      }
+      res.status(200).json({ ok, envio, avisoError }); return;
     }
 
     if (a === 'descargar') {
