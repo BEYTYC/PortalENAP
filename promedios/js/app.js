@@ -187,7 +187,17 @@
   }
 
   /* ------------------------------ Generar lote ------------------------------ */
+  /* Sonido suave al terminar el lote (dos notas). El contexto se crea al pulsar para que el navegador lo permita. */
+  var AUDIO = null;
+  function prepararSonido() { try { var A = window.AudioContext || window.webkitAudioContext; if (A && !AUDIO) AUDIO = new A(); if (AUDIO && AUDIO.state === 'suspended') AUDIO.resume(); } catch (e) {} }
+  function sonar() {
+    try {
+      if (!AUDIO) return; var t = AUDIO.currentTime;
+      [[659.25, 0], [880, 0.16]].forEach(function (n) { var o = AUDIO.createOscillator(), g = AUDIO.createGain(); o.type = 'sine'; o.frequency.value = n[0]; g.gain.setValueAtTime(0.0001, t + n[1]); g.gain.exponentialRampToValueAtTime(0.18, t + n[1] + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.5); o.connect(g); g.connect(AUDIO.destination); o.start(t + n[1]); o.stop(t + n[1] + 0.55); });
+    } catch (e) {}
+  }
   function generar() {
+    prepararSonido();
     if (YO.estadistica && CORREO && CORREOS.indexOf(CORREO) < 0) CORREOS.unshift(CORREO);
     var filas = FILAS.filter(function (f) { return f.ced.length && f.bal; }); LOTE = 'L' + Date.now().toString(36); var correo = CORREO;
     RESULT = filas.map(function (f) { return { nombre: '(leyendo documentos…)', programa: '', promedio: null, estado: 'leyendo' }; }); resultado();
@@ -196,7 +206,7 @@
       p = p.then(function () { return procesar(f, i, correo); }).catch(function (e) { RESULT[i] = Object.assign(RESULT[i], { estado: 'error', chip: 'No se pudo procesar', nota: e.message }); });
       p = p.then(function () { resultado(true); });
     });
-    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); });
+    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); sonar(); });
   }
   function leerFila(f, i) {
     var progreso = function (t) { RESULT[i].nota = t; resultado(true); };
