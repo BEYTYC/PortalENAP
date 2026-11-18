@@ -206,7 +206,7 @@
       p = p.then(function () { return procesar(f, i, correo); }).catch(function (e) { RESULT[i] = Object.assign(RESULT[i], { estado: 'error', chip: 'No se pudo procesar', nota: e.message }); });
       p = p.then(function () { resultado(true); });
     });
-    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); sonar(); });
+    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); sonar(); estadoCarga(); });
   }
   function leerFila(f, i) {
     var progreso = function (t) { RESULT[i].nota = t; resultado(true); };
@@ -268,19 +268,27 @@
     var cl = r.estado === 'revision' ? 'rev' : r.estado === 'manual' ? 'aviso' : 'err';
     return '<span class="chip ' + cl + '">' + esc(r.chip) + '</span><div class="m">' + esc(r.nota) + '</div>';
   }
-  /* Cuadro de estado de la carga: cuántos llegaron al correo, cuántos esperan a Estadística y cuántos fallaron. */
-  function avisoLote(c, listo) {
-    if (!listo) return '';
+  /* Ventana con el estado de la carga (al terminar el lote). Es opcional: se cierra con "Cerrar", Esc o pulsando fuera. */
+  function estadoCarga() {
+    var c = { enviado: 0, revision: 0, manual: 0, error: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
     var aEst = c.revision + c.manual, mail = c.enviado;
     var pl = function (n, a, b) { return n + ' ' + (n === 1 ? a : b); };
     var lineas = [];
     if (mail) lineas.push(['#0f7a4d', pl(mail, 'certificado llegó', 'certificados llegaron') + ' al correo.']);
     if (aEst) lineas.push(['#8a6d0b', pl(aEst, 'estudiante está pendiente', 'estudiantes están pendientes') + ' de la respuesta de Estadística.']);
     if (c.error) lineas.push(['#b42318', pl(c.error, 'estudiante no se pudo procesar', 'estudiantes no se pudieron procesar') + '.']);
-    if (!lineas.length) return '';
-    var tit = !aEst && !c.error ? 'Carga completa: todo llegó al correo' : 'Estado de la carga';
-    return '<div style="margin-top:14px;padding:14px 18px;border-radius:14px;background:#eaf3fb;border:1px solid #cfe0ef;color:#0b3d66;font-size:14.5px;box-shadow:0 6px 16px -12px rgba(6,42,74,.5)"><div style="font-weight:700;margin-bottom:6px">' + tit + '</div>' +
-      lineas.map(function (l) { return '<div style="display:flex;gap:9px;align-items:center;margin-top:3px"><span style="width:8px;height:8px;border-radius:50%;background:' + l[0] + ';flex:none"></span><span>' + esc(l[1]) + '</span></div>'; }).join('') + '</div>';
+    if (!lineas.length) return;
+    var tit = !aEst && !c.error ? 'Carga completa' : 'Estado de la carga';
+    var fondo = document.createElement('div'); fondo.className = 'modal-f';
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Resultado de la solicitud</div><h2 style="margin:4px 0 10px;font-size:20px">' + esc(tit) + '</h2>' +
+      lineas.map(function (l) { return '<div style="display:flex;gap:10px;align-items:center;margin-top:6px;font-size:14.5px;color:#0b3d66"><span style="width:9px;height:9px;border-radius:50%;background:' + l[0] + ';flex:none"></span><span>' + esc(l[1]) + '</span></div>'; }).join('') +
+      '<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn" id="ccerrar">Cerrar</button></div></div>';
+    document.body.appendChild(fondo);
+    var cerrar = function () { document.removeEventListener('keydown', tecla); fondo.remove(); };
+    var tecla = function (e) { if (e.key === 'Escape') cerrar(); };
+    document.addEventListener('keydown', tecla);
+    fondo.onclick = function (e) { if (e.target === fondo) cerrar(); };
+    fondo.querySelector('#ccerrar').onclick = cerrar; fondo.querySelector('#ccerrar').focus();
   }
   function resultado(sinAnimar) {
     ancho(1160);
@@ -290,7 +298,6 @@
     var filas = RESULT.map(function (r) { return '<div class="r"><b>' + esc(r.nombre) + '</b><span>' + esc(r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><div>' + chipDe(r) + '</div></div>'; }).join('');
     var y = $('vista').scrollTop;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><div class="gold">Resultado de la solicitud</div><h2>' + RESULT.length + ' ' + (RESULT.length === 1 ? 'estudiante procesado' : 'estudiantes procesados') + '</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div></div>' +
-      avisoLote(c, listo) +
       '<div class="r h"><span class="lbl">Estudiante</span><span class="lbl">Programa</span><span class="lbl">Promedio</span><span class="lbl">Estado</span></div><div style="overflow:auto;min-height:0">' + filas + '</div>' +
       '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap"><button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
     $('vista').scrollTop = y;
