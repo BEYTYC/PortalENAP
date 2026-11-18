@@ -30,6 +30,7 @@
       (quien ? '<div style="font-size:13.5px;color:#566370;margin-bottom:12px"><b style="color:#0a2540">' + esc(quien) + '</b></div>' : '') +
       '<div class="lbl">Motivo (se le informa al jefe de programa)</div><textarea class="inp" id="mmot" rows="3" maxlength="300" placeholder="Escriba el motivo o elija uno" style="resize:vertical"></textarea>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' + MOTIVOS.map(function (x) { return '<button type="button" class="tab" data-mot="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;color:#334155;cursor:pointer"><input type="checkbox" id="mav" checked style="width:16px;height:16px;accent-color:#0b3d66"> Avisar por correo al jefe de programa</label>' +
       '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="mno">Cancelar</button><button type="button" class="btn" id="msi">Rechazar</button></div></div>';
     document.body.appendChild(fondo);
     var ta = fondo.querySelector('#mmot'); setTimeout(function () { ta.focus(); }, 30);
@@ -38,7 +39,7 @@
     document.addEventListener('keydown', tecla);
     fondo.querySelectorAll('[data-mot]').forEach(function (b) { b.onclick = function () { ta.value = b.dataset.mot; ta.focus(); }; });
     fondo.querySelector('#mno').onclick = cerrar; fondo.onclick = function (e) { if (e.target === fondo) cerrar(); };
-    fondo.querySelector('#msi').onclick = function () { var m = ta.value.trim(); cerrar(); ok(m); };
+    fondo.querySelector('#msi').onclick = function () { var m = ta.value.trim(), av = fondo.querySelector('#mav').checked; cerrar(); ok(m, av); };
   }
   function toast(m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3200); }
   function gate(on, msg) { $('gate').hidden = !on; if (msg) $('gt').textContent = msg; $('card').hidden = on; }
@@ -306,7 +307,7 @@
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
     document.querySelectorAll('#vista input,#vista select').forEach(function (e) { e.oninput = refrescar; e.onchange = refrescar; }); refrescar();
     function siguiente() { var rest = lista.filter(function (_, j) { return j !== k; }); PEND = rest.length; if (!rest.length) { toast('Revisión terminada.'); inicio(); } else revisar(rest, Math.min(k, rest.length - 1)); }
-    $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m) { api('revision-rechazar', { codigo: it.codigo, motivo: m }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { toast(e.message); }); }); };
+    $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m, av) { api('revision-rechazar', { codigo: it.codigo, motivo: m, avisar: av }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { toast(e.message); }); }); };
     $('bapr').onclick = function () {
       var x = refrescar(), err = $('f_err'), d = x.f.datos, falta = [];
       ['apellidos', 'nombres', 'cedula', 'lugar', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });

@@ -373,7 +373,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
 
     if (a === 'revision-rechazar') {
       soloEst(); const { codigo } = body; let ok = false, reg = null;
-      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo && x.estado === 'revision'); if (r) { r.estado = 'rechazado'; r.motivoRechazo = limpio(body.motivo, 300); r.revisadoPor = yo.correo; ok = true; reg = JSON.parse(JSON.stringify(r)); } });
+      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo && x.estado === 'revision'); if (r) { r.estado = 'rechazado'; r.motivoRechazo = limpio(body.motivo, 300); r.revisadoPor = yo.correo; if (body.avisar === false) r.rechazoEnviado = { omitido: true, fecha: ahora() }; ok = true; reg = JSON.parse(JSON.stringify(r)); } });
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
       let envio = null, avisoError = '';
       if (ok && reg && reg.lote && reg.lote.correo) {
