@@ -77,7 +77,7 @@
     if (QR && d.codigo) {
       var url = (d.enlace || 'https://enap.vercel.app/verificar') + '?codigo=' + encodeURIComponent(d.codigo);
       var qr = QR(0, 'M'); qr.addData(url); qr.make();
-      var n = qr.getModuleCount(), T = 40, cel = T / n, qy = 671.5, qx = 612 - 14 - 128 / 2 - T / 2;
+      var n = qr.getModuleCount(), T = 40, cel = T / n, qy = 685, qx = 612 - 14 - 128 / 2 - T / 2;
       doc.setFillColor(255, 255, 255); doc.rect(qx - 3, qy - 3, T + 6, T + 6, 'F');
       doc.setFillColor(0, 0, 0);
       for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) doc.rect(qx + c * cel, qy + r * cel, cel + 0.15, cel + 0.15, 'F');
