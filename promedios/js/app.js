@@ -431,8 +431,8 @@
       if (x.f.p && !x.f.p.facultad) falta.push('facultad (complétela en Ajustes)');
       var msg = falta.length ? 'Falta o es inválido: ' + falta.join(', ') + '.' : x.v.estado === 'vencido' ? 'El balance está desactualizado: no se puede emitir.' : x.v.estado === 'sin-dato' ? 'Revise el periodo de terminación (formato 2026-1).' : '';
       err.hidden = !msg; err.textContent = msg; if (msg) return;
-      d.estadoVigencia = x.v.estado === 'actualizado' ? 'actualizado' : 'vigente'; var b = $('bapr'); b.disabled = true; b.textContent = 'Emitiendo…';
-      pdfDe(d, it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: it.codigo, datos: d, pdf: pdf }); }).then(function (r) { toast(r.envio && r.envio.enviados ? 'Emitido y enviado al correo (' + r.envio.enviados + ').' : 'Certificado emitido.'); siguiente(); }).catch(function (e) { b.disabled = false; b.textContent = 'Aprobar y emitir'; err.hidden = false; err.textContent = e.message; });
+      d.estadoVigencia = x.v.estado === 'actualizado' ? 'actualizado' : 'vigente'; var b = $('bapr'); b.disabled = true; b.textContent = 'Emitiendo…'; gate(true, 'Emitiendo…');
+      pdfDe(d, it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: it.codigo, datos: d, pdf: pdf }); }).then(function (r) { gate(false); toast(r.envio && r.envio.enviados ? 'Emitido y enviado al correo (' + r.envio.enviados + ').' : 'Certificado emitido.'); siguiente(); }).catch(function (e) { gate(false); b.disabled = false; b.textContent = 'Aprobar y emitir'; err.hidden = false; err.textContent = e.message; });
     };
   }
 
