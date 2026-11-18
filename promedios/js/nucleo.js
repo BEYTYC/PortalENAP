@@ -236,7 +236,7 @@
     var cands = [], puntos = {}, reN = /(?:N[UÚ]MERO|NUIP)[\s.:]{0,12}(\d[\d. ]{5,16})/gi, mN;
     while ((mN = reN.exec(t))) { var dn = mN[1].replace(/\D/g, ''); if (dn.length >= 6) { cands.push(dn); if (/^\d{1,3}(\.\d{3}){1,3}$/.test(mN[1].trim())) puntos[dn] = true; } }
     if (!cands.length) {   /* formato antiguo: el número va ARRIBA de la etiqueta ("50.978.091 / NÚMERO"): se toma el número con puntos */
-      var reP = /\b(\d{1,3})[-.,]?(\d{3})[.,](\d{3})(?:[.,](\d{3}))?\b/g, mP; while ((mP = reP.exec(t))) { var dp = mP.slice(1).join(''); if (dp.length >= 7) { cands.push(dp); puntos[dp] = true; } }
+      var reP = /\b(\d{1,3})[-.,]?(\d{3})\s?[.,]\s?(\d{3})(?:\s?[.,]\s?(\d{3}))?\b/g, mP; while ((mP = reP.exec(t))) { var dp = mP.slice(1).join(''); if (dp.length >= 7) { cands.push(dp); puntos[dp] = true; } }
     }
     if (cands.length) {
       var cuenta = {}; cands.forEach(function (x) { cuenta[x] = (cuenta[x] || 0) + 1; });
