@@ -184,7 +184,7 @@ async function enviarPendientesDelLote(loteId) {
   for (const r of lista) { const b = await leerBin(`Certificados/${r.codigo}.pdf`); if (!b) throw error(`Falta el PDF ${r.codigo}.`, 500); archivos.push({ nombre: `Certificados de promedio/${r.archivo}`, datos: b }); }
   if (archivos.length === 1) {   /* un solo certificado: se envía el PDF suelto, sin comprimir */
     const unico = archivos[0], nombrePdf = unico.nombre.split('/').pop();
-    await enviarCorreo(para, 'Certificado de promedio académico', htmlCorreo({ cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta el certificado de promedio académico solicitado.</p>` }), { nombre: nombrePdf, datos: unico.datos, tipo: 'application/pdf' });
+    await enviarCorreo(para, 'Certificado de promedio académico', htmlCorreo({ titulo: 'Certificado de promedio académico', cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta el certificado de promedio académico solicitado.</p>` }), { nombre: nombrePdf, datos: unico.datos, tipo: 'application/pdf' });
   } else {
     const z = zip(archivos);
     await enviarCorreo(para, 'Certificados de promedio académico', htmlCorreo(), { nombre: 'Certificados de promedio.zip', datos: z });
