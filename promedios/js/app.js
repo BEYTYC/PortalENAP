@@ -262,7 +262,7 @@
   function avisoLote(c, listo) {
     if (!listo) return '';
     var aEst = c.revision + c.manual, mail = c.enviado, txt;
-    if (mail && !aEst && !c.error) txt = mail === 1 ? 'El certificado llegó al correo.' : 'Todos los certificados llegaron al correo.';
+    if (mail && !aEst && !c.error) return '';
     else if (!mail && aEst && !c.error) txt = aEst === 1 ? 'El lote fue enviado a Estadística para su revisión.' : 'El lote fue enviado a Estadística para su revisión.';
     else if (mail || aEst) txt = (mail ? mail + (mail === 1 ? ' certificado llegó al correo' : ' certificados llegaron al correo') : '') + (mail && aEst ? ' y ' : '') + (aEst ? aEst + (aEst === 1 ? ' fue enviado a Estadística para su revisión' : ' fueron enviados a Estadística para su revisión') : '') + '.' + (c.error ? ' ' + c.error + (c.error === 1 ? ' no se pudo procesar.' : ' no se pudieron procesar.') : '');
     else return '';

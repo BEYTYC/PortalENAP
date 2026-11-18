@@ -159,9 +159,10 @@ function htmlCorreo(o) {
   const titulo = o.titulo || 'Certificados de promedio académico';
   const cuerpo = o.cuerpo || `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta un archivo comprimido con los certificados de promedio académico solicitados, uno por estudiante.</p>`;
   const logo = PORTAL_URL.replace(/\/?$/, '/') + 'assets/escudo.png';
-  return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
+  const pre = o.pre ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${esc(o.pre)}</div>` : '';
+  return `${pre}<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
-<tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="ENAP" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
+<tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
 <tr><td style="padding:26px 28px 8px">
 <div style="font-size:12px;letter-spacing:.2em;color:#8a6d0b;font-weight:700">GENERACIÓN DE PROMEDIOS ACADÉMICOS</div>
 <h2 style="margin:8px 0 14px;font-size:21px;color:#062a4a;font-weight:600">${titulo}</h2>
@@ -188,10 +189,10 @@ async function enviarPendientesDelLote(loteId) {
   if (archivos.length <= 5) {   /* hasta 5 certificados: PDF sueltos, sin comprimir */
     const uno = archivos.length === 1;
     const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${uno ? 'Se adjunta el certificado de promedio académico solicitado.' : 'Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.'}</p>`;
-    await enviarCorreo(para, uno ? 'Certificado de promedio académico' : 'Certificados de promedio académico', htmlCorreo({ titulo: uno ? 'Certificado de promedio académico' : 'Certificados de promedio académico', cuerpo }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
+    await enviarCorreo(para, uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', htmlCorreo({ titulo: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', pre: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', cuerpo }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
   } else {   /* más de 5: un ZIP */
     const z = zip(archivos);
-    await enviarCorreo(para, 'Certificados de promedio académico', htmlCorreo(), { nombre: 'Certificados de promedio.zip', datos: z });
+    await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico' }), { nombre: 'Certificados de promedio.zip', datos: z });
   }
   const codigos = new Set(lista.map((r) => r.codigo)), t = ahora();
   await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (codigos.has(r.codigo)) r.enviado = { fecha: t, a: para, n: nMail }; }); });
@@ -414,6 +415,7 @@ module.exports = async function handler(req, res) {
       const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Hay un <b>nuevo lote</b> de certificados de promedio académico.</p>
 <p style="font-size:14.5px;color:#334155;margin:0 0 6px"><b>Solicitado por:</b> ${esc(yo.nombre || yo.correo)} (${esc(yo.correo)})<br><b>Enviar a:</b> ${esc(regs[0].lote.correo)}<br><b>Estudiantes:</b> ${regs.length} · <b>Emitidos:</b> ${cuenta('emitido')} · <b>En revisión:</b> ${rev.length}</p>
 ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>Por revisar:</b></p><ul style="font-size:14.5px;color:#062a4a;margin:0 0 12px;padding-left:20px">${rev.map((r) => `<li>${nom(r)}${r.programa ? ' — ' + esc(r.programa) : ''}</li>`).join('')}</ul><p style="font-size:14.5px;color:#334155;margin:0 0 10px">Ingrese a «Revisión de escaneados» en el módulo para validarlos.</p>` : ''}`;
+      if (!rev.length) { res.status(200).json({ avisado: false }); return; }
       let aviso = true, detalle = ''; try { await enviarCorreo(DUENO, 'Nuevo lote de certificados de promedio', htmlCorreo({ titulo: 'Nuevo lote recibido', cuerpo })); } catch (e) { aviso = false; detalle = e.message; }
       res.status(200).json({ avisado: aviso, error: detalle }); return;
     }
