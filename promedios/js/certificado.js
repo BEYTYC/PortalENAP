@@ -77,15 +77,14 @@
     if (QR && d.codigo) {
       var url = (d.enlace || 'https://enap.vercel.app/verificar') + '?codigo=' + encodeURIComponent(d.codigo);
       var qr = QR(0, 'M'); qr.addData(url); qr.make();
-      var n = qr.getModuleCount(), T = 54, cel = T / n, qx = 612 - 10 - 128 + (128 - T) / 2 - 0, qy = 586;
-      qx = 612 - 14 - 128 / 2 - T / 2;
+      var n = qr.getModuleCount(), T = 40, cel = T / n, qy = 640, qx = 612 - 14 - 128 / 2 - T / 2;
       doc.setFillColor(255, 255, 255); doc.rect(qx - 3, qy - 3, T + 6, T + 6, 'F');
       doc.setFillColor(0, 0, 0);
       for (var r = 0; r < n; r++) for (var c = 0; c < n; c++) if (qr.isDark(r, c)) doc.rect(qx + c * cel, qy + r * cel, cel + 0.15, cel + 0.15, 'F');
       var cx = qx + T / 2;
-      txt('Verifique este certificado', cx, qy + T + 11, 7.5, 'bold', { align: 'center' }, 'helvetica');
-      txt('Código ' + d.codigo, cx, qy + T + 20, 7.5, 'normal', { align: 'center' }, 'helvetica');
-      txt((d.enlace || 'https://enap.vercel.app/verificar').replace(/^https?:\/\//, ''), cx, qy + T + 29, 6.5, 'normal', { align: 'center' }, 'helvetica');
+      txt('Verifique este certificado', cx, qy + T + 10, 6.5, 'bold', { align: 'center' }, 'helvetica');
+      txt('Código ' + d.codigo, cx, qy + T + 18, 6.5, 'normal', { align: 'center' }, 'helvetica');
+      txt((d.enlace || 'https://enap.vercel.app/verificar').replace(/^https?:\/\//, ''), cx, qy + T + 26, 5.5, 'normal', { align: 'center' }, 'helvetica');
     }
 
     txt('“Protegemos el azul de la Bandera”', X0, 716.8, 6.05, 'normal', null, 'helvetica');
