@@ -211,15 +211,29 @@
   function parseCedula(texto) {
     var t = String(texto || '').replace(/ /g, ' ');
     var r = { numero: '', numeroLinea: '', apellidos: '', nombres: '', lugar: '', lugarRaw: '', cara: { frente: false, reverso: false } };
-    var n = /N[UÚ]MERO\s*:?\s*([\d.\s]{6,14})/i.exec(t); if (n) r.numero = n[1].replace(/\D/g, '');
+    var n = /(?:N[UÚ]MERO|NUIP)\s*:?\s*([\d.\s]{6,14})/i.exec(t); if (n) r.numero = n[1].replace(/\D/g, '');
+    var nuevo = /NUIP/i.test(t);                     /* cédula digital (formato nuevo): las etiquetas van ARRIBA del dato y la banda MRZ va abajo */
     /* línea de la banda del reverso: …-00XXXXXXXX- (documento con ceros a la izquierda) */
-    var b = /-M?F?-?(\d{9,11})-\d{8}/.exec(t) || /-[MF]-(\d{9,11})-/.exec(t); if (b) r.numeroLinea = b[1].replace(/^0+/, '');
+    var b = /-M?F?-?(\d{9,11})-\d{8}/.exec(t) || /-[MF]-(\d{9,11})-/.exec(t) || /[MmFf]{1,2}\d{6,7}\s?COL(\d{9,11})/.exec(t); if (b) r.numeroLinea = b[1].replace(/^0+/, '');
     var L = t.split(/\r?\n/).map(function (x) { return x.replace(/[|_¡]/g, ' ').replace(/\s+/g, ' ').trim(); }).filter(Boolean);
     function previa(re) { for (var i = 0; i < L.length; i++) if (re.test(L[i])) { for (var j = i - 1; j >= 0; j--) { var c = L[j].replace(/[^A-ZÁÉÍÓÚÑ ]/gi, ' ').replace(/\s+/g, ' ').trim(); if (c.length >= 3) return c; } } return ''; }
-    r.apellidos = previa(/^APELLIDOS\b/i); r.nombres = previa(/^N[O0]MBRES\b|OMBRES\b|N\s?OMBRES/i);
+    function limpiaNombre(x) { return String(x || '').replace(/[^A-ZÁÉÍÓÚÑ ]/gi, ' ').split(/\s+/).filter(function (w) { return w.length > 1; }).join(' ').trim(); }
+    function siguiente(re) { for (var i = 0; i < L.length; i++) if (re.test(L[i])) { for (var j = i + 1; j < Math.min(L.length, i + 3); j++) { var c = limpiaNombre(L[j]); if (c.length >= 3 && !/^(NOMBRES|NACIONALIDAD|FECHA|ESTATURA|APELLIDOS)\b/i.test(c)) return c; } } return ''; }
+    var mz = /^\s*([A-Z]{2,}(?:<[A-Z]{2,})*)<<([A-Z]{2,}(?:<[A-Z]{2,})*)/m.exec(t.replace(/«/g, '<'));
+    if (mz) { r.apellidosMRZ = mz[1].replace(/</g, ' '); r.nombresMRZ = mz[2].replace(/</g, ' '); }
+    if (nuevo) { r.apellidos = limpiaNombre(siguiente(/^APELLIDOS\b/i)); r.nombres = limpiaNombre(siguiente(/^N[O0]MBRES\b|^OMBRES\b/i)); }
+    else { r.apellidos = previa(/^APELLIDOS\b/i); r.nombres = previa(/^N[O0]MBRES\b|OMBRES\b|N\s?OMBRES/i); }
+    /* La banda MRZ (letras sin tilde) sirve para limpiar el ruido del OCR: se conservan solo las palabras de la etiqueta que también están en la banda. */
+    function conMRZ(valor, mrz) { if (!mrz) return valor; var ws = norm(mrz).split(' '), ok = String(valor || '').split(/\s+/).filter(function (w) { return ws.indexOf(norm(w).replace(/Ñ/g, 'N')) >= 0 || ws.indexOf(norm(w)) >= 0; }); return ok.length ? ok.join(' ') : mrz; }
+    r.apellidos = conMRZ(r.apellidos, r.apellidosMRZ); r.nombres = conMRZ(r.nombres, r.nombresMRZ);
     /* lugar: "08-NOV-2002 BOGOTA D.C." */
-    var l = new RegExp('(\\d{1,2})[\\s\\-/.]+' + MES3 + '[A-Z]*[\\s\\-/.]+(\\d{4})\\s+([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .]+?)\\s*(?:$|\\n|FECHA|LUGAR)', 'im').exec(t);
+    /* primero, las líneas vecinas a «Fecha y lugar de expedición» (en la cédula nueva va debajo; en la antigua, encima): fecha + lugar, con coma o sin ella */
+    var ie = -1; for (var q0 = 0; q0 < L.length; q0++) if (/FECHA\s+Y\s+LUGAR|LUGAR\s+DE\s+EXPEDICI/i.test(L[q0])) { ie = q0; break; }
+    var reMes = new RegExp(MES3, 'i'), reLug = /(?:19|20)\d{2}[\s,;:.\/]*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .()]*)/i;
+    if (ie >= 0) [1, -1, 2, -2].forEach(function (dq) { if (r.lugarRaw || !L[ie + dq]) return; var ln = L[ie + dq]; if (!reMes.test(ln) || /EXPIRACI/i.test(ln)) return; var mm = reLug.exec(ln); if (mm) r.lugarRaw = mm[1].replace(/\(.*?\)/g, ' ').replace(/(?:\s+[A-Z])+\s*$/i, ' ').replace(/\s+/g, ' ').trim(); });
+    var l = r.lugarRaw ? null : new RegExp('(\\d{1,2})[\\s\\-/.]+' + MES3 + '[A-Z]*[\\s\\-/.,]+(\\d{4})[\\s,;:.\\/]*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ .]+?)\\s*(?:$|\\n|FECHA|LUGAR)', 'im').exec(t);
     if (l) r.lugarRaw = l[3].replace(/\s+/g, ' ').trim();
+    else if (r.lugarRaw) { /* ya resuelto arriba */ }
     else {
       /* Respaldo: la línea que va justo antes de «FECHA Y LUGAR DE EXPEDICIÓN»; el municipio es todo lo que sale después de la fecha (año de 4 cifras). */
       var ie = -1; for (var q = 0; q < L.length; q++) if (/FECHA\s+Y\s+LUGAR|LUGAR\s+DE\s+EXPEDICI/i.test(L[q])) { ie = q; break; }
@@ -236,8 +250,8 @@
       var claro = ws2.length >= 1 && ws2.length <= 5 && ws2.every(function (w) { return /^(DE|DEL|LA|LAS|LOS|EL|Y)$/.test(w) || /^[A-Z]{3,}$/.test(w); }) && ws2.some(function (w) { return w.length >= 4; }) && !/FECHA|LUGAR|EXPEDICION|NACIMIENTO|ESTATURA|SEXO|REGISTRADOR|INDICE/.test(limpio);
       if (!claro) r.lugar = '';
     }
-    r.cara.frente = /N[UÚ]MERO/i.test(t) && /APELLIDOS/i.test(t) && /(NOMBRES|OMBRES)/i.test(t);
-    r.cara.reverso = /FECHA\s+DE\s+NACIMIENTO/i.test(t) || /LUGAR\s+DE\s+EXPEDICI/i.test(t) || /FECHA\s+Y\s+LUGAR/i.test(t);
+    r.cara.frente = nuevo ? /(NOMBRES|OMBRES|NACIONALIDAD|ESTATURA|APELLIDOS|FECHA\s+Y\s+LUGAR)/i.test(t) : (/(N[UÚ]MERO|NUIP)/i.test(t) && /APELLIDOS/i.test(t) && /(NOMBRES|OMBRES)/i.test(t));
+    r.cara.reverso = nuevo ? (/REGISTRADOR/i.test(t) || !!mz || !!r.numeroLinea) : (/FECHA\s+DE\s+NACIMIENTO/i.test(t) || /LUGAR\s+DE\s+EXPEDICI/i.test(t) || /FECHA\s+Y\s+LUGAR/i.test(t));
     r.puntaje = (r.cara.frente ? 1 : 0) + (r.cara.reverso ? 1 : 0) + (/REPUBLICA|REPÚBLICA/i.test(t) ? 1 : 0) + (/CEDULA|CÉDULA/i.test(t) ? 1 : 0);
     return r;
   }
