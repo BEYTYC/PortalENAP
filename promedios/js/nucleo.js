@@ -197,7 +197,10 @@
     var k = norm(String(raw || '').replace(/\./g, ' ')).replace(/\bD C\b/, 'D C');
     if (LUGARES[k]) return { texto: LUGARES[k], conocido: true };
     k = k.replace(/\s+(D C|D T Y C|D T)$/, ''); if (LUGARES[k]) return { texto: LUGARES[k], conocido: true };
-    return { texto: String(raw || '').trim(), conocido: false };
+    /* Municipio fuera de la lista: se escribe tal como lo dice la cédula, en formato título. */
+    var peq = { DE: 1, DEL: 1, LA: 1, LAS: 1, LOS: 1, EL: 1, Y: 1 };
+    var tit = String(raw || '').trim().toLowerCase().split(/\s+/).map(function (w, i) { return i > 0 && peq[w.toUpperCase()] ? w : w.charAt(0).toUpperCase() + w.slice(1); }).join(' ');
+    return { texto: tit, conocido: false };
   }
   var MES3 = '(?:ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SEPT|OCT|NOV|DIC)';
   function parseCedula(texto) {
