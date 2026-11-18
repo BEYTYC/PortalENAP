@@ -170,7 +170,14 @@
     return Promise.all([imagen('escudo-cert.png'), imagen('marca-cert.jpg'), AJ.firmante.firma ? Promise.resolve(AJ.firmante.firma) : imagen('firma-cert.png')]).then(function (im) {
       var doc = CERT.generar(window.jspdf.jsPDF, window.qrcode, { nombres: d.nombres, apellidos: d.apellidos, documento: d.cedula, lugar: '', programa: d.programa, promedio: d.promedio, periodo: d.periodoTerminacion,
         fechaBalance: deISO(d.fechaBalance), facultad: d.facultad, estado: d.estadoVigencia, diplomado: d.diplomado, fecha: new Date(), codigo: codigo, enlace: AJ.enlaceVerificacion, firmante: AJ.firmante, escudo: im[0], marca: im[1], firma: im[2] });
-      return doc.output('datauristring').split(',')[1];
+      var b64 = doc.output('datauristring').split(',')[1];
+      /* PDF no editable: la página se convierte en una imagen de alta calidad y se arma un PDF solo con esa imagen (sin texto ni capas). */
+      return window.Lector.pdfAImagen(b64, 3.5).then(function (jpg) {
+        var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true });
+        plano.setProperties({ title: doc.getProperties().title, creator: 'Portal de servicios digitales Estadística' });
+        plano.addImage(jpg, 'JPEG', 0, 0, 612, 792, undefined, 'SLOW');
+        return plano.output('datauristring').split(',')[1];
+      }).catch(function () { return b64; });
     });
   }
 

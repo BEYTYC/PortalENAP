@@ -163,5 +163,12 @@
     });
   }
   function terminar() { if (worker) { worker.terminate(); worker = null; workerP = null; } }
-  root.Lector = { leer: leer, terminar: terminar, jpeg: jpeg };
+  /* Convierte la primera página de un PDF (base64) en una imagen JPEG de alta calidad (se usa para que el certificado no sea editable). */
+  function pdfAImagen(base64, escala) {
+    var bin = atob(base64), u8 = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    return pdfLibre().then(function (lib) { return lib.getDocument({ data: u8 }).promise; }).then(function (pdf) { return pdf.getPage(1); }).then(function (pg) {
+      return pdfLienzo(pg, escala || 3.5).then(function (c) { return c.toDataURL('image/jpeg', 0.92); });
+    });
+  }
+  root.Lector = { leer: leer, terminar: terminar, jpeg: jpeg, pdfAImagen: pdfAImagen };
 })(window);
