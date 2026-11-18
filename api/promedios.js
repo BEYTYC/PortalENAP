@@ -132,7 +132,7 @@ async function enviarDesde(remitente, para, asunto, html, adjunto) {
   const mensaje = { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: para } }] };
   const base = `/users/${encodeURIComponent(remitente)}`;
   if (!adjunto || adjunto.datos.length <= 2.5 * 1024 * 1024) {
-    if (adjunto) mensaje.attachments = [{ '@odata.type': '#microsoft.graph.fileAttachment', name: adjunto.nombre, contentType: 'application/zip', contentBytes: adjunto.datos.toString('base64') }];
+    if (adjunto) mensaje.attachments = [{ '@odata.type': '#microsoft.graph.fileAttachment', name: adjunto.nombre, contentType: adjunto.tipo || 'application/zip', contentBytes: adjunto.datos.toString('base64') }];
     const r = await g(base + '/sendMail', { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
     if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
     return;
@@ -140,7 +140,7 @@ async function enviarDesde(remitente, para, asunto, html, adjunto) {
   /* adjunto grande: borrador + sesión de carga */
   const b = await g(base + '/messages', { method: 'POST', body: mensaje }); if (!b.ok) throw error(`No se pudo crear el correo (${b.status}).`, 502);
   const id = (await b.json()).id;
-  const s = await g(`${base}/messages/${id}/attachments/createUploadSession`, { method: 'POST', body: { AttachmentItem: { attachmentType: 'file', name: adjunto.nombre, size: adjunto.datos.length, contentType: 'application/zip' } } });
+  const s = await g(`${base}/messages/${id}/attachments/createUploadSession`, { method: 'POST', body: { AttachmentItem: { attachmentType: 'file', name: adjunto.nombre, size: adjunto.datos.length, contentType: adjunto.tipo || 'application/zip' } } });
   if (!s.ok) throw error(`No se pudo preparar el adjunto (${s.status}).`, 502);
   const url = (await s.json()).uploadUrl, T = 320 * 1024 * 12;
   for (let ini = 0; ini < adjunto.datos.length; ini += T) {
@@ -182,8 +182,13 @@ async function enviarPendientesDelLote(loteId) {
   const nMail = regs.filter((r) => r.lote && r.lote.id === loteId && r.enviado).map((r) => r.enviado.n || 1).reduce((a, b) => Math.max(a, b), 0) + 1;
   const archivos = [];
   for (const r of lista) { const b = await leerBin(`Certificados/${r.codigo}.pdf`); if (!b) throw error(`Falta el PDF ${r.codigo}.`, 500); archivos.push({ nombre: `Certificados de promedio/${r.archivo}`, datos: b }); }
-  const z = zip(archivos);
-  await enviarCorreo(para, 'Certificados de promedio académico', htmlCorreo(), { nombre: 'Certificados de promedio.zip', datos: z });
+  if (archivos.length === 1) {   /* un solo certificado: se envía el PDF suelto, sin comprimir */
+    const unico = archivos[0], nombrePdf = unico.nombre.split('/').pop();
+    await enviarCorreo(para, 'Certificado de promedio académico', htmlCorreo({ cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjunta el certificado de promedio académico solicitado.</p>` }), { nombre: nombrePdf, datos: unico.datos, tipo: 'application/pdf' });
+  } else {
+    const z = zip(archivos);
+    await enviarCorreo(para, 'Certificados de promedio académico', htmlCorreo(), { nombre: 'Certificados de promedio.zip', datos: z });
+  }
   const codigos = new Set(lista.map((r) => r.codigo)), t = ahora();
   await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (codigos.has(r.codigo)) r.enviado = { fecha: t, a: para, n: nMail }; }); });
   return { enviados: lista.length, a: para };
