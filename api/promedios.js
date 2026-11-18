@@ -298,6 +298,20 @@ module.exports = async function handler(req, res) {
       res.status(200).json({ ok: true }); return;
     }
 
+    if (a === 'avisar-lote') {                   /* avisa a Estadística que llegó un lote nuevo (una sola vez por lote) */
+      const loteId = limpio(body.loteId, 40); let regs = [];
+      await mutar('registros.json', () => [], (rs) => { regs = rs.filter((r) => r.lote && r.lote.id === loteId && !['reservado'].includes(r.estado) && !r.avisoEst); regs.forEach((r) => { r.avisoEst = true; }); });
+      if (!regs.length) { res.status(200).json({ avisado: false }); return; }
+      const cuenta = (e) => regs.filter((r) => r.estado === e).length;
+      const nom = (r) => esc([r.sigla, r.apellidos, r.nombres].filter(Boolean).join(' ') || 'Estudiante');
+      const rev = regs.filter((r) => r.estado === 'revision');
+      const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Hay un <b>nuevo lote</b> de certificados de promedio académico.</p>
+<p style="font-size:14.5px;color:#334155;margin:0 0 6px"><b>Solicitado por:</b> ${esc(yo.nombre || yo.correo)} (${esc(yo.correo)})<br><b>Enviar a:</b> ${esc(regs[0].lote.correo)}<br><b>Estudiantes:</b> ${regs.length} · <b>Emitidos:</b> ${cuenta('emitido')} · <b>En revisión:</b> ${rev.length}</p>
+${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>Por revisar:</b></p><ul style="font-size:14.5px;color:#062a4a;margin:0 0 12px;padding-left:20px">${rev.map((r) => `<li>${nom(r)}${r.programa ? ' — ' + esc(r.programa) : ''}</li>`).join('')}</ul><p style="font-size:14.5px;color:#334155;margin:0 0 10px">Ingrese a «Revisión de escaneados» en el módulo para validarlos.</p>` : ''}`;
+      let aviso = true; try { await enviarCorreo(DUENO, 'Nuevo lote de certificados de promedio', htmlCorreo({ titulo: 'Nuevo lote recibido', cuerpo })); } catch (e) { aviso = false; }
+      res.status(200).json({ avisado: aviso }); return;
+    }
+
     if (a === 'enviar-lote') { const r = await enviarPendientesDelLote(limpio(body.loteId, 40)); res.status(200).json(r); return; }
 
     if (a === 'lista') {

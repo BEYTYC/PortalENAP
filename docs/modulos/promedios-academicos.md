@@ -23,3 +23,10 @@ NAV, IM, MC, MM, CCPAD, CCPAM, CCPEL, CCPIN, CCPOF, ESP LOGÍSTICA, ESP POLÍTIC
 ## Acceso y rechazos
 - Entran Estadística, los usuarios autorizados en Ajustes y **todo usuario con rol JEFE_PROGRAMA** activo en la lista de permisos del Portal (el servidor lo verifica). Cada uno entra con su propio usuario del login; el jefe de programa recibe los certificados en su correo de sesión y solo ve lo que él generó.
 - Al rechazar un escaneado, cuando ya no queda nada en revisión del lote, el jefe de programa recibe **un solo correo con únicamente los estudiantes que faltaron** (con el motivo) y, después, el de los aprobados.
+
+## Ajustes de noviembre
+- El **periodo de terminación** puede venir como fecha (dd/mm/aaaa): de agosto en adelante es periodo 2 (2026-2) y hasta julio es periodo 1.
+- El nombre del balance puede venir «apellidos nombres» o «nombres apellidos»: se prueban ambos órdenes contra la cédula.
+- Cada lote nuevo avisa por correo a Estadística (quién lo envió, cuántos y cuáles quedan por revisar).
+- En la revisión de escaneados el documento se puede acercar (+ / − / Ajustar o clic sobre la imagen).
+- Las vistas van arriba, sin centrar; se quitó «Copiar resumen».

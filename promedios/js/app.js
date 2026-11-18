@@ -166,7 +166,7 @@
       p = p.then(function () { return procesar(f, i, correo); }).catch(function (e) { RESULT[i] = Object.assign(RESULT[i], { estado: 'error', chip: 'No se pudo procesar', nota: e.message }); });
       p = p.then(function () { resultado(true); });
     });
-    p.then(function () { return enviarLote(); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); });
+    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); });
   }
   function leerFila(f, i) {
     var progreso = function (t) { RESULT[i].nota = t; resultado(true); };
@@ -218,13 +218,9 @@
     var y = $('vista').scrollTop;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><div class="gold">Resultado de la solicitud</div><h2>' + RESULT.length + ' ' + (RESULT.length === 1 ? 'estudiante procesado' : 'estudiantes procesados') + '</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div></div>' +
       '<div class="r h"><span class="lbl">Estudiante</span><span class="lbl">Programa</span><span class="lbl">Promedio</span><span class="lbl">Estado</span></div><div style="overflow:auto;min-height:0">' + filas + '</div>' +
-      '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap"><button class="btn sec" id="bcopiar"' + (listo ? '' : ' disabled') + '>Copiar resumen</button><button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
+      '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap"><button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
     $('vista').scrollTop = y;
     $('botro').onclick = function () { FILAS = []; carga(); };
-    $('bcopiar').onclick = function () {
-      var t = ['Apellidos\tNombres\tCédula\tPrograma\tPromedio\tEstado'].concat(RESULT.map(function (r) { return [r.apellidos || '', r.nombres || r.nombre, r.cedula || '', r.programa, r.promedio != null ? Number(r.promedio).toFixed(3) : '', r.estado === 'enviado' ? 'Enviado al correo electrónico' : (r.chip || r.estado)].join('\t'); })).join('\n');
-      navigator.clipboard.writeText(t).then(function () { toast('Resumen copiado. Péguelo en Excel.'); }, function () { toast('No se pudo copiar.'); });
-    };
     var re = document.querySelector('[data-reenviar]'); if (re) re.onclick = function () { re.disabled = true; enviarLote().then(function () { resultado(); }); };
   }
 
@@ -269,7 +265,11 @@
     $('bvolver').onclick = inicio;
     var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = {};
     var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); b.textContent = (etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento') + ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === etiquetas[n - 1]; }).length : n); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
-    function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento">'; doc.firstChild.src = cache[n]; return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
+    var z = 1;
+    function zoomar(nz) { z = Math.max(1, Math.min(4, nz)); var doc = $('doc'), im = doc.firstChild; if (!im || im.tagName !== 'IMG') return; if (z === 1) { doc.classList.remove('zoom'); im.style.width = ''; } else { doc.classList.add('zoom'); im.style.width = (z * 100) + '%'; } }
+    var zb = document.createElement('span'); zb.className = 'zb'; zb.innerHTML = '<button type="button" title="Alejar" id="zmenos">−</button><button type="button" title="Tamaño completo" id="zfit" style="width:auto;padding:0 10px">Ajustar</button><button type="button" title="Acercar" id="zmas">+</button>'; $('tabs').appendChild(zb);
+    $('zmenos').onclick = function () { zoomar(z - 0.5); }; $('zmas').onclick = function () { zoomar(z + 0.5); }; $('zfit').onclick = function () { zoomar(1); };
+    function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento" title="Clic para ampliar o reducir">'; doc.firstChild.src = cache[n]; doc.firstChild.onclick = function () { zoomar(z >= 2 ? 1 : 2); }; zoomar(z); return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
     if (it.nImagenes) mostrar(1); else $('doc').textContent = 'Sin imágenes guardadas.';
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
