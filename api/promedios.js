@@ -230,6 +230,20 @@ async function copiarAOneDrive(codigo, archivo, buf) {
   }
 }
 
+
+/* Un certificado se guarda solo como imagen (no editable): se rechaza un PDF que traiga texto. */
+function pdfTieneTexto(buf) {
+  const zlib = require('zlib'), s = buf.toString('latin1'); let i = 0;
+  while ((i = s.indexOf('stream', i)) >= 0) {
+    let ini = i + 6; if (s[ini] === '\r') ini++; if (s[ini] === '\n') ini++;
+    const fin = s.indexOf('endstream', ini); if (fin < 0) break;
+    try { const t = zlib.inflateSync(buf.subarray(ini, fin)).toString('latin1'); if (/\bBT\b[\s\S]{0,4000}?\bT[jJ]\b/.test(t)) return true; } catch (e) { /* imagen u otro flujo no comprimido con Flate */ }
+    i = fin + 9;
+  }
+  return false;
+}
+const ERR_PDF_TEXTO = 'El certificado debe generarse como imagen no editable. Recargue el Portal (Ctrl+F5) e intente de nuevo.';
+
 /* ------------------------------ Validación ------------------------------ */
 function datosRegistro(d, laxo) {
   const o = {
@@ -332,6 +346,7 @@ module.exports = async function handler(req, res) {
     if (a === 'emitir') {                        /* sube el PDF y deja el certificado emitido */
       const { codigo, pdf } = body; if (!/^PA-\d{4}-\d{6}$/.test(codigo || '') || typeof pdf !== 'string') throw error('Datos incompletos.', 400);
       const buf = Buffer.from(pdf, 'base64'); if (buf.length < 1000 || buf.length > 3.5 * 1024 * 1024 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
+      if (pdfTieneTexto(buf)) throw error(ERR_PDF_TEXTO, 409);
       await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'emitido'; r.emitido = ahora(); });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
       const regE = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (regE && regE.archivo) await copiarAOneDrive(codigo, regE.archivo, buf);
@@ -399,6 +414,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     if (a === 'revision-aprobar') {              /* Estadística corrigió/validó: el cliente ya generó el PDF con los datos finales */
       soloEst(); const { codigo, pdf } = body; const o = datosRegistro(body.datos || {});
       const buf = Buffer.from(String(pdf || ''), 'base64'); if (buf.length < 1000 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
+      if (pdfTieneTexto(buf)) throw error(ERR_PDF_TEXTO, 409);
       let loteId = null;
       await mutar('registros.json', () => [], (rs) => {
         const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'revision') throw error('El certificado no está en revisión.', 409);
@@ -458,4 +474,4 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     res.status(e.status || 500).json({ error: e.message || 'Error interno.' });
   }
 };
-module.exports._test = { copiarAOneDrive, zip, crc32, datosRegistro, archivoDe };
+module.exports._test = { pdfTieneTexto, copiarAOneDrive, zip, crc32, datosRegistro, archivoDe };

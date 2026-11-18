@@ -173,11 +173,11 @@
       var b64 = doc.output('datauristring').split(',')[1];
       /* PDF no editable: la página se convierte en una imagen de alta calidad y se arma un PDF solo con esa imagen (sin texto ni capas). */
       return window.Lector.pdfAImagen(b64, 3.5).then(function (jpg) {
-        var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true });
+        var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true, encryption: { userPermissions: ['print'], ownerPassword: Math.random().toString(36).slice(2) + Date.now().toString(36) } });
         plano.setProperties({ title: doc.getProperties().title, creator: 'Portal de servicios digitales Estadística' });
         plano.addImage(jpg, 'JPEG', 0, 0, 612, 792, undefined, 'SLOW');
         return plano.output('datauristring').split(',')[1];
-      }).catch(function () { return b64; });
+      }).catch(function (e) { throw new Error('No se pudo generar el certificado como imagen no editable. Recargue el Portal (Ctrl+F5) e intente de nuevo.'); });
     });
   }
 
