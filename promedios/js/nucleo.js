@@ -50,7 +50,7 @@
 
   /* Texto de programa del balance → programa. Quita cohorte, paréntesis y guiones finales. */
   function limpiarPrograma(t) {
-    return String(t || '').replace(/\(.*?\)/g, ' ').replace(/[-–—]\s*COHORTE.*$/i, ' ').replace(/\bCOHORTE\b.*$/i, ' ').replace(/\s+VALIDACI[OÓ]N\s*$/i, ' ').replace(/[-–—\s]+$/g, '').replace(/\s+/g, ' ').trim();
+    return String(t || '').normalize('NFC').replace(/\(.*?\)/g, ' ').replace(/[-–—]\s*COHORTE.*$/i, ' ').replace(/\bCOHORTE\b.*$/i, ' ').replace(/\s+VALIDACI\S{0,4}\s*$/i, ' ').replace(/[-–—\s]+$/g, '').replace(/\s+/g, ' ').trim();
   }
   function programaDe(texto, lista) {
     lista = lista || PROGRAMAS;
@@ -61,6 +61,10 @@
       var al = lista[i].alias || [];
       for (j = 0; j < al.length; j++) if (norm(al[j]) === x) return lista[i];
     }
+    /* el balance puede traer una o dos palabras sueltas después del programa ("... Validación"): si el programa empieza igual, se toma el más largo */
+    var pref = null;
+    lista.forEach(function (p) { var n = norm(p.nombre); if (x.indexOf(n + ' ') === 0 && x.slice(n.length).trim().split(' ').length <= 2 && (!pref || n.length > norm(pref.nombre).length)) pref = p; });
+    if (pref) return pref;
     /* parecido (por si el balance o el OCR traen una letra distinta) */
     var mejor = null, mejorS = 0, empate = false;
     lista.forEach(function (p) { var s = similitud(p.nombre, x); if (s > mejorS + 1e-9) { mejor = p; mejorS = s; empate = false; } else if (Math.abs(s - mejorS) < 1e-9) empate = true; });
