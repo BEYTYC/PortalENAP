@@ -138,7 +138,6 @@
     else if (pc.numeroLinea && pc.numeroLinea !== pc.numero.replace(/^0+/, '')) { motivos.push('El número de la cédula no coincide con su línea de lectura.'); ok = false; }
     else if (!pc.numeroLinea && escaneado) { motivos.push('No se pudo contrastar el número con la línea de lectura de la cédula.'); ok = false; }
     if (!rep || N.similitud(rep.apellidos, pc.apellidos || '') < 0.88 || (pc.nombres && N.similitud(rep.nombres, pc.nombres) < 0.8)) { motivos.push('El nombre del balance no coincide claramente con el de la cédula.'); ok = false; }
-    if (!pc.lugarConocido) { motivos.push('Lugar de expedición por confirmar: «' + pc.lugarRaw + '».'); ok = false; }
     if (!(ambas)) ok = false;
     salida.tipo = ok ? 'emitir' : 'revision'; salida.motivo = motivos.join(' '); salida.chip = ok ? '' : 'En revisión de Estadística';
     salida.nota = ok ? '' : (escaneado ? 'Documento escaneado: Estadística lo revisa antes de firmar y enviar.' : 'Estadística revisará los datos antes de emitir.');
