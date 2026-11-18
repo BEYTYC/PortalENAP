@@ -23,6 +23,23 @@
         .then(function (r) { return r.text().then(function (tx) { var j = null; try { j = JSON.parse(tx); } catch (_) {} if (!r.ok || !j) { var e = new Error(j && j.error ? j.error : 'Error ' + r.status + ' del servidor.'); e.http = r.status; e.datos = j; throw e; } return j; }); });
     });
   }
+  var MOTIVOS = ['Documento ilegible', 'Falta una cara de la cédula', 'El balance no corresponde al estudiante', 'Balance desactualizado', 'Datos de la cédula y del balance no coinciden'];
+  function pedirMotivo(quien, ok) {
+    var fondo = document.createElement('div'); fondo.className = 'modal-f';
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Rechazar solicitud</div><h2 style="margin:4px 0 4px;font-size:20px">¿Por qué no se genera el certificado?</h2>' +
+      (quien ? '<div style="font-size:13.5px;color:#566370;margin-bottom:12px"><b style="color:#0a2540">' + esc(quien) + '</b></div>' : '') +
+      '<div class="lbl">Motivo (se le informa al jefe de programa)</div><textarea class="inp" id="mmot" rows="3" maxlength="300" placeholder="Escriba el motivo o elija uno" style="resize:vertical"></textarea>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' + MOTIVOS.map(function (x) { return '<button type="button" class="tab" data-mot="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="mno">Cancelar</button><button type="button" class="btn" id="msi">Rechazar</button></div></div>';
+    document.body.appendChild(fondo);
+    var ta = fondo.querySelector('#mmot'); setTimeout(function () { ta.focus(); }, 30);
+    function cerrar() { fondo.remove(); document.removeEventListener('keydown', tecla); }
+    function tecla(e) { if (e.key === 'Escape') cerrar(); }
+    document.addEventListener('keydown', tecla);
+    fondo.querySelectorAll('[data-mot]').forEach(function (b) { b.onclick = function () { ta.value = b.dataset.mot; ta.focus(); }; });
+    fondo.querySelector('#mno').onclick = cerrar; fondo.onclick = function (e) { if (e.target === fondo) cerrar(); };
+    fondo.querySelector('#msi').onclick = function () { var m = ta.value.trim(); cerrar(); ok(m); };
+  }
   function toast(m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3200); }
   function gate(on, msg) { $('gate').hidden = !on; if (msg) $('gt').textContent = msg; $('card').hidden = on; }
   function vista(html, animar) { $('vista').innerHTML = html; $('card').hidden = false; $('card').style.animation = 'none'; if (animar !== false) { void $('card').offsetWidth; $('card').style.animation = ''; } }
@@ -279,7 +296,7 @@
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
     document.querySelectorAll('#vista input,#vista select').forEach(function (e) { e.oninput = refrescar; e.onchange = refrescar; }); refrescar();
     function siguiente() { var rest = lista.filter(function (_, j) { return j !== k; }); PEND = rest.length; if (!rest.length) { toast('Revisión terminada.'); inicio(); } else revisar(rest, Math.min(k, rest.length - 1)); }
-    $('brech').onclick = function () { var m = prompt('Motivo del rechazo (opcional)'); if (m === null) return; api('revision-rechazar', { codigo: it.codigo, motivo: m }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado y correo enviado al jefe de programa.'); siguiente(); }).catch(function (e) { toast(e.message); }); };
+    $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m) { api('revision-rechazar', { codigo: it.codigo, motivo: m }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { toast(e.message); }); }); };
     $('bapr').onclick = function () {
       var x = refrescar(), err = $('f_err'), d = x.f.datos, falta = [];
       ['apellidos', 'nombres', 'cedula', 'lugar', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });
