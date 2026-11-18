@@ -130,7 +130,7 @@
   function facultadDelJefe() {
     if (!YO.estadistica) return YO.facultad || '';
     var u = (AJ.usuarios || []).filter(function (x) { return String(x.correo).toLowerCase() === String(CORREO || '').toLowerCase(); })[0];
-    return u && u.facultad ? u.facultad : '';
+    return (u && u.facultad) || ((YO.facultades || {})[String(CORREO || '').toLowerCase()]) || '';
   }
   function analizar(ced, bal) {
     var pb = N.parseBalance(bal.texto), pc = N.parseCedula(ced.texto), escaneado = !!(ced.escaneado || bal.escaneado);

@@ -140,7 +140,7 @@
   function palabrasClave(t) { return norm(limpiarPrograma(t)).split(' ').filter(function (w, i, a) { return w.length > 1 && !VACIAS[w] && a.indexOf(w) === i; }); }
   function programaEnFacultad(texto, lista, facultad) {
     var fac = norm(facultad || ''); if (!fac) return null;
-    var cand = (lista || PROGRAMAS).filter(function (p) { return norm(p.facultad || '') === fac; }); if (!cand.length) return null;
+    var cand = (lista || PROGRAMAS).filter(function (p) { return norm(p.facultad || '') === fac || norm(p.nombre) === fac; }); if (!cand.length) return null;
     var exacto = programaDe(texto, cand); if (exacto) return exacto;
     var pt = palabrasClave(texto); if (!pt.length) return null;
     var mejor = null, ms = 0, segundo = 0;
