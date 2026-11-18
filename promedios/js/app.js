@@ -174,7 +174,7 @@
       /* PDF no editable: la página se convierte en una imagen de alta calidad y se arma un PDF solo con esa imagen (sin texto ni capas). */
       return window.Lector.pdfAImagen(b64, 3.5).then(function (jpg) {
         var plano = new window.jspdf.jsPDF({ unit: 'pt', format: 'letter', orientation: 'portrait', compress: true, encryption: { userPermissions: ['print'], ownerPassword: Math.random().toString(36).slice(2) + Date.now().toString(36) } });
-        plano.setProperties({ title: doc.getProperties().title, creator: 'Portal de servicios digitales Estadística' });
+        plano.setProperties({ title: 'Certificado de promedio - ' + N.mayus(d.nombres + ' ' + d.apellidos), creator: 'Portal de servicios digitales Estadística' });
         plano.addImage(jpg, 'JPEG', 0, 0, 612, 792, undefined, 'SLOW');
         return plano.output('datauristring').split(',')[1];
       }).catch(function (e) { throw new Error('No se pudo generar el certificado como imagen no editable. Recargue el Portal (Ctrl+F5) e intente de nuevo.'); });
@@ -199,6 +199,22 @@
       var c = x[0]; return { ced: { texto: c.map(function (r) { return r.texto; }).join('\n'), escaneado: c.some(function (r) { return r.escaneado; }), imagenes: [].concat.apply([], c.map(function (r) { return r.imagenes; })) }, bal: x[1] };
     });
   }
+  /* Cédula y balance tal como se cargaron: se guardan junto al certificado (carpeta del estudiante en OneDrive). */
+  function b64DeArchivo(file) { return file.arrayBuffer().then(function (buf) { var u8 = new Uint8Array(buf), t = '', k; for (k = 0; k < u8.length; k += 0x8000) t += String.fromCharCode.apply(null, u8.subarray(k, k + 0x8000)); return btoa(t); }); }
+  function pdfDeImagenes(imgs) {
+    return imgs.reduce(function (p, src) { return p.then(function (doc) { return new Promise(function (ok) { var im = new Image(); im.onload = function () { var w = im.width * 0.75, h = im.height * 0.75; if (!doc) doc = new window.jspdf.jsPDF({ unit: 'pt', format: [w, h], orientation: w > h ? 'l' : 'p', compress: true }); else doc.addPage([w, h], w > h ? 'l' : 'p'); doc.addImage(src, 'JPEG', 0, 0, w, h); ok(doc); }; im.onerror = function () { ok(doc); }; im.src = src; }); }); }, Promise.resolve(null)).then(function (doc) { return doc ? doc.output('datauristring').split(',')[1] : null; });
+  }
+  function original(archivos, imagenes) {
+    var a0 = archivos[0], ext = a0 ? (a0.name.split('.').pop() || '').toLowerCase() : '';
+    if (archivos.length === 1 && a0.size <= 3 * 1024 * 1024 && ['pdf', 'jpg', 'jpeg', 'png'].indexOf(ext) >= 0) return b64DeArchivo(a0).then(function (b) { return { ext: ext, b64: b }; });
+    if (!imagenes || !imagenes.length) return Promise.resolve(null);
+    return pdfDeImagenes(imagenes).then(function (b) { return b ? { ext: 'pdf', b64: b } : null; });
+  }
+  function guardarOriginales(codigo, f, lec) {
+    return original(f.ced, lec.ced.imagenes).then(function (c) { return c ? api('guardar-original', { codigo: codigo, tipo: 'cedula', ext: c.ext, archivo: c.b64 }) : null; })
+      .then(function () { return original([f.bal], lec.bal.imagenes); }).then(function (b) { return b ? api('guardar-original', { codigo: codigo, tipo: 'balance', ext: b.ext, archivo: b.b64 }) : null; })
+      .catch(function () {});
+  }
   function procesar(f, i, correo) {
     return leerFila(f, i).then(function (lec) {
       var a = analizar(lec.ced, lec.bal), r = RESULT[i];
@@ -207,6 +223,7 @@
       var revision = a.tipo === 'revision';
       return api('reservar', { datos: a.datos, loteId: LOTE, correo: correo, revision: revision }).then(function (res) {
         r.codigo = res.codigo;
+        return guardarOriginales(res.codigo, f, lec).then(function () {
         if (revision) {
           var imgs = lec.ced.imagenes.concat(lec.bal.imagenes), et = lec.ced.imagenes.map(function () { return 'Cédula'; }).concat(lec.bal.imagenes.map(function () { return 'Balance'; }));
           if (!imgs.length) { imgs = []; }
@@ -215,6 +232,7 @@
         }
         return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
+        });
       }).catch(function (e) {
         if (e.http === 409 && e.datos && e.datos.duplicado) { r.estado = 'error'; r.chip = 'Ya existe un promedio'; r.nota = 'Esta cédula ya tiene certificado en este programa. Solicite la corrección a Estadística.'; r.promedio = e.datos.duplicado.promedio != null ? e.datos.duplicado.promedio : null; return; }
         throw e;
