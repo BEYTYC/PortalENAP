@@ -88,7 +88,7 @@
       return '<div class="fila"><div class="n">' + (i + 1) + '</div>' + c + b + '<button class="x" data-q="' + i + '" title="Quitar" aria-label="Quitar fila">&times;</button></div>';
     }).join('');
     var completas = FILAS.filter(function (f) { return f.ced.length && f.bal; }).length;
-    vista(cab('Generar certificados de promedio', 'Cargue los documentos de cada estudiante', 'Una fila por estudiante. Puede cargar varios a la vez.') +
+    vista(cab('Generar certificados de promedio', 'Cargue los documentos de cada estudiante', '') +
       '<div style="margin-top:14px;display:flex;align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" list="correos" autocomplete="off" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '><datalist id="correos">' + CORREOS.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>' + (YO.estadistica ? '' : '<span class="chip rev">Solo Estadística lo puede cambiar</span>') + '</div>' +
       (YO.estadistica && CORREOS.length ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="lbl" style="margin:0">Usados antes:</span>' + CORREOS.slice(0, 5).map(function (c) { return '<button class="tab" data-correo="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' : '') +
       '<div style="margin-top:10px;overflow:auto;min-height:0">' + filas + '</div>' +
