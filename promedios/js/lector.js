@@ -98,6 +98,32 @@
     for (i = 0; i < n; i++) { out[i] = g[i] - f[i]; if (out[i] < lo) lo = out[i]; if (out[i] > hi) hi = out[i]; }
     return aLienzo(out, r.w, r.h, function (v) { return binario ? (v < -18 ? 0 : 255) : Math.round(255 * (v - lo) / ((hi - lo) || 1)); });
   }
+  /* Separa el frente y el reverso de la cédula cuando vienen en la misma hoja (franja en blanco entre ambos). */
+  function tarjetas(c) {
+    var w = c.width, h = c.height, im = c.getContext('2d').getImageData(0, 0, w, h).data, fil = [], y, x, n, segs = [], ini = -1, vacio = 0;
+    for (y = 0; y < h; y += 2) { n = 0; for (x = 0; x < w; x += 4) { var i = (y * w + x) * 4; if ((im[i] + im[i + 1] + im[i + 2]) / 3 < 235) n++; } fil.push(n > (w / 4) * 0.04); }
+    for (y = 0; y < fil.length; y++) {
+      if (fil[y]) { if (ini < 0) ini = y; vacio = 0; }
+      else if (ini >= 0) { vacio++; if (vacio * 2 >= h * 0.025) { segs.push([ini * 2, (y - vacio + 1) * 2]); ini = -1; vacio = 0; } }
+    }
+    if (ini >= 0) segs.push([ini * 2, h]);
+    segs = segs.filter(function (q) { return q[1] - q[0] >= h * 0.15; });
+    if (segs.length < 2) return [c];
+    return segs.slice(0, 2).map(function (q) { var y0 = Math.max(0, q[0] - 10), y1 = Math.min(h, q[1] + 10), t = lienzo(w, y1 - y0); t.getContext('2d').drawImage(c, 0, y0, w, y1 - y0, 0, 0, w, y1 - y0); return t; });
+  }
+  function leerTarjetas(r, textoBase) {
+    var cs = tarjetas(r), todo = [textoBase];
+    return cs.reduce(function (p, t) { return p.then(function () { return reconocer(contrasteLocal(t, false)).then(function (o) { todo.unshift(o.data.text); }); }); }, Promise.resolve()).then(function () {
+      if (tieneLinea(todo.join('\n'))) return;
+      /* la línea de lectura (letra muy pequeña al pie del reverso) se lee aparte: solo la franja inferior de la última tarjeta */
+      var u = cs[cs.length - 1], hh = Math.round(u.height * 0.22), fr = lienzo(u.width, hh); fr.getContext('2d').drawImage(u, 0, u.height - hh, u.width, hh, 0, 0, u.width, hh);
+      return reconocer(contrasteLocal(fr, false)).then(function (o) { todo.unshift(o.data.text); });
+    }).then(function () {
+      if (cedulaCompleta(todo.join('\n'))) return todo.join('\n');
+      return cs.reduce(function (p, t) { return p.then(function () { return reconocer(contrasteLocal(t, true)).then(function (o) { todo.splice(cs.length, 0, o.data.text); }); }); }, Promise.resolve()).then(function () { return todo.join('\n'); });
+    });
+  }
+  function tieneLinea(t) { return /-M?F?-?(\d{9,11})-\d{8}/.test(t) || /-[MF]-(\d{9,11})-/.test(t) || /[MmFf]{1,2}\d{6,7}\s?COL(\d{9,11})/.test(t); }
   function cedulaCompleta(t) {
     var num = /(?:N[UÚ]MERO|NUIP)\s*:?\s*([\d.\s]{6,14})/i.exec(t), ok = num && num[1].replace(/\D/g, '').length >= 6;
     var lin = /-M?F?-?(\d{9,11})-\d{8}/.test(t) || /-[MF]-(\d{9,11})-/.test(t) || /[MmFf]{1,2}\d{6,7}\s?COL(\d{9,11})/.test(t);
@@ -148,7 +174,7 @@
               var t = o.data.text;
               if (tipo === 'cedula' && !cedulaCompleta(t)) {   /* respaldo: foto oscura o con reflejos → se vuelve a leer con el contraste corregido */
                 progreso('Mejorando la lectura de la cédula…');
-                return reconocer(contrasteLocal(r, false)).then(function (o2) { return reconocer(contrasteLocal(r, true)).then(function (o3) { textos.push(t + '\n' + o2.data.text + '\n' + o3.data.text); }); });
+                return leerTarjetas(r, t).then(function (tt) { textos.push(tt); });
               }
               if (tipo !== 'balance') { textos.push(t); return; }
               return leerTotales(r, palabrasDe(o.data)).then(function (extra) {
@@ -187,5 +213,5 @@
       return pdfLienzo(pg, escala || 3.5).then(function (c) { return c.toDataURL('image/jpeg', 0.92); });
     });
   }
-  root.Lector = { leer: leer, terminar: terminar, jpeg: jpeg, pdfAImagen: pdfAImagen };
+  root.Lector = { leer: leer, terminar: terminar, jpeg: jpeg, pdfAImagen: pdfAImagen, _prueba: { tarjetas: tarjetas, recortarContenido: recortarContenido, contrasteLocal: contrasteLocal } };
 })(window);

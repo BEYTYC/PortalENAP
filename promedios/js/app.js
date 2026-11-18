@@ -89,12 +89,17 @@
     }).join('');
     var completas = FILAS.filter(function (f) { return f.ced.length && f.bal; }).length;
     vista(cab('Generar certificados de promedio', 'Cargue los documentos de cada estudiante', '') +
-      '<div style="margin-top:14px;display:' + (YO.estadistica ? 'flex' : 'none') + ';align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" list="correos" autocomplete="off" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '><datalist id="correos">' + CORREOS.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>' + '' + '</div>' +
-      (YO.estadistica && CORREOS.length ? '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;align-items:center"><span class="lbl" style="margin:0">Usados antes:</span>' + CORREOS.slice(0, 5).map(function (c) { return '<button class="tab" data-correo="' + esc(c) + '">' + esc(c) + '</button>'; }).join('') + '</div>' : '') +
+      '<div style="margin-top:14px;display:' + (YO.estadistica ? 'flex' : 'none') + ';align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" autocomplete="off" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '>' + '' + '</div>' +
       '<div style="margin-top:10px;overflow:auto;min-height:0">' + filas + '</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px"><div style="display:flex;gap:10px"><button class="btn sec" id="bmas">+ Agregar estudiante</button>' + volver() + '</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:13px;color:#566370">' + completas + ' de ' + FILAS.length + ' filas completas</span><button class="btn" id="bgen"' + (completas ? '' : ' disabled') + '>Generar certificados</button></div></div>' +
       '<input type="file" id="fin" hidden>');
-    document.querySelectorAll('[data-correo]').forEach(function (b) { b.onclick = function () { $('correo').value = b.dataset.correo; }; });
+    /* autocompletado: mientras ella escribe, el correo usado antes que empieza igual se va rellenando (lo que sobra queda seleccionado: sigue escribiendo o Enter/Tab para aceptar) */
+    var ce = $('correo'); if (ce && YO.estadistica) ce.addEventListener('input', function (e) {
+      if (e.inputType && e.inputType.indexOf('delete') === 0) return;
+      var v = ce.value, ini = ce.selectionStart; if (!v || ini !== v.length) return;
+      var m = CORREOS.filter(function (c) { return c.toLowerCase().indexOf(v.toLowerCase()) === 0 && c.length > v.length; })[0];
+      if (m) { ce.value = v + m.slice(v.length); ce.setSelectionRange(v.length, m.length); }
+    });
     $('bvolver').onclick = inicio; $('bmas').onclick = function () { guardarCorreo(); FILAS.push(nuevaFila()); carga(); };
     document.querySelectorAll('[data-q]').forEach(function (b) { b.onclick = function () { guardarCorreo(); FILAS.splice(+b.dataset.q, 1); carga(); }; });
     document.querySelectorAll('[data-slot]').forEach(function (s) {
@@ -159,7 +164,7 @@
     if (!rep || N.similitud(rep.apellidos, pc.apellidos || '') < 0.88 || (pc.nombres && N.similitud(rep.nombres, pc.nombres) < 0.8)) { motivos.push('El nombre del balance no coincide claramente con el de la cédula.'); ok = false; }
     if (!(ambas)) ok = false;
     salida.tipo = ok ? 'emitir' : 'revision'; salida.motivo = motivos.join(' '); salida.chip = ok ? '' : 'En revisión de Estadística';
-    salida.nota = ok ? '' : (escaneado ? 'Documento escaneado: Estadística lo revisa antes de firmar y enviar.' : 'Estadística revisará los datos antes de emitir.');
+    salida.nota = ok ? '' : 'Estadística lo revisa antes de firmar y enviar.';
     return salida;
   }
 
@@ -253,6 +258,16 @@
     var cl = r.estado === 'revision' ? 'rev' : r.estado === 'manual' ? 'aviso' : 'err';
     return '<span class="chip ' + cl + '">' + esc(r.chip) + '</span><div class="m">' + esc(r.nota) + '</div>';
   }
+  /* Cuadro que dice a dónde llegó el lote: al correo, a Estadística o ambos. */
+  function avisoLote(c, listo) {
+    if (!listo) return '';
+    var aEst = c.revision + c.manual, mail = c.enviado, txt;
+    if (mail && !aEst && !c.error) txt = mail === 1 ? 'El certificado llegó al correo.' : 'Todos los certificados llegaron al correo.';
+    else if (!mail && aEst && !c.error) txt = aEst === 1 ? 'El lote fue enviado a Estadística para su revisión.' : 'El lote fue enviado a Estadística para su revisión.';
+    else if (mail || aEst) txt = (mail ? mail + (mail === 1 ? ' certificado llegó al correo' : ' certificados llegaron al correo') : '') + (mail && aEst ? ' y ' : '') + (aEst ? aEst + (aEst === 1 ? ' fue enviado a Estadística para su revisión' : ' fueron enviados a Estadística para su revisión') : '') + '.' + (c.error ? ' ' + c.error + (c.error === 1 ? ' no se pudo procesar.' : ' no se pudieron procesar.') : '');
+    else return '';
+    return '<div style="margin-top:14px;padding:13px 18px;border-radius:14px;background:#eaf3fb;border:1px solid #cfe0ef;color:#0b3d66;font-weight:600;font-size:14.5px;box-shadow:0 6px 16px -12px rgba(6,42,74,.5)">' + esc(txt) + '</div>';
+  }
   function resultado(sinAnimar) {
     ancho(1160);
     var c = { enviado: 0, revision: 0, manual: 0, error: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
@@ -261,6 +276,7 @@
     var filas = RESULT.map(function (r) { return '<div class="r"><b>' + esc(r.nombre) + '</b><span>' + esc(r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><div>' + chipDe(r) + '</div></div>'; }).join('');
     var y = $('vista').scrollTop;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><div class="gold">Resultado de la solicitud</div><h2>' + RESULT.length + ' ' + (RESULT.length === 1 ? 'estudiante procesado' : 'estudiantes procesados') + '</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div></div>' +
+      avisoLote(c, listo) +
       '<div class="r h"><span class="lbl">Estudiante</span><span class="lbl">Programa</span><span class="lbl">Promedio</span><span class="lbl">Estado</span></div><div style="overflow:auto;min-height:0">' + filas + '</div>' +
       '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap"><button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
     $('vista').scrollTop = y;
@@ -285,6 +301,36 @@
   }
 
   /* ------------------------------ Revisión (Estadística) ------------------------------ */
+  /* Firma y envía de una vez todos los certificados pendientes de revisión que tengan los datos completos y el balance vigente. */
+  function confirmarModal(titulo, texto, textoOk, ok) {
+    var fondo = document.createElement('div'); fondo.className = 'modal-f';
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Confirmar</div><h2 style="margin:4px 0 8px;font-size:20px">' + esc(titulo) + '</h2><div style="font-size:14px;color:#334155;line-height:1.5">' + esc(texto) + '</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="cno">Cancelar</button><button type="button" class="btn" id="csi">' + esc(textoOk) + '</button></div></div>';
+    document.body.appendChild(fondo);
+    fondo.querySelector('#cno').onclick = function () { fondo.remove(); };
+    fondo.querySelector('#csi').onclick = function () { fondo.remove(); ok(); };
+  }
+  function aprobarTodos(lista) {
+    var elegibles = [], omitidos = [];
+    lista.forEach(function (it) {
+      var d = Object.assign({}, it.datos), prog = AJ.programas.filter(function (x) { return x.id === d.programaId; })[0] || null, falta = false;
+      ['apellidos', 'nombres', 'cedula', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k) { if (!d[k]) falta = true; });
+      if (!(d.promedio >= 0 && d.promedio <= 10) || !prog || !prog.facultad) falta = true;
+      var v = falta ? null : N.vigencia({ nivel: prog.nivel, terminacion: d.periodoTerminacion, diplomado: d.diplomado, hoy: new Date() });
+      if (falta || !v || (v.estado !== 'vigente' && v.estado !== 'actualizado')) { omitidos.push(it); return; }
+      d.programa = prog.nombre; d.sigla = prog.sigla; d.nivel = prog.nivel; d.facultad = prog.facultad; d.lugar = ''; d.estadoVigencia = v.estado === 'actualizado' ? 'actualizado' : 'vigente';
+      elegibles.push({ it: it, d: d });
+    });
+    if (!elegibles.length) { toast('Ninguno tiene los datos completos para emitirse de una vez. Revíselos uno por uno.'); return; }
+    confirmarModal('¿Firmar y enviar todos?', 'Se emitirán ' + elegibles.length + ' certificado' + (elegibles.length === 1 ? '' : 's') + ' con los datos tal como están leídos.' + (omitidos.length ? ' ' + omitidos.length + ' no se emitirán porque les falta algún dato o el balance está desactualizado; esos los revisa uno por uno.' : ''), 'Firmar y enviar', function () {
+      var hechos = 0, fallos = 0;
+      elegibles.reduce(function (p, e, i) {
+        return p.then(function () { gate(true, 'Firmando y enviando ' + (i + 1) + ' de ' + elegibles.length + '…'); return pdfDe(e.d, e.it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: e.it.codigo, datos: e.d, pdf: pdf }); }).then(function () { hechos++; }).catch(function () { fallos++; }); });
+      }, Promise.resolve()).then(function () {
+        gate(false); toast(hechos + (hechos === 1 ? ' certificado emitido' : ' certificados emitidos') + ' y enviados.' + (fallos ? ' ' + fallos + ' no se pudieron emitir.' : '') + (omitidos.length ? ' Quedan ' + omitidos.length + ' por revisar.' : ''));
+        pendientes().then(function () { revision(); });
+      });
+    });
+  }
   function revision() {
     ancho(1200); vista('<div class="vac"><span class="spin"></span> Cargando…</div>');
     api('revision-lista').then(function (r) { PEND = r.lista.length; if (!r.lista.length) { vista(cab('Revisión · Oficina de Estadística', 'Nada pendiente', 'No hay documentos escaneados esperando revisión.') + '<div style="margin-top:18px">' + volver() + '</div>'); $('bvolver').onclick = inicio; return; } revisar(r.lista, 0); }).catch(function (e) { toast(e.message); inicio(); });
@@ -295,7 +341,7 @@
   var IMGREV = {}, GENPRE = 0;
   function revisar(lista, k) {
     var it = lista[k], d = it.datos;
-    vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select></div>' +
+    vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select>' + (lista.length > 1 ? '<button class="btn" id="btodos" style="padding:7px 16px;font-size:13.5px">Firmar y enviar todos (' + lista.length + ')</button>' : '') + '</div></div>' +
       (it.motivoRevision ? '<div class="chip aviso" style="margin-top:10px;white-space:normal;border-radius:10px">' + esc(it.motivoRevision) + '</div>' : '') +
       '<div class="sdoc" style="display:flex;gap:22px;margin-top:14px;flex:1;min-height:0"><div style="flex:1.05;display:flex;flex-direction:column;min-width:0;min-height:340px"><div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap" id="tabs"></div><div class="doc" id="doc"><span class="spin"></span></div></div>' +
       '<div style="flex:1;min-width:0;overflow:auto"><div class="g2"><div><div class="lbl">Apellidos</div><input class="inp" id="f_ap" value="' + esc(d.apellidos) + '"></div><div><div class="lbl">Nombres</div><input class="inp" id="f_no" value="' + esc(d.nombres) + '"></div>' +
@@ -309,6 +355,7 @@
       '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap"><div style="display:flex;gap:10px">' + volver() + '<button class="btn sec" id="brech">Rechazar</button></div><button class="btn" id="bapr">Aprobar y emitir</button></div>');
     $('bvolver').onclick = inicio;
     $('selrev').onchange = function () { revisar(lista, +this.value); };
+    if ($('btodos')) $('btodos').onclick = function () { aprobarTodos(lista); };
     var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = (IMGREV[it.codigo] = IMGREV[it.codigo] || {});
     var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); var et0 = etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento', tot = etiquetas ? etiquetas.slice(0, it.nImagenes).filter(function (e) { return e === et0; }).length : it.nImagenes; b.textContent = et0 + (tot > 1 ? ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === et0; }).length : n) : ''); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
     if (!etiquetas || etiquetas.slice(0, it.nImagenes).indexOf('Balance') < 0) { var bb = document.createElement('button'); bb.className = 'tab'; bb.textContent = 'Balance'; bb.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); bb.classList.add('on'); var dc = $('doc'); dc.classList.remove('zoom'); dc.innerHTML = '<div class="vac">Este registro se cargó antes y no guardó la imagen del balance.<br>Recházalo sin avisar al jefe de programa y vuelve a cargarlo para ver el balance aquí.</div>'; }; tabs.appendChild(bb); }

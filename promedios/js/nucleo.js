@@ -120,6 +120,7 @@
       if (/PROMEDIO|TOTAL|CR[ÉE]DITOS APROBADOS|OBSERVACIONES/i.test(ln)) return;
       if (!/\b[A-Z]{1,3}\s?\d{3}\b/.test(ln)) return;
       var toks = ln.replace(/[|¡!]/g, ' ').trim().split(/\s+/);
+      if (toks.length > 3 && /^\.\d{1,3}$/.test(toks[toks.length - 1])) toks.pop();   /* columna HAB. (".000") al final de la fila */
       var nums = []; for (var k = toks.length - 1; k >= 0 && nums.length < 3; k--) { if (/^\d{1,3}([.,]\d{1,3})?$/.test(toks[k])) nums.unshift(toks[k]); else break; }
       if (nums.length < 2) return;
       var nota = numNota(nums[nums.length - 1], true), cred = parseInt(nums[nums.length - 2], 10);
@@ -214,6 +215,9 @@
     /* el número puede aparecer varias veces (una lectura por cada pasada del lector): se elige el más completo y repetido */
     var cands = [], puntos = {}, reN = /(?:N[UÚ]MERO|NUIP)[\s.:]{0,12}(\d[\d. ]{5,16})/gi, mN;
     while ((mN = reN.exec(t))) { var dn = mN[1].replace(/\D/g, ''); if (dn.length >= 6) { cands.push(dn); if (/^\d{1,3}(\.\d{3}){1,3}$/.test(mN[1].trim())) puntos[dn] = true; } }
+    if (!cands.length) {   /* formato antiguo: el número va ARRIBA de la etiqueta ("50.978.091 / NÚMERO"): se toma el número con puntos */
+      var reP = /\b(\d{1,3})[-.,]?(\d{3})[.,](\d{3})(?:[.,](\d{3}))?\b/g, mP; while ((mP = reP.exec(t))) { var dp = mP.slice(1).join(''); if (dp.length >= 7) { cands.push(dp); puntos[dp] = true; } }
+    }
     if (cands.length) {
       var cuenta = {}; cands.forEach(function (x) { cuenta[x] = (cuenta[x] || 0) + 1; });
       cands.sort(function (x, y) { if (!!puntos[x] !== !!puntos[y]) return puntos[x] ? -1 : 1; var px = (x.length >= 8 && x.length <= 10 ? 1 : 0), py = (y.length >= 8 && y.length <= 10 ? 1 : 0); return (py - px) || (cuenta[y] - cuenta[x]) || (y.length - x.length); });
@@ -233,6 +237,11 @@
     /* La banda MRZ (letras sin tilde) sirve para limpiar el ruido del OCR: se conservan solo las palabras de la etiqueta que también están en la banda. */
     function conMRZ(valor, mrz) { if (!mrz) return valor; var ws = norm(mrz).split(' '), ok = String(valor || '').split(/\s+/).filter(function (w) { return ws.indexOf(norm(w).replace(/Ñ/g, 'N')) >= 0 || ws.indexOf(norm(w)) >= 0; }); return ok.length ? ok.join(' ') : mrz; }
     r.apellidos = conMRZ(r.apellidos, r.apellidosMRZ); r.nombres = conMRZ(r.nombres, r.nombresMRZ);
+    /* cédula antigua sin etiquetas legibles: los dos renglones en mayúscula que siguen al número son apellidos y nombres (luego se contrastan con el balance) */
+    if (!r.apellidos && !nuevo) {
+      var iN = -1; for (var z = 0; z < L.length; z++) if (/\d[-.,]?\d{3}[.,]\d{3}/.test(L[z]) && !/-[MF]-/.test(L[z])) { iN = z; break; }
+      if (iN >= 0) { var ns = []; for (var z2 = iN + 1; z2 < L.length && ns.length < 2 && z2 <= iN + 6; z2++) { var cn = limpiaNombre(L[z2]); if (cn.length >= 3 && cn === cn.toUpperCase() && !/^(APELLIDOS|NOMBRES|NUMERO|FECHA|FIRMA|ESTATURA)/i.test(cn)) ns.push(cn); } if (ns.length) { r.apellidos = ns[0]; r.nombres = ns[1] || ''; } }
+    }
     /* lugar: "08-NOV-2002 BOGOTA D.C." */
     /* primero, las líneas vecinas a «Fecha y lugar de expedición» (en la cédula nueva va debajo; en la antigua, encima): fecha + lugar, con coma o sin ella */
     var ie = -1; for (var q0 = 0; q0 < L.length; q0++) if (/FECHA\s+Y\s+LUGAR|LUGAR\s+DE\s+EXPEDICI/i.test(L[q0])) { ie = q0; break; }
@@ -257,7 +266,8 @@
       var claro = ws2.length >= 1 && ws2.length <= 5 && ws2.every(function (w) { return /^(DE|DEL|LA|LAS|LOS|EL|Y)$/.test(w) || /^[A-Z]{3,}$/.test(w); }) && ws2.some(function (w) { return w.length >= 4; }) && !/FECHA|LUGAR|EXPEDICION|NACIMIENTO|ESTATURA|SEXO|REGISTRADOR|INDICE/.test(limpio);
       if (!claro) r.lugar = '';
     }
-    r.cara.frente = nuevo ? /(NOMBRES|OMBRES|NACIONALIDAD|ESTATURA|APELLIDOS|FECHA\s+Y\s+LUGAR)/i.test(t) : (/(N[UÚ]MERO|NUIP)/i.test(t) && /APELLIDOS/i.test(t) && /(NOMBRES|OMBRES)/i.test(t));
+    r.cara.frente = nuevo ? /(NOMBRES|OMBRES|NACIONALIDAD|ESTATURA|APELLIDOS|FECHA\s+Y\s+LUGAR)/i.test(t) : (/(N[UÚ]MERO|NUIP)/i.test(t) && /APELLIDOS/i.test(t) && (/(NOMBRES|OMBRES)/i.test(t) || /\b\d{1,3}(?:\.\d{3}){2,3}\b/.test(t)));
+    if (!r.cara.frente && !nuevo && r.numero && r.apellidos) r.cara.frente = true;   /* se leyeron el número y los apellidos del frente aunque las etiquetas no salgan */
     r.cara.reverso = nuevo ? (/REGISTRADOR/i.test(t) || !!mz || !!r.numeroLinea) : (/FECHA\s+DE\s+NACIMIENTO/i.test(t) || /LUGAR\s+DE\s+EXPEDICI/i.test(t) || /FECHA\s+Y\s+LUGAR/i.test(t));
     r.puntaje = (r.cara.frente ? 1 : 0) + (r.cara.reverso ? 1 : 0) + (/REPUBLICA|REPÚBLICA/i.test(t) ? 1 : 0) + (/CEDULA|CÉDULA/i.test(t) ? 1 : 0);
     return r;
