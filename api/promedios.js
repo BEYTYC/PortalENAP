@@ -230,7 +230,14 @@ module.exports = async function handler(req, res) {
     await ctx();
     const ajustes = await leerAjustes();
     const esEst = ESTADISTICA.includes(yo.correo);
-    const puede = esEst || (ajustes.usuarios || []).map((u) => String(u.correo).toLowerCase()).includes(yo.correo);
+    let puede = esEst || (ajustes.usuarios || []).map((u) => String(u.correo).toLowerCase()).includes(yo.correo);
+    /* Todo jefe de programa (rol JEFE_PROGRAMA activo en la lista de permisos del Portal) entra con su propio usuario del login. */
+    if (!puede) {
+      try {
+        const t = await roles.getAppAccessToken(), sid = await roles.resolveSiteId(t), lid = await roles.resolveListId(t, sid);
+        puede = roles.rolesActivosPara(await roles.leerFilas(t, sid, lid), yo.correo).includes('JEFE_PROGRAMA');
+      } catch (e) { puede = false; }
+    }
     if (!puede) throw error('No tiene acceso a Generación de Promedios Académicos.', 403);
     const soloEst = () => { if (!esEst) throw error('Esta acción es solo de la Oficina de Estadística.', 403); };
     const a = body.accion;
@@ -328,17 +335,23 @@ module.exports = async function handler(req, res) {
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
       let envio = null, avisoError = '';
       if (ok && reg && reg.lote && reg.lote.correo) {
+        /* Cuando ya no queda nada en revisión del lote, el jefe de programa recibe UN correo con solo los estudiantes que faltaron, y luego el de los aprobados. */
         try {
-          const nom = [reg.sigla, reg.apellidos, reg.nombres].filter(Boolean).join(' ') || 'Estudiante';
-          const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Estadística no pudo generar el certificado de promedio académico del siguiente estudiante:</p>
-<p style="font-size:14.5px;color:#062a4a;margin:0 0 10px"><b>${esc(nom)}</b>${reg.programa ? '<br>' + esc(reg.programa) : ''}</p>
-${reg.motivoRechazo ? `<p style="font-size:14.5px;color:#334155;margin:0 0 10px"><b>Motivo:</b> ${esc(reg.motivoRechazo)}</p>` : ''}
-<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Para generarlo, vuelva a enviar la solicitud con los documentos corregidos.</p>`;
-          await enviarCorreo(reg.lote.correo, 'Solicitud de certificado de promedio no procesada', htmlCorreo({ titulo: 'Solicitud no procesada', cuerpo }));
-          await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (r) r.rechazoEnviado = { fecha: ahora(), a: reg.lote.correo }; });
-        } catch (e) { avisoError = e.message || 'No se pudo enviar el correo de rechazo.'; }
-        /* si ya no queda nada en revisión en el lote, sale el segundo correo con los aprobados */
-        try { const { valor } = await leerJson('registros.json'); if (!(valor || []).some((r) => r.lote && r.lote.id === reg.lote.id && r.estado === 'revision')) envio = await enviarPendientesDelLote(reg.lote.id); } catch (e) { avisoError = avisoError || e.message; }
+          const { valor } = await leerJson('registros.json'); const todos = valor || [];
+          if (!todos.some((r) => r.lote && r.lote.id === reg.lote.id && r.estado === 'revision')) {
+            const faltan = todos.filter((r) => r.lote && r.lote.id === reg.lote.id && r.estado === 'rechazado' && !r.rechazoEnviado);
+            if (faltan.length) {
+              const items = faltan.map((r) => `<li style="margin:0 0 8px"><b>${esc([r.sigla, r.apellidos, r.nombres].filter(Boolean).join(' ') || 'Estudiante')}</b>${r.programa ? ' — ' + esc(r.programa) : ''}${r.motivoRechazo ? `<br><span style="color:#566370">Motivo: ${esc(r.motivoRechazo)}</span>` : ''}</li>`).join('');
+              const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Estadística no pudo generar el certificado de promedio académico de ${faltan.length === 1 ? 'el siguiente estudiante' : 'los siguientes estudiantes'}:</p>
+<ul style="font-size:14.5px;color:#062a4a;margin:0 0 14px;padding-left:20px">${items}</ul>
+<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Para generarlos, vuelva a enviar la solicitud con los documentos corregidos.</p>`;
+              await enviarCorreo(reg.lote.correo, 'Solicitud de certificados de promedio no procesada', htmlCorreo({ titulo: 'Solicitud no procesada', cuerpo }));
+              const cods = new Set(faltan.map((r) => r.codigo)), t = ahora();
+              await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (cods.has(r.codigo)) r.rechazoEnviado = { fecha: t, a: reg.lote.correo }; }); });
+            }
+            envio = await enviarPendientesDelLote(reg.lote.id);
+          }
+        } catch (e) { avisoError = e.message || 'No se pudo enviar el correo.'; }
       }
       res.status(200).json({ ok, envio, avisoError }); return;
     }

@@ -3245,7 +3245,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
         { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'], quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         // Certificado de promedio desde cédula + balance. Estadística; /api/promedios valida además a los usuarios autorizados en Ajustes.
-        { nombre: 'Generación de Promedios Académicos', status: 'ok', correosPermitidos: ['jestadisticaplen@enap.edu.co'], quien: 'Este módulo es solo para la Oficina de Estadística.' },
+        { nombre: 'Generación de Promedios Académicos', status: 'ok', correosORoles: { correos: ['jestadisticaplen@enap.edu.co'], roles: ['JEFE_PROGRAMA'] }, quien: 'Este módulo es solo para la Oficina de Estadística y los jefes de programa.' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -3313,7 +3313,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Todos los submenús se ven siempre; si la cuenta no tiene acceso, el ítem queda con candado
         // y al tocarlo sale la pantalla "Sin acceso" con el botón "Solicitar acceso al módulo".
         const bloqueado = !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
-          || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1));
+          || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1)
+          || (item.correosORoles && item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesSesion.includes(r))));
 
         // Submenu anidado (p. ej. "Descarga de Balances Académicos"): se abre
         // como flyout a la DERECHA del boton (con el mouse, con solo pasar
@@ -3400,7 +3401,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Promedios Académicos') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
+            const rolesProm = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.roles) || [];
+            if (item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesProm.includes(r))) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística y los jefes de programa.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística y los jefes de programa.'); } }
             else { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Registro de bajas') {

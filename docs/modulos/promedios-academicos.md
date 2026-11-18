@@ -19,3 +19,7 @@ Sale de **certificaciones@enap.edu.co**, **uno por lote** al «Enviar el correo 
 
 ## Siglas
 NAV, IM, MC, MM, CCPAD, CCPAM, CCPEL, CCPIN, CCPOF, ESP LOGÍSTICA, ESP POLÍTICA, MSC LOGÍSTICA, MSC INGENIERÍA NAVAL, MSC OCEANOGRAFÍA, PHD (editables en Ajustes).
+
+## Acceso y rechazos
+- Entran Estadística, los usuarios autorizados en Ajustes y **todo usuario con rol JEFE_PROGRAMA** activo en la lista de permisos del Portal (el servidor lo verifica). Cada uno entra con su propio usuario del login; el jefe de programa recibe los certificados en su correo de sesión y solo ve lo que él generó.
+- Al rechazar un escaneado, cuando ya no queda nada en revisión del lote, el jefe de programa recibe **un solo correo con únicamente los estudiantes que faltaron** (con el motivo) y, después, el de los aprobados.
