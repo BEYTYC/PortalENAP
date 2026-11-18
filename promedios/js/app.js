@@ -374,7 +374,7 @@
       '<div><div class="lbl">Cédula</div><input class="inp" id="f_ce" inputmode="numeric" value="' + esc(d.cedula) + '"></div></div>' +
       '<div style="margin-top:12px"><div class="lbl">Programa</div><select class="inp" id="f_pr"><option value="">Seleccione…</option>' + opcionesProg(d.programaId) + '</select></div>' +
       '<div class="g2" style="margin-top:12px"><div><div class="lbl">Facultad (según el programa)</div><input class="inp" id="f_fa" readonly></div><div><div class="lbl">Periodo de terminación</div><input class="inp" id="f_pe" placeholder="2026-1" value="' + esc(d.periodoTerminacion) + '"></div>' +
-      '<div><div class="lbl">Diplomado de actualización (periodo)</div><input class="inp" id="f_di" placeholder="Opcional · 2026-1" value="' + esc(d.diplomado) + '"></div><div><div class="lbl">Fecha de elaboración (dd/mm/aaaa)</div><input class="inp" id="f_fe" value="' + esc(fmtFecha(d.fechaBalance)) + '"></div>' +
+      '<div><div class="lbl">Diplomado de actualización (periodo)</div><input class="inp" id="f_di" placeholder="Opcional · 2026-1" value="' + esc(d.diplomado) + '"></div><div><div class="lbl">Fecha de elaboración</div><input class="inp" id="f_fe" type="date" max="2100-12-31" value="' + esc(/^\d{4}-\d{2}-\d{2}$/.test(d.fechaBalance || '') ? d.fechaBalance : '') + '" style="cursor:pointer"></div>' +
       '<div><div class="lbl">Promedio ponderado</div><input class="inp" id="f_pm" inputmode="decimal" value="' + (d.promedio != null ? Number(d.promedio).toFixed(3) : '') + '"></div><div><div class="lbl">Vigencia</div><input class="inp" id="f_vi" readonly></div></div>' +
       (it.ocr ? '<details style="margin-top:12px"><summary style="font-size:12.5px;color:#566370;font-weight:600">Texto leído por el lector</summary><pre style="white-space:pre-wrap;font-size:11.5px;color:#3b4754;max-height:160px;overflow:auto;margin:6px 0 0">' + esc(it.ocr) + '</pre></details>' : '') +
       '<div id="f_err" class="chip err" style="margin-top:12px;white-space:normal;border-radius:10px" hidden></div></div></div>' +
@@ -418,7 +418,7 @@
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
       var pm = parseFloat(String($('f_pm').value).replace(',', '.'));
       return { p: p, datos: { apellidos: N.mayus($('f_ap').value), nombres: N.mayus($('f_no').value), cedula: $('f_ce').value.replace(/\D/g, ''), lugar: '', programaId: p ? p.id : '', programa: p ? p.nombre : '', sigla: p ? p.sigla : '', nivel: p ? p.nivel : 'pregrado', facultad: p ? p.facultad : '',
-        promedio: pm, periodoTerminacion: $('f_pe').value.trim(), diplomado: $('f_di').value.trim(), fechaBalance: desdeFecha($('f_fe').value) } };
+        promedio: pm, periodoTerminacion: $('f_pe').value.trim(), diplomado: $('f_di').value.trim(), fechaBalance: /^\d{4}-\d{2}-\d{2}$/.test($('f_fe').value) ? $('f_fe').value : '' } };
     }
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
     document.querySelectorAll('#vista input,#vista select').forEach(function (e) { e.oninput = refrescar; e.onchange = refrescar; }); refrescar();
