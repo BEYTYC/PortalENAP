@@ -142,7 +142,13 @@
     r.programaTexto = valorDespues(t, 'PROGRAMA\\s+ACAD[ÉE]MICO', 'Periodo\\s+de\\s+terminaci[oó]n');
     var f = /Fecha\s+elaboraci[oó]n\s*:?\s*(\d{1,2}\s*[\/\-.]\s*\d{1,2}\s*[\/\-.]\s*\d{4})/i.exec(t); r.fechaElaboracion = f ? parseFecha(f[1]) : null;
     var p = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{4}\s*[-–]\s*[12])/i.exec(t); r.periodoTerminacion = p ? p[1].replace(/\s+/g, '').replace('–', '-') : '';
-    var d = /Diplomado\s+de\s+Actualizaci[oó]n\s*(?:del?\s+)?(?:periodo\s+)?(\d{4}\s*[-–]\s*[12])/i.exec(t); r.diplomado = d ? d[1].replace(/\s+/g, '').replace('–', '-') : '';
+    var d = /Diplomado\s+de\s+Actualizaci[oó]n\s*(?:del?\s+)?(?:periodo\s+)?(\d{4}\s*[-–]\s*[12])/i.exec(t) || /Diplomado[^\n]{0,60}?(\d{4}\s*[-–:.]\s*[12])\b/i.exec(t); r.diplomado = d ? d[1].replace(/\s+/g, '').replace(/[–:.]/, '-') : '';
+    /* Respaldo si el OCR deformó la etiqueta: primer periodo (AAAA-1/2) que aparece antes de la tabla de materias */
+    if (!r.periodoTerminacion) {
+      var antes = t.split(/\r?\n/); var corte = antes.findIndex(function (l) { return /\b[A-Z]{1,3}\s?\d{3}\b.*\d[.,]?\d*\s*$/.test(l) && !/PERIODO|DIPLOMADO/i.test(l); });
+      var cab = (corte > 0 ? antes.slice(0, corte) : antes.slice(0, 14)).join('\n').replace(/Fecha\s+elaboraci[oó]n[^\n]*/ig, '');
+      var pp = /\b(20\d{2})\s*[-–]\s*([12])\b/.exec(cab); if (pp) { r.periodoTerminacion = pp[1] + '-' + pp[2]; r.periodoPorRespaldo = true; }
+    }
     var cr = /TOTAL\s+CR[ÉE]DITOS\s+APROBADOS[^\d]{0,12}(\d{1,3})\b/i.exec(t); r.creditosImpresos = cr ? parseInt(cr[1], 10) : null;
     var pm = /PROMEDIO\s+PONDERADO\s+ACUMULADO[^\d]{0,12}(\d{1,2}[.,]\d{1,3})/i.exec(t); r.promedioImpreso = pm ? parseFloat(pm[1].replace(',', '.')) : null;
     r.filas = filasDelBalance(t);
@@ -198,9 +204,12 @@
     var palabras = mayus(nombreBalance).split(' ').filter(Boolean);
     if (palabras.length < 2) return null;
     var mejor = null;
-    for (var k = 1; k <= Math.min(3, palabras.length - 1); k++) {
+    /* Sin pista de la cédula, lo más común en Colombia es dos apellidos (si hay 3 o más palabras); también se usa la cantidad de palabras que la cédula traiga en apellidos. */
+    var kCed = String(apellidosCedula || '').trim().split(/\s+/).filter(function (w) { return w.length > 1; }).length;
+    var kBase = palabras.length >= 3 ? 2 : 1;
+    for (var k = 1; k <= Math.min(4, palabras.length - 1); k++) {
       var ap = palabras.slice(0, k).join(' '), no = palabras.slice(k).join(' ');
-      var s = similitud(ap, apellidosCedula || '') * 0.6 + similitud(no, nombresCedula || '') * 0.4;
+      var s = similitud(ap, apellidosCedula || '') * 0.6 + similitud(no, nombresCedula || '') * 0.4 + (k === kBase ? 0.05 : 0) + (kCed && k === kCed ? 0.1 : 0);
       if (!mejor || s > mejor.s) mejor = { apellidos: ap, nombres: no, s: s, k: k };
     }
     return mejor;
