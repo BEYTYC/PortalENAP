@@ -3243,7 +3243,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // (ver el src del iframe #titulacionFrame más arriba).
         { nombre: 'Solicitud de Grado', status: 'ok' },
         // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
-        { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'], quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
+        { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co'], soloParaPermitidos: true, quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         // Certificado de promedio desde cédula + balance. Estadística; /api/promedios valida además a los usuarios autorizados en Ajustes.
         { nombre: 'Generación de Promedios Académicos', status: 'ok', correosORoles: { correos: ['jestadisticaplen@enap.edu.co'], roles: ['JEFE_PROGRAMA'] }, quien: 'Este módulo es solo para la Oficina de Estadística y los jefes de programa.' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
@@ -3315,6 +3315,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         const bloqueado = !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
           || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1)
           || (item.correosORoles && item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesSesion.includes(r))));
+        if (item.soloParaPermitidos && bloqueado) continue;   // este módulo solo aparece en el menú de las cuentas autorizadas
 
         // Submenu anidado (p. ej. "Descarga de Balances Académicos"): se abre
         // como flyout a la DERECHA del boton (con el mouse, con solo pasar
