@@ -201,7 +201,8 @@
         if (revision) {
           var imgs = lec.ced.imagenes.concat(lec.bal.imagenes), et = lec.ced.imagenes.map(function () { return 'Cédula'; }).concat(lec.bal.imagenes.map(function () { return 'Balance'; }));
           if (!imgs.length) { imgs = []; }
-          return api('a-revision', { codigo: res.codigo, motivo: a.motivo, imagenes: imgs, etiquetas: et, ocr: (lec.bal.texto || '').slice(0, 1800) + '\n---\n' + (lec.ced.texto || '').slice(0, 900) }).then(function () { r.estado = a.manual ? 'manual' : 'revision'; r.chip = a.chip; r.nota = a.nota; });
+          var guardarImgs = function () { return imgs.slice(0, 8).reduce(function (p, im, k) { return p.then(function () { return api('a-revision-imagen', { codigo: res.codigo, n: k + 1, imagen: im }); }); }, Promise.resolve()); };
+          return api('a-revision', { codigo: res.codigo, motivo: a.motivo, imagenes: [], etiquetas: et.slice(0, 8), ocr: (lec.bal.texto || '').slice(0, 1800) + '\n---\n' + (lec.ced.texto || '').slice(0, 900) }).then(function () { return guardarImgs(); }).then(function () { r.estado = a.manual ? 'manual' : 'revision'; r.chip = a.chip; r.nota = a.nota; });
         }
         return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
@@ -285,7 +286,14 @@
     function zoomar(nz) { z = Math.max(1, Math.min(4, nz)); var doc = $('doc'), im = doc.firstChild; if (!im || im.tagName !== 'IMG') return; if (z === 1) { doc.classList.remove('zoom'); im.style.width = ''; } else { doc.classList.add('zoom'); im.style.width = (z * 100) + '%'; } }
     var zb = document.createElement('span'); zb.className = 'zb'; zb.innerHTML = '<button type="button" title="Alejar" id="zmenos">−</button><button type="button" title="Tamaño completo" id="zfit" style="width:auto;padding:0 10px">Ajustar</button><button type="button" title="Acercar" id="zmas">+</button>'; $('tabs').appendChild(zb);
     $('zmenos').onclick = function () { zoomar(z - 0.5); }; $('zmas').onclick = function () { zoomar(z + 0.5); }; $('zfit').onclick = function () { zoomar(1); };
-    function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento" title="Clic para ampliar o reducir">'; doc.firstChild.src = cache[n]; doc.firstChild.onclick = function () { zoomar(z >= 2 ? 1 : 2); }; zoomar(z); return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
+    (function () {      /* arrastrar con la mano para moverse dentro del documento ampliado */
+      var d = $('doc'), x0, y0, sl, st, abajo = false;
+      d.addEventListener('mousedown', function (e) { if (!d.classList.contains('zoom') || e.button !== 0) return; abajo = true; x0 = e.clientX; y0 = e.clientY; sl = d.scrollLeft; st = d.scrollTop; d.classList.add('mov'); e.preventDefault(); });
+      window.addEventListener('mousemove', function (e) { if (!abajo) return; d.scrollLeft = sl - (e.clientX - x0); d.scrollTop = st - (e.clientY - y0); });
+      window.addEventListener('mouseup', function () { abajo = false; d.classList.remove('mov'); });
+      d.addEventListener('wheel', function (e) { if (e.ctrlKey) { e.preventDefault(); zoomar(z + (e.deltaY < 0 ? 0.5 : -0.5)); } }, { passive: false });
+    })();
+    function mostrar(n) { var doc = $('doc'); if (cache[n]) { doc.innerHTML = '<img alt="Documento" title="Doble clic para ampliar. Con zoom, arrastre para moverse">'; doc.firstChild.src = cache[n]; doc.firstChild.ondblclick = function () { zoomar(z >= 2 ? 1 : 2); }; zoomar(z); return; } doc.innerHTML = '<span class="spin"></span>'; api('revision-imagen', { codigo: it.codigo, n: n }).then(function (r) { cache[n] = r.imagen; mostrar(n); }).catch(function (e) { doc.textContent = e.message; }); }
     if (it.nImagenes) mostrar(1); else $('doc').textContent = 'Sin imágenes guardadas.';
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
@@ -322,7 +330,8 @@
         '<div style="margin-top:22px">' + cab('Solo Oficina de Estadística', 'Usuarios autorizados', 'Jefes de programa que pueden generar certificados. Solo ven lo que generan; el correo es donde reciben el archivo.') + filasU + '<div style="margin-top:10px"><button class="btn sec" id="a_mu">+ Agregar usuario</button></div></div></div>' +
         '<div style="flex:1;min-width:0;display:flex;flex-direction:column">' + cab('Solo Oficina de Estadística', 'Programa y facultad', 'De aquí salen la facultad del certificado y la sigla de cada archivo.') +
         '<div class="tr" style="grid-template-columns:1.5fr .7fr 1fr;margin-top:12px"><div class="lbl">Programa académico</div><div class="lbl">Sigla</div><div class="lbl">Facultad</div></div><div style="overflow:auto;min-height:0;flex:1;padding-right:6px">' + filasP + '</div></div></div>' +
-        '<div style="display:flex;justify-content:space-between;margin-top:14px;gap:12px">' + volver() + '<button class="btn" id="a_gu">Guardar ajustes</button></div>');
+        '<div id="a_cm" style="margin-top:10px;font-size:13px;color:#566370;word-break:break-word"></div><div style="display:flex;justify-content:space-between;margin-top:8px;gap:12px;flex-wrap:wrap">' + volver() + '<span style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn sec" id="a_co">Enviar correo de prueba</button><button class="btn" id="a_gu">Guardar ajustes</button></span></div>');
+      $('a_co').onclick = function () { var b = $('a_co'), o = $('a_cm'); b.disabled = true; o.style.color = '#566370'; o.textContent = 'Enviando…'; api('probar-correo').then(function (r) { b.disabled = false; if (r.ok) { o.style.color = '#1b6e43'; o.textContent = 'Enviado desde ' + r.de + ' a ' + r.a + '. Revise su bandeja y la carpeta de correo no deseado.'; } else { o.style.color = '#b3261e'; o.textContent = 'No salió: ' + r.error; } }).catch(function (e) { b.disabled = false; o.style.color = '#b3261e'; o.textContent = e.message; }); };
       $('bvolver').onclick = inicio;
       document.querySelectorAll('[data-p]').forEach(function (e) { e.oninput = function () { prog[+e.dataset.i][e.dataset.p] = e.value; }; });
       document.querySelectorAll('[data-u]').forEach(function (e) { e.oninput = function () { us[+e.dataset.i][e.dataset.u] = e.value; }; });
