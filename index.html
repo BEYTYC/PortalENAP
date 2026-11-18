@@ -3411,7 +3411,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Trayectoria del Estudiante') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
+            if (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewHojaVida', 'Trayectoria del Estudiante'); cargarHojaVida(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
