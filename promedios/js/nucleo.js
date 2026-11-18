@@ -141,7 +141,13 @@
     r.nombreCompleto = valorDespues(t, 'NOMBRES\\s+Y\\s+APELLIDOS', 'Fecha\\s+elaboraci[oó]n');
     r.programaTexto = valorDespues(t, 'PROGRAMA\\s+ACAD[ÉE]MICO', 'Periodo\\s+de\\s+terminaci[oó]n');
     var f = /Fecha\s+elaboraci[oó]n\s*:?\s*(\d{1,2}\s*[\/\-.]\s*\d{1,2}\s*[\/\-.]\s*\d{4})/i.exec(t); r.fechaElaboracion = f ? parseFecha(f[1]) : null;
-    var p = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{4}\s*[-–]\s*[12])/i.exec(t); r.periodoTerminacion = p ? p[1].replace(/\s+/g, '').replace('–', '-') : '';
+    var p = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{4}\s*[-–]\s*[12])(?!\s*\d)/i.exec(t); r.periodoTerminacion = p ? p[1].replace(/\s+/g, '').replace('–', '-') : '';
+    /* Si el balance trae una fecha (dd/mm/aaaa) en vez del periodo: de agosto en adelante es periodo 2; hasta julio, periodo 1. */
+    if (!r.periodoTerminacion) {
+      var fp = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{1,2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{4})/i.exec(t), fi = /Periodo\s+de\s+terminaci[oó]n\s*:?\s*[^\d]{0,6}(\d{4})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})/i.exec(t);
+      var anio = fp ? +fp[3] : (fi ? +fi[1] : 0), mes = fp ? +fp[2] : (fi ? +fi[2] : 0);
+      if (anio && mes >= 1 && mes <= 12) { r.periodoTerminacion = anio + '-' + (mes > 7 ? 2 : 1); r.periodoDesdeFecha = true; }
+    }
     var d = /Diplomado\s+de\s+Actualizaci[oó]n\s*(?:del?\s+)?(?:periodo\s+)?(\d{4}\s*[-–]\s*[12])/i.exec(t) || /Diplomado[^\n]{0,60}?(\d{4}\s*[-–:.]\s*[12])\b/i.exec(t); r.diplomado = d ? d[1].replace(/\s+/g, '').replace(/[–:.]/, '-') : '';
     /* Respaldo si el OCR deformó la etiqueta: primer periodo (AAAA-1/2) que aparece antes de la tabla de materias */
     if (!r.periodoTerminacion) {
@@ -168,7 +174,24 @@
     'GIRARDOT': 'Girardot', 'TURBACO': 'Turbaco', 'MALAMBO': 'Malambo', 'SOLEDAD': 'Soledad', 'SABANALARGA': 'Sabanalarga', 'LORICA': 'Lorica', 'CERETE': 'Cereté',
     'SAHAGUN': 'Sahagún', 'APARTADO': 'Apartadó', 'TURBO': 'Turbo', 'SAN ANDRES': 'San Andrés', 'ARJONA': 'Arjona', 'EL CARMEN DE BOLIVAR': 'El Carmen de Bolívar',
     'MOMPOS': 'Mompós', 'SAN JUAN NEPOMUCENO': 'San Juan Nepomuceno', 'MARIA LA BAJA': 'María la Baja', 'CIENAGA': 'Ciénaga', 'FUNDACION': 'Fundación', 'AGUACHICA': 'Aguachica',
-    'OCANA': 'Ocaña', 'PAMPLONA': 'Pamplona', 'DUITAMA': 'Duitama', 'SOGAMOSO': 'Sogamoso', 'TUMACO': 'Tumaco', 'IPIALES': 'Ipiales', 'ACACIAS': 'Acacías', 'GRANADA': 'Granada'
+    'OCANA': 'Ocaña', 'PAMPLONA': 'Pamplona', 'DUITAMA': 'Duitama', 'SOGAMOSO': 'Sogamoso', 'TUMACO': 'Tumaco', 'IPIALES': 'Ipiales', 'ACACIAS': 'Acacías', 'GRANADA': 'Granada',
+    'PITALITO': 'Pitalito', 'GARZON': 'Garzón', 'LA PLATA': 'La Plata', 'CAMPOALEGRE': 'Campoalegre', 'AIPE': 'Aipe', 'HOBO': 'Hobo', 'SAN AGUSTIN': 'San Agustín', 'ESPINAL': 'Espinal', 'MELGAR': 'Melgar', 'HONDA': 'Honda', 'LIBANO': 'Líbano',
+    'CHAPARRAL': 'Chaparral', 'PLANADAS': 'Planadas', 'LA DORADA': 'La Dorada', 'CHINCHINA': 'Chinchiná', 'VILLAMARIA': 'Villamaría', 'CALARCA': 'Calarcá', 'LA TEBAIDA': 'La Tebaida', 'MONTENEGRO': 'Montenegro', 'QUIMBAYA': 'Quimbaya',
+    'SANTA ROSA DE CABAL': 'Santa Rosa de Cabal', 'LA VIRGINIA': 'La Virginia', 'SEVILLA': 'Sevilla', 'BUGA': 'Buga', 'GUADALAJARA DE BUGA': 'Guadalajara de Buga', 'JAMUNDI': 'Jamundí', 'YUMBO': 'Yumbo', 'CANDELARIA': 'Candelaria',
+    'FLORIDA': 'Florida', 'PRADERA': 'Pradera', 'ROLDANILLO': 'Roldanillo', 'SANTANDER DE QUILICHAO': 'Santander de Quilichao', 'PUERTO TEJADA': 'Puerto Tejada', 'TIMBIO': 'Timbío', 'EL BORDO': 'El Bordo',
+    'LA UNION': 'La Unión', 'TUQUERRES': 'Túquerres', 'SAMANIEGO': 'Samaniego', 'BARBACOAS': 'Barbacoas', 'PUERTO ASIS': 'Puerto Asís', 'SIBUNDOY': 'Sibundoy', 'LA HORMIGA': 'La Hormiga', 'SAN VICENTE DEL CAGUAN': 'San Vicente del Caguán',
+    'PUERTO LOPEZ': 'Puerto López', 'PUERTO GAITAN': 'Puerto Gaitán', 'RESTREPO': 'Restrepo', 'CUMARAL': 'Cumaral', 'TAURAMENA': 'Tauramena', 'AGUAZUL': 'Aguazul', 'PAZ DE ARIPORO': 'Paz de Ariporo', 'ARAUCA': 'Arauca', 'SARAVENA': 'Saravena',
+    'TAME': 'Tame', 'PUERTO CARRENO': 'Puerto Carreño', 'INIRIDA': 'Inírida', 'SAN JOSE DEL GUAVIARE': 'San José del Guaviare', 'MITU': 'Mitú', 'PUERTO LEGUIZAMO': 'Puerto Leguízamo', 'VILLA DEL ROSARIO': 'Villa del Rosario', 'TIBU': 'Tibú',
+    'SOCORRO': 'Socorro', 'SAN GIL': 'San Gil', 'BARBOSA': 'Barbosa', 'VELEZ': 'Vélez', 'MALAGA': 'Málaga', 'LEBRIJA': 'Lebrija', 'SAN VICENTE DE CHUCURI': 'San Vicente de Chucurí', 'SABANA DE TORRES': 'Sabana de Torres', 'PUERTO WILCHES': 'Puerto Wilches',
+    'CHIQUINQUIRA': 'Chiquinquirá', 'PAIPA': 'Paipa', 'SAMACA': 'Samacá', 'MONIQUIRA': 'Moniquirá', 'GARAGOA': 'Garagoa', 'PUERTO BOYACA': 'Puerto Boyacá', 'CAJICA': 'Cajicá', 'MOSQUERA': 'Mosquera', 'FUNZA': 'Funza', 'MADRID': 'Madrid',
+    'LA MESA': 'La Mesa', 'UBATE': 'Ubaté', 'VILLETA': 'Villeta', 'SIBATE': 'Sibaté', 'TOCANCIPA': 'Tocancipá', 'SOPO': 'Sopó', 'CHOCONTA': 'Chocontá', 'GACHETA': 'Gachetá', 'GUADUAS': 'Guaduas', 'SAN FRANCISCO': 'San Francisco',
+    'RIONEGRO': 'Rionegro', 'LA CEJA': 'La Ceja', 'MARINILLA': 'Marinilla', 'SABANETA': 'Sabaneta', 'COPACABANA': 'Copacabana', 'CALDAS': 'Caldas', 'GIRARDOTA': 'Girardota', 'CAUCASIA': 'Caucasia', 'YARUMAL': 'Yarumal', 'SANTA ROSA DE OSOS': 'Santa Rosa de Osos',
+    'PUERTO BERRIO': 'Puerto Berrío', 'ANDES': 'Andes', 'JARDIN': 'Jardín', 'SANTA FE DE ANTIOQUIA': 'Santa Fe de Antioquia', 'CHIGORODO': 'Chigorodó', 'NECOCLI': 'Necoclí', 'EL BAGRE': 'El Bagre', 'TADO': 'Tadó', 'ISTMINA': 'Istmina',
+    'MONTELIBANO': 'Montelíbano', 'PLANETA RICA': 'Planeta Rica', 'TIERRALTA': 'Tierralta', 'AYAPEL': 'Ayapel', 'COROZAL': 'Corozal', 'SAMPUES': 'Sampués', 'TOLU': 'Tolú', 'SAN MARCOS': 'San Marcos', 'SAN ONOFRE': 'San Onofre', 'MAJAGUAL': 'Majagual',
+    'EL BANCO': 'El Banco', 'PLATO': 'Plato', 'ZONA BANANERA': 'Zona Bananera', 'ARACATACA': 'Aracataca', 'SANTA ANA': 'Santa Ana', 'MAICAO': 'Maicao', 'URIBIA': 'Uribia', 'FONSECA': 'Fonseca', 'SAN JUAN DEL CESAR': 'San Juan del Cesar',
+    'MANAURE': 'Manaure', 'BOSCONIA': 'Bosconia', 'CODAZZI': 'Codazzi', 'AGUSTIN CODAZZI': 'Agustín Codazzi', 'CURUMANI': 'Curumaní', 'BECERRIL': 'Becerril', 'GAMARRA': 'Gamarra', 'PUERTO COLOMBIA': 'Puerto Colombia', 'GALAPA': 'Galapa',
+    'BARANOA': 'Baranoa', 'SANTO TOMAS': 'Santo Tomás', 'CAMPO DE LA CRUZ': 'Campo de la Cruz', 'LURUACO': 'Luruaco', 'REPELON': 'Repelón', 'CALAMAR': 'Calamar', 'MAHATES': 'Mahates', 'TURBANA': 'Turbaná', 'CLEMENCIA': 'Clemencia',
+    'SANTA CATALINA': 'Santa Catalina', 'SAN JACINTO': 'San Jacinto', 'CARMEN DE BOLIVAR': 'El Carmen de Bolívar', 'SIMITI': 'Simití', 'SANTA ROSA DEL SUR': 'Santa Rosa del Sur', 'PINILLOS': 'Pinillos', 'MOMIL': 'Momil', 'CHINU': 'Chinú'
   };
   function lugarConTildes(raw) {
     var k = norm(String(raw || '').replace(/\./g, ' ')).replace(/\bD C\b/, 'D C');
@@ -206,12 +229,16 @@
     var mejor = null;
     /* Sin pista de la cédula, lo más común en Colombia es dos apellidos (si hay 3 o más palabras); también se usa la cantidad de palabras que la cédula traiga en apellidos. */
     var kCed = String(apellidosCedula || '').trim().split(/\s+/).filter(function (w) { return w.length > 1; }).length;
-    var kBase = palabras.length >= 3 ? 2 : 1;
-    for (var k = 1; k <= Math.min(4, palabras.length - 1); k++) {
-      var ap = palabras.slice(0, k).join(' '), no = palabras.slice(k).join(' ');
-      var s = similitud(ap, apellidosCedula || '') * 0.6 + similitud(no, nombresCedula || '') * 0.4 + (k === kBase ? 0.05 : 0) + (kCed && k === kCed ? 0.1 : 0);
-      if (!mejor || s > mejor.s) mejor = { apellidos: ap, nombres: no, s: s, k: k };
-    }
+    var kBase = palabras.length >= 3 ? 2 : 1, hayCed = !!(apellidosCedula || nombresCedula);
+    /* Hay balances con "APELLIDOS NOMBRES" y otros con "NOMBRES APELLIDOS": se prueban los dos órdenes contra la cédula. */
+    [false, true].forEach(function (inv) {
+      for (var k = 1; k <= Math.min(4, palabras.length - 1); k++) {
+        var ap = inv ? palabras.slice(palabras.length - k).join(' ') : palabras.slice(0, k).join(' ');
+        var no = inv ? palabras.slice(0, palabras.length - k).join(' ') : palabras.slice(k).join(' ');
+        var s = similitud(ap, apellidosCedula || '') * 0.6 + similitud(no, nombresCedula || '') * 0.4 + (k === kBase ? 0.05 : 0) + (kCed && k === kCed ? 0.1 : 0) - (inv && !hayCed ? 0.2 : 0);
+        if (!mejor || s > mejor.s) mejor = { apellidos: ap, nombres: no, s: s, k: k, invertido: inv };
+      }
+    });
     return mejor;
   }
 
