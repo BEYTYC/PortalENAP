@@ -26,11 +26,11 @@
   var MOTIVOS = ['Documento ilegible', 'Falta una cara de la cédula', 'El balance no corresponde al estudiante', 'Balance desactualizado', 'Datos de la cédula y del balance no coinciden'];
   function pedirMotivo(quien, ok) {
     var fondo = document.createElement('div'); fondo.className = 'modal-f';
-    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Rechazar solicitud</div><h2 style="margin:4px 0 4px;font-size:20px">¿Por qué no se genera el certificado?</h2>' +
-      (quien ? '<div style="font-size:13.5px;color:#566370;margin-bottom:12px"><b style="color:#0a2540">' + esc(quien) + '</b></div>' : '') +
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Rechazar solicitud</div><h2 style="margin:4px 0 4px;font-size:17px">¿Por qué no se genera el certificado?</h2>' +
+      (quien ? '<div style="font-size:12.5px;color:#566370;margin-bottom:12px"><b style="color:#0a2540">' + esc(quien) + '</b></div>' : '') +
       '<div class="lbl">Motivo (se le informa al jefe de programa)</div><textarea class="inp" id="mmot" rows="3" maxlength="300" placeholder="Escriba el motivo o elija uno" style="resize:vertical"></textarea>' +
       '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' + MOTIVOS.map(function (x) { return '<button type="button" class="tab" data-mot="' + esc(x) + '">' + esc(x) + '</button>'; }).join('') + '</div>' +
-      '<label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13.5px;color:#334155;cursor:pointer"><input type="checkbox" id="mav" checked style="width:16px;height:16px;accent-color:#0b3d66"> Avisar por correo al jefe de programa</label>' +
+      '<label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12.5px;color:#334155;cursor:pointer"><input type="checkbox" id="mav" checked style="width:16px;height:16px;accent-color:#0b3d66"> Avisar por correo al jefe de programa</label>' +
       '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="mno">Cancelar</button><button type="button" class="btn" id="msi">Rechazar</button></div></div>';
     document.body.appendChild(fondo);
     var ta = fondo.querySelector('#mmot'); setTimeout(function () { ta.focus(); }, 30);
@@ -64,7 +64,7 @@
     CENTRAR = true;
     ancho(1000);
     var rev = PEND ? '<span class="cnt">' + PEND + '</span>' : '';
-    vista('<div style="text-align:center"><div class="gold">Oficina de Estadística</div><h1>Generación de Promedios Académicos</h1><div class="rule"></div><p class="sub" style="margin-top:16px;font-size:16px">¿Qué desea hacer?</p></div>' +
+    vista('<div style="text-align:center"><div class="gold">Oficina de Estadística</div><h1>Generación de Promedios Académicos</h1><div class="rule"></div><p class="sub" style="margin-top:16px;font-size:14.5px">¿Qué desea hacer?</p></div>' +
       '<div class="ops"><button class="op" data-go="carga"><div class="ib">' + IC.doc + '</div><b>Generar certificados de promedio</b><span>Cargue la cédula y el balance académico de uno o varios estudiantes.</span></button>' +
       '<button class="op" data-go="consulta"><div class="ib">' + IC.lista + '</div><b>Consultar promedios generados</b><span>Revise los certificados emitidos. Una corrección solo la hace la Oficina de Estadística.</span></button>' +
       (YO.estadistica ? '<button class="op" data-go="revision"><div class="ib">' + IC.ojo + rev + '</div><b>Revisión de escaneados</b><span>Verifique los datos leídos de los documentos escaneados antes de emitir.</span></button>' +
@@ -291,8 +291,8 @@
     if (!lineas.length) return;
     var tit = !aEst && !c.error ? 'Carga completa' : 'Estado de la carga';
     var fondo = document.createElement('div'); fondo.className = 'modal-f';
-    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Resultado de la solicitud</div><h2 style="margin:4px 0 10px;font-size:20px">' + esc(tit) + '</h2>' +
-      lineas.map(function (l) { return '<div style="display:flex;gap:10px;align-items:center;margin-top:6px;font-size:14.5px;color:#0b3d66"><span style="width:9px;height:9px;border-radius:50%;background:' + l[0] + ';flex:none"></span><span>' + esc(l[1]) + '</span></div>'; }).join('') +
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Resultado de la solicitud</div><h2 style="margin:4px 0 10px;font-size:17px">' + esc(tit) + '</h2>' +
+      lineas.map(function (l) { return '<div style="display:flex;gap:10px;align-items:center;margin-top:6px;font-size:13px;color:#0b3d66"><span style="width:9px;height:9px;border-radius:50%;background:' + l[0] + ';flex:none"></span><span>' + esc(l[1]) + '</span></div>'; }).join('') +
       '<div style="display:flex;justify-content:flex-end;margin-top:20px"><button type="button" class="btn" id="ccerrar">Cerrar</button></div></div>';
     document.body.appendChild(fondo);
     var cerrar = function () { document.removeEventListener('keydown', tecla); fondo.remove(); };
@@ -336,7 +336,7 @@
   /* Firma y envía de una vez todos los certificados pendientes de revisión que tengan los datos completos y el balance vigente. */
   function confirmarModal(titulo, texto, textoOk, ok) {
     var fondo = document.createElement('div'); fondo.className = 'modal-f';
-    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Confirmar</div><h2 style="margin:4px 0 8px;font-size:20px">' + esc(titulo) + '</h2><div style="font-size:14px;color:#334155;line-height:1.5">' + esc(texto) + '</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="cno">Cancelar</button><button type="button" class="btn" id="csi">' + esc(textoOk) + '</button></div></div>';
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Confirmar</div><h2 style="margin:4px 0 8px;font-size:17px">' + esc(titulo) + '</h2><div style="font-size:14px;color:#334155;line-height:1.5">' + esc(texto) + '</div><div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px"><button type="button" class="btn sec" id="cno">Cancelar</button><button type="button" class="btn" id="csi">' + esc(textoOk) + '</button></div></div>';
     document.body.appendChild(fondo);
     fondo.querySelector('#cno').onclick = function () { fondo.remove(); };
     fondo.querySelector('#csi').onclick = function () { fondo.remove(); ok(); };
@@ -373,7 +373,7 @@
   var IMGREV = {}, GENPRE = 0;
   function revisar(lista, k) {
     var it = lista[k], d = it.datos;
-    vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select>' + (lista.length > 1 ? '<button class="btn" id="btodos" style="padding:7px 16px;font-size:13.5px">Firmar y enviar todos (' + lista.length + ')</button>' : '') + '</div></div>' +
+    vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px"><div><div class="gold">Revisión · Oficina de Estadística</div><h2>Verifique los datos leídos</h2></div><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><select id="selrev" class="inp" style="width:auto;max-width:100%;padding:6px 12px;font-weight:600;color:#0b3d66;cursor:pointer" title="Elija cuál validar">' + lista.map(function (x, j) { var dd = x.datos || {}, nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre'; return '<option value="' + j + '"' + (j === k ? ' selected' : '') + '>' + (j + 1) + ' de ' + lista.length + ' · ' + esc((dd.sigla ? dd.sigla + ' ' : '') + nm) + '</option>'; }).join('') + '</select>' + (lista.length > 1 ? '<button class="btn" id="btodos" style="padding:7px 16px;font-size:12.5px">Firmar y enviar todos (' + lista.length + ')</button>' : '') + '</div></div>' +
       (it.motivoRevision ? '<div class="chip aviso" style="margin-top:10px;white-space:normal;border-radius:10px">' + esc(it.motivoRevision) + '</div>' : '') +
       '<div class="sdoc" style="display:flex;gap:22px;margin-top:14px;flex:1;min-height:0"><div style="flex:1.05;display:flex;flex-direction:column;min-width:0;min-height:340px"><div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap" id="tabs"></div><div class="doc" id="doc"><span class="spin"></span></div></div>' +
       '<div style="flex:1;min-width:0;overflow:auto"><div class="g2"><div><div class="lbl">Apellidos</div><input class="inp" id="f_ap" value="' + esc(d.apellidos) + '"></div><div><div class="lbl">Nombres</div><input class="inp" id="f_no" value="' + esc(d.nombres) + '"></div>' +
