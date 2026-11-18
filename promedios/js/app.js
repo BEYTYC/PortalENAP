@@ -187,7 +187,7 @@
         return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
       }).catch(function (e) {
-        if (e.http === 409 && e.datos && e.datos.duplicado) { r.estado = 'error'; r.chip = 'Ya existe un promedio'; r.nota = 'Esta cédula ya tiene certificado en este programa. Solicite la corrección a Estadística.'; r.promedio = e.datos.duplicado.promedio; return; }
+        if (e.http === 409 && e.datos && e.datos.duplicado) { r.estado = 'error'; r.chip = 'Ya existe un promedio'; r.nota = 'Esta cédula ya tiene certificado en este programa. Solicite la corrección a Estadística.'; r.promedio = e.datos.duplicado.promedio != null ? e.datos.duplicado.promedio : null; return; }
         throw e;
       });
     });
