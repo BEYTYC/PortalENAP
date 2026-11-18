@@ -42,7 +42,8 @@
   }
   function toast(m) { var t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(function () { t.classList.remove('on'); }, 3200); }
   function gate(on, msg) { $('gate').hidden = !on; if (msg) $('gt').textContent = msg; $('card').hidden = on; }
-  function vista(html, animar) { $('vista').innerHTML = html; $('card').hidden = false; $('card').style.animation = 'none'; if (animar !== false) { void $('card').offsetWidth; $('card').style.animation = ''; } }
+  var CENTRAR = false;
+  function vista(html, animar) { document.body.classList.toggle('centrado', CENTRAR); CENTRAR = false; $('vista').innerHTML = html; $('card').hidden = false; $('card').style.animation = 'none'; if (animar !== false) { void $('card').offsetWidth; $('card').style.animation = ''; } }
   function ancho(px) { $('card').style.maxWidth = px + 'px'; }
 
   /* ------------------------------ Iconos ------------------------------ */
@@ -59,6 +60,7 @@
 
   /* ------------------------------ Inicio ------------------------------ */
   function inicio() {
+    CENTRAR = true;
     ancho(1000);
     var rev = PEND ? '<span class="cnt">' + PEND + '</span>' : '';
     vista('<div style="text-align:center"><div class="gold">Oficina de Estadística</div><h1>Generación de Promedios Académicos</h1><div class="rule"></div><p class="sub" style="margin-top:16px;font-size:16px">¿Qué desea hacer?</p></div>' +
@@ -281,7 +283,7 @@
       '<div style="display:flex;justify-content:space-between;gap:12px;margin-top:14px;flex-wrap:wrap"><div style="display:flex;gap:10px">' + volver() + '<button class="btn sec" id="brech">Rechazar</button></div><button class="btn" id="bapr">Aprobar y emitir</button></div>');
     $('bvolver').onclick = inicio;
     var etiquetas = it.etiquetas && it.etiquetas.length ? it.etiquetas : null, cache = {};
-    var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); b.textContent = (etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento') + ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === etiquetas[n - 1]; }).length : n); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
+    var tabs = $('tabs'); for (var i = 1; i <= it.nImagenes; i++) (function (n) { var b = document.createElement('button'); b.className = 'tab' + (n === 1 ? ' on' : ''); var et0 = etiquetas && etiquetas[n - 1] ? etiquetas[n - 1] : 'Documento', tot = etiquetas ? etiquetas.slice(0, it.nImagenes).filter(function (e) { return e === et0; }).length : it.nImagenes; b.textContent = et0 + (tot > 1 ? ' ' + (etiquetas ? etiquetas.slice(0, n).filter(function (e) { return e === et0; }).length : n) : ''); b.onclick = function () { tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); mostrar(n); }; tabs.appendChild(b); })(i);
     var z = 1;
     function zoomar(nz) { z = Math.max(1, Math.min(4, nz)); var doc = $('doc'), im = doc.firstChild; if (!im || im.tagName !== 'IMG') return; if (z === 1) { doc.classList.remove('zoom'); im.style.width = ''; } else { doc.classList.add('zoom'); im.style.width = (z * 100) + '%'; } }
     var zb = document.createElement('span'); zb.className = 'zb'; zb.innerHTML = '<button type="button" title="Alejar" id="zmenos">−</button><button type="button" title="Tamaño completo" id="zfit" style="width:auto;padding:0 10px">Ajustar</button><button type="button" title="Acercar" id="zmas">+</button>'; $('tabs').appendChild(zb);
