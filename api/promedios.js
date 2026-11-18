@@ -191,7 +191,10 @@ function datosRegistro(d, laxo) {
   return o;
 }
 const archivoDe = (o) => (o.sigla + ' - ' + o.apellidos + ' ' + o.nombres).replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ').trim() + '.pdf';
-const duplicado = (regs, o) => !o.cedula || !o.programaId ? null : regs.find((r) => r.estado !== 'rechazado' && r.cedula === o.cedula && r.programaId === o.programaId);
+/* Solo un certificado ya EMITIDO bloquea. Lo pendiente (reservado o en revisión) se reemplaza por lo nuevo. */
+const duplicado = (regs, o) => !o.cedula || !o.programaId ? null : regs.find((r) => r.estado === 'emitido' && r.cedula === o.cedula && r.programaId === o.programaId);
+const nombreDe = (r) => sinTildes(`${r.apellidos || ''} ${r.nombres || ''}`);
+const mismoPendiente = (r, o) => (r.estado === 'reservado' || r.estado === 'revision') && (o.cedula && r.programaId === o.programaId && (r.cedula === o.cedula || (nombreDe(r) && nombreDe(r) === nombreDe(o))));
 const resumen = (r) => ({ codigo: r.codigo, estado: r.estado, cedula: r.cedula, nombres: r.nombres, apellidos: r.apellidos, sigla: r.sigla, programa: r.programa, promedio: r.promedio, fecha: r.fecha, motivoRevision: r.motivoRevision || null, enviado: r.enviado || null, lote: r.lote ? { id: r.lote.id, correo: r.lote.correo } : null, archivo: r.archivo });
 
 /* ------------------------------ Identidad ------------------------------ */
@@ -248,13 +251,17 @@ module.exports = async function handler(req, res) {
       const miUsuario = (ajustes.usuarios || []).find((u) => String(u.correo).toLowerCase() === yo.correo);
       const lote = { id: limpio(body.loteId, 40), correo: esEst ? limpio(body.correo, 120).toLowerCase() : ((miUsuario && miUsuario.correoEnvio) || yo.correo) };
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(lote.correo)) throw error('Indique el correo del jefe de programa.', 400);
+      const reemplazados = [];
       const salida = await mutar('registros.json', () => [], (rs) => {
+        reemplazados.length = 0;
         const d = duplicado(rs, o); if (d) return { duplicado: resumen(d) };
+        for (let i = rs.length - 1; i >= 0; i--) if (mismoPendiente(rs[i], o)) { reemplazados.push(rs[i].codigo); rs.splice(i, 1); }
         const sec = rs.filter((r) => r.codigo.startsWith(`PA-${y}-`)).reduce((m, r) => Math.max(m, parseInt(r.codigo.slice(-6), 10)), 0) + 1;
         const codigo = `PA-${y}-${String(sec).padStart(6, '0')}`;
         rs.push(Object.assign({ codigo, estado: 'reservado', fecha: ahora(), por: yo.correo, lote, archivo: o.sigla ? archivoDe(o) : '' }, o));
         return { codigo, archivo: o.sigla ? archivoDe(o) : '' };
       });
+      for (const c of reemplazados) for (let i = 1; i <= 8; i++) await borrar(`Revision/${c}/${i}.jpg`).catch(() => {});
       res.status(salida.duplicado ? 409 : 200).json(salida.duplicado ? { error: 'Ya existe un certificado de promedio para esta cédula y programa. Una corrección solo la hace Estadística.', duplicado: salida.duplicado } : salida);
       return;
     }
@@ -300,7 +307,7 @@ module.exports = async function handler(req, res) {
       let loteId = null;
       await mutar('registros.json', () => [], (rs) => {
         const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'revision') throw error('El certificado no está en revisión.', 409);
-        const otro = rs.find((x) => x !== r && x.estado !== 'rechazado' && x.cedula === o.cedula && x.programaId === o.programaId); if (otro) throw error('Ya existe otro certificado con esa cédula y programa.', 409);
+        const otro = rs.find((x) => x !== r && x.estado === 'emitido' && x.cedula === o.cedula && x.programaId === o.programaId); if (otro) throw error('Ya existe otro certificado con esa cédula y programa.', 409);
         Object.assign(r, o, { estado: 'emitido', emitido: ahora(), revisadoPor: yo.correo, archivo: archivoDe(o) }); delete r.motivoRevision; loteId = r.lote && r.lote.id;
       });
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
