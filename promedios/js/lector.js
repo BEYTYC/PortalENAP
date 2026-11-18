@@ -61,20 +61,39 @@
     }, Promise.resolve()).then(function () { return mejor ? mejor.g : 0; });
   }
 
+
+  /* Gris + desenfoque de caja hechos a mano (ctx.filter no existe en Safari/iPhone). */
+  function grisBorroso(c, radio) {
+    var w = c.width, h = c.height, x = c.getContext('2d'), im = x.getImageData(0, 0, w, h), px = im.data, g = new Float32Array(w * h), i;
+    for (i = 0; i < w * h; i++) g[i] = px[i * 4] * 0.299 + px[i * 4 + 1] * 0.587 + px[i * 4 + 2] * 0.114;
+    var t = new Float32Array(w * h), y, xx, k, suma, n;
+    for (y = 0; y < h; y++) { suma = 0; n = 0; for (xx = -radio; xx <= radio; xx++) { if (xx >= 0 && xx < w) { suma += g[y * w + xx]; n++; } } for (xx = 0; xx < w; xx++) { t[y * w + xx] = suma / n; var a = xx - radio, b = xx + radio + 1; if (a >= 0) { suma -= g[y * w + a]; n--; } if (b < w) { suma += g[y * w + b]; n++; } } }
+    for (xx = 0; xx < w; xx++) { suma = 0; n = 0; for (y = -radio; y <= radio; y++) { if (y >= 0 && y < h) { suma += t[y * w + xx]; n++; } } for (y = 0; y < h; y++) { g[y * w + xx] = suma / n; var a2 = y - radio, b2 = y + radio + 1; if (a2 >= 0) { suma -= t[a2 * w + xx]; n--; } if (b2 < h) { suma += t[b2 * w + xx]; n++; } } }
+    return { g: g, w: w, h: h };
+  }
+  function aLienzo(g, w, h, f) { var c = lienzo(w, h), x = c.getContext('2d'), im = x.createImageData(w, h); for (var i = 0; i < w * h; i++) { var v = f(g[i]); im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; } x.putImageData(im, 0, 0); return c; }
+  /* Versión con el contraste estirado (respaldo cuando la primera lectura no encuentra los campos). */
+  function realzar(c) {
+    var r = grisBorroso(c, 0), g = r.g, n = g.length, lo = 255, hi = 0, i, sorted = new Uint32Array(256);
+    for (i = 0; i < n; i += 7) sorted[g[i] | 0]++;
+    var tot = 0, c1 = 0, c2 = 0; for (i = 0; i < 256; i++) tot += sorted[i];
+    for (i = 0, tot = tot; i < 256; i++) { c1 += sorted[i]; if (!lo && 0) break; if (c1 >= tot * 0.02 && lo === 255) lo = i; if (c1 >= tot * 0.6 && !c2) c2 = i; }
+    hi = Math.max(c2, lo + 40);
+    return aLienzo(g, r.w, r.h, function (v) { var t = (v - lo) / (hi - lo); return t <= 0 ? 0 : t >= 1 ? 255 : Math.round(t * 255); });
+  }
+
   /* Recuadro sombreado de totales: se desenfoca, se amplía y se prueba con varios umbrales (el texto sobre fondo gris no se lee bien directo). */
   function leerTotales(c, palabras) {
     var ref = palabras.filter(function (w) { return /PROMEDIO/i.test(w.text); }).sort(function (a, b) { return b.bbox.y0 - a.bbox.y0; })[0];
     if (!ref) return Promise.resolve('');
     var y0 = Math.max(0, ref.bbox.y0 - 18), y1 = Math.min(c.height, ref.bbox.y1 + 60), banda = lienzo(c.width, y1 - y0);
     banda.getContext('2d').drawImage(c, 0, y0, c.width, y1 - y0, 0, 0, c.width, y1 - y0);
-    var ampl = lienzo(banda.width * 2, banda.height * 2), x = ampl.getContext('2d'); x.filter = 'grayscale(1) blur(1.2px)'; x.drawImage(banda, 0, 0, ampl.width, ampl.height); x.filter = 'none';
-    var datos = x.getImageData(0, 0, ampl.width, ampl.height), px = datos.data, suma = 0, n = 0; for (var i = 0; i < px.length; i += 16) { suma += px[i]; n++; }
+    var ampl = lienzo(banda.width * 2, banda.height * 2); ampl.getContext('2d').drawImage(banda, 0, 0, ampl.width, ampl.height);
+    var gb = grisBorroso(ampl, 2), px = gb.g, suma = 0, n = 0; for (var i = 0; i < px.length; i += 4) { suma += px[i]; n++; }
     var media = suma / n, umbrales = [media * 0.78, media * 0.88, media * 0.95], textos = [];
     return umbrales.reduce(function (p, u) {
       return p.then(function () {
-        var t = lienzo(ampl.width, ampl.height), tx = t.getContext('2d'), im = tx.createImageData(ampl.width, ampl.height);
-        for (var k = 0; k < px.length; k += 4) { var v = px[k] < u ? 0 : 255; im.data[k] = im.data[k + 1] = im.data[k + 2] = v; im.data[k + 3] = 255; }
-        tx.putImageData(im, 0, 0);
+        var t = aLienzo(px, gb.w, gb.h, function (v) { return v < u ? 0 : 255; });
         return reconocer(t).then(function (r) { textos.push(r.data.text); });
       });
     }, Promise.resolve()).then(function () { return textos.join('\n'); });
@@ -105,7 +124,11 @@
             return reconocer(r).then(function (o) {
               var t = o.data.text;
               if (tipo !== 'balance') { textos.push(t); return; }
-              return leerTotales(r, palabrasDe(o.data)).then(function (extra) { textos.push(t + '\n' + extra); });
+              return leerTotales(r, palabrasDe(o.data)).then(function (extra) {
+                var todo = t + '\n' + extra, hayPeriodo = /terminaci[oó]n\D{0,12}\d{4}\s*[-–]\s*[12]/i.test(todo), hayProm = /PROMEDIO\s+PONDERADO\D{0,25}\d{1,2}[.,]\d{1,3}/i.test(todo);
+                if (hayPeriodo && hayProm) { textos.push(todo); return; }
+                return reconocer(realzar(r)).then(function (o2) { textos.push(todo + '\n' + o2.data.text); });
+              });
             });
           });
         });
