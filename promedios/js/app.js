@@ -124,7 +124,7 @@
   function analizar(ced, bal) {
     var pb = N.parseBalance(bal.texto), pc = N.parseCedula(ced.texto), escaneado = !!(ced.escaneado || bal.escaneado);
     var motivos = [], prog = N.programaDe(pb.programaTexto, listaProgramas());
-    var d = { cedula: pc.numero || pc.numeroLinea || '', lugar: pc.lugar, programaId: prog ? prog.id : '', programa: prog ? prog.nombre : N.limpiarPrograma(pb.programaTexto), sigla: prog ? prog.sigla : '', nivel: prog ? prog.nivel : 'pregrado', facultad: prog ? prog.facultad : '',
+    var d = { cedula: pc.numero || pc.numeroLinea || '', lugar: '', programaId: prog ? prog.id : '', programa: prog ? prog.nombre : N.limpiarPrograma(pb.programaTexto), sigla: prog ? prog.sigla : '', nivel: prog ? prog.nivel : 'pregrado', facultad: prog ? prog.facultad : '',
       promedio: pb.promedioImpreso != null ? pb.promedioImpreso : pb.promedioCalculado, periodoTerminacion: pb.periodoTerminacion, diplomado: pb.diplomado, fechaBalance: pb.fechaElaboracion ? aISO(pb.fechaElaboracion) : '', apellidos: '', nombres: '' };
     var rep = pb.nombreCompleto ? N.repartirNombre(pb.nombreCompleto, pc.apellidos, pc.nombres) : null;
     if (rep) { d.apellidos = rep.apellidos; d.nombres = rep.nombres; }
@@ -145,7 +145,6 @@
     var faltan = [];
     if (!d.cedula) faltan.push('cédula'); if (!d.apellidos) faltan.push('nombre'); if (d.promedio == null) faltan.push('promedio'); if (!d.periodoTerminacion) faltan.push('periodo de terminación'); if (!d.fechaBalance) faltan.push('fecha de elaboración');
     if (!prog) faltan.push('programa'); else { if (!prog.facultad) faltan.push('facultad de ' + prog.sigla + ' (complétela en Ajustes)'); }
-    if (!d.lugar) faltan.push('lugar de expedición');
     if (faltan.length) { salida.tipo = 'revision'; salida.manual = true; salida.chip = 'Se validará manualmente'; salida.nota = 'No se pudo identificar: ' + faltan.join(', ') + '. Estadística revisará los documentos.'; salida.motivo = 'No se identificó: ' + faltan.join(', ') + '.'; return salida; }
 
     /* Controles cruzados: solo si todos pasan se emite sin revisión humana */
@@ -169,7 +168,7 @@
   function imagen(n, tipo) { if (IMG[n]) return Promise.resolve(IMG[n]); return fetch('assets/' + n).then(function (r) { return r.blob(); }).then(function (b) { return new Promise(function (ok) { var fr = new FileReader(); fr.onload = function () { IMG[n] = fr.result; ok(fr.result); }; fr.readAsDataURL(b); }); }); }
   function pdfDe(d, codigo) {
     return Promise.all([imagen('escudo-cert.png'), imagen('marca-cert.jpg'), AJ.firmante.firma ? Promise.resolve(AJ.firmante.firma) : imagen('firma-cert.png')]).then(function (im) {
-      var doc = CERT.generar(window.jspdf.jsPDF, window.qrcode, { nombres: d.nombres, apellidos: d.apellidos, documento: d.cedula, lugar: d.lugar, programa: d.programa, promedio: d.promedio, periodo: d.periodoTerminacion,
+      var doc = CERT.generar(window.jspdf.jsPDF, window.qrcode, { nombres: d.nombres, apellidos: d.apellidos, documento: d.cedula, lugar: '', programa: d.programa, promedio: d.promedio, periodo: d.periodoTerminacion,
         fechaBalance: deISO(d.fechaBalance), facultad: d.facultad, estado: d.estadoVigencia, diplomado: d.diplomado, fecha: new Date(), codigo: codigo, enlace: AJ.enlaceVerificacion, firmante: AJ.firmante, escudo: im[0], marca: im[1], firma: im[2] });
       return doc.output('datauristring').split(',')[1];
     });
@@ -274,7 +273,7 @@
       (it.motivoRevision ? '<div class="chip aviso" style="margin-top:10px;white-space:normal;border-radius:10px">' + esc(it.motivoRevision) + '</div>' : '') +
       '<div class="sdoc" style="display:flex;gap:22px;margin-top:14px;flex:1;min-height:0"><div style="flex:1.05;display:flex;flex-direction:column;min-width:0;min-height:340px"><div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap" id="tabs"></div><div class="doc" id="doc"><span class="spin"></span></div></div>' +
       '<div style="flex:1;min-width:0;overflow:auto"><div class="g2"><div><div class="lbl">Apellidos</div><input class="inp" id="f_ap" value="' + esc(d.apellidos) + '"></div><div><div class="lbl">Nombres</div><input class="inp" id="f_no" value="' + esc(d.nombres) + '"></div>' +
-      '<div><div class="lbl">Cédula</div><input class="inp" id="f_ce" inputmode="numeric" value="' + esc(d.cedula) + '"></div><div><div class="lbl">Lugar de expedición</div><input class="inp" id="f_lu" value="' + esc(d.lugar) + '"></div></div>' +
+      '<div><div class="lbl">Cédula</div><input class="inp" id="f_ce" inputmode="numeric" value="' + esc(d.cedula) + '"></div></div>' +
       '<div style="margin-top:12px"><div class="lbl">Programa</div><select class="inp" id="f_pr"><option value="">Seleccione…</option>' + opcionesProg(d.programaId) + '</select></div>' +
       '<div class="g2" style="margin-top:12px"><div><div class="lbl">Facultad (según el programa)</div><input class="inp" id="f_fa" readonly></div><div><div class="lbl">Periodo de terminación</div><input class="inp" id="f_pe" placeholder="2026-1" value="' + esc(d.periodoTerminacion) + '"></div>' +
       '<div><div class="lbl">Diplomado de actualización (periodo)</div><input class="inp" id="f_di" placeholder="Opcional · 2026-1" value="' + esc(d.diplomado) + '"></div><div><div class="lbl">Fecha de elaboración (dd/mm/aaaa)</div><input class="inp" id="f_fe" value="' + esc(fmtFecha(d.fechaBalance)) + '"></div>' +
@@ -301,7 +300,7 @@
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;
       var pm = parseFloat(String($('f_pm').value).replace(',', '.'));
-      return { p: p, datos: { apellidos: N.mayus($('f_ap').value), nombres: N.mayus($('f_no').value), cedula: $('f_ce').value.replace(/\D/g, ''), lugar: $('f_lu').value.trim(), programaId: p ? p.id : '', programa: p ? p.nombre : '', sigla: p ? p.sigla : '', nivel: p ? p.nivel : 'pregrado', facultad: p ? p.facultad : '',
+      return { p: p, datos: { apellidos: N.mayus($('f_ap').value), nombres: N.mayus($('f_no').value), cedula: $('f_ce').value.replace(/\D/g, ''), lugar: '', programaId: p ? p.id : '', programa: p ? p.nombre : '', sigla: p ? p.sigla : '', nivel: p ? p.nivel : 'pregrado', facultad: p ? p.facultad : '',
         promedio: pm, periodoTerminacion: $('f_pe').value.trim(), diplomado: $('f_di').value.trim(), fechaBalance: desdeFecha($('f_fe').value) } };
     }
     function refrescar() { var f = leerForm(); $('f_fa').value = f.p ? (f.p.facultad || 'Falta en Ajustes') : ''; var v = f.datos.periodoTerminacion ? N.vigencia({ nivel: f.datos.nivel, terminacion: f.datos.periodoTerminacion, diplomado: f.datos.diplomado, hoy: new Date() }) : { estado: 'sin-dato' }; $('f_vi').value = ({ vigente: 'Vigente', actualizado: 'Actualizado con diplomado', vencido: 'Desactualizado', 'sin-dato': '—' })[v.estado]; return { f: f, v: v }; }
@@ -310,7 +309,7 @@
     $('brech').onclick = function () { pedirMotivo(it.nombre || [it.sigla, it.apellidos, it.nombres].filter(Boolean).join(' '), function (m, av) { api('revision-rechazar', { codigo: it.codigo, motivo: m, avisar: av }).then(function (r) { toast(r && r.avisoError ? 'Rechazado, pero el correo no salió: ' + r.avisoError : 'Certificado rechazado. El jefe de programa recibirá el aviso.'); siguiente(); }).catch(function (e) { toast(e.message); }); }); };
     $('bapr').onclick = function () {
       var x = refrescar(), err = $('f_err'), d = x.f.datos, falta = [];
-      ['apellidos', 'nombres', 'cedula', 'lugar', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });
+      ['apellidos', 'nombres', 'cedula', 'programaId', 'periodoTerminacion', 'fechaBalance'].forEach(function (k2) { if (!d[k2]) falta.push(k2); });
       if (!(d.promedio >= 0 && d.promedio <= 10)) falta.push('promedio');
       if (x.f.p && !x.f.p.facultad) falta.push('facultad (complétela en Ajustes)');
       var msg = falta.length ? 'Falta o es inválido: ' + falta.join(', ') + '.' : x.v.estado === 'vencido' ? 'El balance está desactualizado: no se puede emitir.' : x.v.estado === 'sin-dato' ? 'Revise el periodo de terminación (formato 2026-1).' : '';

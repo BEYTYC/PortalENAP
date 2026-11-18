@@ -30,3 +30,6 @@ NAV, IM, MC, MM, CCPAD, CCPAM, CCPEL, CCPIN, CCPOF, ESP LOGÍSTICA, ESP POLÍTIC
 - Cada lote nuevo avisa por correo a Estadística (quién lo envió, cuántos y cuáles quedan por revisar).
 - En la revisión de escaneados el documento se puede acercar (+ / − / Ajustar o clic sobre la imagen).
 - Las vistas van arriba, sin centrar; se quitó «Copiar resumen».
+
+## Lugar de expedición
+El lugar de expedición de la cédula **no se usa**: no sale en el certificado, no se pide en la revisión y no cuenta en los cruces. El certificado dice «cédula de ciudadanía No. X» sin lugar.
