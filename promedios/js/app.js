@@ -8,7 +8,7 @@
   var N = window.PromediosNucleo, CERT = window.PromediosCertificado;
   var $ = function (i) { return document.getElementById(i); };
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
-  var YO = null, AJ = null, FILAS = [], LOTE = null, CORREO = '', RESULT = [], PEND = 0, CORREOS = [];
+  var YO = null, AJ = null, FILAS = [], LOTE = null, CORREO = '', RESULT = [], PEND = 0, CORREOS = [], MAXLOTE = 10;
 
   /* ------------------------------ Servidor ------------------------------ */
   function tok() {
@@ -91,7 +91,7 @@
     vista(cab('Generar certificados de promedio', 'Cargue los documentos de cada estudiante', '') +
       '<div style="margin-top:14px;display:' + (YO.estadistica ? 'flex' : 'none') + ';align-items:center;gap:14px;padding:0;background:transparent;border:0;flex-wrap:wrap"><div class="lbl" style="margin:0">Enviar el correo a</div><input class="inp" id="correo" type="email" autocomplete="off" value="' + esc(CORREO) + '" placeholder="jefe.de.programa@enap.edu.co" style="flex:1;min-width:220px"' + ro + '>' + '' + '</div>' +
       '<div style="margin-top:10px;overflow:auto;min-height:0">' + filas + '</div>' +
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px"><div style="display:flex;gap:10px"><button class="btn sec" id="bmas">+ Agregar estudiante</button>' + volver() + '</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:13px;color:#566370">' + completas + ' de ' + FILAS.length + ' filas completas</span><button class="btn" id="bgen"' + (completas ? '' : ' disabled') + '>Generar certificados</button></div></div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px"><div style="display:flex;gap:10px"><button class="btn sec" id="bmas"' + (FILAS.length >= MAXLOTE ? ' disabled title="Máximo ' + MAXLOTE + ' estudiantes por lote"' : '') + '>+ Agregar estudiante</button>' + volver() + '</div><div style="display:flex;align-items:center;gap:16px"><span style="font-size:13px;color:#566370">' + completas + ' de ' + FILAS.length + ' filas completas (máximo ' + MAXLOTE + ' por lote)</span><button class="btn" id="bgen"' + (completas ? '' : ' disabled') + '>Generar certificados</button></div></div>' +
       '<input type="file" id="fin" hidden>');
     /* autocompletado: mientras ella escribe, el correo usado antes que empieza igual se va rellenando (lo que sobra queda seleccionado: sigue escribiendo o Enter/Tab para aceptar) */
     var ce = $('correo'); if (ce && YO.estadistica) ce.addEventListener('input', function (e) {
@@ -100,7 +100,7 @@
       var m = CORREOS.filter(function (c) { return c.toLowerCase().indexOf(v.toLowerCase()) === 0 && c.length > v.length; })[0];
       if (m) { ce.value = v + m.slice(v.length); ce.setSelectionRange(v.length, m.length); }
     });
-    $('bvolver').onclick = inicio; $('bmas').onclick = function () { guardarCorreo(); FILAS.push(nuevaFila()); carga(); };
+    $('bvolver').onclick = inicio; $('bmas').onclick = function () { guardarCorreo(); if (FILAS.length >= MAXLOTE) { toast('Cada lote admite máximo ' + MAXLOTE + ' estudiantes. Cargue los demás en otro lote.'); return; } FILAS.push(nuevaFila()); carga(); };
     document.querySelectorAll('[data-q]').forEach(function (b) { b.onclick = function () { guardarCorreo(); FILAS.splice(+b.dataset.q, 1); carga(); }; });
     document.querySelectorAll('[data-slot]').forEach(function (s) {
       var tipo = s.dataset.slot[0], i = +s.dataset.slot.slice(1);
@@ -199,7 +199,7 @@
   function generar() {
     prepararSonido();
     if (YO.estadistica && CORREO && CORREOS.indexOf(CORREO) < 0) CORREOS.unshift(CORREO);
-    var filas = FILAS.filter(function (f) { return f.ced.length && f.bal; }); LOTE = 'L' + Date.now().toString(36); var correo = CORREO;
+    var filas = FILAS.filter(function (f) { return f.ced.length && f.bal; }).slice(0, MAXLOTE); LOTE = 'L' + Date.now().toString(36); var correo = CORREO;
     RESULT = filas.map(function (f) { return { nombre: '(leyendo documentos…)', programa: '', promedio: null, estado: 'leyendo' }; }); resultado();
     var p = Promise.resolve();
     filas.forEach(function (f, i) {
