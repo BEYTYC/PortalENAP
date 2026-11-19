@@ -1475,7 +1475,7 @@ class Component extends DCLogic {
     const egFrom2000St = 'padding:9px 12px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid ' + (from2000 ? '#0C2050' : '#DDE3EE') + ';background:' + (from2000 ? '#0C2050' : '#fff') + ';color:' + (from2000 ? '#fff' : '#0C2050') + ';text-align:left';
     const egAnyF = prog != null || (eg.mode || 'all') !== 'all' || !!sem || og != null || !!eg.per;
     const egOtroSub = og == null ? 'Quienes ya tienen otro título en Graduados ENAP. Toca un grado para filtrar.' : og === -1 ? 'Filtrando: con cualquier otro grado. Toca un grado para ver solo ese.' : 'Filtrando: ' + E.O[og] + '. Toca de nuevo para quitar el filtro.';
-    const mobq = !!document.querySelector('.mob'), nYr = yrs.length, bs = mobq ? (nYr > 60 ? 10 : nYr > 28 ? 5 : nYr > 14 ? 2 : 1) : (y0 === 0 && y1 === 9999 ? 5 : 1), bins = {};
+    const mobq = !!document.querySelector('.mob'), nYr = yrs.length, bs = mobq ? (y0 === 0 && y1 === 9999 && !eg.preOpen ? 5 : nYr > 60 ? 10 : nYr > 28 ? 5 : nYr > 14 ? 2 : 1) : (y0 === 0 && y1 === 9999 ? 5 : 1), bins = {};
     yrs.forEach((y) => { const b = Math.floor(y / bs) * bs; bins[b] = bins[b] || { n: 0, t: 0, nc: 0, tp: 0 }; bins[b].t += PN.reduce((a2, _, j) => a2 + (inP(j, prog) ? dns(y, j) : 0), 0); bins[b].tp += PN.reduce((a2, _, j) => a2 + (inP(j, prog) && !incY(y, j) ? dns(y, j) : 0), 0); });
     E.R.filter((r) => inR(r) && pm(r[1])).forEach((r) => { const b = Math.floor(r[0] / bs) * bs; if (bins[b]) { bins[b].n++; if (incY(r[0], r[1])) bins[b].nc++; } });
     const bk0 = Object.keys(bins).map(Number).sort((a, b) => a - b), bkI = bk0.findIndex((b) => bins[b].t > 0), bk = bkI > 0 ? bk0.slice(bkI) : bk0, mx = Math.max.apply(null, bk.map((b) => bins[b].n).concat([1])), BH = 190;
@@ -1485,7 +1485,7 @@ class Component extends DCLogic {
     /* Años en que el programa aún no existía: por defecto una sola barra («< año de registro») que se despliega al tocarla. */
     const preIdx = bk.map((b, i) => i).filter((i) => preF[i]), preCollapse = hasPre && preIdx.length >= 2 && !eg.preOpen;
     const mergedO = preCollapse ? preIdx.reduce((a, i) => { const o = bins[bk[i]]; a.n += o.n; a.t += o.t; a.nc += o.nc; a.tp += o.tp; return a; }, { n: 0, t: 0, nc: 0, tp: 0 }) : null;
-    const preLbl = '< ' + (typeof prog === 'number' && REG[prog] ? REG[prog] : (bk[preIdx[preIdx.length - 1]] + bs));
+    const preRegY = REG[PN.map((_, j) => j).filter((j) => inP(j, prog))[0]], preLbl = '< ' + (preRegY || (bk[preIdx[preIdx.length - 1]] + bs));
     const itemsAll = bk.map((b, i) => ({ b: b, o: bins[b], pre: preF[i] }));
     const itemsEff = preCollapse ? [{ b: bk[preIdx[0]], o: mergedO, merged: true }].concat(itemsAll.filter((x) => !x.pre)) : itemsAll;
     const mxTe = Math.max.apply(null, itemsEff.map((x) => x.o.t).concat([1]));
