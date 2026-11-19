@@ -597,12 +597,13 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 </div>
 <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:minmax(0,1fr) minmax(0,1fr);gap:14px">
 <div class="rise d3" style="{{ panel }};display:flex;flex-direction:column;overflow:hidden">
-<div style="font-size:15px;font-weight:600;color:#0C2050">Causales de retiro</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94">Número de retirados. Toca para filtrar.</div>
-<div style="margin-top:10px;display:flex;flex-direction:column;gap:5px;flex:1;min-height:0;justify-content:space-between">
+<div style="font-size:15px;font-weight:600;color:#0C2050">Causales de retiro</div><div style="margin-top:2px;font-size:11.5px;color:#6B7A94"><b style="color:#0C2050;font-variant-numeric:tabular-nums">{{ causTotal }}</b> retirados · toca para filtrar</div>
+<div style="margin-top:8px;display:flex;height:10px;border-radius:999px;overflow:hidden;gap:2px;background:rgba(12,32,80,.05);flex:none"><sc-for list="{{ causStack }}" as="s" hint-placeholder-count="5"><div title="{{ s.tip }}" style="{{ s.st }}"></div></sc-for></div>
+<div style="margin-top:6px;display:flex;flex-direction:column;gap:0;flex:1;min-height:0;justify-content:space-between">
 <sc-for list="{{ causales }}" as="c" hint-placeholder-count="5">
 <button class="hov x" onClick="{{ c.go }}" style="{{ c.rowStyle }}">
-<div style="display:flex;justify-content:space-between;font-size:12.5px"><span>{{ c.label }}</span><span style="font-weight:600;font-variant-numeric:tabular-nums;color:#0C2050">{{ c.num }} <span style="font-weight:400;color:#6B7A94">· {{ c.share }}</span></span></div>
-<div style="margin-top:4px;height:9px;border-radius:5px;background:rgba(12,32,80,.07);display:flex;overflow:hidden"><div class="x" style="{{ c.sh }}"></div><div class="x" style="{{ c.sm }}"></div></div>
+<div style="display:flex;align-items:center;gap:7px"><span style="{{ c.dot }}"></span><span style="flex:1;min-width:0;font-size:12px;font-weight:600;color:#26354F;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ c.label }}</span></div>
+<div style="margin-top:4px;display:flex;align-items:center;gap:6px"><div style="flex:1;min-width:0;height:7px;border-radius:999px;background:rgba(12,32,80,.07);overflow:hidden"><div class="x" style="{{ c.sh }}"></div></div><span style="flex:none;font-size:13px;font-weight:700;color:#0C2050;font-variant-numeric:tabular-nums">{{ c.num }}</span><span style="{{ c.pill }}">{{ c.share }}</span></div>
 </button>
 </sc-for>
 </div>
@@ -2740,15 +2741,19 @@ class Component extends DCLogic {
     const causSum = causData.length;
     const causMax = Math.max(1, ...causNames.map((nm) => cnt(causData, (r) => r.causal === nm)));
     const causales = causNames.map((nm) => {
-      const c = sc(causData, (r) => r.causal === nm);
+      const c = sc(causData, (r) => r.causal === nm), col = causCol[causNames.indexOf(nm)], on = f.causal === nm;
       return {
         label: nm, num: fmt(c.t), share: pct(c.t, causSum), go: tog('causal', nm),
         sub: pct(c.t, causSum) + ' de los retirados',
-        rowStyle: 'width:100%;padding:3px 6px;border:0;background:none;text-align:left;cursor:pointer;border-radius:8px;opacity:' + (f.causal && f.causal !== nm ? 0.35 : 1),
-        sh: 'height:100%;border-radius:5px;background:' + causCol[causNames.indexOf(nm)] + ';width:' + (c.t / causMax * 100).toFixed(1) + '%',
+        rowStyle: 'width:100%;padding:4px 8px;border:0;text-align:left;cursor:pointer;border-radius:12px;transition:background .2s,box-shadow .2s,opacity .2s;background:' + (on ? '#F1F5FC' : 'transparent') + ';box-shadow:' + (on ? 'inset 0 0 0 1px ' + col + '66' : 'none') + ';opacity:' + (f.causal && !on ? 0.4 : 1),
+        dot: 'flex:none;width:9px;height:9px;border-radius:50%;background:' + col + ';box-shadow:0 0 0 3px ' + col + '24',
+        pill: 'flex:none;min-width:42px;text-align:center;padding:1px 7px;border-radius:999px;font-size:10.5px;font-weight:700;font-variant-numeric:tabular-nums;color:' + col + ';background:' + col + '1A',
+        sh: 'height:100%;border-radius:999px;background:linear-gradient(90deg,' + col + 'AA,' + col + ');width:' + Math.max(c.t ? 2 : 0, c.t / causMax * 100).toFixed(1) + '%;transition:width .55s cubic-bezier(.22,.8,.24,1)',
         sm: 'height:100%;width:0%'
       };
     });
+    const causTotal = fmt(causSum);
+    const causStack = causNames.map((nm) => { const c = cnt(causData, (r) => r.causal === nm); return { tip: nm + ': ' + fmt(c) + ' (' + pct(c, causSum) + ')', st: 'height:100%;min-width:' + (c ? 3 : 0) + 'px;flex:' + c + ' 1 0;background:' + causCol[causNames.indexOf(nm)] + ';transition:flex .55s cubic-bezier(.22,.8,.24,1)' }; });
     const espD = D('esp');
     const espAllD = data.filter((r) => PN(r, 'esp'));
     const desRows = ESPALL.map((k) => {
@@ -3159,7 +3164,7 @@ class Component extends DCLogic {
       yearCols: yearColsOut, boxStyle: 'margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (H + 40) + 'px', estadoLeg: estadoLeg, progRows: progRows,
       dn: dn, sexoRows: sexoRows, matEstado: matEstado, pairGvr: pairGvr, pairVol: pairVol, pairCon: pairCon, pairRec: pairRec, pairForm: pairForm, pairProg: pairProg, es: es, estRows: estRows,
       gradCols: gradCols, hmBox: 'position:relative;margin-top:18px;display:flex;align-items:flex-end;gap:6px;height:' + (HG + 40) + 'px', gradProg: gradProg, tasaCols: tasaCols, tasaBox: colBox(150),
-      txtBox: txtBox, orbBox: orbBox, bgMask: bgMask, wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, ingEsp: ingEsp, ingStats: ingStats, edCols: edCols, ageSub: ageSub, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
+      txtBox: txtBox, orbBox: orbBox, bgMask: bgMask, wmDisp: wmDisp, rlGrid: rlGrid, rlArea: rlArea, rlLine: rlLine, rlDots: rlDots, rlTicks: rlTicks, rlSub: rlSub, qrRows: qrRows, dMetrics: dMetrics, semCols: semCols, semSub: semSub, yrCols: yrCols, ingEsp: ingEsp, ingStats: ingStats, edCols: edCols, ageSub: ageSub, cursoCols: cursoCols, cursoTitle: cursoTitle, cursoSub: cursoSub, retDon: retDon, retDonTotal: retDonTotal, causTotal: causTotal, causStack: causStack, causales: causales, desRows: desRows, desSexo: desSexo, retCols: retCols, retBox: colBox(retH), heatHead: heatHead, heatRows: heatRows,
       conTipo: conTipo, conProg: conProg, conEstado: conEstado, conCols: conCols, conBox: colBox(150),
       recTipo: recTipo, recProg: recProg, recEstado: recEstado, recCols: recCols, recBox: colBox(150),
       extProg: extProg, ascProg: ascProg, extCols: extCols, ascCols: ascCols, extBox: colBox(150), ascBox: colBox(150), formSexo: formSexo,
