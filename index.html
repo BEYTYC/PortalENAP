@@ -3376,8 +3376,10 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         const btn = document.createElement('button');
         btn.type = 'button';
         if (bloqueado) {
-          btn.className = 'locked';
-          btn.innerHTML = `<span class="label">${item.nombre}</span><span class="tag tag--lock" title="Sin acceso"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span>`;
+          // Se ve normal (sin gris ni candado); al tocarlo, la ventana "Sin acceso" explica el motivo.
+          btn.innerHTML = item.status === 'link'
+            ? `<span class="label">${item.nombre}</span><span class="tag" title="Sale del Portal, a la vista pública del estudiante">Enlace</span>`
+            : `<span class="label">${item.nombre}</span>`;
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
             try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (er) {}
