@@ -410,7 +410,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 <button class="hov" onClick="{{ y.go }}" title="{{ y.aria }}" aria-label="{{ y.aria }}" style="flex:1;min-width:0;height:100%;padding:0;border:0;background:none;display:flex;flex-direction:column;align-items:stretch;cursor:pointer;border-radius:6px">
 <div style="flex:1;min-height:0;position:relative;margin-top:16px;width:min(72px,92%);align-self:center"><div class="x" style="{{ y.wrap }}"><div style="position:absolute;left:0;right:0;bottom:100%;margin-bottom:3px;height:13px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.total }}</div>
 <div style="{{ y.stack }}"><div class="x" style="{{ y.sr }}">{{ y.pr }}</div><div class="x" style="{{ y.sa }}">{{ y.pa }}</div><div class="x" style="{{ y.sg }}">{{ y.pg }}</div></div></div></div>
-<div style="margin-top:5px;height:14px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible">{{ y.label }}</div>
+<div style="margin-top:5px;height:14px;font-size:10px;color:#6B7A94;text-align:center;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:visible;{{ y.lblS }}">{{ y.label }}</div>
 </button>
 </sc-for>
 </div>
@@ -2461,18 +2461,25 @@ class Component extends DCLogic {
     const gYear = []; yearsAll.filter((y) => y >= gDesde && y <= gHasta).forEach((y) => { [1, 2].forEach((sm) => { const c = { esc: 0, est: 0, ret: 0, t: 0 }; yearData.forEach((r) => { if (r.year === y && (r.periodo === 'II' ? 2 : 1) === sm) { c[escF(r) ? 'esc' : retF(r) ? 'ret' : 'est']++; c.t++; } }); gYear.push({ y: y, s: sm, c: c }); }); });
     while (gYear.length > 1 && gYear[0].c.t === 0) gYear.shift();
     while (gYear.length > 1 && gYear[gYear.length - 1].c.t === 0) gYear.pop();
-    const gMax = Math.max(1, ...gYear.map((o) => o.c.t));
+    // Antes de 2000 se agrupa en una sola columna ("Hasta 1999"); de 2000 en adelante, un semestre por columna.
+    const gPre = gDesde < 2000 && gHasta >= 2000 ? gYear.filter((o) => o.y < 2000) : [];
+    if (gPre.length) {
+      const pc = { esc: 0, est: 0, ret: 0, t: 0 }; gPre.forEach((o) => { ['esc', 'est', 'ret', 't'].forEach((k) => { pc[k] += o.c[k]; }); });
+      gYear.splice(0, gPre.length, { y: 1999, s: 0, pre: true, y0: gPre[0].y, c: pc });
+    }
+    const gMax = Math.max(1, ...gYear.filter((o) => !o.pre).map((o) => o.c.t));
     const mobGq = !!document.querySelector('.mob'), mobStep = gYear.length > 90 ? 20 : gYear.length > 48 ? 5 : gYear.length > 24 ? 2 : 1;
     const gYearCols = gYear.map((o) => {
       const seg = (n, col) => 'height:' + (o.c.t ? n / o.c.t * 100 : 0).toFixed(2) + '%;background:' + col + ';display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#fff;overflow:hidden;font-variant-numeric:tabular-nums';
-      const pl = (n, t) => (gYear.length <= 45 && t > 0 && n / gMax * 300 >= 14 ? Math.round(n / t * 100) + '%' : '');
+      const hF = Math.min(1, o.c.t / gMax), pre = !!o.pre;
+      const pl = (n, t) => (!pre && gYear.length <= 45 && t > 0 && n / gMax * 300 >= 14 ? Math.round(n / t * 100) + '%' : '');
       return {
-        label: mobGq ? ((o.s !== 1 || o.y % mobStep !== 0) ? '' : (mobStep === 1 ? "'" + String(o.y).slice(2) : String(o.y))) : (gYear.length > 45 ? ((o.s !== 1 || o.y % 5 !== 0) ? '' : String(o.y)) : String(o.y).slice(2) + '-' + o.s), total: (gYear.length > 45 || (mobGq && gYear.length > 16)) ? '' : fmt(o.c.t), aria: 'Ingreso ' + o.y + '-' + o.s + ': ' + o.c.t + ' estudiantes', go: tog('year', o.y),
-        wrap: 'position:absolute;left:0;right:0;bottom:0;height:' + (o.c.t / gMax * 100).toFixed(2) + '%', stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (dimYear(o.y) ? 0.3 : 1) + ';outline:' + (f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
+        lblS: pre ? 'text-align:left;font-weight:600;color:#3D4D69' : '', label: pre ? 'Hasta 1999' : (gPre.length && o.y === 2000 && o.s === 1) ? '' : mobGq ? ((o.s !== 1 || o.y % mobStep !== 0) ? '' : (mobStep === 1 ? "'" + String(o.y).slice(2) : String(o.y))) : (gYear.length > 45 ? ((o.s !== 1 || o.y % 5 !== 0) ? '' : String(o.y)) : String(o.y).slice(2) + '-' + o.s), total: (pre || (gYear.length <= 45 && !(mobGq && gYear.length > 16))) ? fmt(o.c.t) : '', aria: pre ? 'Ingreso hasta 1999 (' + o.y0 + '-1999, acumulado): ' + o.c.t + ' estudiantes' : 'Ingreso ' + o.y + '-' + o.s + ': ' + o.c.t + ' estudiantes', go: pre ? () => upd({ year: null, range: f.range && f.range[1] === 1999 ? null : [gDesde, 1999] }) : tog('year', o.y),
+        wrap: 'position:absolute;left:0;right:0;bottom:0;height:' + (hF * 100).toFixed(2) + '%', stack: 'display:flex;flex-direction:column;justify-content:flex-end;height:100%;border-radius:6px 6px 2px 2px;overflow:hidden;opacity:' + (pre ? ((f.year && f.year > 1999) || (f.range && f.range[0] > 1999) || (f.desde && f.desde[0] > 1999) ? 0.3 : 1) : dimYear(o.y) ? 0.3 : 1) + ';outline:' + (!pre && f.year === o.y ? '2px solid #B8841F' : 'none') + ';outline-offset:1px',
         sr: seg(o.c.ret, C3.ret), sa: seg(o.c.est, C3.est), sg: seg(o.c.esc, C3.esc), pr: pl(o.c.ret, o.c.t), pa: pl(o.c.est, o.c.t), pg: pl(o.c.esc, o.c.t)
       };
     });
-    const gTr = trendOf(gYear.map((o) => o.c.t / gMax), 'position:absolute;left:0;width:100%;top:16px;height:calc(100% - 35px);pointer-events:none;overflow:visible');
+    const gTr = trendOf(gYear.map((o) => Math.min(1, o.c.t / gMax)), 'position:absolute;left:0;width:100%;top:16px;height:calc(100% - 35px);pointer-events:none;overflow:visible');
     const gLeg = [['Escalafonados', C3.esc], ['Estudiando', C3.est], ['Retirados', C3.ret]].map((a) => ({ label: a[0], dot: dot(a[1]) }));
     const mesesAvg = (rs) => { const q = rs.filter((r) => r.meses != null); return q.length > 0 ? q.reduce((a, r) => a + r.meses, 0) / q.length : 0; };
     const metr = (rs) => {
@@ -3150,7 +3157,7 @@ class Component extends DCLogic {
     const egV = this.egres();
     const vals = {
       credStyle: credStyle, welBox: welBox, showFs: this._modo !== 'inicio', railPd: tab === 'general', railDhG: tab === 'general', gdhDY: gdhDY, gdhDS: gdhDS, gdhHY: gdhHY, gdhHS: gdhHS, gdhDOn: !!f.desde, gdhHOn: !!f.hasta, gdhDYOpts: gdhYOpt(f.desde, 'Desde el inicio'), gdhHYOpts: gdhYOpt(f.hasta, 'Hasta hoy'), gdhDSOpts: gdhSOpt(f.desde), gdhHSOpts: gdhSOpt(f.hasta), railSexo: true, rngOn: true, railDh: false, estLbl: 'Estado', rngLbl: 'Año de ingreso',
-      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + (gYear.length ? gYear[0].y + '-' + gYear[0].s : gDesde) + ' hasta ' + (gYear.length ? gYear[gYear.length - 1].y + '-' + gYear[gYear.length - 1].s : gHasta) + '. Toca una fila para filtrar por año de ingreso',
+      gFromOpts: gFromOpts, gToOpts: gToOpts, gFromSet: gFromSet, gToSet: gToSet, gSub: 'Desde ' + (gYear.length ? (gYear[0].pre ? gYear[0].y0 : gYear[0].y + '-' + gYear[0].s) : gDesde) + ' hasta ' + (gYear.length ? gYear[gYear.length - 1].y + '-' + gYear[gYear.length - 1].s : gHasta) + '. Toca una fila para filtrar por año de ingreso' + (gPre.length ? '. «Hasta 1999» agrupa los ingresos anteriores a 2000' : ''),
       gTrP: gTr.p, gTrS: gTr.s, gradTrP: gradCols.tr.p, gradTrS: gradCols.tr.s, conTrP: conCols.tr.p, conTrS: conCols.tr.s, recTrP: recCols.tr.p, recTrS: recCols.tr.s, yrTrP: yrT.p, yrTrS: yrT.s,
       gBox: 'position:relative;margin-top:6px;display:flex;align-items:stretch;gap:2px;flex:1;min-height:170px;width:100%;max-width:' + Math.max(gYearCols.length, 1) * 150 + 'px;align-self:center', gYearCols: gYearCols, gLeg: gLeg, indG: indG, es3: es3, estRows3: estRows3, espRows: espRows, causG: causG, permCols: permCols, permStats: permStats, permSub: permSub, permTitle: permTitle, cauTitle: cauTitle, cauSub: cauSub, espTitle: espTitle, espSub: espSub, genCards: genCards, genDonut: genDonut, genTotal: fmt(gTot), paisRows: paisRows, mapDots: mapDots, mapPoly: mapPoly, paisSub: paisSub, per: PER, perPrv: PRV, perPrev: perPrev, perNext: perNext, perTxt: perTxt, perTxt2: 'Ingreso ' + PER + ' frente a ' + PRV, fechaAct: fechaAct, fs: fsOn, nfs: !fsOn, fsToggle: fsToggle, fsLabel: fsOn ? 'Salir de pantalla completa' : 'Pantalla completa', rootStyle: rootStyle + fadeS, areaStyle: areaStyle, stageStyle: stageStyle,
       isWelcome: this.state.screen === 'welcome', isApp: this.state.screen === 'app', goHome: goHome, exitDash: exitDash, stageCls: mob ? 'mob' : (mobIni ? 'mobi' : ''), appPad: fsOn ? '22px 26px' : (scr && mobq) ? '12px' : '34px 90px', enterGeneral: enter('general'),
