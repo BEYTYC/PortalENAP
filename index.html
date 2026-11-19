@@ -3255,7 +3255,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Solo Estadística (sea@ y jestadisticaplen@): registra los retiros en Bajas y Ascensos.
         { nombre: 'Registro de bajas', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co'], quien: 'Este módulo es solo para la Oficina de Estadística.' },
         // La parte administrativa de Concesiones Especiales (Apps Script, vista de Estadística) se abre desde aquí.
-        { nombre: 'Aprobación de Concesiones', status: 'ok' },
+        { nombre: 'Aprobación de Concesiones', status: 'ok', rolesPermitidos: ['ADMIN'], quien: 'Este módulo es solo para administradores.' },
         { nombre: 'Aprobación de Certificados', status: 'ok', correosPermitidos: ['sea@enap.edu.co', 'jestadisticaplen@enap.edu.co', 'sac@enap.edu.co'], quien: 'Este módulo es solo para cuentas autorizadas.' },
       ],
     },
