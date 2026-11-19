@@ -3245,7 +3245,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // Solo la cuenta de Posgrados Facultad de Administración (login del Portal).
         { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co'], soloParaPermitidos: true, quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         // Certificado de promedio desde cédula + balance. Estadística; /api/promedios valida además a los usuarios autorizados en Ajustes.
-        { nombre: 'Generación de Promedios Académicos', status: 'ok', correosORoles: { correos: ['jestadisticaplen@enap.edu.co'], roles: ['JEFE_PROGRAMA'] }, quien: 'Este módulo es solo para la Oficina de Estadística y los jefes de programa.' },
+        { nombre: 'Generación de Promedios Académicos', status: 'ok' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -3403,11 +3403,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
-          else if (item.status === 'ok' && item.nombre === 'Generación de Promedios Académicos') {
-            const rolesProm = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.roles) || [];
-            if (item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesProm.includes(r))) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística y los jefes de programa.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística y los jefes de programa.'); } }
-            else { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); }
-          }
+          else if (item.status === 'ok' && item.nombre === 'Generación de Promedios Académicos') { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); }
           else if (item.status === 'ok' && item.nombre === 'Registro de bajas') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
