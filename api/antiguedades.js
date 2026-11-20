@@ -148,6 +148,7 @@ function puedeDescargar(correo, accesos) {
 /* ---- ACCESO DE CONSULTA PARA JEFES DE PROGRAMA Y DECANOS ----
  * Quienes tienen en la lista de permisos del Portal (la misma de Solicitud de Grado) el rol DECANO o JEFE_PROGRAMA,
  * más los correos de abajo, entran como CONSULTA (solo ven; no descargan ni administran). Es permanente. */
+const SIN_ACCESO_ANTIGUEDADES = ['guardia.baena@enap.edu.co'];
 const ACCESO_TEMPORAL = true;
 const ROLES_TEMPORALES = ['DECANO', 'JEFE_PROGRAMA'];
 const CORREOS_TEMPORALES = ['cben@enap.edu.co', 'sac@enap.edu.co', 'daen@enap.edu.co', 'denap@enap.edu.co', 'aspapen@enap.edu.co'];
@@ -218,6 +219,8 @@ module.exports = async function handler(req, res) {
     if (!yo.correo.endsWith(DOMINIO) || roles.CORREOS_BLOQUEADOS.includes(yo.correo)) {
       throw error('Esta cuenta no puede usar el Portal.', 403);
     }
+    // Cuentas sin acceso a Antigüedades aunque tengan un rol que lo permita (pedido de la autora, 2026-11-19).
+    if (SIN_ACCESO_ANTIGUEDADES.includes(yo.correo)) throw error('Su cuenta no tiene acceso a Antigüedades ENAP.', 403);
     await contexto();
     const accesos = await leerAccesos();
     const rol = rolDe(yo.correo, accesos) || (await rolTemporal(yo.correo));

@@ -3263,7 +3263,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       key: 'institucion', nombre: 'Institución', icon: 'institucion',
       items: [
         { nombre: 'Centro de Datos ENAP', status: 'ok' },
-        { nombre: 'Antigüedades ENAP', status: 'ok' },
+        { nombre: 'Antigüedades ENAP', status: 'ok', correosSinAcceso: ['guardia.baena@enap.edu.co'], quien: 'Tu cuenta no tiene acceso a este módulo.' },
         // Abierto a toda cuenta institucional: trayectoria completa de un estudiante (cédula o nombre).
         { nombre: 'Trayectoria del Estudiante', status: 'ok' },
       ],
@@ -3314,7 +3314,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // siquiera aparecen en el menu.
         // Todos los submenús se ven siempre; si la cuenta no tiene acceso, el ítem queda con candado
         // y al tocarlo sale la pantalla "Sin acceso" con el botón "Solicitar acceso al módulo".
-        const bloqueado = CUENTAS_TODO_ACCESO.indexOf(correoSesion()) === -1 && !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
+        const bloqueado = CUENTAS_TODO_ACCESO.indexOf(correoSesion()) === -1 && !!((item.correosSinAcceso && item.correosSinAcceso.indexOf(correoSesion()) !== -1) || (item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
           || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1)
           || (item.correosORoles && item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesSesion.includes(r))));
         if (item.soloParaPermitidos && bloqueado) continue;   // este módulo solo aparece en el menú de las cuentas autorizadas
