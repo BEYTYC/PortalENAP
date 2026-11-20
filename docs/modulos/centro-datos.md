@@ -36,7 +36,7 @@ Si el código difiere de este documento, preguntar antes de cambiar cualquiera d
   Ingeniería Naval o Electrónica según corresponda.
 - Especialización en Política y Estrategia Marítima: solo NAV o IM que hicieron el
   curso comando de línea (un semestre) y no obtuvieron el título.
-- El conteo es desde el registro de cada programa en SNIES: Ciencias 15/12/1999;
+- El conteo es desde el registro de cada programa en SNIES: Ciencias 15/12/1999 (por decisión de la autora, para evitar confusiones, los grados de 1999 de Ciencias cuentan como anteriores a la creación del programa: el conteo de Ciencias empieza en 2000);
   Administración, Administración Marítima y Oceanografía Física 21/03/1998;
   Ingeniería Naval 01/11/2012; Ingeniería Electrónica 25/04/2013.
 - Dos tarjetas: "Desde el registro en SNIES" y "Antes del registro en SNIES".
