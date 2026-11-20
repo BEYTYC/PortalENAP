@@ -1392,7 +1392,30 @@ class Component extends DCLogic {
     const T = { graduados: ['Graduados', 'Base de datos de graduados', 'Graduados_con_nombres.xlsx'], retirados: ['Retirados', 'Base de datos de retirados', 'Retirados_con_nombres.xlsx'] }[tipo];
     if (est === 'admin' || est === 'aprobada') {
       this.nomSet({ msg: 'Preparando la descarga…' });
-      return this.nomApi('descargar', { tipo: tipo }).then((j) => this.nomXlsx(j, j.filas, { hoja: T[0], titulo: T[1], nombre: T[2], correo: nm.correo, num: true, congelar: tipo === 'retirados' ? 'Cédula' : null })).then(() => this.nomSet({ msg: '' })).catch((e) => this.nomSet({ msg: e.message }));
+      return this.nomApi('descargar', { tipo: tipo }).then((j) => {
+        let filas = j.filas, titulo = T[1];
+        if (tipo === 'graduados') {
+          /* Respeta los filtros de la pantalla (programa, nivel, año y periodo de grado). */
+          const sp = this.state.sp || {}, H = j.cab, iP = H.indexOf('Programa académico'), iN = H.indexOf('Nivel'), iG = H.indexOf('Periodo de grado');
+          const progIdx = (n) => { const t = String(n || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); return /doctorado/.test(t) ? 15 : /planificacion/.test(t) ? 14 : /maestria en oceanografia/.test(t) ? 13 : /maestria en ingenieria naval/.test(t) ? 12 : /maestria en gestion logistica/.test(t) ? 11 : /politica/.test(t) ? 10 : /especializacion en logistica/.test(t) ? 9 : /oceanografia/.test(t) ? 8 : /ingenieria naval/.test(t) ? 7 : /ingenieria electronica/.test(t) ? 6 : /administracion maritima/.test(t) ? 5 : /administracion/.test(t) ? 4 : /nauticas.*maquinas/.test(t) ? 3 : /nauticas/.test(t) ? 2 : /infanteria/.test(t) ? 1 : /navales/.test(t) ? 0 : -1; };
+          const hay = sp.prog || sp.nivel || sp.periods || sp.year || sp.desde || sp.hasta;
+          if (hay) {
+            filas = filas.filter((f) => {
+              const m = /^(\d{4})-(\d)/.exec(String(f[iG] || '')), y = m ? +m[1] : 0, q = m ? +m[2] : 0;
+              if (sp.prog && sp.prog.indexOf(progIdx(f[iP])) < 0) return false;
+              if (sp.nivel && !(sp.nivel === 'P' ? /^preg/i : /^posg/i).test(f[iN] || '')) return false;
+              if (sp.periods && sp.periods.indexOf(y + '-' + q) < 0) return false;
+              if (sp.year && y !== sp.year) return false;
+              if (sp.desde && (y < sp.desde[0] || (y === sp.desde[0] && q < sp.desde[1]))) return false;
+              if (sp.hasta && (y > sp.hasta[0] || (y === sp.hasta[0] && q > sp.hasta[1]))) return false;
+              return true;
+            });
+            titulo = T[1] + ' (con los filtros de la pantalla)';
+            if (!filas.length) throw new Error('Con los filtros elegidos no hay graduados para descargar.');
+          }
+        }
+        return this.nomXlsx(j, filas, { hoja: T[0], titulo: titulo, nombre: T[2], correo: nm.correo, num: true, congelar: tipo === 'retirados' ? 'Cédula' : null });
+      }).then(() => this.nomSet({ msg: '' })).catch((e) => this.nomSet({ msg: e.message }));
     }
     if (est === 'sin' || est === 'rechazada') {
       this.nomSet({ msg: 'Enviando la solicitud…' });
