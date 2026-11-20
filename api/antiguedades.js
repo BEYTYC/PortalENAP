@@ -219,11 +219,10 @@ module.exports = async function handler(req, res) {
     if (!yo.correo.endsWith(DOMINIO) || roles.CORREOS_BLOQUEADOS.includes(yo.correo)) {
       throw error('Esta cuenta no puede usar el Portal.', 403);
     }
-    // Cuentas sin acceso a Antigüedades aunque tengan un rol que lo permita (pedido de la autora, 2026-11-19).
-    if (SIN_ACCESO_ANTIGUEDADES.includes(yo.correo)) throw error('Su cuenta no tiene acceso a Antigüedades ENAP.', 403);
     await contexto();
     const accesos = await leerAccesos();
-    const rol = rolDe(yo.correo, accesos) || (await rolTemporal(yo.correo));
+    // Las cuentas de SIN_ACCESO_ANTIGUEDADES no entran por rol (Decano/Jefe de Programa): deben pedir ingreso y que Estadística se lo conceda.
+    const rol = rolDe(yo.correo, accesos) || (SIN_ACCESO_ANTIGUEDADES.includes(yo.correo) ? null : await rolTemporal(yo.correo));
 
     /* ---- sesión: dice qué rol tiene; si no tiene, deja registrado el intento ---- */
     if (accion === 'sesion') {
