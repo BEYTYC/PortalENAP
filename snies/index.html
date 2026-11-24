@@ -87,7 +87,7 @@ h1,h2,h3{font-weight:600}
 <script>
 (function () {
   'use strict';
-  var S = { vista: 'mis', datos: null, admin: null, cargandoId: null, filtro: '' };
+  var S = { vista: 'mis', datos: null, admin: null, cargandoId: null, filtro: '', verComo: '' };
   var app = document.getElementById('app');
   var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -123,7 +123,7 @@ h1,h2,h3{font-weight:600}
 
   /* ---------------- Carga de datos ---------------- */
   function cargarSesion() {
-    return api('sesion').then(function (d) { S.datos = d; if (!d.admin && S.vista !== 'mis') S.vista = 'mis'; });
+    return api('sesion', S.verComo ? { verComo: S.verComo } : {}).then(function (d) { if (d.admin && d.usuarios) S.usuarios = d.usuarios; if (d.admin && !d.verComo) S.nombreReal = d.nombre; S.datos = d; if (!d.admin && S.vista !== 'mis') S.vista = 'mis'; });
   }
   function cargarAdmin(p) { return api('admin', p ? { periodo: p } : {}).then(function (d) { S.admin = d; }); }
 
@@ -160,7 +160,11 @@ h1,h2,h3{font-weight:600}
   function vistaMis() {
     var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && (p.estado === 'revision' || p.estado === 'validada'); }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
-    var h = '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
+    var barra = '';
+    if (d.admin) {
+      barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:600">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(nombreSaludo(d.verComo ? S.nombreReal || '' : d.nombre)) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Solo lectura: así ve el aplicativo esa persona</span>' : '') + '</div>';
+    }
+    var h = barra + '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     var pct = total ? Math.round(100 * ent / total) : 0;
     h += '<div class="card prog"><div style="font-size:14px;color:#4c6386;white-space:nowrap">Avance: <b style="font-size:18px;color:#0b2a55">' + pct + ' %</b></div><div style="flex:1;min-width:220px"><div class="bar"><i style="width:' + pct + '%"></i></div></div></div>';
@@ -302,6 +306,7 @@ h1,h2,h3{font-weight:600}
     }
   });
   app.addEventListener('change', function (e) {
+    if (e.target.id === 'vercomo') { S.verComo = e.target.value; S.datos = null; cargarSesion().then(pintar).catch(function (x) { toast(x.message); }); return; }
     var i = e.target; if (i.dataset && i.dataset.a === 'subir' && i.files[0]) {
       var id = i.dataset.id, f = i.files[0];
       leerB64(f).then(function (b64) { return api('oficial-subir', { id: id, nombre: f.name, datos: b64 }).then(function (r) {

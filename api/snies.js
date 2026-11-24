@@ -181,7 +181,7 @@ async function enviarCorreo(para, asunto, html) {
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items, colDias }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
   items = items || (plantillas || []).map((n) => ({ nombre: n, fecha, entrega }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
@@ -191,8 +191,8 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items }
   const td = 'padding:10px 12px;border-bottom:1px solid #e3eaf1;font-size:14.5px;color:#334155';
   const entregas = Array.from(new Set(items.map((i) => i.entrega || 'Por asignar')));
   const variasEntregas = entregas.length > 1;   /* si todas comparten responsable de la entrega, va en una línea; si no, en una columna */
-  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
-  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
+  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
+  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${colDias ? `<td style="${th}">${esc(colDias)}</td>` : ''}${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
     + (variasEntregas ? '' : P(`<b>Responsable de la entrega:</b> ${esc(entregas[0] || 'Por asignar')}`));
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
@@ -227,7 +227,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
     for (const c of Array.from(new Set(r.entrega.concat(r.diligencia)))) {
       if (opc.soloCorreos && !opc.soloCorreos.includes(c)) continue;
       if (!porCorreo.has(c)) porCorreo.set(c, []);
-      porCorreo.get(c).push({ t, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id) }, posgrados: t.posgrados });
+      porCorreo.get(c).push({ t, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
     }
   }
   let correos = 0, fallos = 0;
@@ -241,7 +241,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
       venc: ['Plantillas SNIES vencidas', `El plazo de entrega de ${uno ? 'la siguiente plantilla ya venció' : 'las siguientes plantillas ya venció'}. Le agradecemos enviar${uno ? 'la' : 'las'} lo antes posible para evitar hallazgos en la Auditoría.`],
     }[tipo];
     try {
-      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila) }));
+      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila), colDias: tipo === 'apertura' ? '' : (tipo === 'venc' ? 'Estado del plazo' : 'Días faltantes') }));
       correos++; lista.forEach((x) => usadas.add(x.t.id));
     } catch (e) { fallos++; }
   }
@@ -362,12 +362,16 @@ module.exports = async function handler(req, res) {
     }
     const periodo = /^\d{4}-[12]$/.test(body.periodo || '') && admin ? body.periodo : cfg.periodo;
     const est = await leerEstado(periodo);
-    const mias = () => TEMPLATES.filter((t) => { const r = respDe(cfg, t.id); return r.entrega.includes(yo.correo) || r.diligencia.includes(yo.correo); });
+    const mias = (c) => TEMPLATES.filter((t) => { const r = respDe(cfg, t.id); return r.entrega.includes(c || yo.correo) || r.diligencia.includes(c || yo.correo); });
     const buscar = (id) => { const t = POR_ID[id]; if (!t) throw error('Plantilla desconocida.', 400); return t; };
 
     if (a === 'sesion') {
       const pAnt = anterior(cfg.periodo), estAnt = await leerEstado(pAnt);
-      res.status(200).json({ correo: yo.correo, nombre: yo.nombre, admin, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias().map((t) => Object.assign(vista(t, cfg, est, periodo, yo.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' })) });
+      /* Modo súper admin: el administrador puede ver el aplicativo como lo ve cualquier responsable (solo lectura: no puede cargar ni actuar como esa persona). */
+      const como = admin ? String(body.verComo || '').trim().toLowerCase() : '';
+      const quien = como ? { correo: como, nombre: nombreDe(cfg, como) } : yo;
+      const usuarios = admin ? Array.from(new Set(Object.values(cfg.responsables || {}).flatMap((r) => (r.entrega || []).concat(r.diligencia || [])))).map((c) => ({ correo: c, nombre: nombreDe(cfg, c) })).sort((x, y) => x.nombre.localeCompare(y.nombre, 'es')) : undefined;
+      res.status(200).json({ correo: quien.correo, nombre: quien.nombre, admin, verComo: como, usuarios, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias(como || '').map((t) => { const o = Object.assign(vista(t, cfg, est, periodo, quien.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' }); if (como) o.puedeCargar = false; return o; }) });
       return;
     }
 
