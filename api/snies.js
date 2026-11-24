@@ -316,10 +316,11 @@ async function cronDiario() {
     const v = vista(t, cfg, est, periodo, '', false);
     if (v.modo === 'sin') continue;
     if (!v.limite || !['pendiente', 'devuelta'].includes(v.estado) || v.noAplica) continue;
-    const tipo = v.dias === 7 ? 'r7' : v.dias === 1 ? 'r1' : v.dias === -1 ? 'venc' : null;
+    const tipo = v.dias === 7 ? 'r7' : v.dias === 1 ? 'r1' : v.dias < 0 ? 'venc' : null;   /* vencidas: un correo cada día hasta que entreguen */
     if (!tipo) continue;
-    if (((est[t.id] || {}).avisos || []).includes(`${tipo}-${v.limite}`)) continue;
-    grupos[tipo].push({ id: t.id, marca: `${tipo}-${v.limite}` });
+    const marca = tipo === 'venc' ? `venc-${hoyIso()}` : `${tipo}-${v.limite}`;
+    if (((est[t.id] || {}).avisos || []).includes(marca)) continue;
+    grupos[tipo].push({ id: t.id, marca });
   }
   for (const tipo of Object.keys(grupos)) {
     if (!grupos[tipo].length) continue;
@@ -371,7 +372,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (a === 'cargar') {
-      const t = buscar(body.id), v = vista(t, cfg, est, periodo, yo.correo, false);
+      const t = buscar(body.id), v = vista(t, cfg, est, periodo, yo.correo, false), porEstadistica = !!(admin && body.porEstadistica);
       if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se carga en el aplicativo.', 400);
       if (v.bloqueo && !admin) throw error(v.bloqueo, 409);
@@ -384,8 +385,8 @@ module.exports = async function handler(req, res) {
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Entregó la plantilla. Pasa a En revisión.' }); }),
-        avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla. Pasa a En revisión.' }); }),
+        porEstadistica ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }

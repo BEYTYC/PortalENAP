@@ -169,14 +169,14 @@ h1,h2,h3{font-weight:600}
   }
 
   /* ---------------- Cargue ---------------- */
-  function cargarArchivo(id, file) {
+  function cargarArchivo(id, file, porEstadistica) {
     if (!file) return;
     if (!/\.xlsx$/i.test(file.name)) { toast('El archivo debe ser un Excel .xlsx'); return; }
     var m = modal('<div style="font-size:17px">Revisando y guardando tu archivo…</div><div class="mu">' + esc(file.name) + '</div><div class="mu">Puede tardar unos segundos; no cierres esta ventana.</div>');
-    leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64 }); }).then(function (r) {
+    leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64, porEstadistica: !!porEstadistica, periodo: porEstadistica && S.admin ? S.admin.periodo : undefined }); }).then(function (r) {
       m.remove();
       if (!r.ok) { var mm = modal('<div style="font-size:17px">Tu archivo no se pudo entregar</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul><div style="text-align:right"><button class="btn" id="cerrar">Entendido</button></div>'); mm.querySelector('#cerrar').onclick = function () { mm.remove(); }; return; }
-      toast(r.correo ? 'Plantilla entregada. Te enviamos un correo de confirmación.' : 'Plantilla entregada (el correo de confirmación no pudo enviarse).');
+      toast(porEstadistica ? 'Plantilla cargada. Quedó En revisión.' : (r.correo ? 'Plantilla entregada. Te enviamos un correo de confirmación.' : 'Plantilla entregada (el correo de confirmación no pudo enviarse).'));
       return refrescar();
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
@@ -222,7 +222,7 @@ h1,h2,h3{font-weight:600}
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
-      var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + ((p.estado === 'pendiente' || p.estado === 'devuelta') && p.entrega.length + p.diligencia.length ? '<button class="btn sec sm" data-a="correo" data-id="' + p.id + '">Enviar correo</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
+      var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.modo === 'carga' && p.estado !== 'validada' ? '<button class="btn sec sm" data-a="cargar-admin" data-id="' + p.id + '">Cargar entrega</button> ' : '') + ((p.estado === 'pendiente' || p.estado === 'devuelta') && p.entrega.length + p.diligencia.length ? '<button class="btn sec sm" data-a="correo" data-id="' + p.id + '">Enviar correo</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
       return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
     });
     return h + '</tbody></table></div>';
@@ -269,6 +269,7 @@ h1,h2,h3{font-weight:600}
     var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
     else if (a === 'na') noAplica(id);
+    else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'anterior') api('entrega-descargar', { id: id, periodoEntrega: b.dataset.p }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'ver') { var q = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; api('entrega-descargar', { id: id, periodoEntrega: S.admin.periodo }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); }); }
