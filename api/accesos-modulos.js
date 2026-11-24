@@ -45,6 +45,7 @@ async function leer(forzar) {
     if (!r.ok) throw error(`No se pudo leer los accesos por módulo (${r.status}).`, 502);
     data = await r.json();
     if (!data || typeof data.usuarios !== 'object' || !data.usuarios) data = { usuarios: {} };
+    if (!data.decisiones || typeof data.decisiones !== 'object') data.decisiones = {};
   }
   cache = { t: Date.now(), data };
   return data;
@@ -91,7 +92,21 @@ module.exports = async function handler(req, res) {
     if (!yo.correo.endsWith('@enap.edu.co') || roles.CORREOS_BLOQUEADOS.includes(yo.correo)) throw error('Esta cuenta no puede usar el Portal.', 403);
     if (b.accion === 'mios') { res.status(200).json({ modulos: await modulosDe(yo.correo) }); return; }
     if (!(await esAdmin(yo.correo))) throw error('Solo un administrador puede gestionar los módulos de cada usuario.', 403);
-    if (b.accion === 'listar') { const d = await leer(true); res.status(200).json({ catalogo: MODULOS, usuarios: d.usuarios }); return; }
+    if (b.accion === 'listar') { const d = await leer(true); res.status(200).json({ catalogo: MODULOS, usuarios: d.usuarios, decisiones: d.decisiones || {} }); return; }
+    if (b.accion === 'decidir') {
+      const objetivo = String(b.objetivo || '').trim().toLowerCase(), modulo = String(b.modulo || ''), dec = String(b.decision || '');
+      if (!/^[^@\s]+@enap\.edu\.co$/.test(objetivo)) throw error('El correo debe ser institucional (@enap.edu.co).', 400);
+      if (!MODULOS.includes(modulo)) throw error('Ese módulo se gestiona dentro del propio módulo.', 400);
+      if (!['aceptar', 'rechazar', 'quitar'].includes(dec)) throw error('Decisión desconocida.', 400);
+      const d = await leer(true); d.decisiones = d.decisiones || {};
+      const actuales = ((d.usuarios[objetivo] || {}).modulos) || [];
+      const nuevos = dec === 'aceptar' ? Array.from(new Set(actuales.concat([modulo]))) : actuales.filter((m) => m !== modulo);
+      if (nuevos.length) d.usuarios[objetivo] = { modulos: nuevos, actualizado: new Date().toISOString(), por: yo.correo }; else delete d.usuarios[objetivo];
+      d.decisiones[objetivo + '|' + modulo] = { estado: { aceptar: 'Aceptada', rechazar: 'Rechazada', quitar: 'Quitada' }[dec], fecha: new Date().toISOString(), por: yo.correo };
+      await escribir(d);
+      res.status(200).json({ ok: true, usuarios: d.usuarios, decisiones: d.decisiones });
+      return;
+    }
     if (b.accion === 'guardar') {
       const objetivo = String(b.objetivo || '').trim().toLowerCase();
       if (!/^[^@\s]+@enap\.edu\.co$/.test(objetivo)) throw error('El correo debe ser institucional (@enap.edu.co).', 400);
