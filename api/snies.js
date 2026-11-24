@@ -142,6 +142,8 @@ const respDe = (cfg, id) => { const r = cfg.responsables[id] || {}; return { ent
 /* Nombres con mayúscula inicial, salvo artículos y preposiciones (de, del, la, y…). */
 const bonito = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w, i) => { const m = w.toLowerCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');
 const nombreDe = (cfg, c) => (cfg.usuarios[c] && cfg.usuarios[c].nombre) ? bonito(cfg.usuarios[c].nombre) : c;
+/* Destinatario = responsable de la entrega; con copia los responsables del diligenciamiento. Si la plantilla no tiene responsable de entrega, los avisos van directo a quien diligencia. */
+const destinosDe = (cfg, id) => { const r = respDe(cfg, id); return r.entrega.length ? { para: r.entrega, cc: r.diligencia.filter((c) => !r.entrega.includes(c)) } : { para: r.diligencia, cc: [] }; };
 const textoEntrega = (cfg, id) => { const e = respDe(cfg, id).entrega; return e.length ? e.map((c) => nombreDe(cfg, c)).join(', ') : 'Por asignar'; };
 
 /* El Documento Maestro marca algunas plantillas como «NA / NO APLICA» (sin responsable); si el administrador les asigna responsables, se gestionan como cualquier otra. */
@@ -175,8 +177,9 @@ function vista(t, cfg, est, periodo, yo, admin) {
 }
 
 /* ------------------------------ Correo ------------------------------ */
-async function enviarCorreo(para, asunto, html) {
+async function enviarCorreo(para, asunto, html, cc) {
   const mensaje = { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: para.map((a) => ({ emailAddress: { address: a } })) };
+  if (cc && cc.length) mensaje.ccRecipients = cc.map((a) => ({ emailAddress: { address: a } }));
   const r = await g(`/users/${encodeURIComponent(REMITENTE)}/sendMail`, { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
@@ -232,18 +235,18 @@ async function conocerNombres(cfg, correos) {
    soloIds limita las plantillas consideradas; soloCorreos limita los destinatarios. Devuelve { correos, plantillas } (ids de plantillas avisadas). */
 async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   opc = opc || {};
-  const porCorreo = new Map(), usadas = new Set();
+  const porCorreo = new Map(), usadas = new Set(), copiados = new Set();
   await conocerNombres(cfg, TEMPLATES.flatMap((t) => { const r = respDe(cfg, t.id); return r.entrega.concat(r.diligencia); }));
   for (const t of TEMPLATES) {
     if (opc.soloIds && !opc.soloIds.includes(t.id)) continue;
     const v = vista(t, cfg, est, periodo, '', false);
     if (v.modo === 'sin' || v.noAplica || !['pendiente', 'devuelta'].includes(v.estado)) continue;
     if (tipo !== 'apertura' && !v.limite) continue;
-    const r = respDe(cfg, t.id);
-    for (const c of Array.from(new Set(r.entrega.concat(r.diligencia)))) {
+    const d = destinosDe(cfg, t.id);
+    for (const c of d.para) {
       if (opc.soloCorreos && !opc.soloCorreos.includes(c)) continue;
       if (!porCorreo.has(c)) porCorreo.set(c, []);
-      porCorreo.get(c).push({ t, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
+      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
     }
   }
   let correos = 0, fallos = 0;
@@ -256,17 +259,18 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
       r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de ${uno ? 'la siguiente plantilla' : 'las siguientes plantillas'}.${nota}`],
       venc: ['Plantillas SNIES vencidas', `El plazo de entrega de ${uno ? 'la siguiente plantilla ya venció' : 'las siguientes plantillas ya venció'}. Le agradecemos enviar${uno ? 'la' : 'las'} lo antes posible para evitar hallazgos en la Auditoría.`],
     }[tipo];
+    const cc = Array.from(new Set(lista.flatMap((x) => x.cc))).filter((x) => x !== c);
     try {
-      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila), colDias: tipo === 'venc' ? 'Estado del plazo' : 'Días faltantes' }));
-      correos++; lista.forEach((x) => usadas.add(x.t.id));
+      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila), colDias: tipo === 'venc' ? 'Estado del plazo' : 'Días faltantes' }), cc);
+      correos++; cc.forEach((x) => copiados.add(x)); lista.forEach((x) => usadas.add(x.t.id));
     } catch (e) { fallos++; }
   }
-  return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()) };
+  return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()), cc: Array.from(copiados) };
 }
 async function avisar(cfg, t, tipo, extra) {
-  const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
+  const d = destinosDe(cfg, t.id), para = d.para, cc = tipo === 'dev' ? d.cc : [];
   if (!para.length) return false;
-  await conocerNombres(cfg, para);
+  await conocerNombres(cfg, para.concat(cc));
   const est = extra && extra.limite;
   const nota = t.posgrados ? ' Las facultades envían su parte a posgrados@enap.edu.co; Posgrados centraliza y entrega la plantilla.' : '';
   const M = {
@@ -279,7 +283,7 @@ async function avisar(cfg, t, tipo, extra) {
     dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
-  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '' }));
+  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '' }), cc);
   return true;
 }
 
@@ -487,13 +491,13 @@ module.exports = async function handler(req, res) {
       soloAdmin(); const t = buscar(body.id);
       const v = vista(t, cfg, est, periodo, '', true);
       if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
-      const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
+      const r = respDe(cfg, t.id), para = destinosDe(cfg, t.id).para;
       if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
       if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo }); res.status(200).json({ ok: true, para }); return; }
       /* Cada responsable de la plantilla recibe un solo correo con todas sus plantillas pendientes. */
       const g = await avisarPorResponsable(cfg, est, periodo, v.vencida ? 'venc' : 'apertura', { soloCorreos: para });
       if (!g.correos) throw error('No se pudo enviar el correo.', 502);
-      res.status(200).json({ ok: true, para: g.para }); return;
+      res.status(200).json({ ok: true, para: g.para, cc: g.cc }); return;
     }
     if (a === 'oficial-subir') {
       soloAdmin(); const t = buscar(body.id);
