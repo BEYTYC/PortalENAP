@@ -134,6 +134,8 @@
     min-width:0;
   }
   .navcats{ display:flex; align-items:stretch; gap:2px; flex-shrink:0; }
+  .nav-cred{ margin-left:auto; align-self:center; padding:0 14px; font-size:11px; font-style:italic; color:var(--text-muted); white-space:nowrap; }
+  @media (max-width:760px){ .nav-cred{ display:none; } }
   .nav-subsistema{
     display:none; align-items:center; justify-content:flex-end; gap:9px; padding:0 0 0 14px; border-left:1px solid var(--border);
     min-width:0; flex:0 1 auto;
@@ -504,6 +506,8 @@
   footer .right .line2{ font-size:10px; opacity:.85; margin-top:0; }
   footer .copyright{ display:block; font-size:10px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
+  /* Sin pie: el crédito "Desarrollado por" va en la barra del menú, junto al módulo */
+  footer{ display:none !important; }
   /* Pie sin barra: solo los dos créditos, en gris pequeño con sombra blanca */
   footer{ background:transparent !important; border-top:0 !important; box-shadow:none !important;
     position:fixed !important; right:0; bottom:12px; left:auto; z-index:6; pointer-events:none;
@@ -1425,6 +1429,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   <div class="navcats" id="navcats"></div>
   <!-- Contenedor derecho del menú (vacío: "Manuales" va a la izquierda). -->
   <div class="navcats navcats--der" id="navcatsDer"></div>
+  <span class="nav-cred">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</span>
   <div class="nav-subsistema" id="navSubsistema" hidden>
     <button type="button" class="nav-home" id="navInicioBtn" title="Volver al inicio del Portal ENAP" aria-label="Volver al inicio del Portal ENAP">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 3.8 20.5 11"/><path d="M5.8 9.6V19a1 1 0 0 0 1 1h3.4v-5.2h3.6V20h3.4a1 1 0 0 0 1-1V9.6"/></svg>
@@ -1637,7 +1642,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   </div>
 </main>
 
-<div class="cred-fijo">© 2026 Escuela Naval de Cadetes "Almirante Padilla"<br><em class="cred-n">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></div>
+<div class="cred-fijo"><em class="cred-n">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</em></div>
 <footer>
   <div class="deco" aria-hidden="true">
     <svg viewBox="0 0 900 60" preserveAspectRatio="xMidYMid slice">
