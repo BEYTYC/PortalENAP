@@ -72,9 +72,9 @@ textarea.inp{resize:vertical;min-height:54px}
   var app = document.getElementById('app');
   var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  /* El saludo muestra el nombre del login tal como viene (Nombres Apellidos), en Title Case. */
+  /* El saludo muestra el nombre del login tal como viene (Nombres Apellidos), en mayúscula inicial, salvo artículos y preposiciones (de, del, la, y…). */
   function nombreSaludo(n) {
-    return String(n || '').trim().split(/\s+/).filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
+    return String(n || '').trim().split(/\s+/).filter(Boolean).map(function (w, i) { var m = w.toLowerCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');
   }
   function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
   function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
