@@ -210,15 +210,17 @@ h1,h2,h3{font-weight:600}
     var h = '', g = '';
     ps.forEach(function (p) {
       if (S.filtro && p.nombre.toLowerCase().indexOf(S.filtro.toLowerCase()) < 0) return;
+      var fila = fn(p);
+      if (!fila) return;
       if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="6">' + esc(g) + '</td></tr>'; }
-      h += fn(p);
+      h += fila;
     });
     return h;
   }
   function tablaPanel(ps) {
     var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
     h += filas(ps, function (p) {
-      if (p.modo === 'sin') return '<tr><td>' + esc(p.nombre) + '</td><td colspan="4" class="mu">Sin responsable (no aplica a la ENAP)</td></tr>';
+      if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
       var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
       return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
