@@ -380,6 +380,15 @@ module.exports = async function handler(req, res) {
       if (!buf.length || buf.length > MAX_BYTES) throw error('El archivo está vacío o pesa más de 4 MB.', 400);
       const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
       const errores = revisarArchivo(buf, t, oficial);
+      if (errores.length && porEstadistica) {
+        /* Entregada por correo con errores: se devuelve al responsable y el sistema le envía el correo con las correcciones. */
+        const motivo = limpio(errores.join(' · '), 800);
+        const [, correo] = await Promise.all([
+          mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'devuelta'; x.motivo = motivo; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Devuelta: el archivo recibido por correo necesita correcciones. ' + motivo }); }),
+          avisar(cfg, t, 'dev', { motivo, limite: v.limite, periodo }).then(() => true, () => false),
+        ]);
+        res.status(200).json({ ok: false, errores, devuelta: true, correo }); return;
+      }
       if (errores.length) { res.status(200).json({ ok: false, errores }); return; }
       const nombre = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
