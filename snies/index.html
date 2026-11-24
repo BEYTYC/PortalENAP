@@ -17,7 +17,7 @@ body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",syste
 b,strong{font-weight:600}
 button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
 input,textarea{cursor:text}
-.wrap{max-width:1296px;margin:0 auto;padding:18px 28px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
+.wrap{max-width:none;margin:0 auto;padding:18px 32px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
 @keyframes ent{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .sub{font-size:13px;color:#4c6386;margin-top:2px}
@@ -34,7 +34,7 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .btn.sm{padding:6px 12px;font-size:13px}
 .chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
 .c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:26px 28px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:26px 28px}
 .t{padding:16px 18px;border-top:4px solid;display:flex;flex-direction:column;gap:12px;transition:box-shadow .15s}
 .t.rojo{background:#fdf1f0;border-color:#f0c4c0;border-top-color:#c8372d}.t.ambar{background:#fff8dc;border-color:#e8d27a;border-top-color:#d3a62a}.t.verde{background:#f0f9f4;border-color:#bfe3ce;border-top-color:#1b7f55}.t.gris{background:#f3f6fa;border-color:#d6e0ec;border-top-color:#8da0b8}
 .t.arrastre{box-shadow:0 0 0 3px rgba(18,58,115,.25)}
@@ -70,7 +70,7 @@ textarea.inp{resize:vertical;min-height:54px}
 @media(prefers-reduced-motion:reduce){.cargando .gsp,.cargando b::after{animation:none}}
 @media(max-width:700px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
 /* Tamaño: todo el módulo a escala reducida para que los campos y textos no se vean gigantes */
-body{zoom:.76}
+body{zoom:.88}
 @media(max-width:700px){body{zoom:.85}}
 /* Letra menos negrita: texto normal 500; solo los títulos y los números grandes en semi negrita */
 .tab,.btn,.chip,th,.inp,.mu,.zone,.ban,.toast{font-weight:500}
