@@ -40,3 +40,8 @@ Apertura del ciclo (botón del administrador), recordatorio 7 días antes, 1 dí
 
 ## Pendiente (siguientes tandas)
 Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), corrección en pantalla sobre el Excel con «Faltan N errores», cruces con Participante / programas / correos y teléfonos bloqueados / datos repetidos / códigos ICFES, Excel con errores marcados, precarga de Materias Matriculado y Apoyos desde Matriculados, instrucciones por plantilla, informe de cumplimiento y reabrir tras rechazo del SNIES.
+
+
+## Ajustes del 24/11/2026
+- Las plantillas que el Documento Maestro deja sin responsable (NA / NO APLICA) no se cargan en el aplicativo: no salen en el Panel, ni en Responsables, ni en Plantillas oficiales. Se quedan solo las que tienen cargo (incluida Unidad Organizacional). Para volver a habilitar una, quitar el bloque que las elimina de `TEMPLATES` en `api/snies.js`.
+- Cupos proyectados y matrícula esperada va siempre adelantado: el ciclo 2026-2 reporta el periodo 2027-1 con fecha oficial 12 de septiembre, y el ciclo 2027-1 reporta 2027-2 con fecha oficial 12 de marzo. La tarjeta muestra «Periodo que se reporta».

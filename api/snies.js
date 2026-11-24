@@ -51,12 +51,17 @@ const ESTADOS = ['pendiente', 'devuelta', 'revision', 'validada'];
 const CON_ANTERIOR = new Set(['cupos-proyectados-y-matricula-esperada', 'informacion-complementaria-de-la-ies', 'recursos-historico', 'unidad-organizacional', 'autoridades', 'directivos', 'docentes-universidad-publica', 'integrantes-maximo-organo-de-gobierno']);
 const ofreceAnterior = (t) => CON_ANTERIOR.has(t.id) || ['INTERNACIONALIZACIÓN', 'INVESTIGACIÓN', 'EXTENSIÓN'].includes(t.grupo);
 
+const CUPOS = 'cupos-proyectados-y-matricula-esperada';
+/* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-1 (12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
+const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return periodo; const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-1` : `${a}-2`; };
 const TEMPLATES = MAESTRO.map((t) => {
   const sin = t.cargo === 'NA' || t.cargo === 'NO APLICA';
   const modo = sin ? 'sin' : t.cargo === 'PINO' ? 'directo' : 'carga';  /* directo = sube al SNIES con su propio usuario; solo recibe notificaciones */
   const posgrados = t.id === 'educacion-continua' || t.id === 'cursos';
   return Object.assign({}, t, { modo, posgrados, cargoTexto: cargoTexto(t.cargo) });
 });
+/* Las plantillas que el Documento Maestro deja sin responsable no se cargan en el aplicativo (la autora, 24/11/2026). */
+for (let i = TEMPLATES.length - 1; i >= 0; i--) if (TEMPLATES[i].modo === 'sin') TEMPLATES.splice(i, 1);
 const POR_ID = Object.fromEntries(TEMPLATES.map((t) => [t.id, t]));
 
 function error(m, s) { const e = new Error(m); e.status = s || 500; return e; }
@@ -71,6 +76,7 @@ function periodoPorDefecto() { const h = new Date(Date.now() - 5 * 3600e3); retu
 /* Fecha oficial SNIES (dd/mm del Documento Maestro) del periodo "AAAA-S": 1.er semestre usa la 2.ª fecha, 2.º semestre la 4.ª. */
 function fechaOficial(t, periodo) {
   const [a, s] = periodo.split('-').map(Number);
+  if (t.id === CUPOS) return s === 2 ? `${a}-09-12` : `${a}-03-12`;
   const txt = (t.fechas || [])[s === 1 ? 1 : 3] || (t.fechas || [])[s === 1 ? 0 : 2];
   const m = /^(\d{1,2})\/(\d{1,2})$/.exec(txt || '');
   if (!m) return null;
@@ -154,7 +160,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const depOk = !dep || ['revision', 'validada'].includes((est[dep] || {}).estado);
   const entrega = r.entrega.includes(yo), dil = r.diligencia.includes(yo);
   const o = {
-    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, maestroSin: t.modo === 'sin', posgrados: t.posgrados,
+    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: t.id === CUPOS ? periodoReporte(t, periodo) : '', maestroSin: t.modo === 'sin', posgrados: t.posgrados,
     estado, noAplica: !!e.noAplica, motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
