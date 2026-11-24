@@ -66,15 +66,15 @@
       linear-gradient(90deg, #082357 0%, #0C3376 31%, #0E3D88 50%, #154EA4 70%, #2B73D4 100%);
     color:#fff;
     display:flex; align-items:center; gap:14px;
-    padding:15px 22px; border-bottom:4px solid #5FA8F0;
+    padding:20px 22px; border-bottom:5px solid #5FA8F0;
     position:relative; overflow:hidden;
   }
-  header.masthead .titles{display:flex; flex-direction:column; gap:0; line-height:1.15; min-width:0; position:relative; z-index:1;}
-  header.masthead .titles h1{font-size:15.5px; font-weight:600; line-height:1.15;}
-  header.masthead .titles .oficina{line-height:1.15; font-size:11px; font-weight:600; letter-spacing:.04em; color:var(--gold-400);}
-  header.masthead .titles .ciudad{font-size:11px; line-height:1.15; color:var(--navy-200);}
+  header.masthead .titles{display:flex; flex-direction:column; gap:1px; min-width:0; position:relative; z-index:1;}
+  header.masthead .titles h1{font-size:15.5px; font-weight:600;}
+  header.masthead .titles .oficina{font-size:11px; font-weight:600; letter-spacing:.04em; color:var(--gold-400);}
+  header.masthead .titles .ciudad{font-size:11px; color:var(--navy-200);}
   header.masthead .right{margin-left:auto; display:flex; align-items:center; gap:16px; position:relative; z-index:1;}
-  header.masthead .sistema{text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:0; line-height:1.2;}
+  header.masthead .sistema{text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:2px;}
   header.masthead .sistema .kicker{
     display:block; font-size:10px; font-weight:600; letter-spacing:.12em; color:var(--navy-300); text-transform:uppercase;
   }
@@ -119,7 +119,7 @@
        azul navy del membrete/pie sin ponerle un halo exagerado. */
     filter:none;
   }
-  .header-logo{ width:46px; height:46px; }
+  .header-logo{ width:52px; height:52px; }
   .footer-logo{ width:26px; height:26px; }
 
   /* ---------- Barra de navegación con menús desplegables ---------- */
@@ -504,6 +504,13 @@
   footer .right .line2{ font-size:10px; opacity:.85; margin-top:0; }
   footer .copyright{ display:block; font-size:10px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
+  /* Pie sin barra: solo los dos créditos, en gris pequeño con sombra blanca */
+  footer{ background:transparent !important; border-top:0 !important; box-shadow:none !important;
+    justify-content:center !important; padding:3px 22px !important; overflow:visible; }
+  footer .deco, footer .footer-glow, footer .left{ display:none !important; }
+  footer .right{ margin:0 !important; text-align:center !important; }
+  footer .right .line1{ text-align:center !important; color:#6B7686 !important; font-size:10px !important; line-height:1.3 !important;
+    text-shadow:0 1px 1px #fff, 0 0 3px #fff; opacity:1 !important; }
 
   .toast-old{
     position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0;
@@ -796,7 +803,7 @@
   }
 
   @media (max-width:760px){
-    header.masthead{ padding:18px 12px; gap:10px; border-bottom-width:4px; }
+    header.masthead{ padding:24px 12px; gap:10px; border-bottom-width:4px; }
     .header-logo{ width:38px; height:38px; }
     header.masthead .titles h1{ font-size:13px; line-height:1.25; }
     header.masthead .titles .ciudad{ display:none; }
