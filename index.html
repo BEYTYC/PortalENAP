@@ -3341,6 +3341,18 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   /* Cuentas que entran a cualquier módulo del menú (pedido de la autora, 2026-11-19). */
   const CUENTAS_TODO_ACCESO = ['jestadisticaplen@enap.edu.co'];
   /* Módulos habilitados a la cuenta desde «Solicitudes de acceso» (api/accesos-modulos). */
+  async function refrescarModulos(nombre) {
+    try {
+      const cuenta = (await getMsal()).getAllAccounts()[0];
+      if (!cuenta || !window.PortalENAP.sesion) return false;
+      const token = await adquirirToken(['User.Read'], cuenta);
+      const r = await fetch('/api/accesos-modulos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: token, accion: 'mios' }) });
+      if (!r.ok) return false;
+      const d = await r.json();
+      window.PortalENAP.sesion.modulos = Array.isArray(d.modulos) ? d.modulos : [];
+      return window.PortalENAP.sesion.modulos.indexOf(nombre) >= 0;
+    } catch (_) { return false; }
+  }
   function modConcedido(nombre) { const m = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.modulos) || []; return m.indexOf(nombre) >= 0; }
   function correoSesion() {
     const p = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.perfil) || {};
@@ -3443,8 +3455,10 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           btn.innerHTML = item.status === 'link'
             ? `<span class="label">${item.nombre}</span><span class="tag" title="Sale del Portal, a la vista pública del estudiante">Enlace</span>`
             : `<span class="label">${item.nombre}</span>`;
-          btn.addEventListener('click', (e) => {
+          btn.addEventListener('click', async (e) => {
             e.stopPropagation();
+            // Antes de decir «Sin acceso», se vuelve a consultar si le autorizaron este módulo después de iniciar sesión.
+            if (await refrescarModulos(item.nombre)) { closeAllNav(); renderNav(); showToast('Acceso habilitado. Toca de nuevo «' + item.nombre + '» para entrar.'); return; }
             try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (er) {}
             window.PortalENAP.ventanaAcceso(item.nombre, item.quien || 'Tu cuenta no tiene acceso a este módulo.');
             closeAllNav();
