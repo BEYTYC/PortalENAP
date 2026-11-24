@@ -153,7 +153,7 @@ h1,h2,h3{font-weight:600}
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;min-height:44px"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">' + chips + '</div></div>'
       + '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>'
-      + '<div class="mu">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + nota + zona
+      + '<div class="mu">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + (p.periodoReporte ? '<div class="mu">Periodo que se reporta: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></div>' : '') + nota + zona
       + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
   }
