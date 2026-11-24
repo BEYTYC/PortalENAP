@@ -13,7 +13,7 @@
 <style>
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:600;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:500;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
 b,strong{font-weight:600}
 button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
 input,textarea{cursor:text}
@@ -69,6 +69,13 @@ textarea.inp{resize:vertical;min-height:54px}
 @keyframes gspin{to{transform:rotate(360deg)}}@keyframes gdots{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
 @media(prefers-reduced-motion:reduce){.cargando .gsp,.cargando b::after{animation:none}}
 @media(max-width:700px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
+/* Tamaño: todo el módulo a escala reducida para que los campos y textos no se vean gigantes */
+body{zoom:.85}
+@media(max-width:700px){body{zoom:.9}}
+/* Letra menos negrita: texto normal 500; solo los títulos y los números grandes en semi negrita */
+.tab,.btn,.chip,th,.inp,.mu,.zone,.ban,.toast{font-weight:500}
+b,strong{font-weight:600}
+h1,h2,h3{font-weight:600}
 </style>
 <style>/* Sin cursor de texto parpadeante fuera de los campos de escritura */html,body{caret-color:transparent}input,textarea,select,[contenteditable="true"]{caret-color:auto}</style>
 </head>
@@ -87,7 +94,12 @@ textarea.inp{resize:vertical;min-height:54px}
   }
   function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
   function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
+  var TK = { v: null, hasta: 0 };
   function token() {
+    if (TK.v && Date.now() < TK.hasta) return Promise.resolve(TK.v);
+    return pedirToken().then(function (v) { TK.v = v; TK.hasta = Date.now() + 10 * 60 * 1000; return v; });
+  }
+  function pedirToken() {
     var P = window.parent && window.parent !== window ? window.parent.PortalENAP : null;
     if (!P || !P.tokenMicrosoft) return Promise.reject(new Error('Este módulo se abre desde el Portal (Facultades › Plantillas SNIES).'));
     return Promise.race([P.tokenMicrosoft(), new Promise(function (_, no) { setTimeout(function () { no(new Error('No se pudo obtener su sesión de Microsoft. Cierre sesión, vuelva a entrar y abra de nuevo el módulo.')); }, 25000); })]);
@@ -239,7 +251,14 @@ textarea.inp{resize:vertical;min-height:54px}
   /* ---------------- Eventos ---------------- */
   var oculto = document.createElement('input'); oculto.type = 'file'; oculto.accept = '.xlsx'; oculto.hidden = true; document.body.appendChild(oculto);
   app.addEventListener('click', function (e) {
-    var v = e.target.closest('[data-v]'); if (v) { S.vista = v.dataset.v; if (S.vista === 'mis') { cargarSesion().then(pintar); } else { pintar(); cargarAdmin(S.admin && S.admin.periodo).then(pintar).catch(function (x) { toast(x.message); }); } return; }
+    var v = e.target.closest('[data-v]'); if (v) {
+      S.vista = v.dataset.v; pintar();   /* se muestra al instante con lo ya cargado */
+      var antes = JSON.stringify(S.vista === 'mis' ? S.datos : S.admin);
+      (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(function () {
+        if (JSON.stringify(S.vista === 'mis' ? S.datos : S.admin) !== antes) pintar();   /* solo se vuelve a dibujar si algo cambió */
+      }).catch(function (x) { toast(x.message); });
+      return;
+    }
     var b = e.target.closest('[data-a]'); if (!b || b.tagName === 'INPUT') return;
     var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
