@@ -371,12 +371,14 @@ module.exports = async function handler(req, res) {
       const como = admin ? String(body.verComo || '').trim().toLowerCase() : '';
       const quien = como ? { correo: como, nombre: nombreDe(cfg, como) } : yo;
       const usuarios = admin ? Array.from(new Set(Object.values(cfg.responsables || {}).flatMap((r) => (r.entrega || []).concat(r.diligencia || [])))).map((c) => ({ correo: c, nombre: nombreDe(cfg, c) })).sort((x, y) => x.nombre.localeCompare(y.nombre, 'es')) : undefined;
-      res.status(200).json({ correo: quien.correo, nombre: quien.nombre, admin, verComo: como, usuarios, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias(como || '').map((t) => { const o = Object.assign(vista(t, cfg, est, periodo, quien.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' }); if (como) o.puedeCargar = false; return o; }) });
+      res.status(200).json({ correo: quien.correo, nombre: quien.nombre, admin, verComo: como, usuarios, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias(como || '').map((t) => { const o = Object.assign(vista(t, cfg, est, periodo, quien.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' }); return o; }) });
       return;
     }
 
+    /* Modo «Ver como»: el administrador actúa en nombre de otro responsable; lo que carga queda a su nombre y NO se envía ningún correo. */
+    const comoCorreo = admin ? String(body.verComo || '').trim().toLowerCase() : '';
     if (a === 'cargar') {
-      const t = buscar(body.id), v = vista(t, cfg, est, periodo, yo.correo, false), porEstadistica = !!(admin && body.porEstadistica);
+      const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false), porEstadistica = !!(admin && body.porEstadistica) && !comoCorreo, sinCorreo = !!comoCorreo || porEstadistica;
       if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se carga en el aplicativo.', 400);
       if (v.bloqueo && !admin) throw error(v.bloqueo, 409);
@@ -398,19 +400,19 @@ module.exports = async function handler(req, res) {
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla. Pasa a En revisión.' }); }),
-        porEstadistica ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla. Pasa a En revisión.' }); }),
+        sinCorreo ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }
 
     if (a === 'no-aplica') {
-      const t = buscar(body.id), v = vista(t, cfg, est, periodo, yo.correo, false);
+      const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false);
       if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se gestiona en el aplicativo.', 400);
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); }),
-        avisar(cfg, t, 'na', { limite: v.limite, periodo }).then(() => true, () => false),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: (comoCorreo ? `Estadística, en nombre de ${nombreDe(cfg, comoCorreo)}: ` : '') + 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); }),
+        comoCorreo ? Promise.resolve(false) : avisar(cfg, t, 'na', { limite: v.limite, periodo }).then(() => true, () => false),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }

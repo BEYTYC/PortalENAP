@@ -162,7 +162,7 @@ h1,h2,h3{font-weight:600}
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
     var barra = '';
     if (d.admin) {
-      barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:600">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(nombreSaludo(d.verComo ? S.nombreReal || '' : d.nombre)) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Solo lectura: así ve el aplicativo esa persona</span>' : '') + '</div>';
+      barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:600">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(nombreSaludo(d.verComo ? S.nombreReal || '' : d.nombre)) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Actúas en nombre de esta persona: lo que cargues queda a su nombre y no se le envía correo</span>' : '') + '</div>';
     }
     var h = barra + '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
@@ -177,10 +177,10 @@ h1,h2,h3{font-weight:600}
     if (!file) return;
     if (!/\.xlsx$/i.test(file.name)) { toast('El archivo debe ser un Excel .xlsx'); return; }
     var m = modal('<div style="font-size:17px">Revisando y guardando tu archivo…</div><div class="mu">' + esc(file.name) + '</div><div class="mu">Puede tardar unos segundos; no cierres esta ventana.</div>');
-    leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64, porEstadistica: !!porEstadistica, periodo: porEstadistica && S.admin ? S.admin.periodo : undefined }); }).then(function (r) {
+    leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64, verComo: S.verComo || undefined, porEstadistica: !!porEstadistica, periodo: porEstadistica && S.admin ? S.admin.periodo : undefined }); }).then(function (r) {
       m.remove();
       if (!r.ok) { var mm = modal('<div style="font-size:17px">' + (r.devuelta ? 'El archivo necesita correcciones' : 'Tu archivo no se pudo entregar') + '</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul>' + (r.devuelta ? '<div class="mu">' + (r.correo ? 'La plantilla quedó Devuelta y se le envió al responsable un correo con estas correcciones.' : 'La plantilla quedó Devuelta, pero el correo al responsable no pudo enviarse.') + '</div>' : '') + '<div style="text-align:right"><button class="btn" id="cerrar">Entendido</button></div>'); mm.querySelector('#cerrar').onclick = function () { mm.remove(); }; return; }
-      toast(porEstadistica ? 'Plantilla cargada. Quedó En revisión.' : (r.correo ? 'Plantilla entregada. Te enviamos un correo de confirmación.' : 'Plantilla entregada (el correo de confirmación no pudo enviarse).'));
+      toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : (r.correo ? 'Plantilla entregada. Te enviamos un correo de confirmación.' : 'Plantilla entregada (el correo de confirmación no pudo enviarse).'));
       return refrescar();
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
@@ -188,7 +188,7 @@ h1,h2,h3{font-weight:600}
     var p = S.datos.plantillas.filter(function (x) { return x.id === id; })[0];
     var m = modal('<div style="font-size:17px">¿Confirmas que no hay registros?</div><div style="font-size:14px;color:#4c6386">Declaras que en este semestre no se generaron registros para <b style="color:#14233a">' + esc(p.nombre) + '</b>. La plantilla pasa a En revisión y Estadística lo verifica.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Sí, no aplica</button></div>');
     m.querySelector('#no').onclick = function () { m.remove(); };
-    m.querySelector('#si').onclick = function () { m.remove(); api('no-aplica', { id: id }).then(function () { toast('Registrado como No aplica.'); return refrescar(); }).catch(function (e) { toast(e.message); }); };
+    m.querySelector('#si').onclick = function () { m.remove(); api('no-aplica', { id: id, verComo: S.verComo || undefined }).then(function () { toast('Registrado como No aplica.'); return refrescar(); }).catch(function (e) { toast(e.message); }); };
   }
   function refrescar() { return (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(pintar); }
 
