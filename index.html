@@ -1265,27 +1265,28 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
   <div class="panel-app__card" id="ingresosCard" hidden>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-      <h3 style="margin:0;color:#0a2540;font-size:1.0308rem;">Ingresos al Portal</h3>
+      <h3 style="margin:0;color:#0a2540;font-size:1.0308rem;">Quién entra al Portal</h3>
       <div style="display:flex;gap:8px;">
         <button type="button" class="panel-app__btn panel-app__btn--ghost" id="ingresosFiltroBtn" style="padding:4px 10px;font-size:0.8117rem;">Ver solo intentos sin éxito</button>
         <button type="button" class="panel-app__btn panel-app__btn--ghost" id="ingresosRecargarBtn" style="padding:4px 10px;font-size:0.8117rem;">Actualizar</button>
       </div>
     </div>
-    <p style="font-size:0.8508rem;color:#5b6b7c;margin:6px 0 10px;">Último inicio de cada persona (hora de Colombia). Toca una fila para ver cuántas veces entró y a dónde.</p>
+    <p style="font-size:0.8508rem;color:#5b6b7c;margin:6px 0 10px;">Quién entra al Portal: rol, último ingreso (hora de Colombia), veces, tiempo total y módulos con el tiempo en cada uno. Toca una fila para ver su último inicio.</p>
     <div style="max-height:420px;overflow:auto;">
     <table>
-      <thead><tr><th>Último inicio</th><th>Nombre</th><th>Correo</th><th>Resultado</th></tr></thead>
+      <thead><tr><th>Persona</th><th>Rol</th><th>Último ingreso</th><th>Veces</th><th>Tiempo total</th><th>Módulos a los que entró</th></tr></thead>
       <tbody id="ingresosBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
 
   <div class="panel-app__card" id="actividadCard" hidden>
-    <h3 style="margin:0 0 6px;color:#0a2540;font-size:1.0308rem;">Solicitudes de acceso</h3>
+    <h3 style="margin:0 0 4px;color:#0a2540;font-size:1.0308rem;">Solicitudes de acceso a un módulo</h3>
+    <p style="font-size:0.8508rem;color:#5b6b7c;margin:0 0 8px;">Aceptar habilita a esa persona en ese módulo al instante; Rechazar la cierra y queda en el historial. Los módulos que se abren en su propio sistema (Concesiones, Certificados…) también validan allí a la persona.</p>
     <div style="max-height:260px;overflow:auto;">
     <table>
-      <thead><tr><th>Fecha</th><th>Persona</th><th>Módulo</th><th>Acceso</th></tr></thead>
-      <tbody id="solicitudesBody"><tr><td colspan="4">Cargando…</td></tr></tbody>
+      <thead><tr><th>Fecha</th><th>Persona</th><th>Módulo</th><th>Estado</th><th>Decisión</th></tr></thead>
+      <tbody id="solicitudesBody"><tr><td colspan="5">Cargando…</td></tr></tbody>
     </table>
     </div>
   </div>
@@ -2190,7 +2191,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   }
 
   // Módulos por correo (api/accesos-modulos): catálogo y lo que tiene cada usuario.
-  let adminModulos = { catalogo: [], usuarios: {} };
+  let adminModulos = { catalogo: [], usuarios: {}, decisiones: {} };
   async function llamarAccesosModulos(cuenta, cuerpo) {
     const token = await adquirirToken(['User.Read'], cuenta);
     const resp = await fetch('/api/accesos-modulos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: token }, cuerpo)) });
@@ -2619,6 +2620,15 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     const p = (sesion && sesion.perfil) || {};
     return ADMINS_BITACORA.indexOf(String(p.mail || p.userPrincipalName || '').trim().toLowerCase()) !== -1;
   }
+  // Roles activos por correo (lista ENAP_Permisos_Usuarios, ya cargada en esta vista).
+  function rolesPorCorreo() {
+    const m = {};
+    ((adminEstadoLista && adminEstadoLista.filas) || []).forEach((f) => {
+      const c = (f.fields || {}), correo = String(c.Title || '').trim().toLowerCase();
+      if (correo && String(c.Estado || '').trim().toLowerCase() === 'activo') (m[correo] = m[correo] || []).push(String(c.Rol || c.Role || '').trim().toUpperCase());
+    });
+    return m;
+  }
   function pintarIngresos() {
     const cuerpo = document.getElementById('ingresosBody');
     const esc = (s) => String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -2637,7 +2647,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       if (!p.ult || Date.parse(e.fecha) > Date.parse(p.ult.fecha)) { p.ult = e; if (e.nombre) p.nombre = e.nombre; }
     });
     const personas = Object.keys(P).map((k) => P[k]).filter((p) => !ingresosSoloFallidos || p.mal > 0).sort((a, b) => Date.parse(b.ult.fecha) - Date.parse(a.ult.fecha));
-    if (!personas.length) { cuerpo.innerHTML = '<tr><td colspan="4">Sin registros.</td></tr>'; return; }
+    if (!personas.length) { cuerpo.innerHTML = '<tr><td colspan="6">Sin registros.</td></tr>'; return; }
     const ses = actividadDatos.sesiones || [];
     const mod = actividadDatos.modulos || [];
     cuerpo.innerHTML = personas.slice(0, 500).map((p) => {
@@ -2666,9 +2676,13 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         + '<hr style="border:0;border-top:1px solid #dfe5ee;margin:8px 0">'
         + '<b>Ingresó al Portal:</b> ' + veces(p.ok) + (p.mal ? ' · <b>Intentos sin éxito:</b> ' + p.mal : '') + (tot ? ' · <b>Tiempo activo total:</b> ' + durTxt(tot) : '')
         + (lin.length ? '<br><span style="color:#5b6b82">Historial de aperturas: ' + lin.join(' · ') + '</span>' : '');
-      return `<tr class="ing-fila" tabindex="0" title="Clic para ver a qué módulos entró en su último inicio"><td>${esc(fmt.format(new Date(p.ult.fecha)))}</td><td>${esc(p.nombre)}</td><td>${esc(p.correo)}</td>`
-        + `<td><span class="panel-app__pill ${ok ? 'panel-app__pill--activo' : 'panel-app__pill--inactivo'}">${esc(p.ult.resultado)}</span></td></tr>`
-        + `<tr class="ing-det" hidden><td colspan="4" style="white-space:normal">${detalle}</td></tr>`;
+      const rolP = (rolesPorCorreo()[p.correo] || []).join(', ');
+      const chips = Array.from(new Set(Object.keys(tm).filter((k) => tm[k] > 0).concat(Object.keys(ent)))).sort((x, y) => (tm[y] || 0) - (tm[x] || 0)).map((k) => '<span class="act-mod">' + esc(k) + ' · ' + (tm[k] > 0 ? durTxt(tm[k]) : veces(ent[k])) + '</span>').join('');
+      return `<tr class="ing-fila" tabindex="0" title="Clic para ver a qué módulos entró en su último inicio"><td>${esc(p.nombre || p.correo)}<br><span style="color:#6C86AD;font-size:0.7688rem">${esc(p.correo)}</span></td>`
+        + `<td>${rolP ? '<span class="act-mod" style="background:#F1F4F9;color:#334E78;font-weight:600">' + esc(rolP) + '</span>' : '<span style="color:#6C86AD;font-size:0.7688rem">Sin rol</span>'}</td>`
+        + `<td>${esc(fmt.format(new Date(p.ult.fecha)))}${ok ? '' : '<br><span style="color:#b3261e;font-size:0.7688rem">' + esc(p.ult.resultado) + '</span>'}</td>`
+        + `<td>${p.ok}${p.mal ? '<br><span style="color:#b3261e;font-size:0.7688rem">' + p.mal + ' sin éxito</span>' : ''}</td><td>${tot ? durTxt(tot) : '—'}</td><td>${chips || '<span style="color:#6C86AD;font-size:0.7688rem">—</span>'}</td></tr>`
+        + `<tr class="ing-det" hidden><td colspan="6" style="white-space:normal">${detalle}</td></tr>`;
     }).join('');
   }
   (function () {
@@ -2687,33 +2701,41 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   function pintarActividad() {
     const esc = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     const fmt = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true });
-    const sol = actividadDatos.modulos.filter((x) => x.resultado === 'Solicitó acceso');
-    document.getElementById('solicitudesBody').innerHTML = sol.length
-      ? sol.slice(0, 100).map((x) => `<tr><td>${esc(fmt.format(new Date(x.fecha)))}</td><td>${esc(x.nombre || x.correo)}<br><span style="color:#6C86AD;font-size:0.7688rem">${esc(x.correo)}</span></td><td>${esc(x.modulo)}</td><td>${botonAcceso(x, esc)}</td></tr>`).join('')
-      : '<tr><td colspan="4">Nadie ha solicitado acceso todavía.</td></tr>';
-  }
-  // Autorizar / quitar el acceso a un módulo desde la tabla de solicitudes (api/accesos-modulos; solo ADMIN).
-  function botonAcceso(x, esc) {
-    const correo = String(x.correo || '').trim().toLowerCase();
-    if (adminModulos.catalogo.indexOf(x.modulo) < 0) return '<span style="color:#6C86AD;font-size:0.7688rem">Se gestiona en el módulo</span>';
-    const tiene = (((adminModulos.usuarios[correo] || {}).modulos) || []).indexOf(x.modulo) >= 0;
-    const est = 'padding:4px 12px;border-radius:999px;font:inherit;font-size:0.8117rem;font-weight:600;cursor:pointer;';
-    return tiene
-      ? '<span style="color:#1F7A4D;font-size:0.8117rem;font-weight:600;margin-right:8px">✓ Autorizado</span><button type="button" data-acc="quitar" data-correo="' + esc(correo) + '" data-modulo="' + esc(x.modulo) + '" style="' + est + 'border:1px solid #C7D3E6;background:#fff;color:#334E78">Quitar acceso</button>'
-      : '<button type="button" data-acc="dar" data-correo="' + esc(correo) + '" data-modulo="' + esc(x.modulo) + '" style="' + est + 'border:1px solid #1F4E96;background:#1F4E96;color:#fff">Autorizar</button>';
+    // Una fila por persona y módulo (la solicitud más reciente). Pendiente = sin decisión posterior a la solicitud.
+    const ult = {};
+    actividadDatos.modulos.filter((x) => x.resultado === 'Solicitó acceso').forEach((x) => {
+      const k = String(x.correo || '').trim().toLowerCase() + '|' + x.modulo;
+      if (!ult[k] || Date.parse(x.fecha) > Date.parse(ult[k].fecha)) ult[k] = x;
+    });
+    const filas = Object.keys(ult).map((k) => {
+      const x = ult[k], d = adminModulos.decisiones[k], pend = !d || Date.parse(d.fecha) < Date.parse(x.fecha);
+      return { x, k, d: pend ? null : d, pend };
+    }).sort((a, b) => (b.pend - a.pend) || (Date.parse(b.x.fecha) - Date.parse(a.x.fecha)));
+    const est = 'padding:5px 14px;border-radius:999px;font:inherit;font-size:0.8117rem;font-weight:600;cursor:pointer;margin-right:6px;';
+    const btn = (op, x, txt, azul) => '<button type="button" data-acc="' + op + '" data-correo="' + esc(String(x.correo).trim().toLowerCase()) + '" data-modulo="' + esc(x.modulo) + '" style="' + est + (azul ? 'border:1px solid #1F4E96;background:#1F4E96;color:#fff' : 'border:1px solid #C7D3E6;background:#fff;color:#334E78') + '">' + txt + '</button>';
+    const fcorta = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: '2-digit', month: 'short' });
+    document.getElementById('solicitudesBody').innerHTML = filas.length
+      ? filas.slice(0, 100).map(({ x, d, pend }) => {
+        const gestionable = adminModulos.catalogo.indexOf(x.modulo) >= 0;
+        let estado, accion;
+        if (!gestionable) { estado = '<span style="color:#6C86AD;font-size:0.8117rem">Se gestiona en el módulo</span>'; accion = ''; }
+        else if (pend) { estado = '<span style="color:#6C86AD;font-size:0.8117rem;font-weight:600">Pendiente</span>'; accion = btn('aceptar', x, 'Aceptar', true) + btn('rechazar', x, 'Rechazar', false); }
+        else if (d.estado === 'Aceptada') { estado = '<span style="color:#1F7A4D;font-size:0.8117rem;font-weight:600">✓ Aceptada · ' + esc(fcorta.format(new Date(d.fecha))) + '</span>'; accion = btn('quitar', x, 'Quitar acceso', false); }
+        else { estado = '<span style="color:#6C86AD;font-size:0.8117rem;font-weight:600">' + esc(d.estado) + ' · ' + esc(fcorta.format(new Date(d.fecha))) + '</span>'; accion = btn('aceptar', x, 'Aceptar ahora', false); }
+        return `<tr><td>${esc(fmt.format(new Date(x.fecha)))}</td><td>${esc(x.nombre || x.correo)}<br><span style="color:#6C86AD;font-size:0.7688rem">${esc(x.correo)}</span></td><td>${esc(x.modulo)}</td><td>${estado}</td><td>${accion}</td></tr>`;
+      }).join('')
+      : '<tr><td colspan="5">Nadie ha solicitado acceso todavía.</td></tr>';
   }
   document.getElementById('solicitudesBody').addEventListener('click', async (ev) => {
     const b = ev.target.closest('button[data-acc]');
     if (!b || b.disabled) return;
-    const correo = b.dataset.correo, modulo = b.dataset.modulo, dar = b.dataset.acc === 'dar';
+    const correo = b.dataset.correo, modulo = b.dataset.modulo, op = b.dataset.acc;
     b.disabled = true;
     try {
       const cuenta = (await getMsal()).getAllAccounts()[0];
-      const actuales = ((adminModulos.usuarios[correo] || {}).modulos) || [];
-      const nuevos = dar ? Array.from(new Set(actuales.concat([modulo]))) : actuales.filter((m) => m !== modulo);
-      await llamarAccesosModulos(cuenta, { accion: 'guardar', objetivo: correo, modulos: nuevos });
-      if (nuevos.length) adminModulos.usuarios[correo] = { modulos: nuevos }; else delete adminModulos.usuarios[correo];
-      showToast(dar ? 'Acceso autorizado: ' + correo + ' → ' + modulo + '.' : 'Acceso quitado: ' + correo + ' → ' + modulo + '.');
+      const r = await llamarAccesosModulos(cuenta, { accion: 'decidir', objetivo: correo, modulo, decision: op });
+      adminModulos.usuarios = r.usuarios || adminModulos.usuarios; adminModulos.decisiones = r.decisiones || adminModulos.decisiones;
+      showToast({ aceptar: 'Acceso aceptado', rechazar: 'Solicitud rechazada', quitar: 'Acceso quitado' }[op] + ': ' + correo + ' → ' + modulo + '.');
     } catch (e) { showToast(String(e.message || e)); }
     pintarActividad();
   });
@@ -2727,7 +2749,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       const lst = await llamarIngresos('listar', token);
       ingresosDatos = lst.eventos || [];
       actividadDatos = { sesiones: lst.sesiones || [], modulos: lst.modulos || [] };
-      try { adminModulos = await llamarAccesosModulos(cuentas[0], { accion: 'listar' }); } catch (e2) { adminModulos = { catalogo: [], usuarios: {} }; }
+      try { adminModulos = await llamarAccesosModulos(cuentas[0], { accion: 'listar' }); } catch (e2) { adminModulos = { catalogo: [], usuarios: {}, decisiones: {} }; }
       pintarIngresos();
       pintarActividad();
     } catch (e) {
