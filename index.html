@@ -3341,17 +3341,19 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   /* Cuentas que entran a cualquier módulo del menú (pedido de la autora, 2026-11-19). */
   const CUENTAS_TODO_ACCESO = ['jestadisticaplen@enap.edu.co'];
   /* Módulos habilitados a la cuenta desde «Solicitudes de acceso» (api/accesos-modulos). */
+  let diagModulos = '';
   async function refrescarModulos(nombre) {
     try {
       const cuenta = (await getMsal()).getAllAccounts()[0];
       if (!cuenta || !window.PortalENAP.sesion) return false;
       const token = await adquirirToken(['User.Read'], cuenta);
       const r = await fetch('/api/accesos-modulos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: token, accion: 'mios' }) });
-      if (!r.ok) return false;
-      const d = await r.json();
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { diagModulos = 'No se pudo consultar los accesos (' + r.status + '): ' + (d.error || 'sin detalle'); return false; }
       window.PortalENAP.sesion.modulos = Array.isArray(d.modulos) ? d.modulos : [];
+      diagModulos = window.PortalENAP.sesion.modulos.length ? 'Módulos autorizados a esta cuenta: ' + window.PortalENAP.sesion.modulos.join(', ') + '.' : 'El servidor no tiene ningún módulo autorizado para esta cuenta.';
       return window.PortalENAP.sesion.modulos.indexOf(nombre) >= 0;
-    } catch (_) { return false; }
+    } catch (err) { diagModulos = 'No se pudo consultar los accesos: ' + String(err && err.message || err); return false; }
   }
   function modConcedido(nombre) { const m = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.modulos) || []; return m.indexOf(nombre) >= 0; }
   function correoSesion() {
@@ -3460,7 +3462,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
             // Antes de decir «Sin acceso», se vuelve a consultar si le autorizaron este módulo después de iniciar sesión.
             if (await refrescarModulos(item.nombre)) { closeAllNav(); renderNav(); showToast('Acceso habilitado. Toca de nuevo «' + item.nombre + '» para entrar.'); return; }
             try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); } catch (er) {}
-            window.PortalENAP.ventanaAcceso(item.nombre, item.quien || 'Tu cuenta no tiene acceso a este módulo.');
+            window.PortalENAP.ventanaAcceso(item.nombre, (item.quien || 'Tu cuenta no tiene acceso a este módulo.') + (diagModulos ? ' [' + diagModulos + ']' : ''));
             closeAllNav();
           });
           dd.appendChild(btn);
