@@ -92,6 +92,27 @@ async function escribirJson(token, siteId, ruta, campo, lista) {
 
 const limpio = (v, n) => String(v == null ? '' : v).replace(/[\u0000-\u001f]/g, ' ').trim().slice(0, n);
 
+/* Aviso por correo a la Oficina de Estadística cuando alguien solicita acceso a un módulo. Si falla el envío, la solicitud queda registrada igual. */
+const AVISAR_A = 'jestadisticaplen@enap.edu.co';
+const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/';
+const escH = (t) => String(t == null ? '' : t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+async function avisarSolicitud(token, yo, modulo) {
+  try {
+    const html = `<div style="font-family:Aptos,'Segoe UI',Arial,sans-serif;max-width:640px;color:#071C3C">
+<div style="font-size:12px;letter-spacing:.16em;color:#A8861D;font-weight:600">OFICINA DE ESTADÍSTICA · ENAP</div>
+<h2 style="margin:6px 0 10px;font-size:20px">Solicitud de acceso a un módulo</h2>
+<p style="font-size:14px;color:#334155"><b>${escH(yo.nombre || yo.correo)}</b> (${escH(yo.correo)}) solicita acceso al módulo <b>${escH(modulo)}</b>.</p>
+<p style="font-size:14px;color:#334155">Para autorizarla, entre al Portal → Administración de usuarios → «Solicitudes de acceso» y pulse «Autorizar».</p>
+<p><a href="${escH(PORTAL_URL)}" style="display:inline-block;background:#0B2A5B;color:#fff;text-decoration:none;padding:10px 18px;border-radius:8px;font-size:14px">Abrir el Portal</a></p>
+<p style="font-size:12px;color:#94A3B8">Mensaje automático del Portal de servicios digitales Estadística.</p></div>`;
+    await fetch(`${GRAPH_BASE}/users/${encodeURIComponent(AVISAR_A)}/sendMail`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: { subject: 'Solicitud de acceso: ' + modulo, body: { contentType: 'HTML', content: html }, toRecipients: [{ emailAddress: { address: AVISAR_A } }] }, saveToSentItems: true }),
+    });
+  } catch (e) { /* el aviso es secundario */ }
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -156,6 +177,7 @@ module.exports = async function handler(req, res) {
       if (!repetido) {
         eventos.push({ fecha: new Date(ahora).toISOString(), correo: yo.correo, nombre: yo.nombre, modulo: mod, resultado });
         await escribirJson(token, siteId, RUTA_MODULOS, 'eventos', eventos.slice(-MAX_MODULOS));
+        if (resultado === 'Solicitó acceso') await avisarSolicitud(token, yo, mod);
       }
       res.status(200).json({ ok: true });
       return;
