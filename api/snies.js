@@ -208,16 +208,32 @@ ${datos}
 <a href="${esc(PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="Abrir el Portal" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
 </td></tr></table>
 </td></tr>
-<tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
+<tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue generado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”.</td></tr>
 </table></div>`;
 }
 const fechaLarga = (iso) => iso ? iso.split('-').reverse().join('/') : '';
+
+
+/* Si todavía no se conoce el nombre de un responsable (aún no ha entrado al aplicativo), se busca en el directorio de la organización.
+   Si la aplicación no tiene permiso de lectura del directorio, no pasa nada: se queda el correo hasta que la persona entre. */
+async function conocerNombres(cfg, correos) {
+  const faltan = Array.from(new Set(correos)).filter((c) => c && !(cfg.usuarios[c] && cfg.usuarios[c].nombre)).slice(0, 40);
+  if (!faltan.length) return;
+  const hallados = {};
+  await Promise.all(faltan.map(async (c) => {
+    try { const r = await g(`/users/${encodeURIComponent(c)}?$select=displayName`); if (r.ok) { const n = ((await r.json()) || {}).displayName; if (n) hallados[c] = n; } } catch (e) { /* sin permiso o sin cuenta */ }
+  }));
+  const claves = Object.keys(hallados); if (!claves.length) return;
+  claves.forEach((c) => { cfg.usuarios[c] = { nombre: hallados[c] }; });
+  try { await mutar('config.json', configBase, (x) => { x.usuarios = x.usuarios || {}; claves.forEach((c) => { if (!(x.usuarios[c] && x.usuarios[c].nombre)) x.usuarios[c] = { nombre: hallados[c] }; }); return x; }); } catch (e) { /* se vuelve a intentar en el próximo envío */ }
+}
 
 /* Un solo correo por responsable con todas sus plantillas (tabla de plantilla y fecha límite). tipo: apertura | r7 | r1 | venc.
    soloIds limita las plantillas consideradas; soloCorreos limita los destinatarios. Devuelve { correos, plantillas } (ids de plantillas avisadas). */
 async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   opc = opc || {};
   const porCorreo = new Map(), usadas = new Set();
+  await conocerNombres(cfg, TEMPLATES.flatMap((t) => { const r = respDe(cfg, t.id); return r.entrega.concat(r.diligencia); }));
   for (const t of TEMPLATES) {
     if (opc.soloIds && !opc.soloIds.includes(t.id)) continue;
     const v = vista(t, cfg, est, periodo, '', false);
@@ -250,6 +266,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
 async function avisar(cfg, t, tipo, extra) {
   const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
   if (!para.length) return false;
+  await conocerNombres(cfg, para);
   const est = extra && extra.limite;
   const nota = t.posgrados ? ' Las facultades envían su parte a posgrados@enap.edu.co; Posgrados centraliza y entrega la plantilla.' : '';
   const M = {
