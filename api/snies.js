@@ -133,7 +133,9 @@ async function leerEstado(periodo) { const { valor } = await leerJson(`estado-${
 /* ------------------------------ Responsables ------------------------------ */
 const listaCorreos = (a) => Array.from(new Set((Array.isArray(a) ? a : []).map((c) => limpio(c, 120).toLowerCase()).filter(correoOk)));
 const respDe = (cfg, id) => { const r = cfg.responsables[id] || {}; return { entrega: r.entrega || [], diligencia: r.diligencia || [] }; };
-const nombreDe = (cfg, c) => (cfg.usuarios[c] && cfg.usuarios[c].nombre) || c;
+/* Nombres con mayúscula inicial, salvo artículos y preposiciones (de, del, la, y…). */
+const bonito = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w, i) => { const m = w.toLowerCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');
+const nombreDe = (cfg, c) => (cfg.usuarios[c] && cfg.usuarios[c].nombre) ? bonito(cfg.usuarios[c].nombre) : c;
 const textoEntrega = (cfg, id) => { const e = respDe(cfg, id).entrega; return e.length ? e.map((c) => nombreDe(cfg, c)).join(', ') : 'Por asignar'; };
 
 /* El Documento Maestro marca algunas plantillas como «NA / NO APLICA» (sin responsable); si el administrador les asigna responsables, se gestionan como cualquier otra. */
