@@ -59,13 +59,21 @@ textarea.inp{resize:vertical;min-height:54px}
 .modal .card{max-width:520px;width:100%;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
 .err li{margin:4px 0}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
-.cargando{padding:60px;text-align:center;color:#4c6386}
+.cargando{min-height:62vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.cargando .gk{font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#b58b2a;margin-bottom:4px}
+.cargando .gmod{margin:0 0 6px;font-size:clamp(20px,4vw,24px);font-weight:600;line-height:1.1;color:#14233a}
+.cargando .gm{font-size:13px;color:#123a73}
+.cargando .gsp{width:30px;height:30px;margin:14px auto 0;border:3px solid #d6e2f0;border-top-color:#123a73;border-radius:50%;animation:gspin .9s linear infinite}
+.cargando b{display:block;margin-top:8px;font-size:17px;color:#14233a}
+.cargando b::after{content:"";display:inline-block;width:1.2em;text-align:left;animation:gdots 1.4s steps(4,end) infinite}
+@keyframes gspin{to{transform:rotate(360deg)}}@keyframes gdots{0%{clip-path:inset(0 100% 0 0)}100%{clip-path:inset(0 0 0 0)}}
+@media(prefers-reduced-motion:reduce){.cargando .gsp,.cargando b::after{animation:none}}
 @media(max-width:700px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
 </style>
 <style>/* Sin cursor de texto parpadeante fuera de los campos de escritura */html,body{caret-color:transparent}input,textarea,select,[contenteditable="true"]{caret-color:auto}</style>
 </head>
 <body>
-<div class="wrap" id="app"><div class="cargando">Cargando…</div></div>
+<div class="wrap" id="app"><div class="cargando" role="status"><small class="gk">Oficina de Estadística</small><h2 class="gmod">Plantillas SNIES</h2><span class="gm">Entrando con su cuenta del Portal ENAP…</span><i class="gsp" aria-hidden="true"></i><b>Verificando acceso</b></div></div>
 <script>
 (function () {
   'use strict';
@@ -224,7 +232,7 @@ textarea.inp{resize:vertical;min-height:54px}
     var d = S.datos, tabs = '<div class="tabs"><button class="tab' + (S.vista === 'mis' ? ' on' : '') + '" data-v="mis">Mis plantillas</button>';
     if (d.admin) tabs += '<button class="tab' + (S.vista === 'panel' ? ' on' : '') + '" data-v="panel">Panel de Estadística</button><button class="tab' + (S.vista === 'resp' ? ' on' : '') + '" data-v="resp">Responsables</button><button class="tab' + (S.vista === 'oficiales' ? ' on' : '') + '" data-v="oficiales">Plantillas oficiales</button>';
     tabs += '</div>';
-    app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : '<div class="cargando">Cargando…</div>'));
+    app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : '<div class="cargando" role="status"><small class="gk">Oficina de Estadística</small><h2 class="gmod">Plantillas SNIES</h2><span class="gm">Preparando la información…</span><i class="gsp" aria-hidden="true"></i><b>Cargando</b></div>'));
     var f = document.getElementById('filtro'); if (f) f.oninput = function () { S.filtro = f.value; var pos = f.selectionStart; pintar(); var n = document.getElementById('filtro'); n.focus(); n.setSelectionRange(pos, pos); };
   }
 
