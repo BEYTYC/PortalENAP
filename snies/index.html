@@ -72,6 +72,16 @@ textarea.inp{resize:vertical;min-height:54px}
   var app = document.getElementById('app');
   var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  /* El login trae "APELLIDOS NOMBRES" en mayúscula; el saludo va "Nombres Apellidos" en Title Case.
+     Con 2 palabras: apellido + nombre; con 3: 2 apellidos + 1 nombre; con 4 o más: 2 apellidos + el resto de nombres. */
+  function nombreSaludo(n) {
+    var p = String(n || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '';
+    var bien = function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
+    var conv = n === String(n).toUpperCase() && p.length > 1;
+    if (conv) { var k = p.length === 2 ? 1 : 2; p = p.slice(k).concat(p.slice(0, k)); }
+    return p.map(bien).join(' ');
+  }
   function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
   function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
   function token() {
@@ -132,7 +142,7 @@ textarea.inp{resize:vertical;min-height:54px}
   function vistaMis() {
     var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && (p.estado === 'revision' || p.estado === 'validada'); }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
-    var h = '<div><h1>Hola, ' + esc((d.nombre || '').toUpperCase()) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
+    var h = '<div><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     h += '<div class="card prog"><div style="min-width:180px"><div class="mu" style="text-transform:uppercase;letter-spacing:.4px">Tu avance</div><div style="font-size:30px">' + ent + ' de ' + total + '</div><div class="mu">plantillas entregadas</div></div><div style="flex:1;min-width:260px"><div class="bar"><i style="width:' + (total ? Math.round(100 * ent / total) : 0) + '%"></i></div>' + (fl ? '<div style="font-size:13px;color:#4c6386;margin-top:8px">Tu fecha límite más cercana: <b style="color:#0b2a55">' + fecha(fl) + '</b></div>' : '') + '</div></div>';
     h += '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#4c6386;align-items:center"><span><span class="chip c-verde">Validada</span></span><span><span class="chip c-ambar">En revisión</span></span><span><span class="chip c-rojo">Pendiente o devuelta</span></span><span style="margin-left:auto">Arrastra el Excel sobre una tarjeta para cargarlo.</span></div>';
