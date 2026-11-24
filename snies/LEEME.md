@@ -10,4 +10,4 @@ Reglas de negocio: `docs/modulos/plantillas-snies.md`. Autora: Oficina de Estad�
 - Acceso directo: `enap.vercel.app/SNIES` (rewrite en `vercel.json`; el Portal abre el módulo al tener sesión).
 
 ## Seguridad
-Ningún correo de responsable, archivo entregado ni plantilla oficial entra al repo. El administrador es solo `programacion.ditic@enap.edu.co`; se verifica en el servidor.
+Ningún correo de responsable, archivo entregado ni plantilla oficial entra al repo. Los administradores son `jestadisticaplen@enap.edu.co` y `programacion.ditic@enap.edu.co`; se verifica en el servidor.

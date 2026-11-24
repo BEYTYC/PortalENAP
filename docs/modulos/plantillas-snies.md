@@ -7,7 +7,7 @@ Gestión, seguimiento y control de la entrega de las plantillas de los reportes 
 
 ## Quién ve qué
 - Cada persona entra con su login del Portal y ve solo las plantillas en las que figura como responsable de la entrega o del diligenciamiento. Los nombres salen del login.
-- Administrador: solo `programacion.ditic@enap.edu.co` (constante `ADMINS` de `api/snies.js`). Todo se verifica en el servidor con el token.
+- Administradores: `jestadisticaplen@enap.edu.co` y `programacion.ditic@enap.edu.co` (constante `ADMINS` de `api/snies.js`). Todo se verifica en el servidor con el token.
 - Cada plantilla tiene **un responsable de la entrega** (quien carga) y **varios responsables del diligenciamiento**. Todos reciben los correos; en todos los correos aparece el responsable de la entrega.
 - `PINO` (Planeación Académica) reporta directo al SNIES con su propio usuario: en el aplicativo solo recibe notificaciones. `DPEN-PINO`: Personal carga en el aplicativo y Planeación solo recibe notificaciones. Apoyos financieros, académicos u otros: la entrega la hace la Oficina de Estadística; PECA y DSCH diligencian.
 - Educación continua y Cursos: las facultades envían su parte a posgrados@enap.edu.co y Posgrados centraliza y entrega (aviso en la tarjeta y en los correos).

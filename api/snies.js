@@ -18,7 +18,7 @@
  *     <periodo>/<nombre>.xlsx   cada entrega, tal como la cargó el responsable (sin modificar)
  *
  * Quién entra: cualquier cuenta institucional con sesión válida, pero cada persona solo ve las plantillas en las que
- * figura como responsable de la entrega o del diligenciamiento. El administrador es solo programacion.ditic@.
+ * figura como responsable de la entrega o del diligenciamiento. Los administradores son jestadisticaplen@ y programacion.ditic@.
  * Todo se verifica en el servidor con el token de Microsoft.
  * Correos: salen de jestadisticaplen@enap.edu.co y siempre dicen quién es el responsable de la entrega.
  */
@@ -28,7 +28,7 @@ const { abrir } = require('./_xlsx.js');
 const MAESTRO = require('./_snies-maestro.json');
 
 const GRAPH = 'https://graph.microsoft.com/v1.0';
-const ADMINS = ['programacion.ditic@enap.edu.co'];
+const ADMINS = ['jestadisticaplen@enap.edu.co', 'programacion.ditic@enap.edu.co'];
 const REMITENTE = 'jestadisticaplen@enap.edu.co';
 const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/SNIES';
 const CARPETA = 'SNIES';
