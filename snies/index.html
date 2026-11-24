@@ -22,6 +22,8 @@ input,textarea{cursor:text}
 h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .sub{font-size:13px;color:#4c6386;margin-top:2px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
+.wrap{position:relative}.saludo{position:absolute;top:18px;right:32px;text-align:right}.saludo h1{font-size:17px}
+@media(max-width:1100px){.saludo{position:static;text-align:left}}
 .tab{font:inherit;font-weight:600;font-size:14px;padding:8px 18px;border-radius:999px;border:1px solid #c4d2e7;background:#fff;color:#123a73;transition:all .15s}
 .tab:hover{background:#eef4fb}.tab.on{background:#123a73;border-color:#123a73;color:#fff;box-shadow:0 4px 12px rgba(18,58,115,.22)}
 .card{background:#fff;border:1px solid #d6e0ec;border-radius:14px;box-shadow:0 1px 2px rgba(7,28,60,.05),0 6px 18px rgba(7,28,60,.05)}
@@ -156,7 +158,7 @@ h1,h2,h3{font-weight:600}
   function vistaMis() {
     var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && (p.estado === 'revision' || p.estado === 'validada'); }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
-    var h = '<div><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
+    var h = '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     h += '<div class="card prog"><div style="min-width:150px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><div class="mu" style="text-transform:uppercase;letter-spacing:.4px">Tu avance</div><div style="font-size:20px">' + ent + ' de ' + total + '</div><div class="mu">entregadas</div></div><div style="flex:1;min-width:260px"><div class="bar"><i style="width:' + (total ? Math.round(100 * ent / total) : 0) + '%"></i></div>' + (fl ? '<div style="font-size:13px;color:#4c6386;margin-top:8px">Tu fecha límite más cercana: <b style="color:#0b2a55">' + fecha(fl) + '</b></div>' : '') + '</div></div>';
     h += '<div class="grid">' + ps.map(tarjeta).join('') + '</div>';
