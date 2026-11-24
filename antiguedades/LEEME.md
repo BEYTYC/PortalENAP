@@ -17,6 +17,9 @@ Módulo del Portal (Estadística › Antigüedades ENAP). HTML/CSS/JS plano, sin
 2. Estadística › Antigüedades ENAP › **Administración** › "Datos cargados": elegir el JSON de datos, escribir el periodo y **Cargar datos**.
 3. Dar acceso de consulta a quien corresponda.
 
+## Agregar estudiante
+Administración › «Agregar estudiante» sirve para quien no aparece en las listas (p. ej. un reingreso). Los datos se escriben en pantalla y se guardan en SharePoint con `guardar-datos`; nunca van en el repositorio. «Revisar» calcula promedios y puesto; solo «Guardar en el servidor» lo agrega. Queda registrado en las ediciones.
+
 ## Pendiente
 - Descarga del Excel "BD Antigüedades <fecha>".
 - Carga de Todas las Notas, pérdidas, bajas, Conglomerado y novedades, y cálculo del siguiente semestre dentro del módulo.
