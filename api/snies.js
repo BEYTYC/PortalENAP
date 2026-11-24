@@ -392,7 +392,7 @@ module.exports = async function handler(req, res) {
       const como = admin ? String(body.verComo || '').trim().toLowerCase() : '';
       const quien = como ? { correo: como, nombre: nombreDe(cfg, como) } : yo;
       const usuarios = admin ? Array.from(new Set(Object.values(cfg.responsables || {}).flatMap((r) => (r.entrega || []).concat(r.diligencia || [])))).map((c) => ({ correo: c, nombre: nombreDe(cfg, c) })).sort((x, y) => x.nombre.localeCompare(y.nombre, 'es')) : undefined;
-      res.status(200).json({ correo: quien.correo, nombre: quien.nombre, admin, verComo: como, usuarios, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias(como || '').map((t) => { const o = Object.assign(vista(t, cfg, est, periodo, quien.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' }); return o; }) });
+      res.status(200).json({ correo: quien.correo, nombre: quien.nombre, admin, verComo: como, usuarios, periodo: cfg.periodo, periodoAnterior: pAnt, plantillas: mias(como || '').map((t) => { const o = Object.assign(vista(t, cfg, est, periodo, quien.correo, false), { anterior: ofreceAnterior(t) && estAnt[t.id] && estAnt[t.id].archivo ? pAnt : '' }); if (como) { o.puedeCargar = o.modo === 'carga' && !o.bloqueo; } return o; }) });
       return;
     }
 
