@@ -214,7 +214,7 @@ async function avisar(cfg, t, tipo, extra) {
   const est = extra && extra.limite;
   const nota = t.posgrados ? ' Las facultades envían su parte a posgrados@enap.edu.co; Posgrados centraliza y entrega la plantilla.' : '';
   const M = {
-    apertura: ['Solicitud de información SNIES', `Siguiendo instrucciones del señor Decano Académico, me permito solicitar el envío de las plantillas SNIES asignadas a su cargo o asignadas a su responsabilidad, relacionadas a continuación.${nota}`],
+    apertura: ['Solicitud de información SNIES', `Siguiendo instrucciones del señor Decano Académico, me permito solicitar el envío de las plantillas SNIES asignadas a su responsabilidad, relacionadas a continuación.${nota}`],
     r7: ['Recordatorio SNIES · faltan 7 días', `Le recordamos amablemente que faltan 7 días para la fecha límite de entrega de la siguiente plantilla.${nota}`],
     r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de la siguiente plantilla.${nota}`],
     venc: ['Plantilla SNIES vencida', 'El plazo de entrega de la siguiente plantilla ya venció. Le agradecemos enviarla lo antes posible para evitar hallazgos en la Auditoría.'],
