@@ -3318,6 +3318,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
   /* Cuentas que entran a cualquier módulo del menú (pedido de la autora, 2026-11-19). */
   const CUENTAS_TODO_ACCESO = ['jestadisticaplen@enap.edu.co'];
+  /* Módulos habilitados a la cuenta desde «Solicitudes de acceso» (api/accesos-modulos). */
+  function modConcedido(nombre) { const m = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.modulos) || []; return m.indexOf(nombre) >= 0; }
   function correoSesion() {
     const p = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.perfil) || {};
     return String(p.mail || p.userPrincipalName || '').trim().toLowerCase();
@@ -3438,21 +3440,21 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           if (item.status === 'ok' && item.nombre === 'Registro Cursos de Extensión') abrirSubsistema('viewRegistro', 'Registro Cursos de Extensión');
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Grados') { abrirSubsistema('viewTitulacion', 'Aprobación de Grados'); cargarTitulacion(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Balances Académicos') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para una cuenta autorizada.'); } catch (e) { showToast('Este módulo es solo para la cuenta autorizada.'); } }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1 && !modConcedido(item.nombre)) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para una cuenta autorizada.'); } catch (e) { showToast('Este módulo es solo para la cuenta autorizada.'); } }
             else { abrirSubsistema('viewBalances', 'Generación de Balances Académicos'); cargarBalances(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Promedios Académicos') { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); }
           else if (item.status === 'ok' && item.nombre === 'Registro de bajas') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1 && !modConcedido(item.nombre)) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Trayectoria del Estudiante') {
-            if (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
+            if (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1 && !modConcedido(item.nombre)) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewHojaVida', 'Trayectoria del Estudiante'); cargarHojaVida(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Certificados') {
-            if (item.correosPermitidos.indexOf(correoSesion()) === -1) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
+            if (item.correosPermitidos.indexOf(correoSesion()) === -1 && !modConcedido(item.nombre)) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para cuentas autorizadas.'); } catch (e) { showToast('Este módulo es solo para cuentas autorizadas.'); } }
             else { abrirSubsistema('viewCertificados', 'Aprobación de Certificados'); cargarCertificados(); }
           }
           else if (item.status === 'ok' && item.nombre === 'Aprobación de Concesiones') { abrirSubsistema('viewConcesiones', 'Aprobación de Concesiones'); cargarConcesiones(); }
