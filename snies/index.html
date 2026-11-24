@@ -19,8 +19,8 @@ button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
 input,textarea{cursor:text}
 .wrap{max-width:1296px;margin:0 auto;padding:18px 28px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
 @keyframes ent{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-h1{margin:0;font-size:26px;font-weight:600;color:#062a4a}
-.sub{font-size:13.5px;color:#4c6386;margin-top:2px}
+h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
+.sub{font-size:13px;color:#4c6386;margin-top:2px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
 .tab{font:inherit;font-weight:600;font-size:14px;padding:8px 18px;border-radius:999px;border:1px solid #c4d2e7;background:#fff;color:#123a73;transition:all .15s}
 .tab:hover{background:#eef4fb}.tab.on{background:#123a73;border-color:#123a73;color:#fff;box-shadow:0 4px 12px rgba(18,58,115,.22)}
@@ -72,15 +72,9 @@ textarea.inp{resize:vertical;min-height:54px}
   var app = document.getElementById('app');
   var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  /* El login trae "APELLIDOS NOMBRES" en mayúscula; el saludo va "Nombres Apellidos" en Title Case.
-     Con 2 palabras: apellido + nombre; con 3: 2 apellidos + 1 nombre; con 4 o más: 2 apellidos + el resto de nombres. */
+  /* El saludo muestra el nombre del login tal como viene (Nombres Apellidos), en Title Case. */
   function nombreSaludo(n) {
-    var p = String(n || '').trim().split(/\s+/).filter(Boolean);
-    if (!p.length) return '';
-    var bien = function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); };
-    var conv = n === String(n).toUpperCase() && p.length > 1;
-    if (conv) { var k = p.length === 2 ? 1 : 2; p = p.slice(k).concat(p.slice(0, k)); }
-    return p.map(bien).join(' ');
+    return String(n || '').trim().split(/\s+/).filter(Boolean).map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }).join(' ');
   }
   function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
   function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
