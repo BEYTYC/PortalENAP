@@ -241,7 +241,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
       venc: ['Plantillas SNIES vencidas', `El plazo de entrega de ${uno ? 'la siguiente plantilla ya venció' : 'las siguientes plantillas ya venció'}. Le agradecemos enviar${uno ? 'la' : 'las'} lo antes posible para evitar hallazgos en la Auditoría.`],
     }[tipo];
     try {
-      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila), colDias: tipo === 'apertura' ? '' : (tipo === 'venc' ? 'Estado del plazo' : 'Días faltantes') }));
+      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila), colDias: tipo === 'venc' ? 'Estado del plazo' : 'Días faltantes' }));
       correos++; lista.forEach((x) => usadas.add(x.t.id));
     } catch (e) { fallos++; }
   }
