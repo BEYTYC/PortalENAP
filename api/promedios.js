@@ -473,9 +473,14 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
       await copiarAOneDrive(codigo, { apellidos: o.apellidos, nombres: o.nombres, archivo: archivoDe(o) }, buf);
       for (let i = 1; i <= 8; i++) await borrar(`Revision/${codigo}/${i}.jpg`).catch(() => {});
       /* si ya no queda nada en revisión en el lote, sale el segundo correo con todos los aprobados juntos */
-      let envio = null;
-      if (loteId) { const { valor } = await leerJson('registros.json'); if (!(valor || []).some((r) => r.lote && r.lote.id === loteId && r.estado === 'revision')) envio = await enviarPendientesDelLote(loteId); }
-      res.status(200).json({ ok: true, envio }); return;
+      let envio = null, avisoError = '', enRevision = 0;
+      if (loteId) {
+        try {
+          const { valor } = await leerJson('registros.json'); enRevision = (valor || []).filter((r) => r.lote && r.lote.id === loteId && r.estado === 'revision').length;
+          if (!body.sinEnvio) envio = await enviarPendientesDelLote(loteId);   /* sale lo aprobado; si quedan otros en revisión, el correo lo avisa */
+        } catch (e) { avisoError = e.message || 'No se pudo enviar el correo.'; }   /* el certificado ya quedó emitido: el fallo de correo no debe tumbar la aprobación */
+      } else avisoError = 'Este certificado no pertenece a un lote; no hay correo de destino.';
+      res.status(200).json({ ok: true, envio, avisoError, enRevision }); return;
     }
 
     if (a === 'revision-rechazar') {

@@ -367,11 +367,14 @@
     });
     if (!elegibles.length) { toast('Ninguno tiene los datos completos para emitirse de una vez. Revíselos uno por uno.'); return; }
     confirmarModal('¿Firmar y enviar todos?', 'Se emitirán ' + elegibles.length + ' certificado' + (elegibles.length === 1 ? '' : 's') + ' con los datos tal como están leídos.' + (omitidos.length ? ' ' + omitidos.length + ' no se emitirán porque les falta algún dato o el balance está desactualizado; esos los revisa uno por uno.' : ''), 'Firmar y enviar', function () {
-      var hechos = 0, fallos = 0;
+      var hechos = 0, fallos = 0, lotes = {}, sinCorreo = 0;
       elegibles.reduce(function (p, e, i) {
-        return p.then(function () { gate(true, 'Firmando y enviando ' + (i + 1) + ' de ' + elegibles.length + '…'); return pdfDe(e.d, e.it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: e.it.codigo, datos: e.d, pdf: pdf }); }).then(function () { hechos++; }).catch(function () { fallos++; }); });
+        return p.then(function () { gate(true, 'Firmando y enviando ' + (i + 1) + ' de ' + elegibles.length + '…'); return pdfDe(e.d, e.it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: e.it.codigo, datos: e.d, pdf: pdf, sinEnvio: true }); }).then(function () { hechos++; if (e.it.lote && e.it.lote.id) lotes[e.it.lote.id] = 1; }).catch(function () { fallos++; }); });
       }, Promise.resolve()).then(function () {
-        gate(false); toast(hechos + (hechos === 1 ? ' certificado emitido' : ' certificados emitidos') + ' y enviados.' + (fallos ? ' ' + fallos + ' no se pudieron emitir.' : '') + (omitidos.length ? ' Quedan ' + omitidos.length + ' por revisar.' : ''));
+        gate(true, 'Enviando los correos…');
+        return Object.keys(lotes).reduce(function (p, id) { return p.then(function () { return api('enviar-lote', { loteId: id }).catch(function () { sinCorreo++; }); }); }, Promise.resolve());
+      }).then(function () {
+        gate(false); toast(hechos + (hechos === 1 ? ' certificado emitido' : ' certificados emitidos') + (sinCorreo ? ', pero el correo no salió: use «Reenviar lote» en Promedios generados.' : ' y enviados.') + (fallos ? ' ' + fallos + ' no se pudieron emitir.' : '') + (omitidos.length ? ' Quedan ' + omitidos.length + ' por revisar.' : ''));
         pendientes().then(function () { revision(); });
       });
     });
@@ -451,7 +454,7 @@
       var msg = falta.length ? 'Falta o es inválido: ' + falta.join(', ') + '.' : x.v.estado === 'vencido' ? 'El balance está desactualizado: no se puede emitir.' : x.v.estado === 'sin-dato' ? 'Revise el periodo de terminación (formato 2026-1).' : '';
       err.hidden = !msg; err.textContent = msg; if (msg) return;
       d.estadoVigencia = x.v.estado === 'actualizado' ? 'actualizado' : 'vigente'; var b = $('bapr'); b.disabled = true; b.textContent = 'Emitiendo…'; gate(true, 'Emitiendo…');
-      pdfDe(d, it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: it.codigo, datos: d, pdf: pdf }); }).then(function (r) { gate(false); toast(r.envio && r.envio.enviados ? 'Emitido y enviado al correo (' + r.envio.enviados + ').' : 'Certificado emitido.'); siguiente(); }).catch(function (e) { gate(false); b.disabled = false; b.textContent = 'Aprobar y emitir'; err.hidden = false; err.textContent = e.message; });
+      pdfDe(d, it.codigo).then(function (pdf) { return api('revision-aprobar', { codigo: it.codigo, datos: d, pdf: pdf }); }).then(function (r) { gate(false); toast(r.avisoError ? 'Emitido, pero el correo no salió: ' + r.avisoError + ' Use «Reenviar lote» en Promedios generados.' : (r.envio && r.envio.enviados ? 'Emitido y enviado al correo.' : 'Certificado emitido.')); siguiente(); }).catch(function (e) { gate(false); b.disabled = false; b.textContent = 'Aprobar y emitir'; err.hidden = false; err.textContent = e.message; });
     };
   }
 
