@@ -181,15 +181,19 @@ async function enviarCorreo(para, asunto, html) {
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items }) {
+  /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
+  items = items || (plantillas || []).map((n) => ({ nombre: n, fecha, entrega }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
   const logo = base + 'assets/escudo.png', boton = base + 'assets/boton-abrir-portal.png';
   const P = (t) => `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${t}</p>`;
   const th = 'padding:9px 12px;background:#eef3f9;border-bottom:1px solid #d6e0ec;font-size:13px;color:#0b3d66;font-weight:700;text-align:left';
   const td = 'padding:10px 12px;border-bottom:1px solid #e3eaf1;font-size:14.5px;color:#334155';
-  const filas = (plantillas || []).map((p) => `<tr><td style="${td}">${esc(p)}</td><td style="${td};white-space:nowrap">${esc(fecha || '—')}</td></tr>`).join('');
-  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td></tr>${filas}</table>` : '')
-    + P(`<b>Responsable de la entrega:</b> ${esc(entrega || 'Por asignar')}`);
+  const entregas = Array.from(new Set(items.map((i) => i.entrega || 'Por asignar')));
+  const variasEntregas = entregas.length > 1;   /* si todas comparten responsable de la entrega, va en una línea; si no, en una columna */
+  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
+  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
+    + (variasEntregas ? '' : P(`<b>Responsable de la entrega:</b> ${esc(entregas[0] || 'Por asignar')}`));
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
 <tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
@@ -208,6 +212,41 @@ ${datos}
 </table></div>`;
 }
 const fechaLarga = (iso) => iso ? iso.split('-').reverse().join('/') : '';
+
+/* Un solo correo por responsable con todas sus plantillas (tabla de plantilla y fecha límite). tipo: apertura | r7 | r1 | venc.
+   soloIds limita las plantillas consideradas; soloCorreos limita los destinatarios. Devuelve { correos, plantillas } (ids de plantillas avisadas). */
+async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
+  opc = opc || {};
+  const porCorreo = new Map(), usadas = new Set();
+  for (const t of TEMPLATES) {
+    if (opc.soloIds && !opc.soloIds.includes(t.id)) continue;
+    const v = vista(t, cfg, est, periodo, '', false);
+    if (v.modo === 'sin' || v.noAplica || !['pendiente', 'devuelta'].includes(v.estado)) continue;
+    if (tipo !== 'apertura' && !v.limite) continue;
+    const r = respDe(cfg, t.id);
+    for (const c of Array.from(new Set(r.entrega.concat(r.diligencia)))) {
+      if (opc.soloCorreos && !opc.soloCorreos.includes(c)) continue;
+      if (!porCorreo.has(c)) porCorreo.set(c, []);
+      porCorreo.get(c).push({ t, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id) }, posgrados: t.posgrados });
+    }
+  }
+  let correos = 0, fallos = 0;
+  for (const [c, lista] of porCorreo) {
+    const n = lista.length, uno = n === 1;
+    const nota = lista.some((x) => x.posgrados) ? ' Las facultades envían su parte a posgrados@enap.edu.co; Posgrados centraliza y entrega las plantillas de Educación Continua y Cursos.' : '';
+    const M = {
+      apertura: ['Solicitud de información SNIES', `Siguiendo instrucciones del señor Decano Académico, me permito solicitar el envío de las plantillas SNIES asignadas a su responsabilidad, relacionadas a continuación.${nota}`],
+      r7: ['Recordatorio SNIES · faltan 7 días', `Le recordamos amablemente que faltan 7 días para la fecha límite de entrega de ${uno ? 'la siguiente plantilla' : 'las siguientes plantillas'}.${nota}`],
+      r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de ${uno ? 'la siguiente plantilla' : 'las siguientes plantillas'}.${nota}`],
+      venc: ['Plantillas SNIES vencidas', `El plazo de entrega de ${uno ? 'la siguiente plantilla ya venció' : 'las siguientes plantillas ya venció'}. Le agradecemos enviar${uno ? 'la' : 'las'} lo antes posible para evitar hallazgos en la Auditoría.`],
+    }[tipo];
+    try {
+      await enviarCorreo([c], uno ? `${M[0]} · ${lista[0].t.nombre}` : `${M[0]} · ${n} plantillas`, htmlCorreo({ titulo: M[0], cuerpo: M[1], filas: lista.map((x) => x.fila) }));
+      correos++; lista.forEach((x) => usadas.add(x.t.id));
+    } catch (e) { fallos++; }
+  }
+  return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()) };
+}
 async function avisar(cfg, t, tipo, extra) {
   const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
   if (!para.length) return false;
@@ -269,17 +308,29 @@ async function identificar(accessToken) {
 
 /* ------------------------------ Cron diario ------------------------------ */
 async function cronDiario() {
-  const cfg = await leerConfig(), periodo = cfg.periodo, hoy = hoyIso(), enviados = [];
+  const cfg = await leerConfig(), periodo = cfg.periodo, enviados = [];
   const est = await leerEstado(periodo);
+  /* Se agrupan por tipo de aviso (7 días, 1 día, vencida): un correo por responsable con todas sus plantillas de ese aviso. */
+  const grupos = { r7: [], r1: [], venc: [] };
   for (const t of TEMPLATES) {
     const v = vista(t, cfg, est, periodo, '', false);
     if (v.modo === 'sin') continue;
     if (!v.limite || !['pendiente', 'devuelta'].includes(v.estado) || v.noAplica) continue;
     const tipo = v.dias === 7 ? 'r7' : v.dias === 1 ? 'r1' : v.dias === -1 ? 'venc' : null;
     if (!tipo) continue;
-    const marca = `${tipo}-${v.limite}`;
-    if (((est[t.id] || {}).avisos || []).includes(marca)) continue;
-    try { if (await avisar(cfg, t, tipo, { limite: v.limite, periodo })) { enviados.push(`${t.id}:${tipo}`); await mutar(`estado-${periodo}.json`, () => ({}), (s) => { s[t.id] = s[t.id] || {}; (s[t.id].avisos = s[t.id].avisos || []).push(marca); }); } } catch (e) { enviados.push(`${t.id}:error ${e.message}`.slice(0, 120)); }
+    if (((est[t.id] || {}).avisos || []).includes(`${tipo}-${v.limite}`)) continue;
+    grupos[tipo].push({ id: t.id, marca: `${tipo}-${v.limite}` });
+  }
+  for (const tipo of Object.keys(grupos)) {
+    if (!grupos[tipo].length) continue;
+    const ids = grupos[tipo].map((x) => x.id);
+    try {
+      const r = await avisarPorResponsable(cfg, est, periodo, tipo, { soloIds: ids });
+      for (const x of grupos[tipo]) if (r.plantillas.includes(x.id)) {
+        enviados.push(`${x.id}:${tipo}`);
+        await mutar(`estado-${periodo}.json`, () => ({}), (s) => { s[x.id] = s[x.id] || {}; (s[x.id].avisos = s[x.id].avisos || []).push(x.marca); });
+      }
+    } catch (e) { /* se reintenta mañana */ }
   }
   return { ok: true, periodo, enviados };
 }
@@ -405,9 +456,11 @@ module.exports = async function handler(req, res) {
       if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
       const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
       if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
-      const tipo = v.estado === 'devuelta' ? 'dev' : (v.vencida ? 'venc' : 'apertura');
-      await avisar(cfg, t, tipo, { motivo: v.motivo, limite: v.limite, periodo });
-      res.status(200).json({ ok: true, para }); return;
+      if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo }); res.status(200).json({ ok: true, para }); return; }
+      /* Cada responsable de la plantilla recibe un solo correo con todas sus plantillas pendientes. */
+      const g = await avisarPorResponsable(cfg, est, periodo, v.vencida ? 'venc' : 'apertura', { soloCorreos: para });
+      if (!g.correos) throw error('No se pudo enviar el correo.', 502);
+      res.status(200).json({ ok: true, para: g.para }); return;
     }
     if (a === 'oficial-subir') {
       soloAdmin(); const t = buscar(body.id);
@@ -430,13 +483,10 @@ module.exports = async function handler(req, res) {
       await mutar('config.json', configBase, (c) => { c.periodo = p; });
       res.status(200).json({ ok: true }); return;
     }
-    if (a === 'abrir-ciclo') {   /* solicitud de información: un correo por plantilla a todos sus responsables */
-      soloAdmin(); let n = 0, fallos = 0;
-      for (const t of TEMPLATES) {
-        const v = vista(t, cfg, est, periodo, '', false); if (v.modo === 'sin') continue;
-        try { if (await avisar(cfg, t, 'apertura', { periodo, limite: v.limite })) n++; } catch (e) { fallos++; }
-      }
-      res.status(200).json({ ok: true, enviados: n, fallos }); return;
+    if (a === 'abrir-ciclo') {   /* solicitud de información: un solo correo por responsable con todas sus plantillas */
+      soloAdmin();
+      const r = await avisarPorResponsable(cfg, est, periodo, 'apertura');
+      res.status(200).json({ ok: true, enviados: r.correos, fallos: r.fallos }); return;
     }
     throw error('Acción desconocida.', 400);
   } catch (e) {
