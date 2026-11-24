@@ -1,0 +1,587 @@
+[
+ {
+  "id": "actualizar-documento-participante",
+  "grupo": "PARTICIPANTE",
+  "nombre": "Actualizar documento participante",
+  "cargo": "JSEA",
+  "codigo": null,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "empresas-de-revisoria-fiscal",
+  "grupo": "PARTICIPANTE",
+  "nombre": "Empresas de Revisoría Fiscal",
+  "cargo": "NA",
+  "codigo": null,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "participante",
+  "grupo": "PARTICIPANTE",
+  "nombre": "Participante",
+  "cargo": "NA",
+  "codigo": 55,
+  "fechas": [
+   "15/03",
+   "30/06",
+   "15/09",
+   "10/12"
+  ]
+ },
+ {
+  "id": "inscritos-relacion-de-inscritos",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Inscritos - Relación de Inscritos",
+  "cargo": "DPEN-PINO",
+  "codigo": 143,
+  "fechas": [
+   "31/01",
+   "30/06",
+   "31/07",
+   "10/12"
+  ]
+ },
+ {
+  "id": "inscrito-programa",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Inscrito Programa",
+  "cargo": "DPEN-PINO",
+  "codigo": 144,
+  "fechas": [
+   "31/01",
+   "30/06",
+   "31/07",
+   "10/12"
+  ]
+ },
+ {
+  "id": "admitidos",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Admitidos",
+  "cargo": "DPEN-PINO",
+  "codigo": 59,
+  "fechas": [
+   "31/01",
+   "30/06",
+   "31/07",
+   "10/12"
+  ]
+ },
+ {
+  "id": "estudiantes-de-primer-curso",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Estudiantes de primer curso",
+  "cargo": "PINO",
+  "codigo": 62,
+  "fechas": [
+   "31/01",
+   "30/06",
+   "31/07",
+   "10/12"
+  ]
+ },
+ {
+  "id": "matriculados",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Matriculados",
+  "cargo": "PINO",
+  "codigo": 61,
+  "fechas": [
+   "15/03",
+   "30/06",
+   "15/09",
+   "10/12"
+  ]
+ },
+ {
+  "id": "estudiantes-de-articulacion",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Estudiantes de Articulación",
+  "cargo": "NA",
+  "codigo": null,
+  "fechas": [
+   "15/03",
+   "30/06",
+   "15/09",
+   "10/12"
+  ]
+ },
+ {
+  "id": "estudiantes-de-estrategias-de-cobertura",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Estudiantes de Estrategías de Cobertura",
+  "cargo": "NA",
+  "codigo": null,
+  "fechas": [
+   "15/03",
+   "30/06",
+   "15/09",
+   "10/12"
+  ]
+ },
+ {
+  "id": "graduados",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Graduados",
+  "cargo": "JSEA",
+  "codigo": 60,
+  "fechas": [
+   "30/04",
+   "31/07",
+   "31/10",
+   "31/01"
+  ]
+ },
+ {
+  "id": "actualizar-documento-inscritos",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Actualizar documento inscritos",
+  "cargo": "JSEA",
+  "codigo": null,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "materias-matriculado",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Materias Matriculado",
+  "cargo": "PECA",
+  "codigo": 124,
+  "fechas": [
+   "31/08",
+   "31/08",
+   "28/02",
+   "28/02"
+  ]
+ },
+ {
+  "id": "apoyos-financieros-academicos-u-otros",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Apoyos financieros, académicos u otros",
+  "cargo": "PECA-JSEA-DSCH",
+  "codigo": 89,
+  "fechas": [
+   "31/08",
+   "31/08",
+   "28/02",
+   "28/02"
+  ]
+ },
+ {
+  "id": "retiros-estudiantiles",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Retiros Estudiantiles",
+  "cargo": "JSEA",
+  "codigo": 79,
+  "fechas": [
+   "31/08",
+   "31/08",
+   "28/02",
+   "28/02"
+  ]
+ },
+ {
+  "id": "cupos-proyectados-y-matricula-esperada",
+  "grupo": "POBLACIÓN ESTUDIANTIL",
+  "nombre": "Cupos proyectados y matrícula esperada",
+  "cargo": "PECA",
+  "codigo": 75,
+  "fechas": [
+   "Per. sig. 15-mar",
+   null,
+   "Per. sig. 15-sep",
+   null
+  ]
+ },
+ {
+  "id": "informacion-complementaria-de-la-ies",
+  "grupo": "INFORMACIÓN INSTITUCIONAL",
+  "nombre": "Información complementaria de la IES",
+  "cargo": "PAPEN",
+  "codigo": 109,
+  "fechas": [
+   "Máx 5 días después de la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "recursos-historico",
+  "grupo": "INFORMACIÓN INSTITUCIONAL",
+  "nombre": "Recursos histórico",
+  "cargo": "DIFEN",
+  "codigo": null,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "30/12",
+   "30/12"
+  ]
+ },
+ {
+  "id": "unidad-organizacional",
+  "grupo": "INFORMACIÓN INSTITUCIONAL",
+  "nombre": "Unidad Organizacional",
+  "cargo": "ADMIN-SI SE REQUIERE MODIFICAR",
+  "codigo": 107,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "autoridades",
+  "grupo": "RECURSO HUMANO",
+  "nombre": "Autoridades",
+  "cargo": "DPEN",
+  "codigo": 64,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "directivos",
+  "grupo": "RECURSO HUMANO",
+  "nombre": "Directivos",
+  "cargo": "DPEN",
+  "codigo": 65,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "docentes-universidad-publica",
+  "grupo": "RECURSO HUMANO",
+  "nombre": "Docentes Universidad Pública",
+  "cargo": "PECA",
+  "codigo": 125,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "integrantes-maximo-organo-de-gobierno",
+  "grupo": "RECURSO HUMANO",
+  "nombre": "Integrantes máximo organo de gobierno",
+  "cargo": "DPEN",
+  "codigo": 66,
+  "fechas": [
+   "Cuando se presente la novedad",
+   null,
+   null,
+   null
+  ]
+ },
+ {
+  "id": "convenios-internacionales",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Convenios Internacionales",
+  "cargo": "RELINT",
+  "codigo": 93,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-docentes-del-exterior-hacia-colombia",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de docentes del exterior hacia Colombia",
+  "cargo": "RELINT",
+  "codigo": 100,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-docentes-hacia-el-exterior",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de docentes hacia el exterior",
+  "cargo": "RELINT",
+  "codigo": 97,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-estudiantes-del-exterior-hacia-colombia",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de estudiantes del exterior hacia Colombia",
+  "cargo": "RELINT",
+  "codigo": 101,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-estudiantes-hacia-el-exterior",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de estudiantes hacia el exterior",
+  "cargo": "RELINT",
+  "codigo": 96,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-personal-administrativo-del-exterior-hacia-colombia",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de personal administrativo del exterior hacia Colombia",
+  "cargo": "RELINT",
+  "codigo": 99,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "movilidad-de-personal-administrativo-hacia-el-exterior",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Movilidad de personal administrativo hacia el exterior",
+  "cargo": "RELINT",
+  "codigo": 98,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "programas-presenciales-ofrecidos-en-el-exterior",
+  "grupo": "INTERNACIONALIZACIÓN",
+  "nombre": "Programas presenciales ofrecidos en el exterior",
+  "cargo": "RELINT",
+  "codigo": 94,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "centros-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Centros de Investigación",
+  "cargo": "CICEN",
+  "codigo": 118,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "grupos-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Grupos de Investigación",
+  "cargo": "CICEN",
+  "codigo": 119,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "otras-actividades-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Otras Actividades de Investigación",
+  "cargo": "CICEN",
+  "codigo": 122,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "productos-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Productos de Investigación",
+  "cargo": "CICEN",
+  "codigo": 120,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "proyectos-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Proyectos de Investigación",
+  "cargo": "CICEN",
+  "codigo": 123,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "redes-de-investigacion",
+  "grupo": "INVESTIGACIÓN",
+  "nombre": "Redes de Investigación",
+  "cargo": "CICEN",
+  "codigo": 121,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "actividad-de-bienestar",
+  "grupo": "BIENESTAR",
+  "nombre": "Actividad de Bienestar",
+  "cargo": "BIEN",
+  "codigo": 92,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "actividad-cultural",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Actividad Cultural",
+  "cargo": "BIEN",
+  "codigo": 104,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "consultoria",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Consultoría",
+  "cargo": "NO APLICA",
+  "codigo": 102,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "cursos",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Cursos",
+  "cargo": "POSGRADOS",
+  "codigo": 106,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "educacion-continua",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Educación Continua",
+  "cargo": "POSGRADOS",
+  "codigo": 114,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "evento-cultural",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Evento Cultural",
+  "cargo": "OCOMES",
+  "codigo": 115,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "proyecto-de-extension",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Proyecto de Extensión",
+  "cargo": "NO APLICA",
+  "codigo": 116,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ },
+ {
+  "id": "servicios-de-extension",
+  "grupo": "EXTENSIÓN",
+  "nombre": "Servicios de Extensión",
+  "cargo": "NO APLICA",
+  "codigo": 117,
+  "fechas": [
+   "30/06",
+   "30/06",
+   "10/12",
+   "10/12"
+  ]
+ }
+]
