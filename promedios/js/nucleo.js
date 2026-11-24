@@ -127,7 +127,9 @@
       if (toks.length > 3 && /^\.\d{1,3}$/.test(toks[toks.length - 1])) toks.pop();   /* columna HAB. (".000") al final de la fila */
       var nums = []; for (var k = toks.length - 1; k >= 0 && nums.length < 3; k--) { if (/^\d{1,3}([.,]\d{1,3})?$/.test(toks[k])) nums.unshift(toks[k]); else break; }
       if (nums.length < 2) return;
-      var nota = numNota(nums[nums.length - 1], true), cred = parseInt(nums[nums.length - 2], 10);
+      /* Columna HAB.: si la materia se habilitó, la fila trae créditos, la nota perdida y la nota de la habilitación. Para el promedio solo cuenta la nota de la materia perdida (la del medio). */
+      var conHab = nums.length === 3 && /^\d{1,2}$/.test(nums[0]) && /[.,]/.test(nums[1]) && numNota(nums[1], true) != null && numNota(nums[2], true) != null && numNota(nums[1], true) < 7 && numNota(nums[2], true) >= numNota(nums[1], true);
+      var nota = numNota(nums[conHab ? 1 : nums.length - 1], true), cred = parseInt(nums[conHab ? 0 : nums.length - 2], 10);
       if (nota == null || !(cred >= 1 && cred <= 20)) return;
       filas.push({ creditos: cred, nota: nota, linea: ln.trim() });
     });
