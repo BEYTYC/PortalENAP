@@ -324,11 +324,24 @@
   var ESTADOS = { emitido: ['ok', 'Emitido'], revision: ['rev', 'En revisión'], rechazado: ['err', 'Rechazado'] };
   function pintarConsulta(lista, q) {
     var x = N.norm(q), vis = lista.filter(function (r) { return !x || N.norm(r.apellidos + ' ' + r.nombres + ' ' + r.cedula + ' ' + r.sigla + ' ' + r.codigo).indexOf(x) >= 0; }).reverse();
-    var filas = vis.map(function (r) { var e = ESTADOS[r.estado] || ['rev', r.estado]; return '<div class="r" style="grid-template-columns:1.6fr .9fr .5fr 1fr .8fr"><b>' + esc((r.apellidos + ' ' + r.nombres).trim() || '(por validar)') + '</b><span>' + esc(r.sigla || r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><span style="font-size:12.5px;color:#566370">' + esc(r.codigo) + '<br>' + new Date(r.fecha).toLocaleDateString('es-CO') + '</span><div><span class="chip ' + e[0] + '">' + e[1] + '</span>' + (r.estado === 'emitido' ? '<div style="margin-top:6px"><a href="#" data-pdf="' + r.codigo + '" style="font-size:12.5px;color:#0b3d66;font-weight:600">Descargar PDF</a></div>' : '') + '</div></div>'; }).join('');
+    var filas = vis.map(function (r) {
+      var e = ESTADOS[r.estado] || ['rev', r.estado], lk = 'font-size:12px;color:#0b3d66;font-weight:600;white-space:nowrap;cursor:pointer';
+      return '<div class="r" style="grid-template-columns:1.7fr .8fr .5fr 1.5fr 2fr;align-items:center"><b>' + esc((r.apellidos + ' ' + r.nombres).trim() || '(por validar)') + '</b><span>' + esc(r.sigla || r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><span style="font-size:12px;color:#566370;white-space:nowrap">' + esc(r.codigo) + ' · ' + new Date(r.fecha).toLocaleDateString('es-CO') + '</span>' +
+        '<div style="display:flex;align-items:center;gap:12px;white-space:nowrap"><span class="chip ' + e[0] + '">' + e[1] + '</span>' + (r.estado === 'emitido' ? '<a href="#" data-pdf="' + r.codigo + '" style="' + lk + '">Descargar PDF</a><a href="#" data-reenv="' + r.codigo + '" style="' + lk + '">Reenviar lote</a>' : '') + '</div></div>';
+    }).join('');
     vista(cab('Certificados de promedio', 'Promedios generados', 'Un certificado emitido no se repite: si hay un error, la corrección la hace la Oficina de Estadística.') +
       '<div style="margin-top:14px"><input class="inp" id="q" placeholder="Buscar por nombre, cédula, sigla o código" value="' + esc(q) + '"></div>' +
       '<div style="overflow:auto;min-height:0;margin-top:8px">' + (filas || '<div class="vac">No hay certificados que coincidan.</div>') + '</div><div style="margin-top:14px">' + volver() + '</div>');
     $('bvolver').onclick = inicio; var qi = $('q'); qi.oninput = function () { var p = qi.selectionStart; pintarConsulta(lista, qi.value); $('q').focus(); $('q').setSelectionRange(p, p); };
+    document.querySelectorAll('[data-reenv]').forEach(function (a) {
+      a.onclick = function (e) {
+        e.preventDefault();
+        confirmarModal('Reenviar lote', 'Se enviarán de nuevo, al correo con el que se cargó, todos los certificados emitidos de este lote.', 'Reenviar', function () {
+          gate(true, 'Reenviando…');
+          api('reenviar-lote', { codigo: a.dataset.reenv }).then(function (r) { gate(false); toast(r.enviados ? 'Lote reenviado a ' + r.a + ' (' + r.enviados + ').' : 'No hay certificados para reenviar.'); }).catch(function (er) { gate(false); toast(er.message || 'No se pudo reenviar.'); });
+        });
+      };
+    });
     document.querySelectorAll('[data-pdf]').forEach(function (a) { a.style.cursor = 'pointer'; a.onclick = function (e) { e.preventDefault(); api('descargar', { codigo: a.dataset.pdf }).then(function (r) { var l = document.createElement('a'); l.href = 'data:application/pdf;base64,' + r.pdf; l.download = r.archivo || (a.dataset.pdf + '.pdf'); l.click(); }).catch(function (er) { toast(er.message); }); }; });
   }
 

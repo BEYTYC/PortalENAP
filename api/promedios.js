@@ -190,9 +190,15 @@ ${cuerpo}
 }
 
 /* Envía por correo los certificados emitidos y aún no enviados de un lote. */
-async function enviarPendientesDelLote(loteId) {
+async function enviarPendientesDelLote(loteId, opciones) {
+  const reenvio = !!(opciones && opciones.reenvio);
   const { valor } = await leerJson('registros.json'); const regs = valor || [];
-  const lista = regs.filter((r) => r.lote && r.lote.id === loteId && r.estado === 'emitido' && !r.enviado);
+  const lista = regs.filter((r) => r.lote && r.lote.id === loteId && r.estado === 'emitido' && (reenvio || !r.enviado));
+  /* Si el lote aún tiene estudiantes en revisión, el correo lo dice: los demás llegan cuando Estadística los valide. */
+  const faltan = regs.filter((r) => r.lote && r.lote.id === loteId && r.estado === 'revision').length;
+  const yaEnviados = regs.some((r) => r.lote && r.lote.id === loteId && r.enviado);
+  const nota = faltan ? `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${faltan === 1 ? 'Queda 1 estudiante pendiente' : 'Quedan ' + faltan + ' estudiantes pendientes'} de validación por la Oficina de Estadística. Su certificado le llegará a este mismo correo cuando esté listo.</p>`
+    : (yaEnviados && !reenvio ? '<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Con estos certificados queda completo el lote que usted envió.</p>' : '');
   if (!lista.length) return { enviados: 0 };
   const para = lista[0].lote.correo; if (!para) throw error('El lote no tiene correo de destino.', 400);
   const nMail = regs.filter((r) => r.lote && r.lote.id === loteId && r.enviado).map((r) => r.enviado.n || 1).reduce((a, b) => Math.max(a, b), 0) + 1;
@@ -200,11 +206,11 @@ async function enviarPendientesDelLote(loteId) {
   for (const r of lista) { const b = await leerBin(`Certificados/${r.codigo}.pdf`); if (!b) throw error(`Falta el PDF ${r.codigo}.`, 500); archivos.push({ nombre: `Certificados de promedio/${r.archivo}`, datos: b }); }
   if (archivos.length <= 5) {   /* hasta 5 certificados: PDF sueltos, sin comprimir */
     const uno = archivos.length === 1;
-    const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${uno ? 'Se adjunta el certificado de promedio académico solicitado.' : 'Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.'}</p>`;
+    const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${uno ? 'Se adjunta el certificado de promedio académico solicitado.' : 'Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.'}</p>` + nota;
     await enviarCorreo(para, uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', htmlCorreo({ titulo: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', pre: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', cuerpo }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
   } else {   /* más de 5: un ZIP */
     const z = zip(archivos);
-    await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico' }), { nombre: 'Certificados de promedio.zip', datos: z });
+    await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico', cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados (${archivos.length}), en un archivo comprimido.</p>` + nota }), { nombre: 'Certificados de promedio.zip', datos: z });
   }
   const codigos = new Set(lista.map((r) => r.codigo)), t = ahora();
   await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (codigos.has(r.codigo)) r.enviado = { fecha: t, a: para, n: nMail }; }); });
@@ -434,6 +440,11 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
       res.status(200).json({ avisado: aviso, error: detalle }); return;
     }
 
+    if (a === 'reenviar-lote') {   /* vuelve a mandar al correo del lote todos sus certificados emitidos; lo puede pedir quien lo cargó o Estadística */
+      const { valor } = await leerJson('registros.json'); const r0 = (valor || []).find((x) => x.codigo === body.codigo && x.estado === 'emitido');
+      if (!r0 || !r0.lote || !r0.lote.id || (!esEst && r0.por !== yo.correo)) throw error('Certificado no encontrado.', 404);
+      const r = await enviarPendientesDelLote(r0.lote.id, { reenvio: true }); res.status(200).json(r); return;
+    }
     if (a === 'enviar-lote') { const r = await enviarPendientesDelLote(limpio(body.loteId, 40)); res.status(200).json(r); return; }
 
     if (a === 'lista') {
