@@ -34,6 +34,8 @@ const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/SNIES';
 const CARPETA = 'SNIES';
 const DUENO_COPIA = 'programacion.ditic@enap.edu.co';
 const CARPETA_COPIA = 'Plantillas SNIES';
+/* Fecha límite inicial de todas las plantillas en un periodo (pedido de la autora); una prórroga por plantilla la reemplaza. */
+const LIMITE_INICIAL = { '2026-2': '2026-11-27' };
 const MAX_BYTES = 4 * 1024 * 1024;
 
 const CARGOS = {
@@ -143,7 +145,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const r = respDe(cfg, t.id);
   const modo = modoDe(t, cfg);
   const oficial = fechaOficial(t, periodo);
-  const limite = cfg.prorrogas[t.id] || (oficial ? menosUnMes(oficial) : null);
+  const limite = cfg.prorrogas[t.id] || LIMITE_INICIAL[periodo] || (oficial ? menosUnMes(oficial) : null);
   const estado = e.estado || 'pendiente';
   const dif = limite ? dias(hoyIso(), limite) : null;
   const dep = DEPENDE[t.id] && POR_ID[DEPENDE[t.id]] && modoDe(POR_ID[DEPENDE[t.id]], cfg) === 'carga' ? DEPENDE[t.id] : null;

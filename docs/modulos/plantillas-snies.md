@@ -18,6 +18,7 @@ Pendiente (rojo), Devuelta (rojo), En revisión (amarillo), Validada (verde). «
 ## Fechas
 - Fecha oficial SNIES por plantilla y semestre: las cuatro fechas del Documento Maestro (`api/_snies-maestro.json`); 1.er semestre usa la 2.ª fecha, 2.º semestre la 4.ª. Se repiten cada año, automáticamente. **Pendiente de confirmar contra la Resolución 9573 del MEN.**
 - Fecha límite interna = oficial − 1 mes calendario (si el mes anterior es más corto, el último día de ese mes). El administrador puede dar una prórroga por plantilla.
+- Periodo 2026-2: la fecha límite inicial de todas las plantillas es el **27/11/2026** (constante `LIMITE_INICIAL` de `api/snies.js`); una prórroga por plantilla la reemplaza.
 - El responsable nunca ve la fecha oficial, solo su fecha límite.
 - Plantillas «cuando se presente la novedad» no tienen fecha ni recordatorios.
 
