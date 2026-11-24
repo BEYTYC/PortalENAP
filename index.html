@@ -382,7 +382,7 @@
   .cde-note{ margin-top:9px; font-size:11px; color:var(--text-muted); }
 
   /* ---------- Subsistema: Registro de Plantillas (app real incrustada) ---------- */
-  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewBajas,#viewPromedios,#viewHojaVida, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt, #viewCertificados{
+  #viewRegistro, #viewTitulacion, #viewBalances, #viewConcesiones, #viewAntiguedades, #viewBajas,#viewPromedios,#viewSnies,#viewHojaVida, #viewAprobacionSac, #viewCDE, #viewProtocoloConc, #viewProtocoloAnt, #viewCertificados{
     width:100%; height:100%; align-self:stretch; position:relative;
     display:flex; flex-direction:column;
   }
@@ -412,7 +412,7 @@
   main:has(> #viewRegistro:not([hidden])){ overflow:hidden; }
   #viewRegistro{ overflow:hidden; }
   @media (prefers-reduced-motion:reduce){ #viewRegistro:not([hidden]){ animation:none; } }
-  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewBajas[hidden], #viewPromedios[hidden], #viewHojaVida[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden], #viewCertificados[hidden]{ display:none; }
+  #viewRegistro[hidden], #viewTitulacion[hidden], #viewBalances[hidden], #viewConcesiones[hidden], #viewAntiguedades[hidden], #viewBajas[hidden], #viewPromedios[hidden], #viewSnies[hidden], #viewHojaVida[hidden], #viewAprobacionSac[hidden], #viewCDE[hidden], #viewProtocoloAnt[hidden], #viewProtocoloConc[hidden], #viewCertificados[hidden]{ display:none; }
   .registro-iframe{
     flex:1; width:100%; height:100%; border:none; display:block;
     background:transparent;
@@ -639,8 +639,8 @@
     /* El área de contenido empieza justo debajo de la barra de la casita y termina justo encima del pie:
        main no puede crecer más que su celda (min-height:0) y recorta lo que sobre; el pie va por encima. */
     main{ min-height:0; position:relative; }
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:hidden !important; }
-    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:hidden !important; }
+    main > :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden]){ height:100%; min-height:0; max-height:100%; overflow:hidden; }
     footer{ position:relative; z-index:5; }
     /* Barra del módulo (casita + nombre): más baja y la casita sin círculo. */
     .nav-subsistema{ padding:0 8px 0 4px !important; min-height:0 !important; gap:6px !important; }
@@ -650,11 +650,11 @@
     .nav-subsistema .name{ font-size:13.5px !important; }
     /* Un módulo abierto no debe poder moverse dentro de main (ni siquiera por scrollIntoView desde el iframe):
        así el módulo siempre queda debajo de la barra de la casita y termina sobre el pie. */
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:clip !important; }
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewAprobacionSac,#viewCDE,#viewRegistro,#viewCertificados):not([hidden])){ overflow:clip !important; }
     /* Módulo incrustado abierto: la caja no tiene relleno ni scroll propio; solo se
        desplaza el contenido del iframe. Con dos áreas de scroll anidadas (main + iframe)
        el iOS se quedaba en un límite y no dejaba ver el final del módulo. */
-    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewAprobacionSac,#viewCDE):not([hidden])){
+    main:has(> :is(#viewTitulacion,#viewBalances,#viewConcesiones,#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewAprobacionSac,#viewCDE):not([hidden])){
       padding:0 !important; overflow:hidden !important;
     }
   }
@@ -1188,14 +1188,14 @@ img,svg,video,canvas,iframe{max-width:100%}
   .nav-subsistema .name{ font-size:12px !important; font-weight:600 !important; letter-spacing:.01em !important; color:var(--navy-800) !important; font-family:inherit !important; flex:1 1 auto; text-align:left !important }
   .nav-home{ width:34px !important; height:34px !important }
   /* Antigüedades: UN solo desplazamiento (el de la página), el marco se estira a la altura de su contenido */
-  main:has(> :is(#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  main > :is(#viewAntiguedades,#viewBajas,#viewPromedios,#viewHojaVida,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
+  main:has(> :is(#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden])){ overflow-y:auto !important; overflow-x:hidden !important; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  main > :is(#viewAntiguedades,#viewBajas,#viewPromedios,#viewSnies,#viewHojaVida,#viewConcesiones,#viewRegistro,#viewProtocoloConc,#viewProtocoloAnt,#viewCDE):not([hidden]){ height:auto !important; min-height:100% !important; max-height:none !important; overflow:visible !important; }
   /* móvil: la marca de agua del escudo queda fija y centrada en la pantalla (no se mueve al desplazarse) */
   main > .watermark{ position:fixed !important; inset:auto !important; left:0 !important; right:0 !important; top:var(--wmt,0px) !important; height:var(--wmh,100dvh) !important; z-index:0 !important; }
   main > .watermark img{ position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:80vw; max-width:520px; }
   .cdi-tab{ background:transparent !important; }
   header.masthead, nav.topnav, footer{ position:relative; z-index:3; }
-  #antiguedadesFrame,#bajasFrame,#promediosFrame,#hojaVidaFrame,#concesionesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
+  #antiguedadesFrame,#bajasFrame,#promediosFrame,#sniesFrame,#hojaVidaFrame,#concesionesFrame,#registroFrame,#protocoloConcFrame,#protocoloAntFrame{ flex:none !important; height:100%; min-height:100%; }
   #viewCDE .cdi-tab{ height:auto !important; min-height:100% !important; overflow:visible !important; flex:none !important; }
   #cdeFrame{ position:static !important; display:block; height:100%; min-height:100%; }
 }
@@ -1535,6 +1535,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     <!-- Generación de Promedios Académicos (promedios/index.html, mismo origen). Solo Estadística y los usuarios
          que esta autorice en Ajustes; /api/promedios valida el token y guarda en SharePoint. -->
     <iframe id="promediosFrame" class="registro-iframe" title="Generación de Promedios Académicos" allow="fullscreen" allowfullscreen></iframe>
+  </div>
+
+  <div id="viewSnies" hidden>
+    <!-- Plantillas SNIES (snies/index.html, mismo origen). Cada persona ve solo sus plantillas; el administrador es solo
+         programacion.ditic@. /api/snies valida el token y guarda en SharePoint y en el OneDrive de programacion.ditic. -->
+    <iframe id="sniesFrame" class="registro-iframe" title="Plantillas SNIES" allow="fullscreen" allowfullscreen></iframe>
   </div>
 
   <div id="viewBajas" hidden>
@@ -3304,6 +3310,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         { nombre: 'Generación de Balances Académicos', status: 'ok', correosPermitidos: ['posfam@enap.edu.co', 'jestadisticaplen@enap.edu.co'], soloParaPermitidos: true, quien: 'Este módulo es solo para la cuenta de Posgrados de la Facultad de Administración y la Oficina de Estadística.' },
         // Certificado de promedio desde cédula + balance. Estadística; /api/promedios valida además a los usuarios autorizados en Ajustes.
         { nombre: 'Generación de Promedios Académicos', status: 'ok' },
+        // Seguimiento y entrega de plantillas SNIES; cada responsable ve solo las suyas (lo verifica /api/snies).
+        { nombre: 'Plantillas SNIES', status: 'ok' },
         { nombre: 'Registro Cursos de Extensión', status: 'ok' },
       ],
     },
@@ -3483,6 +3491,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           }
           else if (item.status === 'ok' && item.nombre === 'Antigüedades ENAP') { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }
           else if (item.status === 'ok' && item.nombre === 'Generación de Promedios Académicos') { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); }
+          else if (item.status === 'ok' && item.nombre === 'Plantillas SNIES') { abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }
           else if (item.status === 'ok' && item.nombre === 'Registro de bajas') {
             if (item.correosPermitidos.indexOf(correoSesion()) === -1 && !modConcedido(item.nombre)) { try { window.PortalENAP.actividadModulo(item.nombre, 'Sin permiso'); window.PortalENAP.ventanaAcceso(item.nombre, 'Este módulo es solo para la Oficina de Estadística.'); } catch (e) { showToast('Este módulo es solo para la Oficina de Estadística.'); } }
             else { abrirSubsistema('viewBajas', 'Registro de bajas'); cargarBajas(); }
@@ -3611,7 +3620,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   // vez que se abre, ya con sesión iniciada, para que el módulo pueda pedir
   // el token de Microsoft de inmediato.
   // Móvil: el marco de Antigüedades toma la altura de su contenido y la página (main) es lo único que se desplaza.
-  ['antiguedadesFrame','bajasFrame','promediosFrame','hojaVidaFrame','registroFrame','protocoloConcFrame','protocoloAntFrame','cdeFrame'].forEach(function (fid) {
+  ['antiguedadesFrame','bajasFrame','promediosFrame','sniesFrame','hojaVidaFrame','registroFrame','protocoloConcFrame','protocoloAntFrame','cdeFrame'].forEach(function (fid) {
     const f = document.getElementById(fid); if (!f) return;
     const mq = window.matchMedia('(max-width:760px)');
     let ro = null, mo = null;
@@ -3667,6 +3676,21 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     if (cg) { cg.classList.add('on'); f.addEventListener('load', () => cg.classList.remove('on'), { once: true }); setTimeout(() => cg.classList.remove('on'), 15000); }
     f.src = 'promedios/index.html?embedded=1';
     f.dataset.cargado = '1';
+  }
+  function cargarSnies() {
+    const f = document.getElementById('sniesFrame');
+    if (f.dataset.cargado) return;
+    f.src = 'snies/index.html?embedded=1';
+    f.dataset.cargado = '1';
+  }
+  // Enlace directo: enap.vercel.app/SNIES abre el módulo apenas hay sesión iniciada.
+  if (/^\/snies\/?$/i.test(window.location.pathname)) {
+    let intentos = 0;
+    const espera = setInterval(function () {
+      intentos++;
+      if (window.PortalENAP && window.PortalENAP.sesion) { clearInterval(espera); abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }
+      else if (intentos > 240) clearInterval(espera);
+    }, 500);
   }
   function cargarBajas() {
     const f = document.getElementById('bajasFrame');

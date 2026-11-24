@@ -23,11 +23,28 @@
     {
       "path": "/api/bajas?cron=recordatorios",
       "schedule": "0 13 * * *"
+    },
+    {
+      "path": "/api/snies?cron=diario",
+      "schedule": "0 13 * * *"
     }
   ],
   "functions": {
     "api/promedios.js": {
       "maxDuration": 60
+    },
+    "api/snies.js": {
+      "maxDuration": 60
     }
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/SNIES",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/snies",
+      "destination": "/index.html"
+    }
+  ]
 }

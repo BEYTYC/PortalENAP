@@ -1,0 +1,285 @@
+<!doctype html>
+<!--
+  Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+  Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+  Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+-->
+<html lang="es-CO" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="author" content="CAMARGO MARTÍNEZ BEYTY PATRICIA">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plantillas SNIES — ENAP</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:600;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
+b,strong{font-weight:600}
+button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
+input,textarea{cursor:text}
+.wrap{max-width:1296px;margin:0 auto;padding:18px 28px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
+@keyframes ent{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{margin:0;font-size:26px;font-weight:600;color:#062a4a}
+.sub{font-size:13.5px;color:#4c6386;margin-top:2px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tab{font:inherit;font-weight:600;font-size:14px;padding:8px 18px;border-radius:999px;border:1px solid #c4d2e7;background:#fff;color:#123a73;transition:all .15s}
+.tab:hover{background:#eef4fb}.tab.on{background:#123a73;border-color:#123a73;color:#fff;box-shadow:0 4px 12px rgba(18,58,115,.22)}
+.card{background:#fff;border:1px solid #d6e0ec;border-radius:14px;box-shadow:0 1px 2px rgba(7,28,60,.05),0 6px 18px rgba(7,28,60,.05)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:9px 16px;border:1px solid #123a73;background:#123a73;color:#fff;white-space:nowrap;transition:transform .12s,background .15s}
+.btn:hover{transform:translateY(-1px);background:#184a92}
+.btn.sec{background:#fff;color:#123a73;border-color:#c4d2e7}.btn.sec:hover{background:#eef4fb}
+.btn.teal{background:#fff;color:#0f5c5c;border-color:#bfe0e0}.btn.teal:hover{background:#f1f8f8}
+.btn.y{background:#d3a62a;border-color:#d3a62a;color:#071142}
+.btn:disabled{background:#c8d3de;border-color:#c8d3de;color:#fff;transform:none;cursor:default}
+.btn.sm{padding:6px 12px;font-size:13px}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:26px 28px}
+.t{padding:16px 18px;border-top:4px solid;display:flex;flex-direction:column;gap:12px;transition:box-shadow .15s}
+.t.rojo{background:#fdf1f0;border-color:#f0c4c0;border-top-color:#c8372d}.t.ambar{background:#fff8dc;border-color:#e8d27a;border-top-color:#d3a62a}.t.verde{background:#f0f9f4;border-color:#bfe3ce;border-top-color:#1b7f55}.t.gris{background:#f3f6fa;border-color:#d6e0ec;border-top-color:#8da0b8}
+.t.arrastre{box-shadow:0 0 0 3px rgba(18,58,115,.25)}
+.t h3{margin:0;font-size:16px;font-weight:600;line-height:1.25}
+.mu{color:#4c6386;font-size:12px}
+.zone{height:64px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
+.acts{display:flex;gap:8px;flex-wrap:nowrap;margin-top:auto;min-height:40px;align-items:center}
+.links{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;padding-top:10px;border-top:1px solid rgba(7,28,60,.10)}
+.links a{color:#1b4c92;text-decoration:none}.links a:hover{text-decoration:underline}
+.ban{border-radius:12px;padding:12px 16px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
+.ban.i{background:#f1f8f8;border:1px solid #bfe0e0;color:#0f5c5c}.ban.w{background:#fff4d6;border:1px solid #e2c766;color:#5f4a0b}.ban.e{background:#fdf1f0;border:1px solid #f0c4c0;color:#a3281d}
+.prog{padding:16px 20px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.bar{height:14px;background:#e2eaf4;border-radius:7px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#1b4c92,#2f9e72);border-radius:7px;transition:width .4s}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:600}
+td{padding:9px 10px;border-top:1px solid #e3eaf2;vertical-align:top;font-size:13.5px}
+.gh td{background:#0b2a55;color:#fff;font-size:13px;letter-spacing:.4px;border:0}
+.inp{font:inherit;font-weight:600;font-size:13px;border:1px solid #95aecf;border-radius:8px;padding:7px 10px;background:#fff;color:#14233a;width:100%;outline:none}
+.inp:focus{border-color:#123a73;box-shadow:0 0 0 3px rgba(18,58,115,.14)}
+textarea.inp{resize:vertical;min-height:54px}
+.modal{position:fixed;inset:0;background:rgba(7,28,60,.35);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.modal .card{max-width:520px;width:100%;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
+.err li{margin:4px 0}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
+.cargando{padding:60px;text-align:center;color:#4c6386}
+@media(max-width:700px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.acts{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><div class="cargando">Cargando…</div></div>
+<script>
+(function () {
+  'use strict';
+  var S = { vista: 'mis', datos: null, admin: null, cargandoId: null, filtro: '' };
+  var app = document.getElementById('app');
+  var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
+  function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
+  function token() {
+    var P = window.parent && window.parent !== window ? window.parent.PortalENAP : null;
+    if (!P || !P.tokenMicrosoft) return Promise.reject(new Error('Este módulo se abre desde el Portal (Facultades › Plantillas SNIES).'));
+    return Promise.race([P.tokenMicrosoft(), new Promise(function (_, no) { setTimeout(function () { no(new Error('No se pudo obtener su sesión de Microsoft. Cierre sesión, vuelva a entrar y abra de nuevo el módulo.')); }, 25000); })]);
+  }
+  function api(accion, extra) {
+    return token().then(function (t) {
+      return fetch('/api/snies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: t, accion: accion }, extra || {})) });
+    }).then(function (r) { return r.json().then(function (j) { if (!r.ok) throw new Error(j.error || 'Error del servidor.'); return j; }); });
+  }
+  function leerB64(file) {
+    return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1] || ''); }; r.onerror = function () { no(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(file); });
+  }
+  function bajar(nombre, b64) {
+    var bin = atob(b64), n = bin.length, u = new Uint8Array(n); for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function modal(html) { var m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="card">' + html + '</div>'; document.body.appendChild(m); m.addEventListener('click', function (e) { if (e.target === m) m.remove(); }); return m; }
+
+  /* ---------------- Carga de datos ---------------- */
+  function cargarSesion() {
+    return api('sesion').then(function (d) { S.datos = d; if (!d.admin && S.vista !== 'mis') S.vista = 'mis'; });
+  }
+  function cargarAdmin(p) { return api('admin', p ? { periodo: p } : {}).then(function (d) { S.admin = d; }); }
+
+  /* ---------------- Responsable: Mis plantillas ---------------- */
+  function tarjeta(p) {
+    var est = ESTADO[p.estado], color = est[1], cuerpo = '', acts = '', zona = '';
+    if (p.modo === 'directo') color = 'gris';
+    var chips = p.modo === 'directo' ? '<span class="chip c-teal">Solo notificaciones</span>' : '<span class="chip c-' + est[1] + '">' + est[0] + '</span>' + (p.noAplica ? '<span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? '<span class="chip c-rojo">Vencida</span>' : '');
+    var fechaTxt = p.limite ? fecha(p.limite) : (p.textoFecha || 'Cuando se presente la novedad');
+    var plazo = p.dias == null ? '—' : (p.dias < 0 ? 'Vencida hace ' + (-p.dias) + ' días' : p.dias === 0 ? 'Vence hoy' : 'Faltan ' + p.dias + ' días');
+    if (p.modo === 'directo') {
+      zona = '<div class="zone" style="border:0;background:rgba(223,241,241,.6);color:#0f5c5c">Esta plantilla se reporta directo al SNIES con su propio usuario. Aquí solo recibe las notificaciones.</div>';
+    } else if (p.estado === 'devuelta') {
+      zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + '</div>';
+    } else if (p.estado === 'pendiente' && p.puedeCargar) {
+      zona = '<div class="zone" style="border-color:#c8372d">Arrastra aquí tu archivo .xlsx</div>';
+    } else if (p.estado === 'pendiente') {
+      zona = '<div class="zone" style="border-color:#8da0b8">' + esc(p.bloqueo || (p.soyEntrega ? 'Aún no hay plantilla para cargar.' : 'La carga la hace el responsable de la entrega.')) + '</div>';
+    } else {
+      zona = '<div class="zone" style="border:0;background:rgba(255,255,255,.65)">' + (p.noAplica ? 'Declaraste que no se generaron registros este semestre.' : 'Entregada el ' + esc((p.fechaCarga || '').slice(0, 10).split('-').reverse().join('/'))) + '</div>';
+    }
+    if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Cargar plantilla</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
+    var links = '';
+    if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
+    if (p.anterior) links += '<a href="#" data-a="anterior" data-id="' + p.id + '" data-p="' + p.anterior + '">↓ Plantilla diligenciada ' + p.anterior + '</a>';
+    var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:13px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
+    return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;min-height:44px"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">' + chips + '</div></div>'
+      + '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>'
+      + '<div class="mu">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + nota + zona
+      + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
+      + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
+  }
+  function vistaMis() {
+    var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && (p.estado === 'revision' || p.estado === 'validada'); }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
+    var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
+    var h = '<div><h1>Hola, ' + esc((d.nombre || '').toUpperCase()) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
+    if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
+    h += '<div class="card prog"><div style="min-width:180px"><div class="mu" style="text-transform:uppercase;letter-spacing:.4px">Tu avance</div><div style="font-size:30px">' + ent + ' de ' + total + '</div><div class="mu">plantillas entregadas</div></div><div style="flex:1;min-width:260px"><div class="bar"><i style="width:' + (total ? Math.round(100 * ent / total) : 0) + '%"></i></div>' + (fl ? '<div style="font-size:13px;color:#4c6386;margin-top:8px">Tu fecha límite más cercana: <b style="color:#0b2a55">' + fecha(fl) + '</b></div>' : '') + '</div></div>';
+    h += '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#4c6386;align-items:center"><span><span class="chip c-verde">Validada</span></span><span><span class="chip c-ambar">En revisión</span></span><span><span class="chip c-rojo">Pendiente o devuelta</span></span><span style="margin-left:auto">Arrastra el Excel sobre una tarjeta para cargarlo.</span></div>';
+    h += '<div class="grid">' + ps.map(tarjeta).join('') + '</div>';
+    return h;
+  }
+
+  /* ---------------- Cargue ---------------- */
+  function cargarArchivo(id, file) {
+    if (!file) return;
+    if (!/\.xlsx$/i.test(file.name)) { toast('El archivo debe ser un Excel .xlsx'); return; }
+    var m = modal('<div style="font-size:17px">Revisando tu archivo…</div><div class="mu">' + esc(file.name) + '</div>');
+    leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64 }); }).then(function (r) {
+      m.remove();
+      if (!r.ok) { var mm = modal('<div style="font-size:17px">Tu archivo no se pudo entregar</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul><div style="text-align:right"><button class="btn" id="cerrar">Entendido</button></div>'); mm.querySelector('#cerrar').onclick = function () { mm.remove(); }; return; }
+      toast(r.correo ? 'Plantilla entregada. Te enviamos un correo de confirmación.' : 'Plantilla entregada (el correo de confirmación no pudo enviarse).');
+      return refrescar();
+    }).catch(function (e) { m.remove(); toast(e.message); });
+  }
+  function noAplica(id) {
+    var p = S.datos.plantillas.filter(function (x) { return x.id === id; })[0];
+    var m = modal('<div style="font-size:17px">¿Confirmas que no hay registros?</div><div style="font-size:14px;color:#4c6386">Declaras que en este semestre no se generaron registros para <b style="color:#14233a">' + esc(p.nombre) + '</b>. La plantilla pasa a En revisión y Estadística lo verifica.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Sí, no aplica</button></div>');
+    m.querySelector('#no').onclick = function () { m.remove(); };
+    m.querySelector('#si').onclick = function () { m.remove(); api('no-aplica', { id: id }).then(function () { toast('Registrado como No aplica.'); return refrescar(); }).catch(function (e) { toast(e.message); }); };
+  }
+  function refrescar() { return (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(pintar); }
+
+  /* ---------------- Administración ---------------- */
+  function vistaAdmin() {
+    var A = S.admin, ps = A.plantillas, activos = ps.filter(function (p) { return p.modo !== 'sin'; });
+    var cont = { pendiente: 0, devuelta: 0, revision: 0, validada: 0, vencida: 0, proximas: 0 };
+    activos.forEach(function (p) { if (p.modo === 'directo') return; cont[p.estado]++; if (p.vencida) cont.vencida++; if (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) cont.proximas++; });
+    var kp = function (t, n, c) { return '<div class="card" style="padding:14px 18px;min-width:140px;flex:1"><div class="mu">' + t + '</div><div style="font-size:30px;color:' + c + '">' + n + '</div></div>'; };
+    var h = '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px"><div><h1>' + (S.vista === 'resp' ? 'Responsables por plantilla' : S.vista === 'oficiales' ? 'Plantillas oficiales' : 'Panel de Estadística') + '</h1><div class="sub">Control de las plantillas SNIES · periodo ' + esc(A.periodo) + (A.periodo !== A.periodoActivo ? ' (no es el periodo activo)' : '') + '</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec" data-a="periodo">Cambiar periodo</button><button class="btn" data-a="abrir">Abrir ciclo y enviar solicitudes</button></div></div>';
+    if (S.vista === 'panel') {
+      h += '<div style="display:flex;gap:14px;flex-wrap:wrap">' + kp('Pendientes', cont.pendiente, '#a3281d') + kp('Devueltas', cont.devuelta, '#a3281d') + kp('En revisión', cont.revision, '#7a5200') + kp('Validadas', cont.validada, '#14633d') + kp('Vencidas', cont.vencida, '#a3281d') + kp('Vencen en 7 días', cont.proximas, '#123a73') + '</div>';
+      h += '<input class="inp" id="filtro" placeholder="Buscar por nombre…" value="' + esc(S.filtro) + '" style="max-width:340px">';
+      h += tablaPanel(ps);
+    } else if (S.vista === 'resp') {
+      h += '<div class="ban i">Cada plantilla tiene un responsable de la entrega (quien carga) y uno o varios responsables del diligenciamiento. Todos reciben los correos. Escribe los correos separados por coma.</div>' + tablaResp(ps);
+    } else if (S.vista === 'oficiales') {
+      h += '<div class="ban w">Las plantillas oficiales no se modifican nunca: se guardan y se entregan tal como las subes. Si el Ministerio las cambia, súbelas de nuevo aquí; la versión anterior queda guardada.</div>' + tablaOficiales(ps);
+    }
+    return h;
+  }
+  function filas(ps, fn) {
+    var h = '', g = '';
+    ps.forEach(function (p) {
+      if (S.filtro && p.nombre.toLowerCase().indexOf(S.filtro.toLowerCase()) < 0) return;
+      if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="6">' + esc(g) + '</td></tr>'; }
+      h += fn(p);
+    });
+    return h;
+  }
+  function tablaPanel(ps) {
+    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+    h += filas(ps, function (p) {
+      if (p.modo === 'sin') return '<tr><td>' + esc(p.nombre) + '</td><td colspan="4" class="mu">Sin responsable (no aplica a la ENAP)</td></tr>';
+      var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
+      var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
+      return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function tablaResp(ps) {
+    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th style="width:24%">Plantilla</th><th style="width:30%">Responsable de la entrega (carga)</th><th style="width:30%">Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
+    h += filas(ps, function (p) {
+      var dir = p.modo === 'directo' ? '<div class="mu" style="color:#0f5c5c">Reporta directo al SNIES: solo notificaciones</div>' : (p.maestroSin && p.modo === 'sin' ? '<div class="mu">El Documento Maestro no tiene responsable para esta plantilla; si le asignas uno, se gestiona como las demás.</div>' : '');
+      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+  function tablaOficiales(ps) {
+    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Código</th><th>Versión vigente</th><th>Acciones</th></tr></thead><tbody>';
+    h += filas(ps, function (p) {
+      if (p.modo === 'sin' || p.codigo == null) return '';
+      return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.codigo) + '</td><td>' + (p.tieneOficial ? 'Versión ' + p.versionOficial : '<span class="mu">Sin cargar</span>') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap"><label class="btn sm">' + (p.tieneOficial ? 'Reemplazar' : 'Subir plantilla oficial') + '<input type="file" accept=".xlsx" data-a="subir" data-id="' + p.id + '" hidden></label>' + (p.tieneOficial ? '<button class="btn sec sm" data-a="oficial" data-id="' + p.id + '">Descargar</button>' : '') + '</div></td></tr>';
+    });
+    return h + '</tbody></table></div>';
+  }
+
+  /* ---------------- Pintar ---------------- */
+  function pintar() {
+    var d = S.datos, tabs = '<div class="tabs"><button class="tab' + (S.vista === 'mis' ? ' on' : '') + '" data-v="mis">Mis plantillas</button>';
+    if (d.admin) tabs += '<button class="tab' + (S.vista === 'panel' ? ' on' : '') + '" data-v="panel">Panel de Estadística</button><button class="tab' + (S.vista === 'resp' ? ' on' : '') + '" data-v="resp">Responsables</button><button class="tab' + (S.vista === 'oficiales' ? ' on' : '') + '" data-v="oficiales">Plantillas oficiales</button>';
+    tabs += '</div>';
+    app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : '<div class="cargando">Cargando…</div>'));
+    var f = document.getElementById('filtro'); if (f) f.oninput = function () { S.filtro = f.value; var pos = f.selectionStart; pintar(); var n = document.getElementById('filtro'); n.focus(); n.setSelectionRange(pos, pos); };
+  }
+
+  /* ---------------- Eventos ---------------- */
+  var oculto = document.createElement('input'); oculto.type = 'file'; oculto.accept = '.xlsx'; oculto.hidden = true; document.body.appendChild(oculto);
+  app.addEventListener('click', function (e) {
+    var v = e.target.closest('[data-v]'); if (v) { S.vista = v.dataset.v; if (S.vista === 'mis') { cargarSesion().then(pintar); } else { pintar(); cargarAdmin(S.admin && S.admin.periodo).then(pintar).catch(function (x) { toast(x.message); }); } return; }
+    var b = e.target.closest('[data-a]'); if (!b || b.tagName === 'INPUT') return;
+    var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
+    if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
+    else if (a === 'na') noAplica(id);
+    else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
+    else if (a === 'anterior') api('entrega-descargar', { id: id, periodoEntrega: b.dataset.p }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
+    else if (a === 'ver') { var q = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; api('entrega-descargar', { id: id, periodoEntrega: S.admin.periodo }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); }); }
+    else if (a === 'validar') api('estado', { id: id, estado: 'validada', periodo: S.admin.periodo }).then(function (r) { toast(r.correo ? 'Validada. Se avisó al responsable.' : 'Validada (el correo no pudo enviarse).'); return refrescar(); }).catch(function (x) { toast(x.message); });
+    else if (a === 'devolver') {
+      var m = modal('<div style="font-size:17px">Devolver plantilla</div><div class="mu">Escribe qué debe corregir. El responsable lo ve en Mis plantillas y le llega por correo.</div><textarea class="inp" id="mot" placeholder="Novedades…"></textarea><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn y" id="si">Devolver</button></div>');
+      m.querySelector('#no').onclick = function () { m.remove(); };
+      m.querySelector('#si').onclick = function () { var mot = m.querySelector('#mot').value; api('estado', { id: id, estado: 'devuelta', motivo: mot, periodo: S.admin.periodo }).then(function (r) { m.remove(); toast(r.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); }).catch(function (x) { toast(x.message); }); };
+    }
+    else if (a === 'guardar') {
+      var tr = b.closest('tr'), sep = function (s) { return s.split(/[,;\s]+/).filter(Boolean); };
+      Promise.all([api('responsables', { id: id, entrega: sep(tr.querySelector('.r-ent').value), diligencia: sep(tr.querySelector('.r-dil').value) }), api('prorroga', { id: id, fecha: tr.querySelector('.r-pro').value })]).then(function () { toast('Guardado.'); return refrescar(); }).catch(function (x) { toast(x.message); });
+    }
+    else if (a === 'periodo') {
+      var m2 = modal('<div style="font-size:17px">Periodo activo</div><div class="mu">Formato AAAA-1 o AAAA-2. Cambia el periodo para todos los responsables.</div><input class="inp" id="per" value="' + esc(S.admin.periodoActivo) + '"><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Guardar</button></div>');
+      m2.querySelector('#no').onclick = function () { m2.remove(); };
+      m2.querySelector('#si').onclick = function () { api('periodo', { nuevo: m2.querySelector('#per').value }).then(function () { m2.remove(); return cargarAdmin(); }).then(pintar).catch(function (x) { toast(x.message); }); };
+    }
+    else if (a === 'abrir') {
+      var m3 = modal('<div style="font-size:17px">Abrir el ciclo ' + esc(S.admin.periodo) + '</div><div class="mu">Se enviará a cada responsable (de la entrega y del diligenciamiento) un correo con sus plantillas, fechas y el enlace del módulo. Solo se envía a las plantillas que ya tienen responsables asignados.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Enviar solicitudes</button></div>');
+      m3.querySelector('#no').onclick = function () { m3.remove(); };
+      m3.querySelector('#si').onclick = function () { m3.querySelector('#si').disabled = true; api('abrir-ciclo', { periodo: S.admin.periodo }).then(function (r) { m3.remove(); toast('Se enviaron ' + r.enviados + ' correos' + (r.fallos ? ' (' + r.fallos + ' fallaron)' : '') + '.'); }).catch(function (x) { m3.remove(); toast(x.message); }); };
+    }
+  });
+  app.addEventListener('change', function (e) {
+    var i = e.target; if (i.dataset && i.dataset.a === 'subir' && i.files[0]) {
+      var id = i.dataset.id, f = i.files[0];
+      leerB64(f).then(function (b64) { return api('oficial-subir', { id: id, nombre: f.name, datos: b64 }).then(function (r) {
+        if (r.ok) { toast('Plantilla oficial guardada (versión ' + r.version + ').'); return refrescar(); }
+        var m = modal('<div style="font-size:17px">Revisa el archivo</div><div style="font-size:14px">' + esc(r.aviso) + '</div><div class="mu">Si estás seguro de que es la plantilla correcta, puedes guardarla de todos modos.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Guardar de todos modos</button></div>');
+        m.querySelector('#no').onclick = function () { m.remove(); };
+        m.querySelector('#si').onclick = function () { m.remove(); api('oficial-subir', { id: id, nombre: f.name, datos: b64, forzar: true }).then(function (r2) { toast('Plantilla oficial guardada (versión ' + r2.version + ').'); return refrescar(); }).catch(function (x) { toast(x.message); }); };
+      }); }).catch(function (x) { toast(x.message); });
+    }
+  });
+  /* Arrastrar y soltar el Excel sobre una tarjeta */
+  ['dragover', 'dragleave', 'drop'].forEach(function (ev) {
+    app.addEventListener(ev, function (e) {
+      var c = e.target.closest('.t[data-drop]'); if (!c || !c.dataset.drop) return;
+      e.preventDefault();
+      if (ev === 'dragover') c.classList.add('arrastre'); else c.classList.remove('arrastre');
+      if (ev === 'drop') { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; cargarArchivo(c.dataset.drop, f); }
+    });
+  });
+  /* No dejar que soltar un archivo fuera de una tarjeta abra el Excel en el navegador */
+  window.addEventListener('dragover', function (e) { e.preventDefault(); }); window.addEventListener('drop', function (e) { e.preventDefault(); });
+
+  cargarSesion().then(pintar).catch(function (e) { app.innerHTML = '<div class="ban e">' + esc(e.message) + '</div>'; });
+})();
+</script>
+</body>
+</html>
