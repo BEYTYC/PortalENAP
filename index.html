@@ -1242,6 +1242,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       <div>
         <label for="adminRol">Rol</label>
         <select id="adminRol">
+          <option value="">— Sin rol (solo los módulos marcados) —</option>
           <option value="ADMIN">ADMIN</option>
           <option value="SAC">SAC — Secretaría Académica</option>
           <option value="COORD_EXTENSION">COORD_EXTENSION</option>
@@ -1259,6 +1260,11 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       <div>
         <button type="button" class="panel-app__btn" id="adminGuardarBtn" style="width:100%;justify-content:center;">Guardar</button>
       </div>
+    </div>
+    <div style="margin-top:12px;">
+      <label style="display:block;font-weight:600;color:#0a2540;font-size:0.8508rem;margin-bottom:4px;">Módulos habilitados para este correo</label>
+      <p style="font-size:0.8108rem;color:#5b6b7c;margin:0 0 8px;">Se suman a lo que ya da el rol. Las descargas de Excel se controlan aparte.</p>
+      <div id="adminModulos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:6px 14px;"></div>
     </div>
     <p class="panel-app__error" id="adminError"></p>
   </div>
@@ -1931,7 +1937,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       throw new Error(`El Portal es exclusivo para cuentas institucionales de ENAP (@${DOMINIO_INSTITUCIONAL}). La cuenta "${correo}" no pertenece a ese dominio.`);
     }
 
-    let rolesEspeciales = [];
+    let rolesEspeciales = [], modulosExtra = [];
     try {
       const accessToken = await adquirirToken(loginRequest.scopes, cuenta);
       const resp = await fetch('/api/roles', {
@@ -1942,6 +1948,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       if (resp.ok) {
         const data = await resp.json();
         rolesEspeciales = data.roles || [];
+        modulosExtra = Array.isArray(data.modulos) ? data.modulos : [];
       } else {
         const detalle = await resp.json().catch(() => ({}));
         if (resp.status === 403 && detalle && detalle.bloqueado) throw bloquearCuenta(correo);
@@ -1954,7 +1961,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
     const roles = rolesEspeciales.length ? rolesEspeciales : ['USUARIO'];
     registrarIngresoPortal(cuenta);
-    return { perfil, roles };
+    return { perfil, roles, modulos: modulosExtra };
   }
 
   window.PortalENAP = window.PortalENAP || {};
@@ -2182,12 +2189,32 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         const fila = adminEstadoLista.filas.find((f) => String((f.fields || {}).Title || '') === correo);
         if (!fila) return;
         document.getElementById('adminCorreo').value = correo;
+        pintarModulosAdmin(correo);
         document.getElementById('adminRol').value = String(fila.fields.Rol || fila.fields.Role || '').toUpperCase();
         seleccionarEstadoAdmin(String(fila.fields.Estado || 'Activo').trim().toLowerCase() === 'activo' ? 'Activo' : 'Inactivo');
       });
     });
   }
 
+  // Módulos por correo (api/accesos-modulos): catálogo y lo que tiene cada usuario.
+  let adminModulos = { catalogo: [], usuarios: {} };
+  function pintarModulosAdmin(correo) {
+    const caja = document.getElementById('adminModulos');
+    if (!caja) return;
+    const marcados = ((adminModulos.usuarios[String(correo || '').trim().toLowerCase()] || {}).modulos) || [];
+    caja.innerHTML = adminModulos.catalogo.map((m) => '<label style="display:flex;align-items:center;gap:8px;font-size:0.8708rem;color:#0a2540;cursor:pointer;"><input type="checkbox" value="' + m.replace(/"/g, '&quot;') + '"' + (marcados.indexOf(m) >= 0 ? ' checked' : '') + ' />' + m + '</label>').join('') || '<span style="color:#5b6b7c;font-size:0.8508rem;">No se pudo cargar la lista de módulos.</span>';
+  }
+  async function llamarAccesosModulos(cuenta, cuerpo) {
+    const token = await adquirirToken(['User.Read'], cuenta);
+    const resp = await fetch('/api/accesos-modulos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: token }, cuerpo)) });
+    const data = await resp.json().catch(() => ({}));
+    if (!resp.ok) throw new Error(data.error || 'No se pudo consultar los módulos (' + resp.status + ').');
+    return data;
+  }
+  async function guardarModulosAdmin(correo, modulos, cuenta) {
+    await llamarAccesosModulos(cuenta, { accion: 'guardar', objetivo: correo, modulos });
+    if (modulos.length) adminModulos.usuarios[correo] = { modulos }; else delete adminModulos.usuarios[correo];
+  }
   async function cargarVistaAdmin() {
     const cuentas = (await getMsal()).getAllAccounts();
     if (!cuentas.length) return;
@@ -2196,6 +2223,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       const { siteId, listaId, filas } = await leerFilasDeLista(LISTA_PERMISOS, cuentas[0]);
       adminEstadoLista = { siteId, listaId, filas };
       pintarTablaAdmin();
+      try { adminModulos = await llamarAccesosModulos(cuentas[0], { accion: 'listar' }); } catch (e) { console.warn('[PortalENAP] módulos por usuario:', e); }
+      pintarModulosAdmin(document.getElementById('adminCorreo').value);
     } catch (error) {
       document.getElementById('adminTablaBody').innerHTML = `<tr><td colspan="4" style="color:#b3261e;">${mensajeErrorGraph(error)}</td></tr>`;
     }
@@ -2218,6 +2247,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     errorEl.classList.remove('show');
     const correo = document.getElementById('adminCorreo').value.trim().toLowerCase();
     const rol = document.getElementById('adminRol').value.trim().toUpperCase();
+    const modulosMarcados = Array.from(document.querySelectorAll('#adminModulos input:checked')).map((i) => i.value);
     const estado = document.getElementById('adminEstadoToggle').dataset.valor === 'Inactivo' ? 'Inactivo' : 'Activo';
     if (!correo) {
       errorEl.textContent = 'El correo es obligatorio.';
@@ -2237,13 +2267,15 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         (f) => String((f.fields || {}).Title || '').trim().toLowerCase() === correo,
       );
       const campos = { Title: correo, Rol: rol, Estado: estado };
-      if (filaExistente) {
+      if (!rol) { /* solo módulos: no se toca la lista de roles */ } else if (filaExistente) {
         await actualizarItemEnLista(adminEstadoLista.siteId, adminEstadoLista.listaId, filaExistente.id, campos, cuenta);
       } else {
         await crearItemEnLista(adminEstadoLista.siteId, adminEstadoLista.listaId, campos, cuenta);
       }
-      showToast(filaExistente ? `Usuario "${correo}" actualizado.` : `Usuario "${correo}" creado.`);
+      await guardarModulosAdmin(correo, modulosMarcados, cuenta);
+      showToast(filaExistente || !rol ? `Usuario "${correo}" actualizado.` : `Usuario "${correo}" creado.`);
       document.getElementById('adminCorreo').value = '';
+      pintarModulosAdmin('');
       seleccionarEstadoAdmin('Activo');
       await cargarVistaAdmin();
     } catch (error) {
@@ -3166,6 +3198,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     document.getElementById('adminGearBtn').addEventListener('click', alternarVistaAdmin);
     document.getElementById('adminCerrarBtn').addEventListener('click', alternarVistaAdmin);
     document.getElementById('adminGuardarBtn').addEventListener('click', guardarUsuarioAdmin);
+    document.getElementById('adminCorreo').addEventListener('input', (e) => pintarModulosAdmin(e.target.value));
     document.getElementById('adminRecargarBtn').addEventListener('click', cargarVistaAdmin);
     document.getElementById('ingresosRecargarBtn').addEventListener('click', cargarIngresos);
     document.getElementById('ingresosFiltroBtn').addEventListener('click', () => {
@@ -3314,7 +3347,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         // siquiera aparecen en el menu.
         // Todos los submenús se ven siempre; si la cuenta no tiene acceso, el ítem queda con candado
         // y al tocarlo sale la pantalla "Sin acceso" con el botón "Solicitar acceso al módulo".
-        const bloqueado = CUENTAS_TODO_ACCESO.indexOf(correoSesion()) === -1 && !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
+        const modulosSesion = (window.PortalENAP && window.PortalENAP.sesion && window.PortalENAP.sesion.modulos) || [];
+        const bloqueado = CUENTAS_TODO_ACCESO.indexOf(correoSesion()) === -1 && modulosSesion.indexOf(item.nombre) === -1 && !!((item.rolesPermitidos && !item.rolesPermitidos.some((r) => rolesSesion.includes(r)))
           || (item.correosPermitidos && item.correosPermitidos.indexOf(correoSesion()) === -1)
           || (item.correosORoles && item.correosORoles.correos.indexOf(correoSesion()) === -1 && !item.correosORoles.roles.some((r) => rolesSesion.includes(r))));
         if (item.soloParaPermitidos && bloqueado) continue;   // este módulo solo aparece en el menú de las cuentas autorizadas
