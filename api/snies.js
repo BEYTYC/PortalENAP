@@ -348,8 +348,12 @@ module.exports = async function handler(req, res) {
     }
     if (a === 'responsables') {
       soloAdmin(); const t = buscar(body.id);
-      await mutar('config.json', configBase, (c) => { c.responsables = c.responsables || {}; c.responsables[t.id] = { entrega: listaCorreos(body.entrega).slice(0, 3), diligencia: listaCorreos(body.diligencia).slice(0, 12) }; });
-      res.status(200).json({ ok: true }); return;
+      const f = limpio(body.fecha, 10);
+      if (f && !/^\d{4}-\d{2}-\d{2}$/.test(f)) throw error('Fecha inválida.', 400);
+      const ent = listaCorreos(body.entrega).slice(0, 3), dil = listaCorreos(body.diligencia).slice(0, 12);
+      /* Responsables y prórroga se guardan juntos, en una sola escritura. */
+      await mutar('config.json', configBase, (c) => { c.responsables = c.responsables || {}; c.responsables[t.id] = { entrega: ent, diligencia: dil }; c.prorrogas = c.prorrogas || {}; if (f) c.prorrogas[t.id] = f; else delete c.prorrogas[t.id]; });
+      res.status(200).json({ ok: true, entrega: ent, diligencia: dil }); return;
     }
     if (a === 'prorroga') {
       soloAdmin(); const t = buscar(body.id), f = limpio(body.fecha, 10);
