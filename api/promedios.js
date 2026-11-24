@@ -152,7 +152,17 @@ async function enviarDesde(remitente, para, asunto, html, adjunto) {
     return;
   }
   /* adjuntos grandes: borrador + sesión de carga por cada archivo */
-  const b = await g(base + '/messages', { method: 'POST', body: mensaje }); if (!b.ok) throw error(`No se pudo crear el correo (${b.status}).`, 502);
+  const b = await g(base + '/messages', { method: 'POST', body: mensaje });
+  if (!b.ok && b.status === 403 && lista.length > 1) {   /* la aplicación no tiene permiso de borradores (Mail.ReadWrite): se manda en varios correos de hasta 2,5 MB con sendMail */
+    const grupos = []; let act = [], tam = 0;
+    for (const x of lista) { if (act.length && tam + x.datos.length > 2.5 * 1024 * 1024) { grupos.push(act); act = []; tam = 0; } act.push(x); tam += x.datos.length; }
+    if (act.length) grupos.push(act);
+    if (grupos.every((gr) => gr.reduce((a, x) => a + x.datos.length, 0) <= 3 * 1024 * 1024)) {
+      for (let i = 0; i < grupos.length; i++) await enviarDesde(remitente, para, grupos.length > 1 ? `${asunto} (${i + 1} de ${grupos.length})` : asunto, html, grupos[i]);
+      return;
+    }
+  }
+  if (!b.ok) throw error(`No se pudo crear el correo (${b.status}).`, 502);
   const id = (await b.json()).id;
   for (const adj of lista) {
     const s = await g(`${base}/messages/${id}/attachments/createUploadSession`, { method: 'POST', body: { AttachmentItem: { attachmentType: 'file', name: adj.nombre, size: adj.datos.length, contentType: adj.tipo || 'application/zip' } } });
@@ -210,7 +220,10 @@ async function enviarPendientesDelLote(loteId, opciones) {
     await enviarCorreo(para, uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', htmlCorreo({ titulo: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', pre: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', cuerpo }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
   } else {   /* más de 5: un ZIP */
     const z = zip(archivos);
-    await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico', cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados (${archivos.length}), en un archivo comprimido.</p>` + nota }), { nombre: 'Certificados de promedio.zip', datos: z });
+    try { await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico', cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados (${archivos.length}), en un archivo comprimido.</p>` + nota }), { nombre: 'Certificados de promedio.zip', datos: z }); }
+    catch (eZip) {   /* si el ZIP no puede salir (adjunto grande sin permiso de borradores), van los PDF sueltos en varios correos */
+      await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ titulo: 'Certificados de Promedio Académico', pre: 'Certificados de Promedio Académico', cuerpo: '<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.</p>' + nota }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
+    }
   }
   const codigos = new Set(lista.map((r) => r.codigo)), t = ahora();
   await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (codigos.has(r.codigo)) r.enviado = { fecha: t, a: para, n: nMail }; }); });
