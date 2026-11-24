@@ -310,8 +310,11 @@ module.exports = async function handler(req, res) {
       if (errores.length) { res.status(200).json({ ok: false, errores }); return; }
       const nombre = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Entregó la plantilla. Pasa a En revisión.' }); });
-      let correo = true; try { await avisar(cfg, t, 'ok', { limite: v.limite, periodo }); } catch (e) { correo = false; }
+      /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
+      const [, correo] = await Promise.all([
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Entregó la plantilla. Pasa a En revisión.' }); }),
+        avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
+      ]);
       res.status(200).json({ ok: true, correo }); return;
     }
 
@@ -319,8 +322,10 @@ module.exports = async function handler(req, res) {
       const t = buscar(body.id), v = vista(t, cfg, est, periodo, yo.correo, false);
       if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se gestiona en el aplicativo.', 400);
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); });
-      let correo = true; try { await avisar(cfg, t, 'na', { limite: v.limite, periodo }); } catch (e) { correo = false; }
+      const [, correo] = await Promise.all([
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); }),
+        avisar(cfg, t, 'na', { limite: v.limite, periodo }).then(() => true, () => false),
+      ]);
       res.status(200).json({ ok: true, correo }); return;
     }
 

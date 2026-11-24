@@ -169,7 +169,7 @@ h1,h2,h3{font-weight:600}
   function cargarArchivo(id, file) {
     if (!file) return;
     if (!/\.xlsx$/i.test(file.name)) { toast('El archivo debe ser un Excel .xlsx'); return; }
-    var m = modal('<div style="font-size:17px">Revisando tu archivo…</div><div class="mu">' + esc(file.name) + '</div>');
+    var m = modal('<div style="font-size:17px">Revisando y guardando tu archivo…</div><div class="mu">' + esc(file.name) + '</div><div class="mu">Puede tardar unos segundos; no cierres esta ventana.</div>');
     leerB64(file).then(function (b64) { return api('cargar', { id: id, datos: b64 }); }).then(function (r) {
       m.remove();
       if (!r.ok) { var mm = modal('<div style="font-size:17px">Tu archivo no se pudo entregar</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (e) { return '<li>' + esc(e) + '</li>'; }).join('') + '</ul><div style="text-align:right"><button class="btn" id="cerrar">Entendido</button></div>'); mm.querySelector('#cerrar').onclick = function () { mm.remove(); }; return; }
