@@ -180,17 +180,32 @@ async function enviarCorreo(para, asunto, html) {
   const r = await g(`/users/${encodeURIComponent(REMITENTE)}/sendMail`, { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
+/* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
 function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha }) {
-  const filas = (plantillas || []).map((p) => `<tr><td style="padding:7px 10px;border-top:1px solid #e3eaf2;font-size:14px">${esc(p)}</td></tr>`).join('');
-  return `<div style="font-family:'Aptos Display',Aptos,'Segoe UI',Arial,sans-serif;color:#1b2a3b;max-width:620px;margin:0 auto">
-<div style="background:#123A73;color:#fff;padding:16px 20px;border-radius:12px 12px 0 0"><div style="font-size:12px;letter-spacing:.14em;opacity:.8">ESCUELA NAVAL DE CADETES «ALMIRANTE PADILLA»</div><div style="font-size:19px;font-weight:600;margin-top:2px">${esc(titulo)}</div></div>
-<div style="border:1px solid #d6e0ec;border-top:0;border-radius:0 0 12px 12px;padding:18px 20px">
-<p style="margin:0 0 12px;font-size:14.5px;line-height:1.55">${cuerpo}</p>
-${filas ? `<table style="width:100%;border-collapse:collapse;margin:0 0 12px">${filas}</table>` : ''}
-${fecha ? `<p style="margin:0 0 12px;font-size:14.5px"><b>Fecha límite:</b> ${esc(fecha)}</p>` : ''}
-<div style="background:#f1f6fb;border:1px solid #d6e0ec;border-radius:10px;padding:10px 14px;margin:0 0 14px;font-size:14px"><b>Responsable de la entrega:</b> ${esc(entrega || 'Por asignar')}</div>
-<a href="${PORTAL_URL}" style="display:inline-block;background:#123A73;color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:10px 18px;border-radius:8px">Abrir Plantillas SNIES</a>
-<p style="margin:16px 0 0;font-size:12px;color:#6b7c90">Oficina de Estadística · Mensaje automático del Portal de Servicios Digitales.</p></div></div>`;
+  const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
+  const logo = base + 'assets/escudo.png', boton = base + 'assets/boton-abrir-portal.png';
+  const P = (t) => `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${t}</p>`;
+  const th = 'padding:9px 12px;background:#eef3f9;border-bottom:1px solid #d6e0ec;font-size:13px;color:#0b3d66;font-weight:700;text-align:left';
+  const td = 'padding:10px 12px;border-bottom:1px solid #e3eaf1;font-size:14.5px;color:#334155';
+  const filas = (plantillas || []).map((p) => `<tr><td style="${td}">${esc(p)}</td><td style="${td};white-space:nowrap">${esc(fecha || '—')}</td></tr>`).join('');
+  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td></tr>${filas}</table>` : '')
+    + P(`<b>Responsable de la entrega:</b> ${esc(entrega || 'Por asignar')}`);
+  return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
+<tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
+<tr><td style="padding:26px 28px 8px">
+<div style="font-size:12px;letter-spacing:.2em;color:#8a6d0b;font-weight:700">PLANTILLAS SNIES</div>
+<h2 style="margin:8px 0 14px;font-size:21px;color:#062a4a;font-weight:600">${titulo}</h2>
+<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
+${P(cuerpo)}
+${datos}
+<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
+<a href="${esc(PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="Abrir el Portal" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
+</td></tr></table>
+</td></tr>
+<tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue enviado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”. Por favor no responda a este correo.</td></tr>
+</table></div>`;
 }
 const fechaLarga = (iso) => iso ? iso.split('-').reverse().join('/') : '';
 async function avisar(cfg, t, tipo, extra) {
@@ -199,14 +214,14 @@ async function avisar(cfg, t, tipo, extra) {
   const est = extra && extra.limite;
   const nota = t.posgrados ? ' Las facultades envían su parte a posgrados@enap.edu.co; Posgrados centraliza y entrega la plantilla.' : '';
   const M = {
-    apertura: ['Solicitud de información SNIES', `Se abrió el ciclo ${extra.periodo}. Debe reportar la siguiente plantilla.${nota}`],
-    r7: ['Recordatorio SNIES · faltan 7 días', `Faltan 7 días para la fecha límite de la plantilla.${nota}`],
-    r1: ['Mañana vence el plazo SNIES', `Mañana vence el plazo de la plantilla.${nota}`],
-    venc: ['Plantilla SNIES vencida', 'El plazo venció y la plantilla sigue sin entregarse. Esto puede generar hallazgos en la Auditoría.'],
-    ok: ['Plantilla recibida · está al día con el SNIES', 'Recibimos su plantilla y quedó En revisión por la Oficina de Estadística.'],
-    na: ['Plantilla marcada como No aplica', 'Se registró que no se generaron registros en este semestre. La plantilla pasa a En revisión.'],
-    dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla. Novedades: <b>${esc(extra.motivo || '')}</b>. Corríjala y vuelva a cargarla.`],
-    val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. No debe hacer nada más.'],
+    apertura: ['Solicitud de información SNIES', `Se solicita, por favor, el envío de la plantilla diligenciada correspondiente al ciclo ${extra.periodo}, dentro del plazo indicado a continuación.${nota}`],
+    r7: ['Recordatorio SNIES · faltan 7 días', `Le recordamos amablemente que faltan 7 días para la fecha límite de entrega de la siguiente plantilla.${nota}`],
+    r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de la siguiente plantilla.${nota}`],
+    venc: ['Plantilla SNIES vencida', 'El plazo de entrega de la siguiente plantilla ya venció. Le agradecemos enviarla lo antes posible para evitar hallazgos en la Auditoría.'],
+    ok: ['Plantilla recibida · está al día con el SNIES', 'Hemos recibido su plantilla. ¡Muchas gracias! Quedó En revisión por la Oficina de Estadística.'],
+    na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
+    dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
+    val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
   await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '' }));
   return true;
@@ -384,6 +399,16 @@ module.exports = async function handler(req, res) {
       try { if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: vista(t, cfg, est, periodo, '', false).limite }); else if (nuevo === 'validada') await avisar(cfg, t, 'val', {}); } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
     }
+    if (a === 'enviar-correo') {   /* envío individual: solicitud (o recordatorio / vencida / devuelta) a los responsables de una plantilla */
+      soloAdmin(); const t = buscar(body.id);
+      const v = vista(t, cfg, est, periodo, '', true);
+      if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
+      const r = respDe(cfg, t.id), para = Array.from(new Set(r.entrega.concat(r.diligencia)));
+      if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
+      const tipo = v.estado === 'devuelta' ? 'dev' : (v.vencida ? 'venc' : 'apertura');
+      await avisar(cfg, t, tipo, { motivo: v.motivo, limite: v.limite, periodo });
+      res.status(200).json({ ok: true, para }); return;
+    }
     if (a === 'oficial-subir') {
       soloAdmin(); const t = buscar(body.id);
       const buf = Buffer.from(String(body.datos || ''), 'base64');
@@ -419,4 +444,4 @@ module.exports = async function handler(req, res) {
   }
 };
 function anterior(p) { const [a, s] = p.split('-').map(Number); return s === 2 ? `${a}-1` : `${a - 1}-2`; }
-module.exports._interno = { fechaOficial, menosUnMes, anterior, revisarArchivo, TEMPLATES };
+module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, TEMPLATES };
