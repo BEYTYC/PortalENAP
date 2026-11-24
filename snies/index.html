@@ -58,7 +58,7 @@ textarea.inp{resize:vertical;min-height:54px}
 .modal{position:fixed;inset:0;background:rgba(7,28,60,.35);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
 .modal .card{max-width:520px;width:100%;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
 .err li{margin:4px 0}
-.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
 .cargando{min-height:62vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .cargando .gk{font-size:10.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#b58b2a;margin-bottom:4px}
 .cargando .gmod{margin:0 0 6px;font-size:clamp(20px,4vw,24px);font-weight:600;line-height:1.1;color:#14233a}
@@ -226,7 +226,7 @@ h1,h2,h3{font-weight:600}
     var h = '<div class="card" style="overflow:auto"><table><thead><tr><th style="width:24%">Plantilla</th><th style="width:30%">Responsable de la entrega (carga)</th><th style="width:30%">Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       var dir = p.modo === 'directo' ? '<div class="mu" style="color:#0f5c5c">Reporta directo al SNIES: solo notificaciones</div>' : (p.maestroSin && p.modo === 'sin' ? '<div class="mu">El Documento Maestro no tiene responsable para esta plantilla; si le asignas uno, se gestiona como las demás.</div>' : '');
-      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button></td></tr>';
+      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
@@ -274,7 +274,13 @@ h1,h2,h3{font-weight:600}
     }
     else if (a === 'guardar') {
       var tr = b.closest('tr'), sep = function (s) { return s.split(/[,;\s]+/).filter(Boolean); };
-      Promise.all([api('responsables', { id: id, entrega: sep(tr.querySelector('.r-ent').value), diligencia: sep(tr.querySelector('.r-dil').value) }), api('prorroga', { id: id, fecha: tr.querySelector('.r-pro').value })]).then(function () { toast('Guardado.'); return refrescar(); }).catch(function (x) { toast(x.message); });
+      var est = tr.querySelector('.r-est'), txt = b.textContent; b.disabled = true; b.textContent = 'Guardando…'; est.textContent = ''; est.style.color = '#14633d';
+      api('responsables', { id: id, entrega: sep(tr.querySelector('.r-ent').value), diligencia: sep(tr.querySelector('.r-dil').value), fecha: tr.querySelector('.r-pro').value }).then(function (r) {
+        b.disabled = false; b.textContent = txt; est.textContent = 'Guardado ✓';
+        tr.querySelector('.r-ent').value = r.entrega.join(', '); tr.querySelector('.r-dil').value = r.diligencia.join(', ');
+        var p = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; if (p) { p.entrega = r.entrega; p.diligencia = r.diligencia; p.prorroga = tr.querySelector('.r-pro').value; }
+        toast('Guardado.');
+      }).catch(function (x) { b.disabled = false; b.textContent = txt; est.style.color = '#a3281d'; est.textContent = x.message; toast(x.message); });
     }
     else if (a === 'periodo') {
       var m2 = modal('<div style="font-size:17px">Periodo activo</div><div class="mu">Formato AAAA-1 o AAAA-2. Cambia el periodo para todos los responsables.</div><input class="inp" id="per" value="' + esc(S.admin.periodoActivo) + '"><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Guardar</button></div>');
