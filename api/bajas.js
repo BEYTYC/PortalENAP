@@ -601,7 +601,7 @@ module.exports = async function handler(req, res) {
     _paso = String(body.accion);
     const yo = await identificar(body.accessToken);
     _quien = yo.correo;
-    if (!ADMINS.includes(yo.correo)) throw error('Este módulo es solo para sea@enap.edu.co y jestadisticaplen@enap.edu.co.', 403);
+    if (!ADMINS.includes(yo.correo) && !(await require('./accesos-modulos.js').tieneModulo(yo.correo, 'Registro de bajas'))) throw error('Este módulo es solo para sea@enap.edu.co y jestadisticaplen@enap.edu.co.', 403);
     await ctx();
     const a = body.accion;
 

@@ -338,7 +338,9 @@ module.exports = async function handler(req, res) {
     const listaId = await resolveListId(appToken, siteId);
     const filas = await leerFilas(appToken, siteId, listaId);
     const roles = rolesActivosPara(filas, correo);
-    res.status(200).json({ roles });
+    let modulos = [];
+    try { modulos = await require('./accesos-modulos.js').modulosDe(correo); } catch (_) { /* sin módulos extra */ }
+    res.status(200).json({ roles, modulos });
   } catch (error) {
     const status = error && error.status ? error.status : 500;
     res.status(status).json({

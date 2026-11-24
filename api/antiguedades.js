@@ -222,7 +222,7 @@ module.exports = async function handler(req, res) {
     await contexto();
     const accesos = await leerAccesos();
     // Las cuentas de SIN_ACCESO_ANTIGUEDADES no entran por rol (Decano/Jefe de Programa): deben pedir ingreso y que Estadística se lo conceda.
-    const rol = rolDe(yo.correo, accesos) || (SIN_ACCESO_ANTIGUEDADES.includes(yo.correo) ? null : await rolTemporal(yo.correo));
+    const rol = rolDe(yo.correo, accesos) || (await require('./accesos-modulos.js').tieneModulo(yo.correo, 'Antigüedades ENAP') ? 'CONSULTA' : null) || (SIN_ACCESO_ANTIGUEDADES.includes(yo.correo) ? null : await rolTemporal(yo.correo));
 
     /* ---- sesión: dice qué rol tiene; si no tiene, deja registrado el intento ---- */
     if (accion === 'sesion') {
