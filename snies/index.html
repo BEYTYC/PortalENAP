@@ -48,7 +48,7 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .links a{color:#1b4c92;text-decoration:none}.links a:hover{text-decoration:underline}
 .ban{border-radius:12px;padding:12px 16px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .ban.i{background:#f1f8f8;border:1px solid #bfe0e0;color:#0f5c5c}.ban.w{background:#fff4d6;border:1px solid #e2c766;color:#5f4a0b}.ban.e{background:#fdf1f0;border:1px solid #f0c4c0;color:#a3281d}
-.prog{padding:10px 18px;display:flex;gap:18px;align-items:center;flex-wrap:wrap;max-width:820px}
+.prog{padding:10px 18px;display:flex;gap:18px;align-items:center;flex-wrap:nowrap;width:100%}
 .bar{height:22px;background:#e2eaf4;border-radius:11px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#1b4c92,#2f9e72);border-radius:11px;transition:width .4s}
 table{width:100%;border-collapse:collapse}
 th{font-size:12px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:600}
@@ -163,7 +163,7 @@ h1,h2,h3{font-weight:600}
     var h = '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     var pct = total ? Math.round(100 * ent / total) : 0;
-    h += '<div class="card prog"><div style="font-size:14px;color:#4c6386;white-space:nowrap">Avance: <b style="font-size:18px;color:#0b2a55">' + pct + ' %</b></div><div style="flex:1;min-width:220px"><div class="bar"><i style="width:' + pct + '%"></i></div>' + (fl ? '<div style="font-size:13px;color:#4c6386;margin-top:6px">Tu fecha límite más cercana: <b style="color:#0b2a55">' + fecha(fl) + '</b></div>' : '') + '</div></div>';
+    h += '<div class="card prog"><div style="font-size:14px;color:#4c6386;white-space:nowrap">Avance: <b style="font-size:18px;color:#0b2a55">' + pct + ' %</b></div><div style="flex:1;min-width:220px"><div class="bar"><i style="width:' + pct + '%"></i></div></div></div>';
     h += '<div class="grid">' + ps.map(tarjeta).join('') + '</div>';
     return h;
   }
