@@ -214,16 +214,27 @@ async function enviarPendientesDelLote(loteId, opciones) {
   const nMail = regs.filter((r) => r.lote && r.lote.id === loteId && r.enviado).map((r) => r.enviado.n || 1).reduce((a, b) => Math.max(a, b), 0) + 1;
   const archivos = [];
   for (const r of lista) { const b = await leerBin(`Certificados/${r.codigo}.pdf`); if (!b) throw error(`Falta el PDF ${r.codigo}.`, 500); archivos.push({ nombre: `Certificados de promedio/${r.archivo}`, datos: b }); }
-  if (archivos.length <= 5) {   /* hasta 5 certificados: PDF sueltos, sin comprimir */
-    const uno = archivos.length === 1;
-    const cuerpo = `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${uno ? 'Se adjunta el certificado de promedio académico solicitado.' : 'Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.'}</p>` + nota;
-    await enviarCorreo(para, uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', htmlCorreo({ titulo: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', pre: uno ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico', cuerpo }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
-  } else {   /* más de 5: un ZIP */
-    const z = zip(archivos);
-    try { await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ pre: 'Certificados de Promedio Académico', cuerpo: `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados (${archivos.length}), en un archivo comprimido.</p>` + nota }), { nombre: 'Certificados de promedio.zip', datos: z }); }
-    catch (eZip) {   /* si el ZIP no puede salir (adjunto grande sin permiso de borradores), van los PDF sueltos en varios correos */
-      await enviarCorreo(para, 'Certificados de Promedio Académico', htmlCorreo({ titulo: 'Certificados de Promedio Académico', pre: 'Certificados de Promedio Académico', cuerpo: '<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.</p>' + nota }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
-    }
+  const ASUNTO = archivos.length === 1 ? 'Certificado de Promedio Académico' : 'Certificados de Promedio Académico';
+  const P = (t) => `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${t}</p>`;
+  /* Lote grande (o si el adjunto falla): sin adjuntos, con instrucciones para descargarlos en el Portal con su cuenta @enap.edu.co. */
+  const porEnlace = async () => {
+    const items = lista.map((r) => `<li style="margin:0 0 4px">${esc([r.sigla, r.apellidos, r.nombres].filter(Boolean).join(' '))}</li>`).join('');
+    const cuerpo = P(archivos.length === 1 ? 'El certificado de promedio académico solicitado ya está listo para descargar.' : `Los ${archivos.length} certificados de promedio académico solicitados ya están listos para descargar:`) +
+      `<ul style="font-size:14.5px;color:#062a4a;margin:0 0 14px;padding-left:20px">${items}</ul>` +
+      P('Ingrese al Portal con su cuenta institucional @enap.edu.co, abra <b>Generación de Promedios Académicos</b> → <b>Consultar promedios generados</b> y pulse <b>Descargar PDF</b> en cada estudiante.') + nota;
+    await enviarCorreo(para, ASUNTO, htmlCorreo({ titulo: ASUNTO, pre: ASUNTO, cuerpo }));
+  };
+  const total = archivos.reduce((x, f) => x + f.datos.length, 0);
+  if (total > 2.5 * 1024 * 1024) await porEnlace();
+  else {
+    try {
+      if (archivos.length <= 5) {   /* hasta 5 certificados: PDF sueltos, sin comprimir */
+        const uno = archivos.length === 1;
+        await enviarCorreo(para, ASUNTO, htmlCorreo({ titulo: ASUNTO, pre: ASUNTO, cuerpo: P(uno ? 'Se adjunta el certificado de promedio académico solicitado.' : 'Se adjuntan los certificados de promedio académico solicitados, uno por estudiante.') + nota }), archivos.map((x) => ({ nombre: x.nombre.split('/').pop(), datos: x.datos, tipo: 'application/pdf' })));
+      } else {   /* más de 5: un ZIP */
+        await enviarCorreo(para, ASUNTO, htmlCorreo({ pre: ASUNTO, cuerpo: P(`Se adjuntan los certificados de promedio académico solicitados (${archivos.length}), en un archivo comprimido.`) + nota }), { nombre: 'Certificados de promedio.zip', datos: zip(archivos) });
+      }
+    } catch (eAdj) { await porEnlace(); }   /* si el adjunto no puede salir, el correo llega con las instrucciones de descarga */
   }
   const codigos = new Set(lista.map((r) => r.codigo)), t = ahora();
   await mutar('registros.json', () => [], (rs) => { rs.forEach((r) => { if (codigos.has(r.codigo)) r.enviado = { fecha: t, a: para, n: nMail }; }); });
@@ -463,7 +474,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
     if (a === 'lista') {
       const { valor } = await leerJson('registros.json'); let rs = valor || [];
       if (body.loteId) rs = rs.filter((r) => r.lote && r.lote.id === body.loteId);
-      else if (!esEst) rs = rs.filter((r) => r.por === yo.correo);
+      else if (!esEst) rs = rs.filter((r) => r.por === yo.correo || (r.lote && r.lote.correo === yo.correo));   /* también ve lo que Estadística cargó a su nombre */
       if (body.estado) rs = rs.filter((r) => r.estado === body.estado);
       res.status(200).json({ lista: rs.filter((r) => r.estado !== 'reservado').slice(-500).map(resumen) }); return;
     }
@@ -525,7 +536,7 @@ ${rev.length ? `<p style="font-size:14.5px;color:#334155;margin:10px 0 4px"><b>P
 
     if (a === 'descargar') {
       const { valor } = await leerJson('registros.json'); const r = (valor || []).find((x) => x.codigo === body.codigo && x.estado === 'emitido');
-      if (!r || (!esEst && r.por !== yo.correo)) throw error('Certificado no encontrado.', 404);
+      if (!r || (!esEst && r.por !== yo.correo && !(r.lote && r.lote.correo === yo.correo))) throw error('Certificado no encontrado.', 404);
       const b = await leerBin(`Certificados/${r.codigo}.pdf`); if (!b) throw error('El PDF no está disponible.', 404);
       res.status(200).json({ archivo: r.archivo, pdf: b.toString('base64') }); return;
     }
