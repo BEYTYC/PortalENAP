@@ -250,7 +250,7 @@ h1,h2,h3{font-weight:600}
   }
 
   /* ---------------- Eventos ---------------- */
-  var oculto = document.createElement('input'); oculto.type = 'file'; oculto.accept = '.xlsx'; oculto.hidden = true; document.body.appendChild(oculto);
+  var oculto = document.createElement('input'); oculto.type = 'file'; oculto.hidden = true; /* sin accept: con el filtro .xlsx el explorador de Windows tarda mucho en abrir; la extensión se valida al elegir */ document.body.appendChild(oculto);
   app.addEventListener('click', function (e) {
     var v = e.target.closest('[data-v]'); if (v) {
       S.vista = v.dataset.v; pintar();   /* se muestra al instante con lo ya cargado */
