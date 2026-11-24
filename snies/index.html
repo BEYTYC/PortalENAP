@@ -37,7 +37,6 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:26px 28px}
 .t{padding:16px 18px;border-top:4px solid;display:flex;flex-direction:column;gap:12px;transition:box-shadow .15s}
 .t.rojo{background:#fdf1f0;border-color:#f0c4c0;border-top-color:#c8372d}.t.ambar{background:#fff8dc;border-color:#e8d27a;border-top-color:#d3a62a}.t.verde{background:#f0f9f4;border-color:#bfe3ce;border-top-color:#1b7f55}.t.gris{background:#f3f6fa;border-color:#d6e0ec;border-top-color:#8da0b8}
-.t.arrastre{box-shadow:0 0 0 3px rgba(18,58,115,.25)}
 .t h3{margin:0;font-size:16px;font-weight:600;line-height:1.25}
 .mu{color:#4c6386;font-size:12px}
 .zone{height:64px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
@@ -136,7 +135,7 @@ h1,h2,h3{font-weight:600}
     } else if (p.estado === 'devuelta') {
       zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + '</div>';
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
-      zona = '<div class="zone" style="border-color:#c8372d">Arrastra aquí tu archivo .xlsx</div>';
+      zona = '';
     } else if (p.estado === 'pendiente') {
       zona = '<div class="zone" style="border-color:#8da0b8">' + esc(p.bloqueo || (p.soyEntrega ? 'Aún no hay plantilla para cargar.' : 'La carga la hace el responsable de la entrega.')) + '</div>';
     } else {
@@ -160,7 +159,7 @@ h1,h2,h3{font-weight:600}
     var h = '<div><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     h += '<div class="card prog"><div style="min-width:180px"><div class="mu" style="text-transform:uppercase;letter-spacing:.4px">Tu avance</div><div style="font-size:30px">' + ent + ' de ' + total + '</div><div class="mu">plantillas entregadas</div></div><div style="flex:1;min-width:260px"><div class="bar"><i style="width:' + (total ? Math.round(100 * ent / total) : 0) + '%"></i></div>' + (fl ? '<div style="font-size:13px;color:#4c6386;margin-top:8px">Tu fecha límite más cercana: <b style="color:#0b2a55">' + fecha(fl) + '</b></div>' : '') + '</div></div>';
-    h += '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#4c6386;align-items:center"><span><span class="chip c-verde">Validada</span></span><span><span class="chip c-ambar">En revisión</span></span><span><span class="chip c-rojo">Pendiente o devuelta</span></span><span style="margin-left:auto">Arrastra el Excel sobre una tarjeta para cargarlo.</span></div>';
+    h += '<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:#4c6386;align-items:center"><span><span class="chip c-verde">Validada</span></span><span><span class="chip c-ambar">En revisión</span></span><span><span class="chip c-rojo">Pendiente o devuelta</span></span></div>';
     h += '<div class="grid">' + ps.map(tarjeta).join('') + '</div>';
     return h;
   }
@@ -303,15 +302,6 @@ h1,h2,h3{font-weight:600}
         m.querySelector('#si').onclick = function () { m.remove(); api('oficial-subir', { id: id, nombre: f.name, datos: b64, forzar: true }).then(function (r2) { toast('Plantilla oficial guardada (versión ' + r2.version + ').'); return refrescar(); }).catch(function (x) { toast(x.message); }); };
       }); }).catch(function (x) { toast(x.message); });
     }
-  });
-  /* Arrastrar y soltar el Excel sobre una tarjeta */
-  ['dragover', 'dragleave', 'drop'].forEach(function (ev) {
-    app.addEventListener(ev, function (e) {
-      var c = e.target.closest('.t[data-drop]'); if (!c || !c.dataset.drop) return;
-      e.preventDefault();
-      if (ev === 'dragover') c.classList.add('arrastre'); else c.classList.remove('arrastre');
-      if (ev === 'drop') { var f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]; cargarArchivo(c.dataset.drop, f); }
-    });
   });
   /* No dejar que soltar un archivo fuera de una tarjeta abra el Excel en el navegador */
   window.addEventListener('dragover', function (e) { e.preventDefault(); }); window.addEventListener('drop', function (e) { e.preventDefault(); });
