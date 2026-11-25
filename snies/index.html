@@ -40,6 +40,7 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .t.rojo{background:#fdf1f0;border-color:#d9726a}.t.ambar{background:#fff8dc;border-color:#d9b445}.t.verde{background:#f0f9f4;border-color:#5fb68a}.t.gris{background:#f3f6fa;border-color:#a9b8cb}
 .t h3{margin:0;font-size:19px;font-weight:600;line-height:1.2}
 .mu{color:#4c6386;font-size:12px}
+.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone{min-height:48px;padding-top:4px;padding-bottom:4px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
 .acts{display:flex;gap:8px;flex-wrap:nowrap;margin-top:auto;min-height:28px;align-items:center}
 .acts .btn{padding:4px 11px;font-size:12px;border-radius:7px}
@@ -154,7 +155,7 @@ h1,h2,h3{font-weight:600}
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:11px;line-height:1.25">Periodo que se reporta: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
       + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>')
-      + '<div class="mu">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + nota + zona
+      + '<div class="mu l1" title="' + esc(p.entregaTexto) + '">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + (p.diligenciaTexto ? '<div class="mu l1" title="' + esc(p.diligenciaTexto) + '">Responsable del diligenciamiento: <b style="color:#14233a">' + esc(p.diligenciaTexto) + '</b></div>' : '') + nota + zona
       + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
   }
