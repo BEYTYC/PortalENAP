@@ -319,7 +319,7 @@ const archivoDe = (o) => (o.sigla + ' - ' + o.apellidos + ' ' + o.nombres).repla
 const duplicado = (regs, o) => !o.cedula || !o.programaId ? null : regs.find((r) => r.estado === 'emitido' && r.cedula === o.cedula && r.programaId === o.programaId);
 const nombreDe = (r) => sinTildes(`${r.apellidos || ''} ${r.nombres || ''}`);
 const mismoPendiente = (r, o) => (r.estado === 'reservado' || r.estado === 'revision') && (o.cedula && r.programaId === o.programaId && (r.cedula === o.cedula || (nombreDe(r) && nombreDe(r) === nombreDe(o))));
-const resumen = (r) => ({ codigo: r.codigo, estado: r.estado, cedula: r.cedula, nombres: r.nombres, apellidos: r.apellidos, sigla: r.sigla, programa: r.programa, promedio: r.promedio, fecha: r.fecha, motivoRevision: r.motivoRevision || null, enviado: r.enviado || null, lote: r.lote ? { id: r.lote.id, correo: r.lote.correo } : null, archivo: r.archivo });
+const resumen = (r) => ({ codigo: r.codigo, estado: r.estado, cedula: r.cedula, nombres: r.nombres, apellidos: r.apellidos, sigla: r.sigla, programa: r.programa, facultad: r.facultad || '', promedio: r.promedio, fecha: r.fecha, motivoRevision: r.motivoRevision || null, enviado: r.enviado || null, lote: r.lote ? { id: r.lote.id, correo: r.lote.correo } : null, archivo: r.archivo });
 
 /* ------------------------------ Identidad ------------------------------ */
 async function identificar(accessToken) {
