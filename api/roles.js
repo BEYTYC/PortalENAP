@@ -40,7 +40,7 @@ const SITE_HOSTNAME = 'escuelanaval.sharepoint.com';
 const DEFAULT_SITE_PATH = 'sites/TitulacionENAP';
 const LISTA_PERMISOS = 'ENAP_Permisos_Usuarios';
 
-const CORREOS_BLOQUEADOS = ['peca@enap.edu.co'];
+const CORREOS_BLOQUEADOS = [];
 
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

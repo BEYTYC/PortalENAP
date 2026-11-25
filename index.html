@@ -1931,7 +1931,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   // @enap.edu.co si entran (con rol "USUARIO" si no tienen uno especial).
   // La misma lista esta en api/roles.js; para bloquear a alguien mas, agregue
   // su correo (en minusculas) en ambos sitios.
-  const CORREOS_BLOQUEADOS = ['peca@enap.edu.co'];
+  const CORREOS_BLOQUEADOS = [];
   function correoBloqueado(correo) {
     return CORREOS_BLOQUEADOS.indexOf(String(correo || '').trim().toLowerCase()) !== -1;
   }
