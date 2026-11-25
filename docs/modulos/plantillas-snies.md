@@ -44,7 +44,7 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 
 ## Ajustes del 24/11/2026
 - Las plantillas que el Documento Maestro deja sin responsable (NA / NO APLICA) no se cargan en el aplicativo: no salen en el Panel, ni en Responsables, ni en Plantillas oficiales. Se quedan solo las que tienen cargo (incluida Unidad Organizacional). Para volver a habilitar una, quitar el bloque que las elimina de `TEMPLATES` en `api/snies.js`.
-- Cupos proyectados y matrícula esperada va siempre adelantado: el ciclo 2026-2 reporta el periodo 2027-1 con fecha oficial 12 de septiembre, y el ciclo 2027-1 reporta 2027-2 con fecha oficial 12 de marzo. La tarjeta muestra «Periodo que se reporta».
+- Cupos proyectados y matrícula esperada va siempre adelantado: el ciclo 2026-2 reporta el periodo 2027-2 (lo que está pendiente; el 2027-1 se reportó el 12 de septiembre), y el ciclo 2027-1 reporta 2027-2 con fecha oficial 12 de marzo. La tarjeta muestra «Periodo que se reporta».
 
 ## Copia a quien diligencia (24/11/2026)
 - Los correos de solicitud, recordatorio y vencidas van al responsable de la **entrega**, con copia (CC) a los responsables del **diligenciamiento** de las plantillas que ese correo incluye.
@@ -68,3 +68,4 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 - Versión de la plantilla: al cargar se compara el archivo con las hojas y encabezados oficiales vigentes (`api/_snies-columnas.json`, sacado de las plantillas oficiales; solo encabezados). Si no coinciden, o es de otra plantilla, el mensaje pide descargar la plantilla oficial desde la tarjeta. Cuando el Ministerio cambie una plantilla hay que regenerar ese JSON.
 
 - Instructivo de diligenciamiento: página dinámica `snies/instructivo.html?p=<id>` (ya no son PDF). Muestra los encabezados reales de la plantilla; al tocar una columna explica qué escribir, si es obligatoria y los valores permitidos. Los datos están en `snies/instructivos/datos.json`, generado con `docs/modulos/snies-generar-instructivos.py` a partir de los encabezados oficiales, las reglas del Manual de Validaciones V9.1 y los recortes del Manual del Usuario SNIES v2.11 (los PDF ya no se guardan en el repo; el script los pide en una carpeta). Donde el manual no trae el campo, el texto es genérico a partir del tipo y la longitud. Enlaces: tarjetas, correos y ventanas de error.
+- Aviso a Estadística: cuando un responsable (no administrador) carga una plantilla o declara «No aplica», el sistema envía un correo a jestadisticaplen@enap.edu.co con quién la cargó, la plantilla y el periodo. No se envía si carga el administrador, en el modo «Ver como» ni cuando Estadística carga una entrega recibida por correo; si el envío falla, la entrega no se bloquea.
