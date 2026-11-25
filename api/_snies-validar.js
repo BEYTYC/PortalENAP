@@ -1,0 +1,321 @@
+/*!
+ * Portal de Servicios Digitales Estadística — Escuela Naval de Cadetes "Almirante Padilla"
+ * Autora y desarrolladora: CAMARGO MARTÍNEZ BEYTY PATRICIA — Oficina de Estadística
+ * Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
+ */
+/**
+ * api/_snies-validar.js — validación del contenido de las plantillas SNIES.
+ *
+ * Reglas por columna (api/_snies-reglas.json, sacadas del Manual de Validaciones por Plantilla V9.1) más las reglas
+ * pedidas por la Oficina de Estadística: documento, teléfono, correo, año y semestre, duplicados, relación entre hojas,
+ * fechas, totales y obligatorios condicionales. No se cruza con Participante.
+ * Devuelve errores por celda: { h: hoja, f: fila de Excel, c: columna, m: mensaje }.
+ */
+let REGLAS = {};
+try { REGLAS = require('./_snies-reglas.json'); } catch (e) { REGLAS = {}; }
+
+const vacia = (v) => v == null || (typeof v === 'string' && v.trim() === '');
+const txt = (v) => (v == null ? '' : typeof v === 'number' ? String(v) : String(v).trim());
+const up = (v) => txt(v).toUpperCase();
+const esNum = (v) => typeof v === 'number' || /^-?\d+([.,]\d+)?$/.test(txt(v));
+const aNum = (v) => (typeof v === 'number' ? v : Number(txt(v).replace(',', '.')));
+
+/* Fecha → número comparable (días desde 1899-12-30, como Excel). Acepta serial de Excel o texto dd/mm/aaaa. */
+function fechaNum(v) {
+  if (typeof v === 'number') return v >= 1 && v < 2958466 ? v : null;
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(txt(v));
+  if (!m) return null;
+  const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1]));
+  if (d.getUTCFullYear() !== +m[3] || d.getUTCMonth() !== +m[2] - 1 || d.getUTCDate() !== +m[1]) return null;
+  return d.getTime() / 86400000 + 25569;
+}
+const serialDe = (y, m, d) => Date.UTC(y, m - 1, d) / 86400000 + 25569;
+const fechaTxt = (n) => { const d = new Date(Math.round((n - 25569) * 86400000)); return `${String(d.getUTCDate()).padStart(2, '0')}/${String(d.getUTCMonth() + 1).padStart(2, '0')}/${d.getUTCFullYear()}`; };
+
+/* Documentos de extranjeros: no se les exige la longitud de la cédula ni el teléfono de 10 dígitos. Solo CC y TI se validan. */
+const LONG_CC = [3, 4, 5, 6, 7, 8, 10];
+
+/* Comparaciones entre columnas de una misma fila: [a, operador, b]. Solo se aplican si la hoja trae ambas columnas. */
+const COMPARACIONES = [
+  ['FECHA_FINAL', '>=', 'FECHA_INICIO'], ['FECHA_FIN', '>=', 'FECHA_INICIO'], ['FECHA_VIGENCIA', '>=', 'FECHA_INICIO'],
+  ['FECHA_RETIRO', '>=', 'FECHA_INGRESO'], ['FECHA_RETIRO', '>=', 'FECHA_ADMISION'],
+  ['FECHA_FINAL', '>', 'FECHA_INGRESO'], ['FECHA_EXPIRACION', '>', 'FECHA_INGRESO'],
+  ['FECHA_SNP_SABER_PRO', '<', 'FECHA_GRADO'],
+  ['CUPOS_TOTALES_PROYECTADOS', '>=', 'CUPOS_NUEVOS_PROYECTADOS'],
+  ['M2_AREA_UTIL', '<', 'M2_AREA_TOTAL_CONSTRUIDA'], ['M2_AREA_AULAS', '<', 'M2_AREA_UTIL'], ['M2_AREA_LABORATORIOS', '<', 'M2_AREA_UTIL'],
+];
+const OPS = { '>=': ['no puede ser anterior a', (a, b) => a >= b], '>': ['debe ser posterior a', (a, b) => a > b], '<': ['debe ser anterior a', (a, b) => a < b], '<=': ['no puede ser posterior a', (a, b) => a <= b] };
+
+/* Claves de duplicado por plantilla (hoja principal). Además, en toda hoja se detectan filas completamente iguales. */
+const CLAVES_DUP = {
+  'inscritos-relacion-de-inscritos': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO'],
+  'inscrito-programa': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  admitidos: ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  'estudiantes-de-primer-curso': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  matriculados: ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  graduados: ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  'retiros-estudiantiles': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  'materias-matriculado': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+  'apoyos-financieros-academicos-u-otros': ['AÑO', 'SEMESTRE', 'ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO', 'PRO_CONSECUTIVO'],
+};
+
+/* Relación entre hojas de una misma plantilla. La hoja principal es la primera. 'todas' = la hoja hija debe traer registros de cada
+   fila principal; 'alguna' = al menos una de las hojas del grupo. Siempre se exige que lo de las hojas hijas exista en la principal. */
+const RELACIONES = {
+  'educacion-continua': { todas: ['EDUCACION_CONTINUA_DOCENTES', 'EDUCAC_CONTINUA_BENEFICIARIOS'] },
+  'evento-cultural': { todas: ['EVENTO_CULT_REC_HUMANO', 'EVENTO_CULT_BENEFICIARIOS'] },
+  'actividad-cultural': { todas: ['ACT_CULTURAL_REC_HUMANO'] },
+  'actividad-de-bienestar': { todas: ['ACT_BIENESTAR_BENEFICIARIOS', 'ACT_BIENESTAR_REC_HUMANO'] },
+  'grupos-de-investigacion': { alguna: ['GRUPO_INVESTIGAD_INTERNOS_IES', 'GRUPO_INVESTIGAD_EXTERNOS_IES'] },
+  'centros-de-investigacion': { todas: ['CENTRO_GRUPO'] },
+  'redes-de-investigacion': { alguna: ['RED_IES', 'RED_INTEGRANTES'] },
+  'convenios-internacionales': { todas: ['CONVENIOS_INTERNAC_INSTUCIONES'] },
+  'proyectos-de-investigacion': { alguna: ['PROY_INVESTIGAD_INTERNOS_IES', 'PROY_INVESTIGAD_EXTERNOS_IES'] },
+  'docentes-universidad-publica': { todas: [] },
+};
+
+function leerHoja(wb, nombre) {
+  const filas = wb.leer(nombre, { maxCols: 120 });
+  const enc = (filas[0] || []).map((x) => up(x).replace(/\s+/g, ' '));
+  const idx = {};
+  enc.forEach((c, i) => { if (c && idx[c] == null) idx[c] = i; });
+  return { nombre, filas, enc, idx };
+}
+
+/** wb: libro abierto (api/_xlsx.js). t: plantilla. ctx: { periodoRep: 'AAAA-S', hoy: serial }.
+ *  Devuelve { errores: [{h,f,c,m}], hojas: { nombre: { cols, nFilas } } } */
+function revisarContenido(wb, t, ctx) {
+  ctx = ctx || {};
+  const reglas = REGLAS[t.id] || {};
+  const nombres = wb.hojas.filter((h) => h !== 'INFO');
+  const hojas = {};
+  nombres.forEach((n) => { try { hojas[n] = leerHoja(wb, n); } catch (e) { /* hoja ilegible */ } });
+  const errores = [];
+  const err = (h, f, c, m) => { if (errores.length < 3000) errores.push({ h, f, c, m }); };
+  const [anioRep, semRep] = String(ctx.periodoRep || '').split('-').map(Number);
+
+  for (const nombre of Object.keys(hojas)) {
+    const H = hojas[nombre], { filas, idx } = H, R = reglas[nombre] || {};
+    const col = (c) => idx[c];
+    const val = (f, c) => (idx[c] == null ? null : f[idx[c]]);
+    const filasDatos = [];
+    for (let r = 1; r < filas.length; r++) { const f = filas[r] || []; if (f.some((c) => !vacia(c))) filasDatos.push(r); }
+    H.datos = filasDatos;
+
+    /* 1. Reglas del manual por columna */
+    for (const r of filasDatos) {
+      const f = filas[r];
+      for (const c of Object.keys(R)) {
+        const i = idx[c.toUpperCase()]; if (i == null) continue;
+        const K = R[c], v = f[i], n = r + 1;
+        if (vacia(v)) { if (K.o) err(nombre, n, c, 'está vacía'); continue; }
+        const tx = txt(v);
+        if (K.t === 'n' && !esNum(v)) { err(nombre, n, c, 'debe ser un número'); continue; }
+        if (K.t === 'f' && fechaNum(v) == null) { err(nombre, n, c, 'debe ser una fecha con formato dd/mm/aaaa'); continue; }
+        if (K.min0 && aNum(v) < 0) { err(nombre, n, c, 'no puede ser negativo'); continue; }
+        if (K.l && K.t !== 'f' && !(K.t === 'n' && /[.,]/.test(tx)) && tx.replace(/^-/, '').length > K.l) { err(nombre, n, c, `supera la longitud máxima de ${K.l} ${K.t === 'n' ? 'dígitos' : 'caracteres'}`); continue; }
+        if (K.v && !K.v.includes(tx.toUpperCase())) err(nombre, n, c, `tiene un valor no permitido (valores válidos: ${K.v.join(', ')})`);
+      }
+    }
+
+    /* 2. Año y semestre = periodo que se reporta */
+    if (anioRep && semRep && idx['AÑO'] != null && idx['SEMESTRE'] != null) {
+      for (const r of filasDatos) {
+        const f = filas[r], a = val(f, 'AÑO'), s = val(f, 'SEMESTRE');
+        if (!vacia(a) && esNum(a) && aNum(a) !== anioRep) err(nombre, r + 1, 'AÑO', `debe ser ${anioRep} (periodo que se reporta: ${ctx.periodoRep})`);
+        if (!vacia(s) && esNum(s) && [1, 2].includes(aNum(s)) && aNum(s) !== semRep) err(nombre, r + 1, 'SEMESTRE', `debe ser ${semRep} (periodo que se reporta: ${ctx.periodoRep})`);
+      }
+    }
+
+    /* 3. Documento (CC y TI; los documentos de extranjeros no se validan) */
+    const iTipo = idx['ID_TIPO_DOCUMENTO'], iDoc = idx['NUM_DOCUMENTO'];
+    const tipoDe = (f) => (iTipo == null ? 'CC' : up(f[iTipo]));
+    if (iDoc != null) {
+      for (const r of filasDatos) {
+        const f = filas[r], d = txt(f[iDoc]); if (!d) continue;
+        const tipo = tipoDe(f);
+        if (tipo === 'CC') {
+          if (!/^\d+$/.test(d)) err(nombre, r + 1, 'NUM_DOCUMENTO', 'la cédula solo puede tener dígitos (sin puntos, espacios ni letras)');
+          else if (!LONG_CC.includes(d.length)) err(nombre, r + 1, 'NUM_DOCUMENTO', `la cédula tiene ${d.length} dígitos; debe tener de 3 a 8 o 10`);
+        } else if (tipo === 'TI') {
+          if (!/^\d+$/.test(d)) err(nombre, r + 1, 'NUM_DOCUMENTO', 'la tarjeta de identidad solo puede tener dígitos');
+          else if (d.length !== 10 && d.length !== 11) err(nombre, r + 1, 'NUM_DOCUMENTO', `la tarjeta de identidad tiene ${d.length} dígitos; debe tener 10 u 11`);
+        }
+      }
+    }
+
+    /* 4. Teléfono: 10 dígitos que empiezan por 3 y no repetido entre personas distintas (salvo extranjeros) */
+    for (const c of Object.keys(idx).filter((x) => /TELEFONO|CELULAR/.test(x))) {
+      const porTel = new Map();
+      for (const r of filasDatos) {
+        const f = filas[r], v = f[idx[c]]; if (vacia(v)) continue;
+        const tipo = tipoDe(f); if (tipo !== 'CC' && tipo !== 'TI') continue;   /* extranjeros: sin esta regla */
+        const tel = txt(v).replace(/\s+/g, '');
+        if (!/^3\d{9}$/.test(tel)) { err(nombre, r + 1, c, 'debe tener 10 dígitos y empezar por 3'); continue; }
+        const persona = tipo + '|' + txt(iDoc != null ? f[iDoc] : r);
+        if (!porTel.has(tel)) porTel.set(tel, new Map());
+        const m = porTel.get(tel); if (!m.has(persona)) m.set(persona, []); m.get(persona).push(r + 1);
+      }
+      porTel.forEach((m) => { if (m.size > 1) m.forEach((filasP) => filasP.forEach((n) => err(nombre, n, c, 'el teléfono está repetido en otra persona'))); });
+    }
+
+    /* 5. Correos */
+    for (const c of Object.keys(idx).filter((x) => /EMAIL|CORREO/.test(x))) {
+      for (const r of filasDatos) {
+        const v = filas[r][idx[c]]; if (vacia(v)) continue;
+        if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/.test(txt(v))) err(nombre, r + 1, c, 'no es un correo electrónico válido');
+      }
+    }
+
+    /* 6. Fechas y números comparados con otra columna */
+    for (const [a, op, b] of COMPARACIONES) {
+      if (idx[a] == null || idx[b] == null) continue;
+      const fecha = a.startsWith('FECHA');
+      for (const r of filasDatos) {
+        const f = filas[r], va = f[idx[a]], vb = f[idx[b]]; if (vacia(va) || vacia(vb)) continue;
+        const x = fecha ? fechaNum(va) : (esNum(va) ? aNum(va) : null), y = fecha ? fechaNum(vb) : (esNum(vb) ? aNum(vb) : null);
+        if (x == null || y == null) continue;
+        if (!OPS[op][1](x, y)) err(nombre, r + 1, a, `${OPS[op][0]} ${b}`);
+      }
+    }
+    if (idx['FECHA_SNP_SABER_PRO'] != null) {
+      const lim = serialDe(2009, 10, 14);
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_SNP_SABER_PRO']]); if (x != null && x <= lim) err(nombre, r + 1, 'FECHA_SNP_SABER_PRO', 'debe ser posterior al 14/10/2009'); }
+    }
+    if (idx['FECHA_PRUEBA_SABER_11'] != null && anioRep) {
+      const lim = serialDe(anioRep, semRep === 2 ? 7 : 1, 1);
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_PRUEBA_SABER_11']]); if (x != null && x >= lim) err(nombre, r + 1, 'FECHA_PRUEBA_SABER_11', `debe ser anterior al ${fechaTxt(lim)}`); }
+    }
+    if (idx['FECHA_INGRESO'] != null && /integrantes/.test(t.id) && ctx.hoy) {
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x > ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', 'no puede ser posterior a la fecha de reporte'); }
+    }
+
+    /* 7. Totales: porcentajes de dedicación suman 100 */
+    const pcols = Object.keys(idx).filter((x) => /^PORCENTAJE_/.test(x));
+    if (pcols.length >= 2) {
+      for (const r of filasDatos) {
+        const f = filas[r]; let suma = 0, alguno = false;
+        for (const c of pcols) {
+          const v = f[idx[c]]; if (vacia(v)) continue;
+          alguno = true;
+          if (!esNum(v) || aNum(v) < 0 || aNum(v) > 100) { err(nombre, r + 1, c, 'el porcentaje debe estar entre 0 y 100'); suma = NaN; } else suma += aNum(v);
+        }
+        if (alguno && !Number.isNaN(suma) && Math.abs(suma - 100) > 0.001) pcols.forEach((c) => err(nombre, r + 1, c, `los porcentajes de dedicación deben sumar 100 (suman ${Math.round(suma * 100) / 100})`));
+      }
+    }
+
+    /* 8. Obligatorios condicionales */
+    const exige = (f, r, cols, motivo) => cols.forEach((c) => { if (idx[c] != null && vacia(f[idx[c]])) err(nombre, r + 1, c, `es obligatoria ${motivo}`); });
+    const iConv = idx['MOVILIDAD_POR_CONVENIO'] != null ? idx['MOVILIDAD_POR_CONVENIO'] : idx['MOVILIDAD_POR_CONVENI O'];
+    const nacCols = Object.keys(idx).filter((x) => /^ID_FUENTE_NACIONAL/.test(x) || /^(VLR|VALOR)_FINANCIACION_NACIONAL/.test(x));
+    const intCols = Object.keys(idx).filter((x) => /^ID_FUENTE_INTERNACIONAL/.test(x) || x === 'ID_PAIS_FINANCIADOR' || /^(VLR|VALOR)_FINANCIACION_INTERNAC/.test(x) || x === 'NOMBRE_INSTITUCION' || x === 'NOMBRE_ENTIDAD_FTE_INTERNAC');
+    for (const r of filasDatos) {
+      const f = filas[r];
+      if (iConv != null && ['S', 'SI', 'SÍ', '1'].includes(up(f[iConv])) && idx['CODIGO_CONVENIO'] != null) exige(f, r, ['CODIGO_CONVENIO'], 'si la movilidad es por convenio');
+      if (nacCols.length > 1 && nacCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, nacCols, 'si se tiene fuente de financiación nacional');
+      if (intCols.length > 1 && intCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, intCols, 'si se tiene fuente de financiación internacional');
+      if (idx['ES_REINTEGRO_ESTD_ANTES_DE1998'] != null && up(f[idx['ES_REINTEGRO_ESTD_ANTES_DE1998']]) === 'S') exige(f, r, ['AÑO_PRIMER_CURSO', 'SEMESTRE_PRIMER_CURSO'], 'si es reintegro anterior a 1998');
+      if (idx['TITULO_PREGRADO'] != null && iTipo != null && up(f[iTipo]) && up(f[iTipo]) !== 'NIT') exige(f, r, ['TITULO_PREGRADO'], 'si el tipo de documento no es NIT');
+      const titulo = ['TITULO_RECIBIDO', 'FECHA_GRADO', 'ID_PAIS_INSTITUCION_ESTUDIO'];
+      if (/docentes/.test(t.id) && titulo.every((c) => idx[c] != null) && titulo.some((c) => !vacia(f[idx[c]]))) exige(f, r, titulo, 'si el docente tiene título');
+    }
+
+    /* 9. Duplicados: filas completamente iguales, clave de la plantilla y código de la hoja principal */
+    const vistas = new Map(), dupFila = new Set();
+    for (const r of filasDatos) {
+      const firma = H.enc.map((_, i) => up(filas[r][i])).join('\u0001');
+      if (vistas.has(firma)) { dupFila.add(r + 1); err(nombre, r + 1, '(fila)', `fila repetida: es igual a la fila ${vistas.get(firma)}`); } else vistas.set(firma, r + 1);
+    }
+    const claveCols = (CLAVES_DUP[t.id] || []).filter((c) => idx[c] != null);
+    if (nombre === nombres[0] && claveCols.length >= 2 && claveCols.some((c) => c === 'NUM_DOCUMENTO')) {
+      const k = new Map();
+      for (const r of filasDatos) {
+        if (dupFila.has(r + 1)) continue;
+        const clave = claveCols.map((c) => up(filas[r][idx[c]])).join('|');
+        if (k.has(clave)) err(nombre, r + 1, 'NUM_DOCUMENTO', `ya está reportado en la fila ${k.get(clave)} (mismo ${claveCols.map((c) => c.toLowerCase()).join(', ')})`); else k.set(clave, r + 1);
+      }
+    }
+    if (nombre === nombres[0]) {
+      const cc = Object.keys(idx).filter((c) => /^CODIGO_/.test(c));
+      const esClave = cc.length && (cc.some((c) => c !== 'CODIGO_UNIDAD_ORGANIZACIONAL') || t.id === 'unidad-organizacional');
+      if (esClave && !(CLAVES_DUP[t.id])) {
+        const k = new Map();
+        for (const r of filasDatos) {
+          if (dupFila.has(r + 1)) continue;
+          const clave = cc.map((c) => up(filas[r][idx[c]])).join('|');
+          if (k.has(clave)) err(nombre, r + 1, cc[cc.length - 1], `el código ya está en la fila ${k.get(clave)}; no puede repetirse`); else k.set(clave, r + 1);
+        }
+      }
+    }
+  }
+
+  /* 10. Relación entre hojas de la misma plantilla */
+  const rel = RELACIONES[t.id];
+  const principal = hojas[nombres[0]];
+  if (principal && nombres.length > 1) {
+    const hijas = nombres.slice(1).filter((n) => hojas[n]);
+    const claveEntre = (A, B) => {
+      const cods = Object.keys(A.idx).filter((c) => /^CODIGO_/.test(c) && B.idx[c] != null);
+      if (cods.length) return cods;
+      return ['ID_TIPO_DOCUMENTO', 'NUM_DOCUMENTO'].filter((c) => A.idx[c] != null && B.idx[c] != null);
+    };
+    const claveFila = (H, f, cols) => cols.map((c) => up(f[H.idx[c]])).join('|');
+    const presentes = {};
+    for (const hn of hijas) {
+      const H = hojas[hn], cols = claveEntre(principal, H);
+      if (!cols.length) continue;
+      const padre = new Set(principal.datos.map((r) => claveFila(principal, principal.filas[r], cols)));
+      const hijo = new Set();
+      for (const r of H.datos) {
+        const k = claveFila(H, H.filas[r], cols); hijo.add(k);
+        if (!padre.has(k)) err(hn, r + 1, cols[cols.length - 1], `no tiene su registro en la hoja ${nombres[0]}`);
+      }
+      presentes[hn] = { cols, hijo };
+    }
+    const exigidas = rel && rel.todas ? rel.todas.filter((n) => presentes[n]) : [];
+    for (const r of principal.datos) {
+      const f = principal.filas[r];
+      for (const hn of exigidas) {
+        const { cols, hijo } = presentes[hn];
+        if (!hijo.has(claveFila(principal, f, cols))) err(nombres[0], r + 1, cols[cols.length - 1], `no tiene registros en la hoja ${hn}; todo lo cargado aquí debe ir también allá`);
+      }
+      if (rel && rel.alguna) {
+        const g = rel.alguna.filter((n) => presentes[n]);
+        if (g.length && !g.some((hn) => presentes[hn].hijo.has(claveFila(principal, f, presentes[hn].cols)))) err(nombres[0], r + 1, presentes[g[0]].cols[presentes[g[0]].cols.length - 1], `no tiene registros en ninguna de las hojas ${g.join(' o ')}`);
+      }
+    }
+  }
+
+  const out = {};
+  for (const n of Object.keys(hojas)) out[n] = { cols: hojas[n].enc, datos: hojas[n].datos, filas: hojas[n].filas };
+  return { errores, hojas: out };
+}
+
+/** Texto corto por (hoja, columna, mensaje) con las filas afectadas. */
+function resumenTextos(errores) {
+  const g = new Map();
+  for (const e of errores) { const k = e.h + '|' + e.c + '|' + e.m; if (!g.has(k)) g.set(k, { ...e, filas: [] }); g.get(k).filas.push(e.f); }
+  const lista = (f) => f.length <= 6 ? f.join(', ') : f.slice(0, 6).join(', ') + ` y ${f.length - 6} más`;
+  const t = [...g.values()].map((x) => (x.c === '(fila)' ? `Hoja ${x.h}: ${x.m} (fila${x.filas.length > 1 ? 's' : ''} ${lista(x.filas)}).` : `Hoja ${x.h} · columna ${x.c} ${x.m} (fila${x.filas.length > 1 ? 's' : ''} ${lista(x.filas)}).`));
+  return t.length > 25 ? t.slice(0, 25).concat(`Hay ${t.length - 25} grupos de errores más; corrija estos y vuelva a cargar.`) : t;
+}
+
+/** Datos para el visor: solo las filas con error (máx. 400 por hoja) y los errores por celda. */
+function detalleVisor(res) {
+  const porHoja = {};
+  for (const e of res.errores) { (porHoja[e.h] = porHoja[e.h] || new Map()); if (!porHoja[e.h].has(e.f)) porHoja[e.h].set(e.f, []); porHoja[e.h].get(e.f).push(e); }
+  const hojas = [];
+  for (const h of Object.keys(porHoja)) {
+    const H = res.hojas[h], pos = []; H.cols.forEach((c, i) => { if (c) pos.push(i); });
+    const cols = pos.map((i) => H.cols[i]);
+    const filas = [...porHoja[h].keys()].sort((a, b) => a - b).slice(0, 400).map((n) => ({
+      n,
+      v: pos.map((i) => { const x = (H.filas[n - 1] || [])[i]; return x == null ? '' : (typeof x === 'number' && /^FECHA/.test(H.cols[i]) && fechaTxt(x)) || x; }),
+      e: porHoja[h].get(n).map((x) => ({ c: x.c, m: x.m })),
+    }));
+    hojas.push({ nombre: h, cols, fecha: cols.filter((c) => /^FECHA/.test(c)), filas, total: porHoja[h].size });
+  }
+  return { hojas, total: res.errores.length };
+}
+
+module.exports = { revisarContenido, resumenTextos, detalleVisor, fechaNum };
