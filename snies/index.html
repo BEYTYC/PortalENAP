@@ -11,10 +11,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Plantillas SNIES — ENAP</title>
 <style>
+@font-face{font-family:"AptosSB";src:local("Aptos SemiBold"),local("Aptos-SemiBold"),local("Aptos Display SemiBold"),local("Aptos-DisplaySemiBold");font-weight:600}
+:root{--sb:"AptosSB","Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI Semibold","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:500;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
-b,strong{font-weight:600}
+b,strong{font-weight:500}
 button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
 input,textarea{cursor:text}
 .wrap{max-width:1700px;margin:0 auto;padding:18px 72px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
@@ -52,10 +54,10 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .kpi{padding:14px 18px;min-width:140px;flex:1;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}.kpi:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(7,28,60,.06),0 10px 24px rgba(7,28,60,.1)}.kpi.on{border-color:#2f6fba;box-shadow:0 0 0 2px #cfe0f5,0 10px 24px rgba(7,28,60,.1);background:#f3f8ff}.kpi .kn{font-size:30px;line-height:1.15}.kpi .kp{font-size:12px;color:#4c6386}
 .bar{height:22px;background:#e2eaf4;border-radius:11px;overflow:hidden}.bar.cero{background:transparent;box-shadow:inset 0 0 0 1.5px #f1a7a1}.bar i{display:block;height:100%;background:linear-gradient(90deg,#e5584f 0%,#f2b834 50%,#2f9e72 100%);background-repeat:no-repeat;border-radius:11px;transition:width .4s}
 table{width:100%;border-collapse:collapse}
-th{font-size:12px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:600}
+th{font-size:12px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:500}
 td{padding:9px 10px;border-top:1px solid #e3eaf2;vertical-align:top;font-size:13.5px}
 .gh td{background:#0b2a55;color:#fff;font-size:13px;letter-spacing:.4px;border:0}
-.inp{font:inherit;font-weight:600;font-size:13px;border:1px solid #95aecf;border-radius:8px;padding:7px 10px;background:#fff;color:#14233a;width:100%;outline:none}
+.inp{font:inherit;font-weight:500;font-size:13px;border:1px solid #95aecf;border-radius:8px;padding:7px 10px;background:#fff;color:#14233a;width:100%;outline:none}
 .inp:focus{border-color:#123a73;box-shadow:0 0 0 3px rgba(18,58,115,.14)}
 textarea.inp{resize:vertical;min-height:54px}
 .modal{position:fixed;inset:0;background:rgba(7,28,60,.35);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
@@ -64,7 +66,7 @@ textarea.inp{resize:vertical;min-height:54px}
 .err li{margin:4px 0}
 .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
 .cargando[hidden]{display:none}.cargando{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.cargando .gk{font-size:13px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:#b58b2a;margin-bottom:4px}
+.cargando .gk{font-size:13px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:#b58b2a;margin-bottom:4px}
 .cargando .gmod{margin:0 0 6px;font-size:clamp(26px,5vw,34px);font-weight:600;line-height:1.1;color:#14233a}
 .cargando .gm{font-size:16px;color:#123a73}
 .cargando .gsp{width:34px;height:34px;margin:14px auto 0;border:3px solid #d6e2f0;border-top-color:#123a73;border-radius:50%;animation:gspin .9s linear infinite}
@@ -78,8 +80,10 @@ body{zoom:.88}
 @media(max-width:700px){body{zoom:.85}}
 /* Letra menos negrita: texto normal 500; solo los títulos y los números grandes en semi negrita */
 .tab,.btn,.chip,th,.inp,.mu,.zone,.ban,.toast{font-weight:500}
-b,strong{font-weight:600}
+b,strong{font-weight:500}
 h1,h2,h3{font-weight:600}
+.btn,.tab,.chip,h1,h2,h3,.t h3,.kpi .kn,b[style*="#14233a"],.cargando .gmod{font-family:var(--sb);font-weight:600}
+b[style*="#14233a"]{font-weight:600}
 </style>
 <style>/* Sin cursor de texto parpadeante fuera de los campos de escritura */html,body{caret-color:transparent}input,textarea,select,[contenteditable="true"]{caret-color:auto}</style>
 </head>
@@ -165,7 +169,7 @@ h1,h2,h3{font-weight:600}
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:13px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:11px;line-height:1.25">Periodo: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
-      + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>')
+      + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;font-family:var(--sb);color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;font-family:var(--sb);color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>')
       + '<div class="mu l1" title="' + esc(p.entregaTexto) + '">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + (p.diligenciaTexto ? '<div class="mu l1" title="' + esc(p.diligenciaTexto) + '">Responsable del diligenciamiento: <b style="color:#14233a">' + esc(p.diligenciaTexto) + '</b></div>' : '') + nota + zona
       + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
