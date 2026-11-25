@@ -50,3 +50,7 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 - Los correos de solicitud, recordatorio y vencidas van al responsable de la **entrega**, con copia (CC) a los responsables del **diligenciamiento** de las plantillas que ese correo incluye.
 - Solo se copia a quien tiene plantillas pendientes o devueltas: si la plantilla ya fue cargada (En revisión o Validada) o marcada «No aplica», no se le copia.
 - Si una plantilla no tiene responsable de entrega, el aviso va directo a quien diligencia. En los correos de una sola plantilla solo «Devuelta» lleva copia.
+
+## Quién carga (24/11/2026)
+- La plantilla la puede cargar (o marcar «No aplica») tanto el responsable de la **entrega** como el del **diligenciamiento**; cualquiera de los dos. El permiso se verifica en el servidor.
+- Los correos de recepción («recibida» y «No aplica») van al responsable de la entrega con copia a quien diligencia.
