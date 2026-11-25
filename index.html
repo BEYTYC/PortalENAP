@@ -2101,7 +2101,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         + 'y completa el proceso; si no se abre la ventana, permite las ventanas emergentes de este sitio.';
     }
     if (/interaction_in_progress/i.test(cod)) {
-      return 'Ya hay un inicio de sesión en curso. Termínalo en la ventana de Microsoft o espera unos segundos y vuelve a intentarlo.';
+      return 'Ya hay un inicio de sesión en curso. Termínalo en la ventana de Microsoft o espera unos segundos y vuelve a intentarlo. [código: ' + String((error && error.errorCode) || 'interaction_in_progress') + ' · ' + (esCelular() ? 'celular' : 'equipo') + ' · ' + (window.location.pathname || '/') + ']';
     }
     if (/network|failed to fetch|NetworkError/i.test(cod)) {
       return 'No se pudo conectar con Microsoft. Revisa tu conexión a internet e inténtalo de nuevo.';
@@ -3153,6 +3153,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       // en la MISMA pestana (loginRedirect): Microsoft vuelve a redirect.html, que reenvia la respuesta aqui (ver redirect.html)
       // y procesarSesion() la completa con handleRedirectPromise(). En computador se mantiene la ventana emergente.
       if (esCelular()) {
+        limpiarBanderaInteraccionColgada();   /* en celular no hay ventana emergente: cualquier marca anterior es de un intento que no terminó */
         try { sessionStorage.setItem('PortalENAP_loginRedirect', '1'); } catch (_) {}
         try {
           await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
@@ -3209,6 +3210,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           return;
         }
       } catch (error) {
+        limpiarBanderaInteraccionColgada();
         mostrarError(mensajeErrorGraph(error));
         return;
       } finally {
