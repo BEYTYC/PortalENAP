@@ -5,7 +5,7 @@
   Derechos morales de autor reservados (Ley 23 de 1982, art. 30). Este aviso de autoría no debe eliminarse ni alterarse.
 -->
 <html lang="es-CO" translate="no"><head><meta charset="utf-8">
-<meta name="author" content="CAMARGO MARTÍNEZ BEYTY PATRICIA"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<script>/* Abierto fuera del Portal (enlace del Excel): lleva al Portal y abre este módulo. */try{if(window.parent===window)location.replace('/?m=antiguedades')}catch(e){}</script><meta name="author" content="CAMARGO MARTÍNEZ BEYTY PATRICIA"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Antigüedades ENAP</title>
 <style id="sin-resorte">html,body,*{overscroll-behavior:none !important}html,body{overscroll-behavior-y:none !important;overscroll-behavior-x:none !important}@media (hover:hover) and (pointer:fine){*{overscroll-behavior:auto !important}html,body{overscroll-behavior:none !important}}</style><style>
 /* Tablero académico: encabezado azul marino, fondo azul grisáceo, tarjetas blancas, escala monocroma de azules */
@@ -2565,7 +2565,7 @@ function bajarBD(quien){
     if(bt){var ib=wb.addImage({buffer:bt,extension:'png'});wb.worksheets.forEach(function(ws){var cw=function(c){return Math.round((ws.getColumn(c).width||8.43)*7+5)},xs=(ws.views&&ws.views[0]&&ws.views[0].xSplit)||0,fx=0,k;for(k=1;k<=xs;k++)fx+=cw(k);
       var t2=String(ws.getCell(2,1).value||''),fin=72+Math.round(t2.length*6.2),BW=128,izq=xs>0?fx+48:fin+16;
       var cc=1,ac=0;while(ac+cw(cc)<=izq&&cc<ws.columnCount+40){ac+=cw(cc);cc++}
-      ws.addImage(ib,{tl:{nativeCol:cc-1,nativeColOff:(izq-ac)*9525,nativeRow:2,nativeRowOff:80960},ext:{width:140,height:30},hyperlinks:{hyperlink:'https://enap.vercel.app/',tooltip:'Entrar al Portal'}})})}
+      ws.addImage(ib,{tl:{nativeCol:cc-1,nativeColOff:(izq-ac)*9525,nativeRow:2,nativeRowOff:80960},ext:{width:140,height:30},hyperlinks:{hyperlink:'https://enap.vercel.app/antiguedades',tooltip:'Abrir Antigüedades en el Portal'}})})}
     var p=new Intl.DateTimeFormat('es-CO',{timeZone:'America/Bogota',day:'2-digit',month:'numeric',year:'2-digit'}).formatToParts(ahora),g=function(k){return (p.filter(function(x){return x.type===k})[0]||{}).value};
     var nombre='BD Antigüedades '+g('day')+MES[parseInt(g('month'),10)-1]+g('year')+'.xlsx';
     return wb.xlsx.writeBuffer().then(function(buf){
