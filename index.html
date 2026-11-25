@@ -1722,6 +1722,14 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   // usa para esto) y el resto del script seguia ejecutandose ahi adentro.
   // Como respaldo, por si el navegador bloquea que MSAL cierre la ventana
   // sola, la cerramos nosotros mismos a los 2 segundos.
+  /* Enlace directo a un módulo (?m=antiguedades): se guarda para abrirlo cuando haya sesión (el inicio de sesión puede recargar la página). */
+  try {
+    const mDirecto = new URLSearchParams(window.location.search).get('m');
+    if (mDirecto === 'antiguedades') {
+      sessionStorage.setItem('PortalENAP_irA', mDirecto);
+      history.replaceState(null, '', window.location.pathname + window.location.hash);
+    }
+  } catch (_) {}
   const respuestaDeLoginEnHash = /[#&](code|error)=/.test(window.location.hash);
   const esVentanaEmergenteDeLogin = !!(window.opener && window.opener !== window && respuestaDeLoginEnHash);
   if (esVentanaEmergenteDeLogin) {
@@ -2797,6 +2805,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     // ya esta cargado y no hay espera. Necesita sesion porque la app pide
     // el token de Microsoft al abrir.
     if (typeof cargarTitulacion === 'function') setTimeout(cargarTitulacion, 300);
+    try {
+      if (sessionStorage.getItem('PortalENAP_irA') === 'antiguedades') {
+        sessionStorage.removeItem('PortalENAP_irA');
+        setTimeout(() => { abrirSubsistema('viewAntiguedades', 'Antigüedades ENAP'); cargarAntiguedades(); }, 400);
+      }
+    } catch (_) {}
   }
 
   function mostrarSesionUsuario(sesion) {
