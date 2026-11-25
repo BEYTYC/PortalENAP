@@ -188,6 +188,12 @@ async function enviarCorreo(para, asunto, html, cc) {
   const r = await g(`/users/${encodeURIComponent(REMITENTE)}/sendMail`, { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
+/* Aviso a la Oficina de Estadística cuando un responsable carga una plantilla (o declara «No aplica»). Si falla, no impide la entrega. */
+async function avisarEstadistica(cfg, t, v, periodo, quien, noAplica) {
+  const hecho = noAplica ? 'declaró que <b>no hay registros</b> (No aplica) en' : 'cargó';
+  const cuerpo = `<b>${esc(quien.nombre)}</b> (${esc(quien.correo)}) ${hecho} la plantilla <b>${esc(t.nombre)}</b>, periodo ${esc(periodoReporte(t, periodo))}. Queda en revisión para que la Oficina de Estadística la valide.`;
+  await enviarCorreo([REMITENTE], `${noAplica ? 'Plantilla en No aplica' : 'Plantilla cargada'} · ${t.nombre}`, htmlCorreo({ titulo: noAplica ? 'Plantilla declarada como No aplica' : 'Plantilla cargada', cuerpo, entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: v.limite ? fechaLarga(v.limite) : '', periodo: periodoReporte(t, periodo) }));
+}
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
 function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
@@ -481,6 +487,7 @@ module.exports = async function handler(req, res) {
       const [, correo] = await Promise.all([
         mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
         sinCorreo ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
+        admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }
@@ -492,6 +499,7 @@ module.exports = async function handler(req, res) {
       const [, correo] = await Promise.all([
         mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: (comoCorreo ? `Estadística, en nombre de ${nombreDe(cfg, comoCorreo)}: ` : '') + 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); }),
         comoCorreo ? Promise.resolve(false) : avisar(cfg, t, 'na', { limite: v.limite, periodo }).then(() => true, () => false),
+        admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, true).catch(() => {}),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }
