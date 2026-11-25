@@ -44,6 +44,7 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 
 ## Ajustes del 24/11/2026
 - Las plantillas que el Documento Maestro deja sin responsable (NA / NO APLICA) no se cargan en el aplicativo: no salen en el Panel, ni en Responsables, ni en Plantillas oficiales. Se quedan solo las que tienen cargo (incluida Unidad Organizacional). Para volver a habilitar una, quitar el bloque que las elimina de `TEMPLATES` en `api/snies.js`.
+- Periodo que se reporta: en todas las plantillas es el del ciclo (ciclo 2026-2 → 2026-2), salvo Cupos proyectados. La validación exige que AÑO y SEMESTRE sean ese periodo.
 - Cupos proyectados y matrícula esperada va siempre adelantado: el ciclo 2026-2 reporta el periodo 2027-2 (lo que está pendiente; el 2027-1 se reportó el 12 de septiembre), y el ciclo 2027-1 reporta 2027-2 con fecha oficial 12 de marzo. La tarjeta muestra «Periodo que se reporta».
 
 ## Copia a quien diligencia (24/11/2026)

@@ -53,8 +53,8 @@ const ofreceAnterior = (t) => CON_ANTERIOR.has(t.id) || ['INTERNACIONALIZACIÓN'
 
 const CUPOS = 'cupos-proyectados-y-matricula-esperada';
 /* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-2 (lo pendiente a la fecha; el 2027-1 ya se reportó el 12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
-/* Periodo que se reporta: el semestre anterior al del ciclo (ciclo 2026-2 → 2026-1); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-2). */
-const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return anterior(periodo); const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-2` : `${a}-2`; };
+/* Periodo que se reporta: el mismo del ciclo (ciclo 2026-2 → 2026-2); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-2). */
+const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return periodo; const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-2` : `${a}-2`; };
 const TEMPLATES = MAESTRO.map((t) => {
   const sin = t.cargo === 'NA' || t.cargo === 'NO APLICA';
   const modo = sin ? 'sin' : t.cargo === 'PINO' ? 'directo' : 'carga';  /* directo = sube al SNIES con su propio usuario; solo recibe notificaciones */
@@ -209,7 +209,7 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: it
   const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}${i.id ? `<br><a href="${esc(base)}snies/instructivo.html?p=${esc(i.id)}" target="_blank" style="font-size:12.5px;color:#1b4c92">Instructivo de diligenciamiento</a>` : ''}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${conPeriodo ? `<td style="${td};white-space:nowrap">${esc(i.periodo || '')}</td>` : ''}${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
   const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${conPeriodo ? `<td style="${th}">Periodo que se reporta</td>` : ''}${colDias ? `<td style="${th}">${esc(colDias)}</td>` : ''}${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
     + (variasEntregas ? '' : P(`<b>Responsable de la entrega:</b> ${esc(entregas[0] || 'Por asignar')}`));
-  return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
+  return `<div style="background:#f4f6f8;padding:24px 0;font-family:'Aptos Display',Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
 <tr><td style="background:#0b3d66;border-bottom:3px solid #c9a227;padding:16px 24px"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="padding-right:14px"><img src="${esc(logo)}" alt="" height="42" style="display:block;height:42px"></td><td style="color:#ffffff"><div style="font-size:16px;font-weight:600;line-height:1.25">Portal de Servicios Digitales - Oficina de Estadística</div><div style="font-size:12px;opacity:.85">Escuela Naval de Cadetes “Almirante Padilla”</div></td></tr></table></td></tr>
 <tr><td style="padding:26px 28px 8px">
