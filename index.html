@@ -134,11 +134,15 @@
     min-width:0;
   }
   .navcats{ display:flex; align-items:stretch; gap:2px; flex-shrink:0; }
+  header.masthead .sesion-col{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+  header.masthead .cred-cab{ font-size:9.5px; font-style:italic; line-height:1.2; color:var(--navy-200); white-space:nowrap; letter-spacing:.01em; }
+  header.masthead .sesion-col:has(.sesion-usuario[hidden]) .cred-cab{ display:none; }
+  @media (max-width:760px){ header.masthead .cred-cab{ display:none; } }
   .nav-cred{ margin-left:auto; align-self:center; padding:0 14px; font-size:11px; font-style:italic; color:var(--text-muted); white-space:nowrap; }
   @media (max-width:760px){ .nav-cred{ display:none; } }
   .nav-subsistema{
     display:none; align-items:center; justify-content:flex-end; gap:9px; padding:0 0 0 14px; border-left:1px solid var(--border);
-    min-width:0; flex:0 1 auto;
+    min-width:0; flex:0 1 auto; margin-left:auto;
   }
   .nav-subsistema.show{ display:flex; }
   /* escritorio: la casita queda pegada a la barra desplazadora (borde derecho) */
@@ -1398,6 +1402,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       <span class="kicker">Sistema</span>
       <span class="nombre">Portal de Servicios Digitales</span>
     </div>
+    <div class="sesion-col">
     <div class="sesion-usuario" id="sesionUsuario" hidden>
       <div class="sesion-usuario__datos">
         <span class="sesion-usuario__correo" id="sesionUsuarioCorreo"></span>
@@ -1410,6 +1415,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
         Cerrar sesión
       </button>
+    </div>
+    <span class="cred-cab">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</span>
     </div>
   </div>
 </header>
@@ -1429,7 +1436,6 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   <div class="navcats" id="navcats"></div>
   <!-- Contenedor derecho del menú (vacío: "Manuales" va a la izquierda). -->
   <div class="navcats navcats--der" id="navcatsDer"></div>
-  <span class="nav-cred">Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.</span>
   <div class="nav-subsistema" id="navSubsistema" hidden>
     <button type="button" class="nav-home" id="navInicioBtn" title="Volver al inicio del Portal ENAP" aria-label="Volver al inicio del Portal ENAP">
       <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 11 12 3.8 20.5 11"/><path d="M5.8 9.6V19a1 1 0 0 0 1 1h3.4v-5.2h3.6V20h3.4a1 1 0 0 0 1-1V9.6"/></svg>
