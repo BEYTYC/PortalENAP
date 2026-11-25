@@ -134,13 +134,13 @@
   }
   function analizar(ced, bal) {
     var pb = N.parseBalance(bal.texto), pc = N.parseCedula(ced.texto), escaneado = !!(ced.escaneado || bal.escaneado);
-    var motivos = [], lp = listaProgramas(), fac = facultadDelJefe(), prog = (fac && N.programaEnFacultad(pb.programaTexto, lp, fac)) || N.programaDe(pb.programaTexto, lp);
+    var motivos = [], motCed = [], lp = listaProgramas(), fac = facultadDelJefe(), prog = (fac && N.programaEnFacultad(pb.programaTexto, lp, fac)) || N.programaDe(pb.programaTexto, lp);
     var d = { cedula: pc.numero || pc.numeroLinea || '', lugar: '', programaId: prog ? prog.id : '', programa: prog ? prog.nombre : N.limpiarPrograma(pb.programaTexto), sigla: prog ? prog.sigla : '', nivel: prog ? prog.nivel : 'pregrado', facultad: prog ? prog.facultad : '',
       promedio: pb.promedioImpreso != null ? pb.promedioImpreso : pb.promedioCalculado, periodoTerminacion: pb.periodoTerminacion, diplomado: pb.diplomado, fechaBalance: pb.fechaElaboracion ? aISO(pb.fechaElaboracion) : '', apellidos: '', nombres: '' };
     var rep = pb.nombreCompleto ? N.repartirNombre(pb.nombreCompleto, pc.apellidos, pc.nombres) : null;
     if (rep) { d.apellidos = rep.apellidos; d.nombres = rep.nombres; }
     var nombre = (d.apellidos + ' ' + d.nombres).trim() || N.mayus(pb.nombreCompleto) || '(sin nombre leído)';
-    var salida = { datos: d, nombre: nombre, escaneado: escaneado, caras: pc.cara };
+    var salida = { datos: d, nombre: nombre, escaneado: escaneado, caras: pc.cara, cedNombre: { apellidos: pc.apellidos || '', nombres: pc.nombres || '' }, balNombre: pb.nombreCompleto ? N.mayus(pb.nombreCompleto) : '' };
 
     /* Vigencia: si hay periodo leído y el balance está vencido, no se genera */
     var vig = d.periodoTerminacion ? N.vigencia({ nivel: d.nivel, terminacion: d.periodoTerminacion, diplomado: d.diplomado, hoy: new Date() }) : { estado: 'sin-dato' };
@@ -150,13 +150,14 @@
     /* Cédula: ambas caras (sin cara confirmada en un digital → se bloquea; en un escaneado lo decide una persona) */
     var ambas = pc.cara.frente && pc.cara.reverso;
     if (!ambas && !escaneado) { salida.tipo = 'error'; salida.chip = 'Cédula incompleta'; salida.nota = 'Solo se ve una cara de la cédula. Cargue frente y reverso.'; return salida; }
-    if (!ambas) motivos.push('No se confirmó que la cédula tenga las dos caras.');
+    if (!ambas) motCed.push('No se confirmó que la cédula tenga las dos caras.');
 
     /* Datos esenciales */
     var faltan = [];
     if (!d.cedula) faltan.push('cédula'); if (!d.apellidos) faltan.push('nombre'); if (d.promedio == null) faltan.push('promedio'); if (!d.periodoTerminacion) faltan.push('periodo de terminación'); if (!d.fechaBalance) faltan.push('fecha de elaboración');
     if (!prog) faltan.push('programa'); else { if (!prog.facultad) faltan.push('facultad de ' + prog.sigla + ' (complétela en Ajustes)'); }
-    if (faltan.length) { salida.tipo = 'revision'; salida.manual = true; salida.chip = 'Estadística validará'; salida.nota = ''; salida.motivo = 'No se identificó: ' + faltan.join(', ') + '.'; return salida; }
+    var faltanBal = faltan.filter(function (x) { return x !== 'cédula'; });   /* sin número de cédula, solo la persona que carga lo puede completar; lo demás es del balance */
+    if (faltanBal.length) { salida.tipo = 'revision'; salida.manual = true; salida.chip = 'Estadística validará'; salida.nota = ''; salida.motivo = 'No se identificó: ' + faltan.join(', ') + '.'; return salida; }
 
     /* Controles cruzados: solo si todos pasan se emite sin revisión humana */
     var ok = true;
@@ -166,16 +167,18 @@
     else if (!calcOk) { motivos.push('El promedio recalculado (' + pb.promedioCalculado.toFixed(3) + ') no coincide con el impreso (' + pb.promedioImpreso.toFixed(3) + ').'); ok = false; }
     /* El número sale de la cédula (lo más importante); si el número impreso no se lee pero la línea de lectura sí, se usa esa. */
     var num = /^\d{6,11}$/.test(pc.numero || '') ? pc.numero.replace(/^0+/, '') : '', lin = /^\d{6,11}$/.test(pc.numeroLinea || '') ? pc.numeroLinea.replace(/^0+/, '') : '';
-    if (!num && lin) { d.cedula = lin; num = lin; }
-    if (!num) { motivos.push('No se leyó con claridad el número de la cédula.'); ok = false; }
-    else if (lin && lin !== num) { motivos.push('El número de la cédula no coincide con su línea de lectura.'); ok = false; }
-    else if (!lin && escaneado) { motivos.push('No se pudo contrastar el número con la línea de lectura de la cédula.'); ok = false; }
+    if (!num && lin) { d.cedula = lin; num = lin; motCed.push('El número impreso de la cédula no se leyó con claridad; se tomó el de la línea de lectura.'); }
+    if (!num) { motCed.push('No se leyó con claridad el número de la cédula.'); }
+    else if (lin && lin !== num) { motCed.push('El número de la cédula no coincide con su línea de lectura.'); salida.cedHint = 'Número impreso leído: ' + N.cedulaPuntos(num) + ' · Línea de lectura: ' + N.cedulaPuntos(lin); if (N.cedulaValida(lin)) d.cedula = lin; }
+    else if (!lin && !N.cedulaValida(num)) { motCed.push('El número de la cédula no tiene el formato de una cédula colombiana (6 a 8 cifras, o 10 que empiezan por 1).'); }
+    else if (!lin && escaneado) { motCed.push('No se pudo contrastar el número con la línea de lectura de la cédula.'); }
     /* El nombre sale del balance. La cédula solo sirve para detectar un documento de otra persona: si se leyó su apellido y es claramente distinto, va a revisión. */
     if (!rep) { motivos.push('No se pudo separar el nombre del balance.'); ok = false; }
-    else if (pc.apellidos && N.similitud(rep.apellidos, pc.apellidos) < 0.6) { motivos.push('El nombre del balance no coincide con el de la cédula.'); ok = false; }
-    if (!(ambas)) ok = false;
-    salida.tipo = ok ? 'emitir' : 'revision'; salida.motivo = motivos.join(' '); salida.chip = ok ? '' : 'En revisión de Estadística';
-    salida.nota = ok ? '' : 'Estadística lo revisa antes de firmar y enviar.';
+    else if ((pc.apellidos && N.similitud(rep.apellidos, pc.apellidos) < 0.6) || (pc.nombres && !/APELL|NOMBR|FECHA|NUMERO|CEDULA|REPUBL/i.test(pc.nombres) && N.similitud(rep.nombres, pc.nombres) < 0.4)) { motCed.push('El nombre del balance difiere del de la cédula.'); }
+    /* Novedades del balance → Estadística valida. Solo novedades de la cédula → la misma persona que carga revisa, corrige y confirma. */
+    if (!ok) { salida.tipo = 'revision'; salida.motivo = motivos.concat(motCed).join(' '); salida.chip = 'En revisión de Estadística'; salida.nota = 'Estadística lo revisa antes de firmar y enviar.'; return salida; }
+    if (motCed.length) { salida.tipo = 'confirmar'; salida.motivo = motCed.join(' '); salida.chip = 'Revise la cédula'; salida.nota = 'Verifique el número y el nombre; al confirmar, el certificado se genera de una vez.'; salida.imagenes = null; return salida; }
+    salida.tipo = 'emitir'; salida.motivo = ''; salida.chip = ''; salida.nota = '';
     return salida;
   }
 
@@ -211,13 +214,13 @@
     prepararSonido();
     if (YO.estadistica && CORREO && CORREOS.indexOf(CORREO) < 0) CORREOS.unshift(CORREO);
     var filas = FILAS.filter(function (f) { return f.ced.length && f.bal; }).slice(0, MAXLOTE); LOTE = 'L' + Date.now().toString(36); var correo = CORREO;
-    RESULT = filas.map(function (f) { return { nombre: '(leyendo documentos…)', programa: '', promedio: null, estado: 'leyendo' }; }); resultado();
+    RESULT = filas.map(function (f, i) { return { nombre: '(leyendo documentos…)', programa: '', promedio: null, estado: 'leyendo', _i: i }; }); resultado();
     var p = Promise.resolve();
     filas.forEach(function (f, i) {
       p = p.then(function () { return procesar(f, i, correo); }).catch(function (e) { RESULT[i] = Object.assign(RESULT[i], { estado: 'error', chip: 'No se pudo procesar', nota: e.message }); });
       p = p.then(function () { resultado(true); });
     });
-    p.then(function () { return enviarLote(); }).then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); sonar(); estadoCarga(); });
+    p.then(function () { return api('avisar-lote', { loteId: LOTE }).catch(function () {}); }).then(function () { window.Lector.terminar(); FILAS = []; return pendientes(); }).then(function () { resultado(); sonar(); estadoCarga(); });
   }
   function leerFila(f, i) {
     var progreso = function (t) { RESULT[i].nota = t; resultado(true); };
@@ -246,6 +249,7 @@
       var a = analizar(lec.ced, lec.bal), r = RESULT[i];
       r.nombre = a.nombre; r.programa = a.datos.programa; r.promedio = a.datos.promedio; r.sigla = a.datos.sigla; r.apellidos = a.datos.apellidos; r.nombres = a.datos.nombres; r.cedula = a.datos.cedula;
       if (a.tipo === 'error') { r.estado = 'error'; r.chip = a.chip; r.nota = a.nota; if (a.chip === 'Balance desactualizado') r.promedio = null; return; }
+      if (a.tipo === 'confirmar') { r.estado = 'confirmar'; r.chip = a.chip; r.nota = a.nota; r._ctx = { f: f, lec: lec, a: a }; return; }   /* espera a que la persona revise la cédula */
       var revision = a.tipo === 'revision';
       return api('reservar', { datos: a.datos, loteId: LOTE, correo: correo, revision: revision }).then(function (res) {
         r.codigo = res.codigo;
@@ -256,7 +260,7 @@
           var guardarImgs = function () { return imgs.slice(0, 8).reduce(function (p, im, k) { return p.then(function () { return api('a-revision-imagen', { codigo: res.codigo, n: k + 1, imagen: im }); }); }, Promise.resolve()); };
           return api('a-revision', { codigo: res.codigo, motivo: a.motivo, imagenes: [], etiquetas: et.slice(0, 8), ocr: (lec.bal.texto || '').slice(0, 1800) + '\n---\n' + (lec.ced.texto || '').slice(0, 900) }).then(function () { return guardarImgs(); }).then(function () { r.estado = a.manual ? 'manual' : 'revision'; r.chip = a.chip; r.nota = a.nota; });
         }
-        return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
+        return pdfDe(a.datos, res.codigo).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf, pantalla: true }); }).then(function () { r.estado = 'emitido'; r.nota = ''; })
           .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
         });
       }).catch(function (e) {
@@ -272,8 +276,48 @@
   }
 
   /* ------------------------------ Resultado ------------------------------ */
+  /* La persona que carga revisa lo leído de la cédula (con las imágenes a la vista), corrige y confirma: el certificado se genera de una vez. */
+  function confirmarCedula(i) {
+    var r = RESULT[i], c = r._ctx; if (!c) return;
+    var d = c.a.datos, imgs = (c.lec.ced.imagenes || []).slice(0, 3);
+    var fondo = document.createElement('div'); fondo.className = 'modal-f';
+    var campo = function (id, et, v, ayuda) { return '<label style="display:block;margin-top:10px;font-size:12px;color:#566370;font-weight:600">' + et + '<input class="inp" id="' + id + '" value="' + esc(v) + '" style="margin-top:4px;text-transform:uppercase"' + (id === 'cfCed' ? ' inputmode="numeric"' : '') + '>' + (ayuda ? '<span style="display:block;font-weight:400;margin-top:3px">' + esc(ayuda) + '</span>' : '') + '</label>'; };
+    var dif = /nombre/i.test(c.a.motivo || '');
+    fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true" style="max-width:560px;max-height:92vh;overflow:auto"><div class="gold">Revisión de la cédula</div><h2 style="margin:4px 0 6px;font-size:17px">' + esc(r.nombre) + '</h2>' +
+      '<div style="font-size:13px;color:#566370">' + esc(c.a.motivo) + ' Corrija lo que haga falta.</div>' +
+      (imgs.length ? '<div style="display:flex;gap:8px;margin-top:10px;overflow:auto">' + imgs.map(function (u) { return '<img src="' + u + '" style="height:150px;border-radius:8px;border:1px solid #e3eaf1;flex:none">'; }).join('') + '</div>' : '') +
+      campo('cfCed', 'Número de cédula', N.cedulaPuntos(d.cedula || ''), c.a.cedHint || 'Escríbalo tal como aparece en la cédula; los puntos se ponen solos.') +
+      campo('cfAp', 'Apellidos', d.apellidos || '', dif && c.a.cedNombre.apellidos ? 'Balance: ' + c.a.balNombre + ' · Cédula: ' + c.a.cedNombre.apellidos + ' ' + c.a.cedNombre.nombres : '') +
+      campo('cfNo', 'Nombres', d.nombres || '', '') +
+      '<div id="cfErr" style="color:#b42318;font-size:12.5px;margin-top:8px;min-height:16px"></div>' +
+      '<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:12px"><button type="button" class="btn sec" id="cfNo2">Cancelar</button><button type="button" class="btn" id="cfOk">Está bien, generar</button></div></div>';
+    document.body.appendChild(fondo);
+    var cerrar = function () { document.removeEventListener('keydown', tecla); fondo.remove(); }, tecla = function (e) { if (e.key === 'Escape') cerrar(); };
+    document.addEventListener('keydown', tecla);
+    fondo.querySelector('#cfNo2').onclick = cerrar;
+    fondo.querySelector('#cfCed').oninput = function () { this.value = N.cedulaPuntos(this.value); };   /* siempre con puntos */
+    fondo.querySelector('#cfOk').onclick = function () {
+      var ced = fondo.querySelector('#cfCed').value.replace(/\D/g, '').replace(/^0+/, ''), ap = N.mayus(fondo.querySelector('#cfAp').value).trim(), no = N.mayus(fondo.querySelector('#cfNo').value).trim();
+      if (!N.cedulaValida(ced)) { fondo.querySelector('#cfErr').textContent = 'El número no es válido: la cédula tiene de 6 a 8 cifras (las antiguas) o 10 cifras que empiezan por 1. Revise la cédula.'; return; }
+      if (ap.length < 2 || no.length < 2) { fondo.querySelector('#cfErr').textContent = 'Escriba los apellidos y los nombres.'; return; }
+      cerrar(); d.cedula = ced; d.apellidos = ap; d.nombres = no; r.nombre = (ap + ' ' + no).trim(); r.apellidos = ap; r.nombres = no; r.cedula = ced;
+      gate(true, 'Generando el certificado…');
+      api('reservar', { datos: d, loteId: LOTE, correo: CORREO, revision: false }).then(function (res) {
+        r.codigo = res.codigo;
+        return guardarOriginales(res.codigo, c.f, c.lec).then(function () { return pdfDe(d, res.codigo); }).then(function (pdf) { return api('emitir', { codigo: res.codigo, pdf: pdf, pantalla: true }); })
+          .catch(function (e) { api('liberar', { codigo: res.codigo }).catch(function () {}); throw e; });
+      }).then(function () { r.estado = 'emitido'; r.chip = ''; r.nota = ''; r._ctx = null; gate(false); resultado(); toast('Certificado generado.'); })
+        .catch(function (e) {
+          gate(false); r.codigo = null;
+          if (e.http === 409 && e.datos && e.datos.duplicado) { r.estado = 'error'; r.chip = 'Ya existe un promedio'; r.nota = 'Esta cédula ya tiene certificado en este programa. Solicite la corrección a Estadística.'; r._ctx = null; resultado(); return; }
+          toast(e.message || 'No se pudo generar el certificado.'); resultado();
+        });
+    };
+  }
   function chipDe(r) {
     if (r.estado === 'leyendo') return '<span class="chip rev"><span class="spin"></span>Procesando…</span>' + (r.nota ? '<div class="m">' + esc(r.nota) + '</div>' : '');
+    if (r.estado === 'confirmar') return '<span class="chip aviso">' + esc(r.chip) + '</span><div class="m">' + esc(r.nota) + '</div><div style="margin-top:8px"><button class="btn" data-conf="' + r._i + '" style="padding:6px 14px;font-size:13px">Revisar y generar</button></div>';
+    if (r.estado === 'emitido' && r.codigo && !r.reenviar) return '<span class="chip ok">' + IC.check + 'Listo</span> <a href="#" data-pdfr="' + esc(r.codigo) + '" style="font-size:12px;color:#0b3d66;font-weight:600;margin-left:10px;white-space:nowrap">Descargar PDF</a>';
     if (r.estado === 'enviado') return '<span class="chip ok">' + IC.check + 'Enviado al correo electrónico</span>';
     if (r.estado === 'emitido') return '<span class="chip aviso">' + esc(r.chip || 'Emitido') + '</span>' + (r.nota ? '<div class="m">' + esc(r.nota) + '</div>' : '') + (r.reenviar ? '<div style="margin-top:8px"><button class="btn sec" data-reenviar="1" style="padding:6px 14px;font-size:13px">Reintentar envío</button></div>' : '');
     var cl = r.estado === 'revision' ? 'rev' : r.estado === 'manual' ? 'aviso' : 'err';
@@ -281,15 +325,16 @@
   }
   /* Ventana con el estado de la carga (al terminar el lote). Es opcional: se cierra con "Cerrar", Esc o pulsando fuera. */
   function estadoCarga() {
-    var c = { enviado: 0, revision: 0, manual: 0, error: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
+    var c = { enviado: 0, revision: 0, manual: 0, error: 0, confirmar: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
     var aEst = c.revision + c.manual, mail = c.enviado;
     var pl = function (n, a, b) { return n + ' ' + (n === 1 ? a : b); };
     var lineas = [];
-    if (mail) lineas.push(['#0f7a4d', pl(mail, 'certificado llegó', 'certificados llegaron') + ' al correo.']);
+    if (mail) lineas.push(['#0f7a4d', pl(mail, 'certificado está listo', 'certificados están listos') + ' para descargar.']);
+    if (c.confirmar) lineas.push(['#8a6d0b', pl(c.confirmar, 'estudiante necesita', 'estudiantes necesitan') + ' que usted revise la cédula antes de generar el certificado.']);
     if (aEst) lineas.push(['#8a6d0b', pl(aEst, 'estudiante está pendiente', 'estudiantes están pendientes') + ' de la respuesta de Estadística.']);
     if (c.error) lineas.push(['#b42318', pl(c.error, 'estudiante no se pudo procesar', 'estudiantes no se pudieron procesar') + '.']);
     if (!lineas.length) return;
-    var tit = !aEst && !c.error ? 'Carga completa' : 'Estado de la carga';
+    var tit = !aEst && !c.error && !c.confirmar ? 'Carga completa' : 'Estado de la carga';
     var fondo = document.createElement('div'); fondo.className = 'modal-f';
     fondo.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="gold">Resultado de la solicitud</div><h2 style="margin:4px 0 10px;font-size:17px">' + esc(tit) + '</h2>' +
       lineas.map(function (l) { return '<div style="display:flex;gap:10px;align-items:center;margin-top:6px;font-size:13px;color:#0b3d66"><span style="width:9px;height:9px;border-radius:50%;background:' + l[0] + ';flex:none"></span><span>' + esc(l[1]) + '</span></div>'; }).join('') +
@@ -303,16 +348,19 @@
   }
   function resultado(sinAnimar) {
     ancho(1160);
-    var c = { enviado: 0, revision: 0, manual: 0, error: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
+    var c = { enviado: 0, revision: 0, manual: 0, error: 0, confirmar: 0 }; RESULT.forEach(function (r) { if (c[r.estado] != null) c[r.estado]++; else if (r.estado === 'emitido') c.enviado++; });
     var listo = !RESULT.some(function (r) { return r.estado === 'leyendo'; });
-    var chips = (c.enviado ? '<span class="chip ok">' + c.enviado + ' ' + (c.enviado === 1 ? 'enviado' : 'enviados') + '</span>' : '') + (c.revision ? '<span class="chip rev">' + c.revision + ' en revisión</span>' : '') + (c.manual ? '<span class="chip aviso">' + c.manual + ' manual</span>' : '') + (c.error ? '<span class="chip err">' + c.error + ' con error</span>' : '');
+    var chips = (c.enviado ? '<span class="chip ok">' + c.enviado + ' ' + (c.enviado === 1 ? 'listo' : 'listos') + '</span>' : '') + (c.confirmar ? '<span class="chip aviso">' + c.confirmar + ' por revisar</span>' : '') + (c.revision ? '<span class="chip rev">' + c.revision + ' en revisión</span>' : '') + (c.manual ? '<span class="chip aviso">' + c.manual + ' manual</span>' : '') + (c.error ? '<span class="chip err">' + c.error + ' con error</span>' : '');
     var filas = RESULT.map(function (r) { return '<div class="r"><b>' + esc(r.nombre) + '</b><span>' + esc(r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><div>' + chipDe(r) + '</div></div>'; }).join('');
     var y = $('vista').scrollTop;
     vista('<div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px"><div><div class="gold">Resultado de la solicitud</div><h2>' + RESULT.length + ' ' + (RESULT.length === 1 ? 'estudiante procesado' : 'estudiantes procesados') + '</h2></div><div style="display:flex;gap:8px;flex-wrap:wrap">' + chips + '</div></div>' +
       '<div class="r h"><span class="lbl">Estudiante</span><span class="lbl">Programa</span><span class="lbl">Promedio</span><span class="lbl">Estado</span></div><div style="overflow:auto;min-height:0">' + filas + '</div>' +
-      '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap"><button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
+      '<div style="display:flex;justify-content:flex-end;gap:12px;margin-top:16px;flex-wrap:wrap">' + (c.enviado > 1 && listo ? '<button class="btn sec" id="bzipr">Descargar promedios</button>' : '') + '<button class="btn" id="botro"' + (listo ? '' : ' disabled') + '>Cargar otro lote</button></div>', !sinAnimar);
     $('vista').scrollTop = y;
     $('botro').onclick = function () { FILAS = []; carga(); };
+    document.querySelectorAll('[data-conf]').forEach(function (b) { b.onclick = function () { confirmarCedula(+b.dataset.conf); }; });
+    document.querySelectorAll('[data-pdfr]').forEach(function (a) { a.style.cursor = 'pointer'; a.onclick = function (e) { e.preventDefault(); api('descargar', { codigo: a.dataset.pdfr }).then(function (r) { var l = document.createElement('a'); l.href = 'data:application/pdf;base64,' + r.pdf; l.download = r.archivo || (a.dataset.pdfr + '.pdf'); l.click(); }).catch(function (er) { toast(er.message); }); }; });
+    if ($('bzipr')) $('bzipr').onclick = function () { bajarZip(RESULT.filter(function (r) { return r.estado === 'emitido' && r.codigo; }), 'Promedios ' + new Date().toLocaleDateString('es-CO').replace(/\//g, '-')); };
     var re = document.querySelector('[data-reenviar]'); if (re) re.onclick = function () { re.disabled = true; enviarLote().then(function () { resultado(); }); };
   }
 
@@ -367,7 +415,7 @@
       var abierto = !!x || !!ABIERTOS[G.id], d = new Date(G.t);
       var cab = '<div class="lg" data-tog="' + esc(G.id) + '"><span class="lgc">' + (abierto ? '▾' : '▸') + '</span><b>' + d.toLocaleDateString('es-CO') + ' <span class="lgh">' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) + '</span></b>' +
         '<span class="lgn">' + G.todos.length + (G.todos.length === 1 ? ' certificado' : ' certificados') + (rev ? ' · ' + rev + ' en revisión' : '') + '</span>' +
-        '<span class="lga">' + (emit.length ? '<a href="#" data-zip="' + esc(G.id) + '" style="' + lk + '">ZIP</a><a href="#" data-reenv="' + emit[0].codigo + '" style="' + lk + '">Reenviar</a>' : '') + '</span></div>';
+        '<span class="lga">' + (emit.length ? '<a href="#" data-zip="' + esc(G.id) + '" style="' + lk + '">Descargar<span class="rl-l"> promedios</span></a><a href="#" data-reenv="' + emit[0].codigo + '" style="' + lk + '">Reenviar</a>' : '') + '</span></div>';
       var filas = !abierto ? '' : G.vis.slice().reverse().map(function (r) {
         var e = ESTADOS[r.estado] || ['rev', r.estado];
         return '<div class="r rl"><b>' + esc((r.apellidos + ' ' + r.nombres).trim() || '(por validar)') + '</b><span class="rl-s">' + esc(r.sigla || r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><span class="rl-c" style="font-size:12px;color:#566370;white-space:nowrap">' + esc(r.codigo) + '</span>' +
@@ -383,7 +431,7 @@
     document.querySelectorAll('[data-zip]').forEach(function (a) {
       a.onclick = function (e) {
         e.preventDefault(); var G = grupos[a.dataset.zip], it = G.todos.filter(function (r) { return r.estado === 'emitido'; }), d = new Date(G.t);
-        bajarZip(it, 'Certificados de promedio ' + d.toLocaleDateString('es-CO').replace(/\//g, '-'));
+        bajarZip(it, 'Promedios ' + d.toLocaleDateString('es-CO').replace(/\//g, '-'));
       };
     });
     document.querySelectorAll('[data-reenv]').forEach(function (a) {
@@ -446,7 +494,7 @@
       (it.motivoRevision ? '<div class="chip aviso" style="margin-top:10px;white-space:normal;border-radius:10px">' + esc(it.motivoRevision) + '</div>' : '') +
       '<div class="sdoc" style="display:flex;gap:22px;margin-top:14px;flex:1;min-height:0"><div style="flex:1.05;display:flex;flex-direction:column;min-width:0;min-height:340px"><div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap" id="tabs"></div><div class="doc" id="doc"><span class="spin"></span></div></div>' +
       '<div style="flex:1;min-width:0;overflow:auto"><div class="g2"><div><div class="lbl">Apellidos</div><input class="inp" id="f_ap" value="' + esc(d.apellidos) + '"></div><div><div class="lbl">Nombres</div><input class="inp" id="f_no" value="' + esc(d.nombres) + '"></div>' +
-      '<div><div class="lbl">Cédula</div><input class="inp" id="f_ce" inputmode="numeric" value="' + esc(d.cedula) + '"></div></div>' +
+      '<div><div class="lbl">Cédula</div><input class="inp" id="f_ce" inputmode="numeric" value="' + esc(N.cedulaPuntos(d.cedula)) + '"></div></div>' +
       '<div style="margin-top:12px"><div class="lbl">Programa</div><select class="inp" id="f_pr"><option value="">Seleccione…</option>' + opcionesProg(d.programaId) + '</select></div>' +
       '<div class="g2" style="margin-top:12px"><div><div class="lbl">Facultad (según el programa)</div><input class="inp" id="f_fa" readonly></div><div><div class="lbl">Periodo de terminación</div><input class="inp" id="f_pe" placeholder="2026-1" value="' + esc(d.periodoTerminacion) + '"></div>' +
       '<div><div class="lbl">Diplomado de actualización (periodo)</div><input class="inp" id="f_di" placeholder="Opcional · 2026-1" value="' + esc(d.diplomado) + '"></div><div><div class="lbl">Fecha de elaboración</div><input class="inp" id="f_fe" type="date" max="2100-12-31" value="' + esc(/^\d{4}-\d{2}-\d{2}$/.test(d.fechaBalance || '') ? d.fechaBalance : '') + '" style="cursor:pointer"></div>' +
@@ -488,6 +536,7 @@
       var op = $('selrev').options[k], nm = ((dd.apellidos || '') + ' ' + (dd.nombres || '')).trim() || 'Sin nombre';
       if (op) op.textContent = (k + 1) + ' de ' + lista.length + ' · ' + (dd.sigla ? dd.sigla + ' ' : '') + nm;
     }
+    if ($('f_ce')) $('f_ce').addEventListener('input', function () { var v = N.cedulaPuntos(this.value); if (v !== this.value) this.value = v; });   /* la cédula siempre con puntos */
     ['f_ap', 'f_no', 'f_ce', 'f_pr', 'f_pe', 'f_di', 'f_fe', 'f_pm'].forEach(function (id) { var e = $(id); if (e) { e.addEventListener('input', sincronizar); e.addEventListener('change', sincronizar); } });
     function leerForm() {
       var p = AJ.programas.filter(function (x) { return x.id === $('f_pr').value; })[0] || null;

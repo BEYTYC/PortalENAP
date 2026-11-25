@@ -206,7 +206,7 @@ async function enviarPendientesDelLote(loteId, opciones) {
   const lista = regs.filter((r) => r.lote && r.lote.id === loteId && r.estado === 'emitido' && (reenvio || !r.enviado));
   /* Si el lote aún tiene estudiantes en revisión, el correo lo dice: los demás llegan cuando Estadística los valide. */
   const faltan = regs.filter((r) => r.lote && r.lote.id === loteId && r.estado === 'revision').length;
-  const yaEnviados = regs.some((r) => r.lote && r.lote.id === loteId && r.enviado);
+  const yaEnviados = regs.some((r) => r.lote && r.lote.id === loteId && r.enviado && !r.enviado.en);
   const nota = faltan ? `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${faltan === 1 ? 'Queda 1 estudiante pendiente' : 'Quedan ' + faltan + ' estudiantes pendientes'} de validación por la Oficina de Estadística. Su certificado le llegará a este mismo correo cuando esté listo.</p>`
     : (yaEnviados && !reenvio ? '<p style="font-size:14.5px;color:#334155;margin:0 0 10px">Con estos certificados queda completo el lote que usted envió.</p>' : '');
   if (!lista.length) return { enviados: 0 };
@@ -413,7 +413,7 @@ module.exports = async function handler(req, res) {
       const { codigo, pdf } = body; if (!/^PA-\d{4}-\d{6}$/.test(codigo || '') || typeof pdf !== 'string') throw error('Datos incompletos.', 400);
       const buf = Buffer.from(pdf, 'base64'); if (buf.length < 1000 || buf.length > 3.5 * 1024 * 1024 || buf.slice(0, 4).toString() !== '%PDF') throw error('PDF inválido.', 400);
       if (pdfTieneTexto(buf)) throw error(ERR_PDF_TEXTO, 409);
-      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'emitido'; r.emitido = ahora(); });
+      await mutar('registros.json', () => [], (rs) => { const r = rs.find((x) => x.codigo === codigo); if (!r || r.estado !== 'reservado') throw error('El código no está reservado.', 409); r.estado = 'emitido'; r.emitido = ahora(); if (body.pantalla) r.enviado = { n: 0, en: 'pantalla', fecha: ahora() }; });   /* emitido al momento y entregado en pantalla: no se envía por correo */
       await escribirBin(`Certificados/${codigo}.pdf`, buf, 'application/pdf');
       const regE = ((await leerJson('registros.json')).valor || []).find((x) => x.codigo === codigo); if (regE) await copiarAOneDrive(codigo, regE, buf);
       res.status(200).json({ ok: true }); return;

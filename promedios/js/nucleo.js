@@ -245,6 +245,13 @@
     return { texto: tit, conocido: false };
   }
   var MES3 = '(?:ENE|FEB|MAR|ABR|MAY|JUN|JUL|AGO|SEP|SEPT|OCT|NOV|DIC)';
+  /* Formato de la cédula de ciudadanía colombiana: las antiguas tienen de 6 a 8 cifras; las nuevas, 10 cifras y empiezan por 1 (1.000.000.000 a 1.2xx.xxx.xxx). No existen de 9 cifras. */
+  function cedulaValida(n) {
+    var d = String(n || '').replace(/\D/g, '');
+    if (d.length >= 6 && d.length <= 8) return /^[1-9]/.test(d);
+    if (d.length === 10) return /^1[0-2]/.test(d);
+    return false;
+  }
   function parseCedula(texto) {
     var t = String(texto || '').replace(/ /g, ' ');
     var r = { numero: '', numeroLinea: '', apellidos: '', nombres: '', lugar: '', lugarRaw: '', cara: { frente: false, reverso: false } };
@@ -256,7 +263,7 @@
     }
     if (cands.length) {
       var cuenta = {}; cands.forEach(function (x) { cuenta[x] = (cuenta[x] || 0) + 1; });
-      cands.sort(function (x, y) { if (!!puntos[x] !== !!puntos[y]) return puntos[x] ? -1 : 1; var px = (x.length >= 8 && x.length <= 10 ? 1 : 0), py = (y.length >= 8 && y.length <= 10 ? 1 : 0); return (py - px) || (cuenta[y] - cuenta[x]) || (y.length - x.length); });
+      cands.sort(function (x, y) { if (cedulaValida(x) !== cedulaValida(y)) return cedulaValida(x) ? -1 : 1; if (!!puntos[x] !== !!puntos[y]) return puntos[x] ? -1 : 1; var px = (x.length >= 8 && x.length <= 10 ? 1 : 0), py = (y.length >= 8 && y.length <= 10 ? 1 : 0); return (py - px) || (cuenta[y] - cuenta[x]) || (y.length - x.length); });
       r.numero = cands[0];
     }
     var nuevo = /NUIP/i.test(t);                     /* cédula digital (formato nuevo): las etiquetas van ARRIBA del dato y la banda MRZ va abajo */
@@ -345,6 +352,6 @@
     parsePeriodo: parsePeriodo, periodoDeFecha: periodoDeFecha, textoPeriodo: textoPeriodo, vigencia: vigencia,
     promedioEnLetras: promedioEnLetras, cedulaPuntos: cedulaPuntos, fechaCorta: fechaCorta, fechaLarga: fechaLarga, palabras99: palabras99, parseFecha: parseFecha,
     promedioPonderado: promedioPonderado, filasDelBalance: filasDelBalance, parseBalance: parseBalance, parseCedula: parseCedula, lugarConTildes: lugarConTildes,
-    repartirNombre: repartirNombre, nombreArchivo: nombreArchivo, numNota: numNota
+    repartirNombre: repartirNombre, cedulaValida: cedulaValida, nombreArchivo: nombreArchivo, numNota: numNota
   };
 });
