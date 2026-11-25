@@ -484,7 +484,7 @@ module.exports = async function handler(req, res) {
       if (nuevo === 'devuelta' && !motivo) throw error('Escriba qué debe corregir el responsable.', 400);
       await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla: ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
-      try { if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: vista(t, cfg, est, periodo, '', false).limite }); else if (nuevo === 'validada') await avisar(cfg, t, 'val', {}); } catch (e) { correo = false; }
+      try { if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: vista(t, cfg, est, periodo, '', false).limite });   /* al validar no se envía correo (decisión de la autora, 24/11/2026) */ } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
     }
     if (a === 'enviar-correo') {   /* envío individual: solicitud (o recordatorio / vencida / devuelta) a los responsables de una plantilla */
