@@ -54,3 +54,9 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 ## Quién carga (24/11/2026)
 - La plantilla la puede cargar (o marcar «No aplica») tanto el responsable de la **entrega** como el del **diligenciamiento**; cualquiera de los dos. El permiso se verifica en el servidor.
 - Los correos de recepción («recibida» y «No aplica») van al responsable de la entrega con copia a quien diligencia.
+
+## Validación del contenido (24/11/2026)
+- Al cargar, además de la estructura se revisa el contenido celda por celda con las reglas del Manual de Validaciones por Plantilla V9.1 (`api/_snies-reglas.json`, generado del manual y de las plantillas oficiales).
+- Reglas que se aplican (solo las que no dependen de otros campos): campo obligatorio sin condición, tipo numérico, fecha dd/mm/aaaa, longitud máxima, valores permitidos cuando el manual los lista completos y números no negativos.
+- El mensaje dice hoja, columna y filas (por ejemplo «columna NUM_DOCUMENTO está vacía (filas 3, 9)»). Si hay errores, el archivo no entra y el responsable corrige y vuelve a cargar; si lo carga Estadística, queda Devuelta y el responsable recibe el detalle por correo.
+- Pendiente (no se valida todavía): obligatorios condicionales, reglas entre campos (fechas, documentos de identidad, correos y teléfonos), cruces con Participante y entre plantillas, y los duplicados. Si el manual cambia, se regenera el JSON.
