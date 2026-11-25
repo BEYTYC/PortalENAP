@@ -289,50 +289,16 @@ async function avisar(cfg, t, tipo, extra) {
   return true;
 }
 
-/* ------------------------------ Validación del contenido (Manual de Validaciones por Plantilla V9.1) ------------------------------ */
-/* Reglas por hoja y columna sacadas del manual (api/_snies-reglas.json): o = obligatorio sin condición, t = tipo (n numérico, f fecha, x texto),
-   l = longitud máxima, v = valores permitidos, min0 = no negativo. Solo se aplican las que no dependen de otros campos ni de otras plantillas;
-   las condicionales y los cruces (p. ej. con Participante) quedan para una etapa siguiente. */
-const REGLAS = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
-const celdaVacia = (v) => v == null || (typeof v === 'string' && v.trim() === '');
-const textoCelda = (v) => typeof v === 'number' ? (Number.isInteger(v) ? String(v) : String(v)) : String(v == null ? '' : v).trim();
-function fechaValida(v) {
-  if (typeof v === 'number') return v >= 1 && v < 2958466;   /* fecha de Excel */
-  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v).trim());
-  if (!m) return false;
-  const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1]));
-  return d.getUTCFullYear() === +m[3] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[1];
+/* ------------------------------ Validación del contenido ------------------------------ */
+/* Las reglas viven en api/_snies-validar.js (manual V9.1 + reglas de la Oficina de Estadística). Aquí solo se conecta con el periodo del ciclo. */
+const VALIDAR = require('./_snies-validar');
+function revisarContenido(wb, t, periodo) {
+  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569 });
+  const textos = VALIDAR.resumenTextos(res.errores);
+  textos.detalle = res.errores.length ? VALIDAR.detalleVisor(res) : null;
+  return textos;
 }
-function revisarContenido(wb, t) {
-  const reglas = REGLAS[t.id]; if (!reglas) return [];
-  const hallazgos = [];   /* { hoja, col, msg, filas[] } */
-  for (const hoja of Object.keys(reglas)) {
-    if (!wb.hojas.includes(hoja)) continue;
-    const filas = wb.leer(hoja, { maxCols: 120 });
-    const enc = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase());
-    const cols = Object.keys(reglas[hoja]).map((c) => ({ c, i: enc.indexOf(c.toUpperCase()), r: reglas[hoja][c] })).filter((x) => x.i >= 0);
-    const malas = new Map();   /* clave hoja|col|msg -> filas */
-    const marca = (c, msg, n) => { const k = hoja + '|' + c + '|' + msg; if (!malas.has(k)) malas.set(k, { hoja, col: c, msg, filas: [] }); malas.get(k).filas.push(n); };
-    for (let r = 1; r < filas.length; r++) {
-      const f = filas[r] || [];
-      if (!f.some((c) => !celdaVacia(c))) continue;   /* fila en blanco: se ignora */
-      for (const { c, i, r: R } of cols) {
-        const v = f[i];
-        if (celdaVacia(v)) { if (R.o) marca(c, 'está vacía', r + 1); continue; }
-        const tx = textoCelda(v);
-        if (R.t === 'n' && !(typeof v === 'number' || /^-?\d+([.,]\d+)?$/.test(tx))) { marca(c, 'debe ser un número', r + 1); continue; }
-        if (R.t === 'f' && !fechaValida(v)) { marca(c, 'debe ser una fecha con formato dd/mm/aaaa', r + 1); continue; }
-        if (R.min0 && Number(String(v).replace(',', '.')) < 0) { marca(c, 'no puede ser negativo', r + 1); continue; }
-        if (R.l && R.t !== 'f' && !(R.t === 'n' && /[.,]/.test(tx)) && tx.replace(/^-/, '').length > R.l) { marca(c, `supera la longitud máxima de ${R.l} ${R.t === 'n' ? 'dígitos' : 'caracteres'}`, r + 1); continue; }
-        if (R.v && !R.v.includes(tx.toUpperCase())) marca(c, `tiene un valor no permitido (valores válidos: ${R.v.join(', ')})`, r + 1);
-      }
-    }
-    malas.forEach((x) => hallazgos.push(x));
-  }
-  const lista = (f) => f.length <= 6 ? f.join(', ') : f.slice(0, 6).join(', ') + ` y ${f.length - 6} más`;
-  const textos = hallazgos.map((h) => `Hoja ${h.hoja} · columna ${h.col} ${h.msg} (fila${h.filas.length > 1 ? 's' : ''} ${lista(h.filas)}).`);
-  return textos.length > 25 ? textos.slice(0, 25).concat(`Hay ${textos.length - 25} errores más; corrija estos y vuelva a cargar.`) : textos;
-}
+const CICLO_DEFECTO = '2026-2';
 
 /* ------------------------------ Validación del archivo (estructura) ------------------------------ */
 const vacio = (v) => v == null || (typeof v === 'string' && v.trim() === '');
@@ -341,7 +307,28 @@ function codigoInfo(wb) {
   const f = wb.leer('INFO', { maxRows: 30 }).find((x) => /c[oó]digo de la plantilla/i.test(String(x[0] || '')));
   return f && f[1] != null ? Number(f[1]) : null;
 }
-function revisarArchivo(buf, t, oficial) {
+const { aplicar: aplicarXlsx } = require('./_xlsx-editar');
+/* Correcciones hechas en pantalla: cambios [{h,f,c,v}] y filas eliminadas [{h,f}] sobre el archivo original; devuelve el .xlsx corregido. */
+function aplicarCorrecciones(buf, t, cambios, borrar) {
+  cambios = Array.isArray(cambios) ? cambios.slice(0, 5000) : []; borrar = Array.isArray(borrar) ? borrar.slice(0, 5000) : [];
+  if (!cambios.length && !borrar.length) return null;
+  const wb = abrir(buf), ops = [], del = {};
+  const cache = {};
+  const enc = (h) => cache[h] || (cache[h] = (wb.leer(h, { maxCols: 120, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()));
+  for (const c of cambios) {
+    const h = String(c.h || ''); if (!wb.hojas.includes(h) || h === 'INFO') continue;
+    const ci = enc(h).indexOf(String(c.c || '').toUpperCase()), fila = Math.floor(+c.f); if (ci < 0 || !(fila >= 2)) continue;
+    const R = ((REGLAS_COL[t.id] || {})[h] || {})[String(c.c).toUpperCase()] || {};
+    let valor = String(c.v == null ? '' : c.v).trim(), numero = null;
+    if (R.t === 'n' && /^-?\d+([.,]\d+)?$/.test(valor)) numero = valor.replace(',', '.');
+    else if (R.t === 'f') { const f = VALIDAR.fechaNum(valor); if (f != null && !/^\d+$/.test(valor)) { if (c.num) numero = String(f); } }
+    ops.push({ hoja: h, fila, col: ci, valor, numero });
+  }
+  for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 2) (del[h] = del[h] || []).push(fila); }
+  return aplicarXlsx(buf, { cambios: ops, borrar: del });
+}
+const REGLAS_COL = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
+function revisarArchivo(buf, t, oficial, periodo) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
   let wb;
@@ -362,7 +349,7 @@ function revisarArchivo(buf, t, oficial) {
     }
     const conDatos = filas.slice(1).filter((f) => f.some((c) => !vacio(c)));
     if (!conDatos.length) errores.push('La plantilla no tiene filas diligenciadas. Si no hay registros en el semestre, use «No aplica».');
-    else if (!errores.length) { try { errores.push(...revisarContenido(wb, t)); } catch (e) { /* si una regla falla por un formato inesperado, no se bloquea la entrega por eso */ } }
+    else if (!errores.length) { try { const r = revisarContenido(wb, t, periodo); errores.push(...r); errores.detalle = r.detalle; } catch (e) { /* si una regla falla por un formato inesperado, no se bloquea la entrega por eso */ } }
   }
   return errores;
 }
@@ -451,10 +438,13 @@ module.exports = async function handler(req, res) {
       if (!v.soyEntrega && !v.soyDiligencia && !admin) throw error('Usted no es responsable de la entrega ni del diligenciamiento de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se carga en el aplicativo.', 400);
       if (v.bloqueo && !admin) throw error(v.bloqueo, 409);
-      const buf = Buffer.from(String(body.datos || ''), 'base64');
+      let buf = Buffer.from(String(body.datos || ''), 'base64');
       if (!buf.length || buf.length > MAX_BYTES) throw error('El archivo está vacío o pesa más de 4 MB.', 400);
       const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
-      const errores = revisarArchivo(buf, t, oficial);
+      const corregido = aplicarCorrecciones(buf, t, body.cambios, body.borrar);
+      if (corregido) buf = corregido;
+      const nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
+      const errores = revisarArchivo(buf, t, oficial, periodo);
       if (errores.length && porEstadistica) {
         /* Entregada por correo con errores: se devuelve al responsable y el sistema le envía el correo con las correcciones. */
         const motivo = limpio(errores.join(' · '), 800);
@@ -464,12 +454,12 @@ module.exports = async function handler(req, res) {
         ]);
         res.status(200).json({ ok: false, errores, devuelta: true, correo }); return;
       }
-      if (errores.length) { res.status(200).json({ ok: false, errores }); return; }
+      if (errores.length) { res.status(200).json({ ok: false, errores, detalle: errores.detalle || null, datos: corregido && buf.length < 2800000 ? buf.toString('base64') : undefined }); return; }
       const nombre = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla. Pasa a En revisión.' }); }),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
         sinCorreo ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
       ]);
       res.status(200).json({ ok: true, correo }); return;

@@ -139,7 +139,7 @@ function abrir(buf) {
     for (let i = 0; i < filas.length; i++) if (!filas[i]) filas[i] = [];
     return filas;
   }
-  return { hojas: hojas.map((h) => h.nombre), leer };
+  return { hojas: hojas.map((h) => h.nombre), leer, ruta: (n) => (hojas.find((x) => x.nombre === n) || {}).ruta };
 }
 
 function serialAFecha(v) {
@@ -150,4 +150,4 @@ function serialAFecha(v) {
 }
 function fechaASerial(y, m, d) { return Date.UTC(y, m - 1, d) / 86400000 + 25569; }
 
-module.exports = { abrir, serialAFecha, fechaASerial, colIndex };
+module.exports = { abrir, serialAFecha, fechaASerial, colIndex, entradasZip, leerEntrada, decode };
