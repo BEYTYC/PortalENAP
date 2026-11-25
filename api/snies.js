@@ -53,7 +53,8 @@ const ofreceAnterior = (t) => CON_ANTERIOR.has(t.id) || ['INTERNACIONALIZACIÓN'
 
 const CUPOS = 'cupos-proyectados-y-matricula-esperada';
 /* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-1 (12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
-const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return periodo; const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-1` : `${a}-2`; };
+/* Periodo que se reporta: el semestre anterior al del ciclo (ciclo 2026-2 → 2026-1); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-1). */
+const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return anterior(periodo); const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-1` : `${a}-2`; };
 const TEMPLATES = MAESTRO.map((t) => {
   const sin = t.cargo === 'NA' || t.cargo === 'NO APLICA';
   const modo = sin ? 'sin' : t.cargo === 'PINO' ? 'directo' : 'carga';  /* directo = sube al SNIES con su propio usuario; solo recibe notificaciones */
@@ -162,7 +163,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const depOk = !dep || ['revision', 'validada'].includes((est[dep] || {}).estado);
   const entrega = r.entrega.includes(yo), dil = r.diligencia.includes(yo);
   const o = {
-    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: t.id === CUPOS ? periodoReporte(t, periodo) : '', maestroSin: t.modo === 'sin', posgrados: t.posgrados,
+    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: periodoReporte(t, periodo), maestroSin: t.modo === 'sin', posgrados: t.posgrados,
     estado, noAplica: !!e.noAplica, motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
@@ -184,18 +185,19 @@ async function enviarCorreo(para, asunto, html, cc) {
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items, colDias }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items, colDias, periodo }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
-  items = items || (plantillas || []).map((n) => ({ nombre: n, fecha, entrega }));
+  items = items || (plantillas || []).map((n) => ({ nombre: n, fecha, entrega, periodo }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
   const logo = base + 'assets/escudo.png', boton = base + 'assets/boton-abrir-portal.png';
   const P = (t) => `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${t}</p>`;
   const th = 'padding:9px 12px;background:#eef3f9;border-bottom:1px solid #d6e0ec;font-size:13px;color:#0b3d66;font-weight:700;text-align:left';
   const td = 'padding:10px 12px;border-bottom:1px solid #e3eaf1;font-size:14.5px;color:#334155';
   const entregas = Array.from(new Set(items.map((i) => i.entrega || 'Por asignar')));
+  const conPeriodo = items.some((i) => i.periodo);
   const variasEntregas = entregas.length > 1;   /* si todas comparten responsable de la entrega, va en una línea; si no, en una columna */
-  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
-  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${colDias ? `<td style="${th}">${esc(colDias)}</td>` : ''}${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
+  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${conPeriodo ? `<td style="${td};white-space:nowrap">${esc(i.periodo || '')}</td>` : ''}${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
+  const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${conPeriodo ? `<td style="${th}">Periodo que se reporta</td>` : ''}${colDias ? `<td style="${th}">${esc(colDias)}</td>` : ''}${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
     + (variasEntregas ? '' : P(`<b>Responsable de la entrega:</b> ${esc(entregas[0] || 'Por asignar')}`));
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px;margin:0 auto;background:#ffffff;border:1px solid #d9e2ec;border-radius:14px;overflow:hidden">
@@ -246,7 +248,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
     for (const c of d.para) {
       if (opc.soloCorreos && !opc.soloCorreos.includes(c)) continue;
       if (!porCorreo.has(c)) porCorreo.set(c, []);
-      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
+      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, periodo: periodoReporte(t, periodo), fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
     }
   }
   let correos = 0, fallos = 0;
@@ -283,7 +285,7 @@ async function avisar(cfg, t, tipo, extra) {
     dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
-  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '' }), cc);
+  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo) }), cc);
   return true;
 }
 
