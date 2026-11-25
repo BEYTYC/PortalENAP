@@ -400,6 +400,13 @@
       }).catch(function (er) { gate(false); toast(er.message || 'No se pudo preparar el ZIP.'); });
     })();
   }
+  /* Facultad y programa de una emisión: los distintos que traiga (si son varios, el primero y cuántos más). */
+  function lugarDe(rs) {
+    var uniq = function (k) { var v = []; rs.forEach(function (r) { var t = String(r[k] || '').trim(); if (t && v.indexOf(t) < 0) v.push(t); }); return v; };
+    var mas = function (v) { return v.length > 1 ? esc(v[0]) + ' <span class="lgm">+' + (v.length - 1) + '</span>' : esc(v[0] || ''); };
+    var f = uniq('facultad'), p = uniq('programa');
+    return (f.length ? '<span class="lgf">' + mas(f) + '</span>' : '') + (p.length ? '<span class="lgq">' + mas(p) + '</span>' : '');
+  }
   function pintarConsulta(lista, q) {
     var x = N.norm(q), grupos = {}, orden = [];
     lista.forEach(function (r) {   /* una emisión (lote) agrupa los certificados que se cargaron juntos; sin lote, cada día */
@@ -414,7 +421,8 @@
       var emit = G.todos.filter(function (r) { return r.estado === 'emitido'; }), rev = G.todos.filter(function (r) { return r.estado === 'revision'; }).length;
       var abierto = !!x || !!ABIERTOS[G.id], d = new Date(G.t);
       var cab = '<div class="lg" data-tog="' + esc(G.id) + '"><span class="lgc">' + (abierto ? '▾' : '▸') + '</span><b>' + d.toLocaleDateString('es-CO') + ' <span class="lgh">' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) + '</span></b>' +
-        '<span class="lgn">' + G.todos.length + (G.todos.length === 1 ? ' certificado' : ' certificados') + (rev ? ' · ' + rev + ' en revisión' : '') + '</span>' +
+        '<span class="lgp">' + lugarDe(G.todos) + '</span>' +
+        '<span class="lgn">' + G.todos.length + '<span class="rl-l">' + (G.todos.length === 1 ? ' certificado' : ' certificados') + '</span><span class="lgc2"> cert.</span>' + (rev ? ' · ' + rev + ' en revisión' : '') + '</span>' +
         '<span class="lga">' + (emit.length ? '<a href="#" data-zip="' + esc(G.id) + '" style="' + lk + '">Descargar<span class="rl-l"> promedios</span></a><a href="#" data-reenv="' + emit[0].codigo + '" style="' + lk + '">Reenviar</a>' : '') + '</span></div>';
       var filas = !abierto ? '' : G.vis.slice().reverse().map(function (r) {
         var e = ESTADOS[r.estado] || ['rev', r.estado];
