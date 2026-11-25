@@ -221,7 +221,7 @@ async function enviarPendientesDelLote(loteId, opciones) {
     const items = lista.map((r) => `<li style="margin:0 0 4px">${esc([r.sigla, r.apellidos, r.nombres].filter(Boolean).join(' '))}</li>`).join('');
     const cuerpo = P(archivos.length === 1 ? 'El certificado de promedio académico solicitado ya está listo para descargar.' : `Los ${archivos.length} certificados de promedio académico solicitados ya están listos para descargar:`) +
       `<ul style="font-size:14.5px;color:#062a4a;margin:0 0 14px;padding-left:20px">${items}</ul>` +
-      P('Ingrese al Portal con su cuenta institucional @enap.edu.co, abra <b>Generación de Promedios Académicos</b> → <b>Consultar promedios generados</b> y pulse <b>Descargar PDF</b> en cada estudiante.') + nota;
+      P('Para descargarlos, <a href="' + esc(PORTAL_URL.replace(/\/?$/, '/') + 'promedios') + '" target="_blank" style="color:#0b3d66;font-weight:600">abra el módulo de Promedios Académicos</a> e inicie sesión con su cuenta institucional @enap.edu.co. Allí, en <b>Consultar promedios generados</b>, pulse <b>ZIP de todos</b> o <b>PDF</b> en cada estudiante.') + nota;
     await enviarCorreo(para, ASUNTO, htmlCorreo({ titulo: ASUNTO, pre: ASUNTO, cuerpo }));
   };
   const total = archivos.reduce((x, f) => x + f.datos.length, 0);
