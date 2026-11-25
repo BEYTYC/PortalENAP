@@ -328,19 +328,35 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
   return aplicarXlsx(buf, { cambios: ops, borrar: del });
 }
 const REGLAS_COL = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
+const COLUMNAS = (() => { try { return require('./_snies-columnas.json'); } catch (e) { return {}; } })();
 function revisarArchivo(buf, t, oficial, periodo) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
   let wb;
   try { wb = abrir(buf); } catch (e) { return ['No se pudo abrir el Excel: ' + e.message]; }
   const cod = codigoInfo(wb);
-  if (t.codigo != null && cod !== t.codigo) errores.push(cod == null ? 'El archivo no trae la hoja INFO con el código de la plantilla; use la plantilla oficial.' : `Este archivo es de otra plantilla (código ${cod}); esta es la ${t.nombre} (código ${t.codigo}).`);
+  if (t.codigo != null && cod !== t.codigo) errores.push(cod == null ? 'El archivo no trae la hoja INFO con el código de la plantilla; use la plantilla oficial.' : `Este archivo es de otra plantilla (código ${cod}); esta es la ${t.nombre} (código ${t.codigo}). Descargue la plantilla oficial desde la tarjeta («Plantilla oficial vacía») y diligencie los datos allí.`);
   const datos = wb.hojas.filter((h) => h !== 'INFO');
   if (!datos.length) errores.push('El archivo no tiene hojas de datos.');
   else {
     const filas = wb.leer(datos[0], { maxCols: 80 });
     const enc = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase());
-    if (oficial) {
+    /* Estructura contra la plantilla oficial vigente (hojas y encabezados), para detectar archivos viejos o de otra versión. */
+    const esperado = COLUMNAS[String(t.codigo)];
+    if (esperado && !errores.length) {
+      const AVISO = ' Descargue la plantilla oficial vigente desde la tarjeta («Plantilla oficial vacía») y copie sus datos en ella sin cambiar el encabezado.';
+      const faltan = Object.keys(esperado).filter((h) => !datos.includes(h)), sobran = datos.filter((h) => !esperado[h]);
+      if (faltan.length || sobran.length) errores.push(`Las hojas del archivo no coinciden con la plantilla oficial vigente${faltan.length ? ` (faltan: ${faltan.join(', ')})` : ''}${sobran.length ? ` (sobran: ${sobran.join(', ')})` : ''}.` + AVISO);
+      else {
+        for (const h of datos) {
+          const real = (wb.leer(h, { maxCols: 200, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()).filter((x) => x);
+          const ok = esperado[h], f = ok.filter((c) => !real.includes(c)), e = real.filter((c) => !ok.includes(c));
+          if (f.length || e.length) errores.push(`La hoja ${h} no coincide con la plantilla oficial vigente${f.length ? `: faltan las columnas ${f.slice(0, 8).join(', ')}` : ''}${e.length ? `${f.length ? ';' : ':'} sobran ${e.slice(0, 8).join(', ')}` : ''}.` + AVISO);
+          else if (JSON.stringify(real) !== JSON.stringify(ok)) errores.push(`La hoja ${h} tiene las columnas en otro orden que la plantilla oficial vigente.` + AVISO);
+        }
+      }
+    }
+    if (oficial && !esperado) {
       try {
         const wo = abrir(oficial), ho = wo.hojas.filter((h) => h !== 'INFO');
         const eo = (wo.leer(ho[0], { maxCols: 80 })[0] || []).map((x) => limpio(x, 80).toUpperCase());
