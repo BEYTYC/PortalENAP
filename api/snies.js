@@ -171,6 +171,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
     entregaTexto: textoEntrega(cfg, t.id),
+    diligenciaTexto: (() => { const d = respDe(cfg, t.id).diligencia; return d.length ? d.map((c) => nombreDe(cfg, c)).join(', ') : ''; })(),
     puedeCargar: modo === 'carga' && (entrega || dil) && depOk, soyEntrega: entrega, soyDiligencia: dil,
     bloqueo: dep && !depOk ? `Primero se entrega ${POR_ID[dep].nombre}.` : '',
     tieneOficial: !!cfg.oficiales[t.id], versionOficial: ((cfg.oficiales[t.id] || [])[0] || {}).version || 0,

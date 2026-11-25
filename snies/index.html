@@ -35,11 +35,12 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .btn.sm{padding:6px 12px;font-size:13px}
 .chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
 .c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
-.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:start}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:stretch}
 .t{padding:12px 14px;border:1px solid;display:flex;flex-direction:column;gap:7px;transition:box-shadow .15s}
 .t.rojo{background:#fdf1f0;border-color:#d9726a}.t.ambar{background:#fff8dc;border-color:#d9b445}.t.verde{background:#f0f9f4;border-color:#5fb68a}.t.gris{background:#f3f6fa;border-color:#a9b8cb}
-.t h3{margin:0;font-size:19px;font-weight:600;line-height:1.2}
+.t h3{margin:0;font-size:18px;font-weight:600;line-height:1.2}
 .mu{color:#4c6386;font-size:12px}
+.t .acts{margin-top:auto}.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone{min-height:48px;padding-top:4px;padding-bottom:4px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
 .acts{display:flex;gap:8px;flex-wrap:nowrap;margin-top:auto;min-height:28px;align-items:center}
 .acts .btn{padding:4px 11px;font-size:12px;border-radius:7px}
@@ -48,6 +49,7 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .ban{border-radius:12px;padding:12px 16px;font-size:14px;display:flex;gap:10px;align-items:flex-start}
 .ban.i{background:#f1f8f8;border:1px solid #bfe0e0;color:#0f5c5c}.ban.w{background:#fff4d6;border:1px solid #e2c766;color:#5f4a0b}.ban.e{background:#fdf1f0;border:1px solid #f0c4c0;color:#a3281d}
 .prog{padding:10px 18px;display:flex;gap:18px;align-items:center;flex-wrap:nowrap;width:100%}
+.kpi{padding:14px 18px;min-width:140px;flex:1;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}.kpi:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(7,28,60,.06),0 10px 24px rgba(7,28,60,.1)}.kpi.on{border-color:#2f6fba;box-shadow:0 0 0 2px #cfe0f5,0 10px 24px rgba(7,28,60,.1);background:#f3f8ff}.kpi .kn{font-size:30px;line-height:1.15}.kpi .kp{font-size:12px;color:#4c6386}
 .bar{height:22px;background:#e2eaf4;border-radius:11px;overflow:hidden}.bar.cero{background:transparent;box-shadow:inset 0 0 0 1.5px #f1a7a1}.bar i{display:block;height:100%;background:linear-gradient(90deg,#e5584f 0%,#f2b834 50%,#2f9e72 100%);background-repeat:no-repeat;border-radius:11px;transition:width .4s}
 table{width:100%;border-collapse:collapse}
 th{font-size:12px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:600}
@@ -57,6 +59,7 @@ td{padding:9px 10px;border-top:1px solid #e3eaf2;vertical-align:top;font-size:13
 .inp:focus{border-color:#123a73;box-shadow:0 0 0 3px rgba(18,58,115,.14)}
 textarea.inp{resize:vertical;min-height:54px}
 .modal{position:fixed;inset:0;background:rgba(7,28,60,.35);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.modal .card.ins{max-width:min(1240px,96vw);height:92vh;max-height:92vh;padding:0;gap:0;position:relative;overflow:hidden}.modal .card.ins iframe{border:0;width:100%;height:100%;display:block;background:#eef3f9}.modal .card.ins .x{position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid #c6d6e8;background:#fff;color:#0b3d66;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(7,28,60,.15)}.modal .card.ins .x:hover{background:#eaf3fc}
 .modal .card{max-width:520px;width:100%;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
 .err li{margin:4px 0}
 .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
@@ -86,7 +89,7 @@ h1,h2,h3{font-weight:600}
 <script>
 (function () {
   'use strict';
-  var S = { vista: 'mis', datos: null, admin: null, cargandoId: null, filtro: '', verComo: '' };
+  var S = { vista: 'mis', datos: null, admin: null, cargandoId: null, filtro: '', verComo: '', kpi: '' };
   var app = document.getElementById('app');
   var ESTADO = { pendiente: ['Pendiente', 'rojo'], devuelta: ['Devuelta', 'rojo'], revision: ['En revisión', 'ambar'], validada: ['Validada', 'verde'] };
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -115,6 +118,15 @@ h1,h2,h3{font-weight:600}
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
   function modal(html) { var m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="card">' + html + '</div>'; document.body.appendChild(m); m.addEventListener('click', function (e) { if (e.target === m) m.remove(); }); return m; }
+
+  function verInstructivo(id) {
+    var m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = '<div class="card ins"><button class="x" aria-label="Cerrar" title="Cerrar">×</button><iframe src="instructivo.html?p=' + encodeURIComponent(id) + '" title="Instructivo de diligenciamiento"></iframe></div>';
+    var cerrar = function () { m.remove(); document.removeEventListener('keydown', esc27); };
+    var esc27 = function (e) { if (e.key === 'Escape') cerrar(); };
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.className === 'x') cerrar(); });
+    document.addEventListener('keydown', esc27); document.body.appendChild(m);
+  }
 
   /* ---------------- Carga de datos ---------------- */
   function cargarSesion() {
@@ -148,13 +160,13 @@ h1,h2,h3{font-weight:600}
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
-    if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" target="_blank" rel="noopener">↗ Instructivo de diligenciamiento</a>';
+    if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" data-a="instructivo" data-id="' + p.id + '">↗ Instructivo de diligenciamiento</a>';
     if (p.anterior) links += '<a href="#" data-a="anterior" data-id="' + p.id + '" data-p="' + p.anterior + '">↓ Plantilla diligenciada ' + p.anterior + '</a>';
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:13px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
-      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:11px;line-height:1.25">Periodo que se reporta: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:11px;line-height:1.25">Periodo: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
       + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:15px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:15px">' + esc(plazo) + '</div></div></div>')
-      + '<div class="mu">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + nota + zona
+      + '<div class="mu l1" title="' + esc(p.entregaTexto) + '">Responsable de la entrega: <b style="color:#14233a">' + esc(p.entregaTexto) + '</b></div>' + (p.diligenciaTexto ? '<div class="mu l1" title="' + esc(p.diligenciaTexto) + '">Responsable del diligenciamiento: <b style="color:#14233a">' + esc(p.diligenciaTexto) + '</b></div>' : '') + nota + zona
       + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
   }
@@ -252,10 +264,13 @@ h1,h2,h3{font-weight:600}
     var cont = { pendiente: 0, devuelta: 0, revision: 0, validada: 0, vencida: 0, proximas: 0 };
     activos.forEach(function (p) { if (p.modo === 'directo') return; cont[p.estado]++; if (p.vencida) cont.vencida++; if (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) cont.proximas++; });
     var total = cont.pendiente + cont.devuelta + cont.revision + cont.validada;   // porcentajes sobre el total de plantillas del periodo
-    var kp = function (t, n, c) { return '<div class="card" style="padding:14px 18px;min-width:140px;flex:1"><div class="mu">' + t + '</div><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:30px;color:' + c + '">' + n + '</span><span class="mu" style="font-size:14px">' + (total ? Math.round(n * 100 / total) : 0) + ' %</span></div></div>'; };
+    var kp = function (k, t, n, c) {
+      var on = S.kpi === k, pc = total ? Math.round(n * 100 / total) : 0;
+      return '<div class="card kpi' + (on ? ' on' : '') + '" data-k="' + k + '" role="button" tabindex="0" title="' + (on ? 'Quitar el filtro' : 'Ver solo: ' + t) + '"><div class="mu">' + t + '</div><div class="kn" style="color:' + c + '">' + n + '</div><div class="kp">' + pc + ' % de las plantillas</div></div>';
+    };
     var h = '<div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px"><div><h1>' + (S.vista === 'resp' ? 'Responsables por plantilla' : S.vista === 'oficiales' ? 'Plantillas oficiales' : 'Panel de Estadística') + '</h1><div class="sub">Control de las plantillas SNIES · periodo ' + esc(A.periodo) + (A.periodo !== A.periodoActivo ? ' (no es el periodo activo)' : '') + '</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sec" data-a="periodo">Cambiar periodo</button><button class="btn" data-a="abrir">Abrir ciclo y enviar solicitudes</button></div></div>';
     if (S.vista === 'panel') {
-      h += '<div style="display:flex;gap:14px;flex-wrap:wrap">' + kp('Pendientes', cont.pendiente, '#a3281d') + kp('Devueltas', cont.devuelta, '#a3281d') + kp('En revisión', cont.revision, '#7a5200') + kp('Validadas', cont.validada, '#14633d') + kp('Vencidas', cont.vencida, '#a3281d') + kp('Vencen en 7 días', cont.proximas, '#123a73') + '</div>';
+      h += '<div style="display:flex;gap:14px;flex-wrap:wrap">' + kp('pendiente', 'Pendientes', cont.pendiente, '#a3281d') + kp('devuelta', 'Devueltas', cont.devuelta, '#a3281d') + kp('revision', 'En revisión', cont.revision, '#7a5200') + kp('validada', 'Validadas', cont.validada, '#14633d') + kp('vencida', 'Vencidas', cont.vencida, '#a3281d') + kp('proximas', 'Vencen en 7 días', cont.proximas, '#123a73') + '</div>';
       h += '<input class="inp" id="filtro" placeholder="Buscar por nombre…" value="' + esc(S.filtro) + '" style="max-width:340px">';
       h += tablaPanel(ps);
     } else if (S.vista === 'resp') {
@@ -280,6 +295,7 @@ h1,h2,h3{font-weight:600}
     var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
+      if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
       var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
       var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.modo === 'carga' && p.estado !== 'validada' ? '<button class="btn sec sm" data-a="cargar-admin" data-id="' + p.id + '">Cargar entrega</button> ' : '') + ((p.estado === 'pendiente' || p.estado === 'devuelta') && p.entrega.length + p.diligencia.length ? '<button class="btn sec sm" data-a="correo" data-id="' + p.id + '">Enviar correo</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
       return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
@@ -324,9 +340,11 @@ h1,h2,h3{font-weight:600}
       }).catch(function (x) { toast(x.message); });
       return;
     }
+    var k = e.target.closest('[data-k]'); if (k) { S.kpi = S.kpi === k.dataset.k ? '' : k.dataset.k; pintar(); return; }
     var b = e.target.closest('[data-a]'); if (!b || b.tagName === 'INPUT') return;
     var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
+    else if (a === 'instructivo') verInstructivo(id);
     else if (a === 'na') noAplica(id);
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
