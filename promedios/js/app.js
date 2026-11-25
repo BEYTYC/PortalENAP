@@ -524,5 +524,5 @@
   api('sesion').then(function (s) {
     YO = s; AJ = { firmante: s.ajustes.firmante, programas: s.ajustes.programas, enlaceVerificacion: s.ajustes.enlaceVerificacion, usuarios: s.ajustes.usuarios || [] };
     CORREOS = s.correos || []; CORREO = s.estadistica ? (CORREOS[0] || '') : s.correo; gate(false); return pendientes();
-  }).then(function () { inicio(); }).catch(function (e) { gate(false); vista('<div class="vac"><b style="color:#062a4a;font-size:17px">No se pudo abrir el módulo</b><br>' + esc(e.message) + '</div>'); ancho(640); });
+  }).then(function () { var v = ''; try { v = sessionStorage.getItem('PortalENAP_vistaPromedios') || ''; sessionStorage.removeItem('PortalENAP_vistaPromedios'); } catch (_) {} if (v === 'consulta') consulta(); else inicio(); }).catch(function (e) { gate(false); vista('<div class="vac"><b style="color:#062a4a;font-size:17px">No se pudo abrir el módulo</b><br>' + esc(e.message) + '</div>'); ancho(640); });
 })();

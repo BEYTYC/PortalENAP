@@ -3713,7 +3713,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     const m = window.location.pathname.match(/^\/(snies|promedios)\/?$/i);
     if (m) { try { sessionStorage.setItem('PortalENAP_destino', m[1].toLowerCase()); } catch (_) {} }
     let destino = ''; try { destino = sessionStorage.getItem('PortalENAP_destino') || ''; } catch (_) {}
-    const abrir = { snies: function () { abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }, promedios: function () { abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); } }[destino];
+    const abrir = { snies: function () { abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }, promedios: function () { try { sessionStorage.setItem('PortalENAP_vistaPromedios', 'consulta'); } catch (_) {} abrirSubsistema('viewPromedios', 'Generación de Promedios Académicos'); cargarPromedios(); } }[destino];
     if (!abrir) return;
     let intentos = 0;
     const espera = setInterval(function () {
