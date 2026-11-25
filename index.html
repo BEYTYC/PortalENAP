@@ -135,7 +135,7 @@
   }
   .navcats{ display:flex; align-items:stretch; gap:2px; flex-shrink:0; }
   header.masthead .sesion-col{ display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
-  header.masthead .cred-cab{ font-size:9.5px; font-style:italic; line-height:1.2; color:var(--navy-200); white-space:nowrap; letter-spacing:.01em; }
+  header.masthead .cred-cab{ font-size:8px; font-style:italic; line-height:1.2; color:var(--navy-200); white-space:nowrap; letter-spacing:0; width:0; min-width:100%; box-sizing:border-box; padding-left:16px; overflow:visible; text-align:right; }
   header.masthead .sesion-col:has(.sesion-usuario[hidden]) .cred-cab{ display:none; }
   @media (max-width:760px){ header.masthead .cred-cab{ display:none; } }
   .nav-cred{ margin-left:auto; align-self:center; padding:0 14px; font-size:11px; font-style:italic; color:var(--text-muted); white-space:nowrap; }
@@ -3964,6 +3964,25 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
 
   // ancho real de la barra desplazadora (0 si es flotante) -> --sbw
   (function(){ try { const d=document.createElement('div'); d.style.cssText='position:absolute;top:-999px;width:100px;height:100px;overflow:scroll;visibility:hidden'; document.body.appendChild(d); const w=d.offsetWidth-d.clientWidth; document.body.removeChild(d); document.documentElement.style.setProperty('--sbw', w+'px'); } catch (e) {} })();
+</script>
+<script>
+/* El crédito del encabezado ajusta su tamaño para ir del inicio del nombre al final de «Cerrar sesión». */
+(function(){
+  function fit(){
+    var c=document.querySelector('.cred-cab'), r=document.getElementById('sesionUsuario'); if(!c||!r||r.hidden) return;
+    var w=r.offsetWidth-16; if(w<=0) return;
+    c.style.fontSize='10px'; var nw=c.scrollWidth-16; if(nw<=0) return;
+    c.style.fontSize=Math.max(5,Math.min(10,10*w/nw)).toFixed(2)+'px';
+  }
+  function init(){
+    var r=document.getElementById('sesionUsuario'); fit();
+    if(window.ResizeObserver&&r) new ResizeObserver(fit).observe(r);
+    window.addEventListener('resize',fit);
+    if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+    setTimeout(fit,1500);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
+})();
 </script>
 
 <!--
