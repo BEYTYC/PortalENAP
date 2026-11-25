@@ -1,18 +1,5 @@
 [
  {
-  "id": "actualizar-documento-participante",
-  "grupo": "PARTICIPANTE",
-  "nombre": "Actualizar documento participante",
-  "cargo": "JSEA",
-  "codigo": null,
-  "fechas": [
-   "Cuando se presente la novedad",
-   null,
-   null,
-   null
-  ]
- },
- {
   "id": "empresas-de-revisoria-fiscal",
   "grupo": "PARTICIPANTE",
   "nombre": "Empresas de Revisoría Fiscal",
@@ -29,7 +16,7 @@
   "id": "participante",
   "grupo": "PARTICIPANTE",
   "nombre": "Participante",
-  "cargo": "NA",
+  "cargo": "JSEA",
   "codigo": 55,
   "fechas": [
    "15/03",
@@ -140,19 +127,6 @@
    "31/07",
    "31/10",
    "31/01"
-  ]
- },
- {
-  "id": "actualizar-documento-inscritos",
-  "grupo": "POBLACIÓN ESTUDIANTIL",
-  "nombre": "Actualizar documento inscritos",
-  "cargo": "JSEA",
-  "codigo": null,
-  "fechas": [
-   "Cuando se presente la novedad",
-   null,
-   null,
-   null
   ]
  },
  {
