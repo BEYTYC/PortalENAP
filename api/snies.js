@@ -141,7 +141,7 @@ async function leerEstado(periodo) { const { valor } = await leerJson(`estado-${
 const listaCorreos = (a) => Array.from(new Set((Array.isArray(a) ? a : []).map((c) => limpio(c, 120).toLowerCase()).filter(correoOk)));
 const respDe = (cfg, id) => { const r = cfg.responsables[id] || {}; return { entrega: r.entrega || [], diligencia: r.diligencia || [] }; };
 /* Nombres con mayúscula inicial, salvo artículos y preposiciones (de, del, la, y…). */
-const bonito = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w, i) => { const m = w.toLowerCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');
+const bonito = (n) => String(n || '').trim().split(/\s+/).filter(Boolean).map((w, i) => { const m = w.toLowerCase(); if (/^(cc|cf|cn|tn|tf|tk|ctcim|tecim|stcim|mycim|crcim|tccim)$/.test(m)) return m.toUpperCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');   /* la sigla de grado (CC, CF, TN…) va siempre en mayúscula */
 const nombreDe = (cfg, c) => (cfg.usuarios[c] && cfg.usuarios[c].nombre) ? bonito(cfg.usuarios[c].nombre) : c;
 /* Destinatario = responsable de la entrega; con copia los responsables del diligenciamiento. Si la plantilla no tiene responsable de entrega, los avisos van directo a quien diligencia. */
 const destinosDe = (cfg, id) => { const r = respDe(cfg, id); return r.entrega.length ? { para: r.entrega, cc: r.diligencia.filter((c) => !r.entrega.includes(c)) } : { para: r.diligencia, cc: [] }; };
