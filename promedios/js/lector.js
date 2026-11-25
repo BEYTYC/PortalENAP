@@ -111,6 +111,50 @@
     if (segs.length < 2) return [c];
     return segs.slice(0, 2).map(function (q) { var y0 = Math.max(0, q[0] - 10), y1 = Math.min(h, q[1] + 10), t = lienzo(w, y1 - y0); t.getContext('2d').drawImage(c, 0, y0, w, y1 - y0, 0, 0, w, y1 - y0); return t; });
   }
+  /* Segunda lectura SOLO de dígitos: se ubica el número impreso (palabras con cifras y puntos) y se recorta, amplía y relee con una lista cerrada de caracteres.
+     Evita que un 1 salga como 4 o que falte una cifra por leer la tarjeta completa. Devuelve líneas "NÚMERO 1.026.555.377" para que parseCedula las vote. */
+  function releerNumero(t) {
+    return reconocer(contrasteLocal(t, false)).then(function (o) {
+      var ws = palabrasDe(o.data).filter(function (w) { return w.bbox && /^[\d.,'·:;\-]{2,}$/.test(String(w.text).trim()) && /\d/.test(w.text); });
+      if (!ws.length) return [];
+      /* se agrupan por renglón y se elige el que reúna entre 7 y 11 cifras */
+      var grupos = []; ws.forEach(function (w) {
+        var cy = (w.bbox.y0 + w.bbox.y1) / 2, g = grupos.filter(function (q) { return Math.abs(q.cy - cy) < (q.h * 0.7); })[0];
+        if (!g) { g = { cy: cy, h: w.bbox.y1 - w.bbox.y0, ws: [] }; grupos.push(g); } g.ws.push(w);
+      });
+      var mejor = null; grupos.forEach(function (g) {
+        var d = g.ws.map(function (w) { return w.text; }).join('').replace(/\D/g, '').length;
+        var sep = (g.ws.map(function (w) { return w.text; }).join('').match(/[.,]/g) || []).length;   /* el número impreso lleva puntos de miles; la línea del reverso y otros códigos no */
+        if (d >= 6 && d <= 12 && sep >= 2 && g.h >= 12 && (!mejor || g.h > mejor.h)) mejor = g;
+      });
+      if (!mejor) return [];
+      var x0 = Math.min.apply(null, mejor.ws.map(function (w) { return w.bbox.x0; })), x1 = Math.max.apply(null, mejor.ws.map(function (w) { return w.bbox.x1; })),
+          y0 = Math.min.apply(null, mejor.ws.map(function (w) { return w.bbox.y0; })), y1 = Math.max.apply(null, mejor.ws.map(function (w) { return w.bbox.y1; })), alto = y1 - y0,
+          px = Math.round(alto * 0.35), cx0 = Math.max(0, x0 - px * 2), cy0 = Math.max(0, y0 - px), cw = Math.min(t.width, x1 + px * 2) - cx0, ch = Math.min(t.height, y1 + px) - cy0;
+      var f = Math.max(1, Math.min(4, 110 / alto)), rec = lienzo(cw * f, ch * f), g2 = rec.getContext('2d'); g2.imageSmoothingEnabled = true; g2.imageSmoothingQuality = 'high'; g2.drawImage(t, cx0, cy0, cw, ch, 0, 0, rec.width, rec.height);
+      var vars = [realzar(rec), contrasteLocal(rec, false), contrasteLocal(rec, true)], out = [];
+      return vars.reduce(function (p, v) {
+        return p.then(function () {
+          return reconocer(v, { tessedit_pageseg_mode: '7', tessedit_char_whitelist: '0123456789.,' }).then(function (r) { var x = String(r.data.text || '').replace(/[\r\n]+/g, ' ').trim(); var dg = x.replace(/\D/g, ''), NU = root.PromediosNucleo;
+            if (NU && dg.length === 10 && !NU.cedulaValida(dg) && NU.cedulaValida('1' + dg.slice(1))) { x = x.replace(/\d/, '1'); dg = '1' + dg.slice(1); }   /* un 1 leído como 4 (u otro símbolo) al inicio de una cédula de 10 cifras */
+            if (dg.length >= 6 && (!NU || NU.cedulaValida(dg))) out.push('NÚMERO ' + x); });
+        });
+      }, Promise.resolve()).then(function () { return out; });
+    }).catch(function () { return []; });
+  }
+  /* Línea de lectura del reverso ("A-0112100-18115712-M-0003482039-20040722"): franja inferior, ampliada y leída solo con dígitos y guiones. Sirve para contrastar el número del frente. */
+  function releerLinea(u) {
+    var out = [], alturas = [0.2, 0.3];
+    return alturas.reduce(function (p, fr) {
+      return p.then(function () {
+        var hh = Math.round(u.height * fr), y0 = u.height - hh, f = Math.max(1, Math.min(3, 2600 / u.width)), c = lienzo(u.width * f, hh * f), g = c.getContext('2d');
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(u, 0, y0, u.width, hh, 0, 0, c.width, c.height);
+        return [realzar(c), contrasteLocal(c, false)].reduce(function (q, v) {
+          return q.then(function () { return reconocer(v, { tessedit_pageseg_mode: '6', tessedit_char_whitelist: '0123456789-MFPA' }).then(function (r) { String(r.data.text || '').split(/\r?\n/).forEach(function (l) { if (/\d{9,11}/.test(l) && /-/.test(l)) out.push(l.replace(/\s+/g, '')); }); }); });
+        }, Promise.resolve());
+      });
+    }, Promise.resolve()).then(function () { return out; }).catch(function () { return []; });
+  }
   function leerTarjetas(r, textoBase) {
     var cs = tarjetas(r), todo = [textoBase];
     return cs.reduce(function (p, t) { return p.then(function () { return reconocer(contrasteLocal(t, false)).then(function (o) { todo.unshift(o.data.text); }); }); }, Promise.resolve()).then(function () {
@@ -118,6 +162,11 @@
       /* la línea de lectura (letra muy pequeña al pie del reverso) se lee aparte: solo la franja inferior de la última tarjeta */
       var u = cs[cs.length - 1], hh = Math.round(u.height * 0.22), fr = lienzo(u.width, hh); fr.getContext('2d').drawImage(u, 0, u.height - hh, u.width, hh, 0, 0, u.width, hh);
       return reconocer(contrasteLocal(fr, false)).then(function (o) { todo.unshift(o.data.text); });
+    }).then(function () {
+      return cs.reduce(function (p, t) { return p.then(function () { return releerNumero(t).then(function (ls) { ls.forEach(function (l) { todo.push(l); }); }); }); }, Promise.resolve());
+    }).then(function () {
+      if (tieneLinea(todo.join('\n'))) return;
+      return releerLinea(cs[cs.length - 1]).then(function (ls) { ls.forEach(function (l) { todo.push(l); }); });
     }).then(function () {
       if (cedulaCompleta(todo.join('\n'))) return todo.join('\n');
       return cs.reduce(function (p, t) { return p.then(function () { return reconocer(contrasteLocal(t, true)).then(function (o) { todo.splice(cs.length, 0, o.data.text); }); }); }, Promise.resolve()).then(function () { return todo.join('\n'); });
