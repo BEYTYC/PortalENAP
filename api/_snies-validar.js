@@ -11,6 +11,10 @@
  * fechas, totales y obligatorios condicionales. No se cruza con Participante.
  * Devuelve errores por celda: { h: hoja, f: fila de Excel, c: columna, m: mensaje }.
  */
+let CAT = {};
+try { CAT = require('./_snies-catalogos.json'); } catch (e) { CAT = {}; }
+const CONJ = {};
+const conj = (k) => CONJ[k] || (CONJ[k] = new Set(Array.isArray(CAT[k]) ? CAT[k] : Object.keys(CAT[k] || {})));
 let REGLAS = {};
 try { REGLAS = require('./_snies-reglas.json'); } catch (e) { REGLAS = {}; }
 
@@ -218,6 +222,18 @@ function revisarContenido(wb, t, ctx) {
       if (idx['TITULO_PREGRADO'] != null && iTipo != null && up(f[iTipo]) && up(f[iTipo]) !== 'NIT') exige(f, r, ['TITULO_PREGRADO'], 'si el tipo de documento no es NIT');
       const titulo = ['TITULO_RECIBIDO', 'FECHA_GRADO', 'ID_PAIS_INSTITUCION_ESTUDIO'];
       if (/docentes/.test(t.id) && titulo.every((c) => idx[c] != null) && titulo.some((c) => !vacia(f[idx[c]]))) exige(f, r, titulo, 'si el docente tiene título');
+    }
+
+    /* 8b. Códigos de las tablas de referencia (DIVIPOLA, ISO de países, CINE campo específico, programas de la ENAP) */
+    const tablas = (c) => /^ID_MUNICIPIO/.test(c) ? ['municipios', 'municipios'] : /^ID_DEPARTAMENTO/.test(c) ? ['departamentos', 'departamentos'] : /^ID_PAIS/.test(c) ? ['paises', 'países'] : c === 'ID_CINE_CAMPO_DETALLADO' ? ['cine_especifico', 'campo CINE'] : c === 'PRO_CONSECUTIVO' && !/^programas/.test(t.id) ? ['programas', 'programas de la ENAP (código SNIES)'] : null;
+    for (const c of Object.keys(idx)) {
+      const tb = tablas(c); if (!tb || !Object.keys(CAT).length || !CAT[tb[0]]) continue;
+      const S = conj(tb[0]);
+      for (const r of filasDatos) {
+        const v = filas[r][idx[c]]; if (vacia(v) || !esNum(v)) continue;
+        const k = tb[0] === 'cine_especifico' ? String(Math.floor(aNum(v) / 10)) : String(Math.round(aNum(v)));
+        if (!S.has(k)) err(nombre, r + 1, c, tb[0] === 'cine_especifico' ? `no corresponde a ningún campo CINE (su campo específico ${k} no existe)` : `el código ${txt(v)} no existe en la tabla de ${tb[1]}`);
+      }
     }
 
     /* 9. Duplicados: filas completamente iguales, clave de la plantilla y código de la hoja principal */
