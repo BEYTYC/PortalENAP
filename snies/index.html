@@ -168,7 +168,9 @@ h1,h2,h3{font-weight:600}
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     var pct = total ? Math.round(100 * ent / total) : 0;
     h += '<div class="card prog"><div style="font-size:14px;color:#4c6386;white-space:nowrap">Avance: <b style="font-size:18px;color:#0b2a55">' + pct + ' %</b></div><div style="flex:1;min-width:220px"><div class="bar' + (pct === 0 ? ' cero' : '') + '"><i style="width:' + pct + '%"></i></div></div></div>';
-    h += '<div class="grid">' + ps.map(tarjeta).join('') + '</div>';
+    var rango = function (p) { return p.modo === 'directo' ? 2 : (p.estado === 'pendiente' || p.estado === 'devuelta') && !p.noAplica ? 0 : 1; };   /* primero las que aún no se han cargado */
+    var orden = ps.map(function (p, i) { return { p: p, i: i }; }).sort(function (a, b) { return rango(a.p) - rango(b.p) || a.i - b.i; }).map(function (x) { return x.p; });
+    h += '<div class="grid">' + orden.map(tarjeta).join('') + '</div>';
     return h;
   }
 
