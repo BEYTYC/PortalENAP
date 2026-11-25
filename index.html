@@ -134,7 +134,7 @@
     min-width:0;
   }
   .navcats{ display:flex; align-items:stretch; gap:2px; flex-shrink:0; }
-  .nav-cred{ margin-left:auto; align-self:center; padding:0 14px; font-size:9px; font-style:italic; color:var(--text-muted); white-space:nowrap; }
+  .nav-cred{ display:none !important; margin-left:auto; align-self:center; padding:0 14px; font-size:10px; font-style:italic; color:var(--text-muted); white-space:nowrap; }
   @media (max-width:760px){ .nav-cred{ display:none; } }
   .nav-subsistema{
     display:none; align-items:center; justify-content:flex-end; gap:9px; padding:0 0 0 14px; border-left:1px solid var(--border);
@@ -464,7 +464,7 @@
   main:has(> #viewHome:not([hidden])) > .watermark{ display:none; }
   #viewHome{ width:100%; height:100%; align-self:stretch; position:relative; }
   /* Crédito fijo sobre el inicio del Centro de Datos (solo móvil) */
-  .cred-fijo{ display:none; }
+  .cred-fijo{ display:none !important; }
   @media (max-width:760px){ .navcat[data-key="secretaria"], .navcat[data-key="protocolos"]{ display:none !important; } }
   @media (max-width:760px){
     body:has(#viewHome:not([hidden])) .cred-fijo{ display:block; position:fixed; left:0; right:0; bottom:12px; z-index:20; text-align:center; font-size:9.5px; line-height:1.35; color:#4A5568; letter-spacing:.02em; pointer-events:none; }
@@ -506,16 +506,14 @@
   footer .right .line2{ font-size:10px; opacity:.85; margin-top:0; }
   footer .copyright{ display:block; font-size:10px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
-  /* Sin pie: el crédito "Desarrollado por" va en la barra del menú, junto al módulo */
-  footer{ display:none !important; }
-  /* Pie sin barra: solo los dos créditos, en gris pequeño con sombra blanca */
-  footer{ background:transparent !important; border-top:0 !important; box-shadow:none !important;
-    position:fixed !important; right:0; bottom:12px; left:auto; z-index:6; pointer-events:none;
-    justify-content:flex-end !important; padding:3px 14px !important; overflow:visible; }
+  /* Créditos abajo a la derecha: © de la Escuela Naval y «Desarrollado por», en una pastilla con el color del fondo y bordes suaves, por encima del contenido. */
+  footer{ background:var(--bg) !important; border:1px solid var(--border) !important; border-radius:14px !important;
+    box-shadow:0 2px 10px rgba(11,42,91,.08) !important; position:fixed !important; right:12px; bottom:10px; left:auto; width:auto !important;
+    z-index:60; pointer-events:none; justify-content:flex-end !important; padding:6px 14px !important; overflow:visible; }
   footer .deco, footer .footer-glow, footer .left{ display:none !important; }
   footer .right{ margin:0 !important; text-align:right !important; }
-  footer .right .line1{ text-align:right !important; color:#6B7686 !important; font-size:10px !important; line-height:1.3 !important;
-    text-shadow:0 1px 1px #fff, 0 0 3px #fff; opacity:1 !important; }
+  footer .right .line1{ text-align:right !important; color:#6B7686 !important; font-size:10px !important; line-height:1.35 !important; text-shadow:none !important; opacity:1 !important; }
+  footer .copyright{ display:none; }
 
   .toast-old{
     position:fixed; left:50%; bottom:22px; transform:translate(-50%, 20px); opacity:0;
