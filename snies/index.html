@@ -59,6 +59,7 @@ td{padding:9px 10px;border-top:1px solid #e3eaf2;vertical-align:top;font-size:13
 .inp:focus{border-color:#123a73;box-shadow:0 0 0 3px rgba(18,58,115,.14)}
 textarea.inp{resize:vertical;min-height:54px}
 .modal{position:fixed;inset:0;background:rgba(7,28,60,.35);display:flex;align-items:center;justify-content:center;z-index:20;padding:20px}
+.modal .card.ins{max-width:min(1240px,96vw);height:92vh;max-height:92vh;padding:0;gap:0;position:relative;overflow:hidden}.modal .card.ins iframe{border:0;width:100%;height:100%;display:block;background:#eef3f9}.modal .card.ins .x{position:absolute;top:10px;right:12px;z-index:2;width:34px;height:34px;border-radius:50%;border:1px solid #c6d6e8;background:#fff;color:#0b3d66;font-size:22px;line-height:1;cursor:pointer;box-shadow:0 2px 8px rgba(7,28,60,.15)}.modal .card.ins .x:hover{background:#eaf3fc}
 .modal .card{max-width:520px;width:100%;padding:20px 22px;display:flex;flex-direction:column;gap:12px}
 .err li{margin:4px 0}
 .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
@@ -118,6 +119,15 @@ h1,h2,h3{font-weight:600}
   }
   function modal(html) { var m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="card">' + html + '</div>'; document.body.appendChild(m); m.addEventListener('click', function (e) { if (e.target === m) m.remove(); }); return m; }
 
+  function verInstructivo(id) {
+    var m = document.createElement('div'); m.className = 'modal';
+    m.innerHTML = '<div class="card ins"><button class="x" aria-label="Cerrar" title="Cerrar">×</button><iframe src="instructivo.html?p=' + encodeURIComponent(id) + '" title="Instructivo de diligenciamiento"></iframe></div>';
+    var cerrar = function () { m.remove(); document.removeEventListener('keydown', esc27); };
+    var esc27 = function (e) { if (e.key === 'Escape') cerrar(); };
+    m.addEventListener('click', function (e) { if (e.target === m || e.target.className === 'x') cerrar(); });
+    document.addEventListener('keydown', esc27); document.body.appendChild(m);
+  }
+
   /* ---------------- Carga de datos ---------------- */
   function cargarSesion() {
     return api('sesion', S.verComo ? { verComo: S.verComo } : {}).then(function (d) { if (d.admin && d.usuarios) S.usuarios = d.usuarios; if (d.admin && !d.verComo) S.nombreReal = d.nombre; S.datos = d; if (!d.admin && S.vista !== 'mis') S.vista = 'mis'; });
@@ -150,7 +160,7 @@ h1,h2,h3{font-weight:600}
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
-    if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" target="_blank" rel="noopener">↗ Instructivo de diligenciamiento</a>';
+    if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" data-a="instructivo" data-id="' + p.id + '">↗ Instructivo de diligenciamiento</a>';
     if (p.anterior) links += '<a href="#" data-a="anterior" data-id="' + p.id + '" data-p="' + p.anterior + '">↓ Plantilla diligenciada ' + p.anterior + '</a>';
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:13px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
@@ -334,6 +344,7 @@ h1,h2,h3{font-weight:600}
     var b = e.target.closest('[data-a]'); if (!b || b.tagName === 'INPUT') return;
     var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
+    else if (a === 'instructivo') verInstructivo(id);
     else if (a === 'na') noAplica(id);
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
