@@ -52,9 +52,9 @@ const CON_ANTERIOR = new Set(['cupos-proyectados-y-matricula-esperada', 'informa
 const ofreceAnterior = (t) => CON_ANTERIOR.has(t.id) || ['INTERNACIONALIZACIÓN', 'INVESTIGACIÓN', 'EXTENSIÓN'].includes(t.grupo);
 
 const CUPOS = 'cupos-proyectados-y-matricula-esperada';
-/* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-1 (12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
-/* Periodo que se reporta: el semestre anterior al del ciclo (ciclo 2026-2 → 2026-1); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-1). */
-const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return anterior(periodo); const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-1` : `${a}-2`; };
+/* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-2 (lo pendiente a la fecha; el 2027-1 ya se reportó el 12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
+/* Periodo que se reporta: el semestre anterior al del ciclo (ciclo 2026-2 → 2026-1); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-2). */
+const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return anterior(periodo); const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-2` : `${a}-2`; };
 const TEMPLATES = MAESTRO.map((t) => {
   const sin = t.cargo === 'NA' || t.cargo === 'NO APLICA';
   const modo = sin ? 'sin' : t.cargo === 'PINO' ? 'directo' : 'carga';  /* directo = sube al SNIES con su propio usuario; solo recibe notificaciones */
