@@ -45,6 +45,14 @@
     {
       "source": "/snies",
       "destination": "/index.html"
+    },
+    {
+      "source": "/promedios",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/Promedios",
+      "destination": "/index.html"
     }
   ]
 }
