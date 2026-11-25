@@ -11,13 +11,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Instructivo de diligenciamiento — Plantillas SNIES</title>
 <style>
+@font-face{font-family:"AptosSB";src:local("Aptos SemiBold"),local("Aptos-SemiBold"),local("Aptos Display SemiBold"),local("Aptos-DisplaySemiBold");font-weight:600}
+:root{--sb:"AptosSB","Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI Semibold","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:500;color:#14233a;background:#eef3f9;font-size:15px;cursor:default}
+body{margin:0;font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:500;color:#14233a;background:#fbfcfe;font-size:15px;cursor:default}
 a,button,select,th,.chip{cursor:pointer}
-.mk{position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center 58%/min(520px,70vw) no-repeat;opacity:.05;pointer-events:none}
+.mk{position:fixed;inset:0;background:url(../assets/escudo-marca-agua-sm.webp) center 58%/min(520px,70vw) no-repeat;opacity:.025;pointer-events:none}
 .w{max-width:1180px;margin:0 auto;padding:18px 16px 36px;position:relative}
 .top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:4px}
-.top img{width:44px;height:44px;object-fit:contain}
+.top img{width:44px;height:44px;object-fit:contain;opacity:.45}
 h1{margin:0;font-size:21px;font-weight:600;color:#062a4a;flex:1;min-width:220px}
 select{font:inherit;font-size:14px;padding:8px 12px;border:1px solid #c6d6e8;border-radius:10px;background:#fff;color:#0b3d66;max-width:100%}
 .sub{color:#4c6386;font-size:14px;margin:2px 0 14px}
@@ -27,16 +29,16 @@ select{font:inherit;font-size:14px;padding:8px 12px;border:1px solid #c6d6e8;bor
 .hj button.on{background:#0b3d66;color:#fff;border-color:#0b3d66}
 .xl{overflow-x:auto;border:1px solid #cfdbea;border-radius:10px}
 table{border-collapse:collapse;min-width:100%}
-th{background:#0b3d66;color:#fff;font-size:11.5px;font-weight:600;padding:9px 12px;text-align:left;white-space:nowrap;border-right:1px solid #2a5d8a;transition:background .15s}
+th{background:#0b3d66;color:#fff;font-size:11.5px;font-weight:500;padding:9px 12px;text-align:left;white-space:nowrap;border-right:1px solid #2a5d8a;transition:background .15s}
 th:hover{background:#1f6fb2}th.on{background:#1f6fb2;box-shadow:inset 0 -3px 0 #f1d98a}
 th i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:#7fd6a6}
 th i.c{background:#f1c75b}th i.p{background:#b4c3d6}
 td{padding:9px 12px;font-size:12.5px;color:#4c6386;white-space:nowrap;border-right:1px solid #e3ecf6;background:#fbfdff;transition:background .15s}
-td.on{background:#fff6d6;color:#0b3d66;font-weight:600}
+td.on{background:#fff6d6;color:#0b3d66;font-weight:500}
 .hint{font-size:12.5px;color:#6b7d99;margin:8px 2px 0;display:flex;gap:14px;flex-wrap:wrap}
 .hint i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;background:#7fd6a6}.hint i.c{background:#f1c75b}.hint i.p{background:#b4c3d6}
 .det{margin-top:14px;border-radius:14px;background:#f3f8fd;border:1px solid #dbe8f5;padding:16px 18px;min-height:120px}
-.det h2{margin:0 0 4px;font-size:16px;color:#0b3d66;font-family:Consolas,monospace;font-weight:700;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.det h2{margin:0 0 4px;font-size:16px;color:#0b3d66;font-family:Consolas,monospace;font-weight:500;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .tag{font-family:inherit;font-size:11.5px;font-weight:600;padding:2px 10px;border-radius:999px}
 .to{background:#dff4e8;color:#17653f}.tc{background:#fdf0cc;color:#7a5200}.tp{background:#e6edf5;color:#4c6386}
 .q{font-size:15px;line-height:1.55;margin:6px 0 8px;color:#14233a}
@@ -45,7 +47,7 @@ td.on{background:#fff6d6;color:#0b3d66;font-weight:600}
 .v span{background:#fff;border:1px solid #d6e0ec;border-radius:9px;padding:4px 10px;font-size:13px}
 .v b{color:#0b3d66;font-family:Consolas,monospace}
 .vt{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#6b7d99;margin:10px 0 2px}
-.que{margin:0 0 12px;padding:12px 16px;border-radius:12px;background:#f3f8fd;border:1px solid #dbe8f5;font-size:14.5px;line-height:1.55;color:#14233a}.que b{color:#0b3d66}
+.que{white-space:pre-line;margin:0 0 12px;padding:12px 16px;border-radius:12px;background:#f3f8fd;border:1px solid #dbe8f5;font-size:14.5px;line-height:1.55;color:#14233a}.que b{color:#0b3d66;font-family:var(--sb);font-weight:600}
 .dv{margin-top:12px;padding-top:10px;border-top:1px dashed #cfdbea}
 .dv input{font:inherit;font-size:14px;padding:8px 12px;border:1px solid #c6d6e8;border-radius:10px;width:100%;max-width:380px;background:#fff;color:#14233a;outline:none}
 .dv ul{list-style:none;margin:8px 0 0;padding:0;max-height:210px;overflow:auto;display:flex;flex-direction:column;gap:4px;max-width:520px}
@@ -53,7 +55,9 @@ td.on{background:#fff6d6;color:#0b3d66;font-weight:600}
 .nav{display:flex;justify-content:space-between;gap:10px;margin-top:12px}
 .nav button{font:inherit;font-size:14px;padding:8px 16px;border-radius:10px;border:1px solid #c6d6e8;background:#fff;color:#0b3d66;transition:all .15s}
 .nav button:hover{background:#eaf3fc}
-.emb .top{padding-right:46px}.pie{font-size:12px;color:#6b7d99;margin-top:14px}
+.emb .top{padding-right:46px}.emb .w{max-width:1500px}.pie{font-size:12px;color:#6b7d99;margin-top:14px}
+h1,.tag{font-family:var(--sb);font-weight:600}
+b{font-weight:500}
 </style>
 </head>
 <body>
@@ -113,7 +117,7 @@ td.on{background:#fff6d6;color:#0b3d66;font-weight:600}
   function plantilla(id) {
     ID = id; el('sel').value = id; el('tt').textContent = D[id].n + ' · Cómo se diligencia'; document.title = D[id].n + ' — Instructivo de diligenciamiento';
     try { history.replaceState(null, '', '?p=' + encodeURIComponent(id)); } catch (e) {}
-    el('que').hidden = !D[id].r; el('que').innerHTML = D[id].r ? '<b>Qué se carga en esta plantilla:</b> ' + esc(D[id].r) : '';
+    el('que').hidden = !D[id].r; el('que').innerHTML = D[id].r ? '<b>Qué se carga en esta plantilla</b>\n' + esc(D[id].r) : '';
     hoja(Object.keys(D[id].h)[0]);
   }
   fetch('instructivos/datos.json').then(function (r) { return r.json(); }).then(function (d) {
