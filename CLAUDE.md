@@ -29,7 +29,7 @@ Los avisos de autoría de archivos y páginas no se eliminan ni se alteran (Ley 
 - Todo debe caber en pantalla; scroll solo si es necesario.
 - Escudo ENAP en todo, también como marca de agua tenue.
 - Cursor de flecha sobre texto; mano solo en lo que se puede pulsar.
-- Sin pie en el Portal (decisión de la autora, 24/11/2026): el crédito `Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.` va en la barra del menú, alineado a la derecha junto al módulo, en letra pequeña (25/11/2026); ya no se muestra el © de la Escuela Naval.
+- Créditos del Portal (decisión de la autora, 25/11/2026, reemplaza la del 24/11): abajo a la derecha, en una pastilla con el color del fondo y bordes suaves, siempre por encima del contenido: `© 2026 Escuela Naval de Cadetes "Almirante Padilla"` y `Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.` Ya no van en la barra del menú.
 - "Fuente: Oficina de Estadística" una sola vez por vista, no en cada tarjeta.
 
 ## Texto y datos
