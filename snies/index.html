@@ -141,7 +141,7 @@ h1,h2,h3{font-weight:600}
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
       zona = '';
     } else if (p.estado === 'pendiente') {
-      zona = '<div class="zone" style="border-color:#8da0b8">' + esc(p.bloqueo || (p.soyEntrega ? 'Aún no hay plantilla para cargar.' : 'La carga la hace el responsable de la entrega.')) + '</div>';
+      zona = '<div class="zone" style="border-color:#8da0b8">' + esc(p.bloqueo || 'Aún no hay plantilla para cargar.') + '</div>';
     } else {
       zona = '';
     }

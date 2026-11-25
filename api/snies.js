@@ -167,7 +167,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
     entregaTexto: textoEntrega(cfg, t.id),
-    puedeCargar: modo === 'carga' && entrega && depOk, soyEntrega: entrega, soyDiligencia: dil,
+    puedeCargar: modo === 'carga' && (entrega || dil) && depOk, soyEntrega: entrega, soyDiligencia: dil,
     bloqueo: dep && !depOk ? `Primero se entrega ${POR_ID[dep].nombre}.` : '',
     tieneOficial: !!cfg.oficiales[t.id], versionOficial: ((cfg.oficiales[t.id] || [])[0] || {}).version || 0,
     puedeVerAnterior: !!(e.anterior),
@@ -268,7 +268,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()), cc: Array.from(copiados) };
 }
 async function avisar(cfg, t, tipo, extra) {
-  const d = destinosDe(cfg, t.id), para = d.para, cc = tipo === 'dev' ? d.cc : [];
+  const d = destinosDe(cfg, t.id), para = d.para, cc = ['dev', 'ok', 'na'].includes(tipo) ? d.cc : [];
   if (!para.length) return false;
   await conocerNombres(cfg, para.concat(cc));
   const est = extra && extra.limite;
@@ -400,7 +400,7 @@ module.exports = async function handler(req, res) {
     const comoCorreo = admin ? String(body.verComo || '').trim().toLowerCase() : '';
     if (a === 'cargar') {
       const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false), porEstadistica = !!(admin && body.porEstadistica) && !comoCorreo, sinCorreo = !!comoCorreo || porEstadistica;
-      if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
+      if (!v.soyEntrega && !v.soyDiligencia && !admin) throw error('Usted no es responsable de la entrega ni del diligenciamiento de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se carga en el aplicativo.', 400);
       if (v.bloqueo && !admin) throw error(v.bloqueo, 409);
       const buf = Buffer.from(String(body.datos || ''), 'base64');
@@ -429,7 +429,7 @@ module.exports = async function handler(req, res) {
 
     if (a === 'no-aplica') {
       const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false);
-      if (!v.soyEntrega && !admin) throw error('Usted no es el responsable de la entrega de esta plantilla.', 403);
+      if (!v.soyEntrega && !v.soyDiligencia && !admin) throw error('Usted no es responsable de la entrega ni del diligenciamiento de esta plantilla.', 403);
       if (v.modo !== 'carga') throw error('Esta plantilla no se gestiona en el aplicativo.', 400);
       const [, correo] = await Promise.all([
         mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = true; x.archivo = ''; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: (comoCorreo ? `Estadística, en nombre de ${nombreDe(cfg, comoCorreo)}: ` : '') + 'Marcó la plantilla como No aplica: no se generaron registros. Pasa a En revisión.' }); }),
