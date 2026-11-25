@@ -2979,7 +2979,7 @@ class Component extends DCLogic {
       const ang = -Math.PI / 2 + i * 2 * Math.PI / modDefs.length;
       const x = ncx + nr * Math.cos(ang), y = ncy + nr * Math.sin(ang);
       linesD += 'M' + ncx + ',' + ncy + ' L' + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
-      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter(m[0]), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (1.7 + i * 0.32).toFixed(2) + 's' };
+      return { label: m[1], sub: m[2], dot: 'width:10px;height:10px;border-radius:50%;background:' + m[3] + ';box-shadow:0 0 0 4px ' + m[3] + '22;flex:none', go: enter('general'), style: 'left:' + x.toFixed(1) + 'px;top:' + y.toFixed(1) + 'px;transform:translate(-50%,-50%);animation-delay:' + (1.7 + i * 0.32).toFixed(2) + 's' };
     });
 
     // ---------- comparaciones "vs"
