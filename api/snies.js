@@ -287,6 +287,51 @@ async function avisar(cfg, t, tipo, extra) {
   return true;
 }
 
+/* ------------------------------ Validación del contenido (Manual de Validaciones por Plantilla V9.1) ------------------------------ */
+/* Reglas por hoja y columna sacadas del manual (api/_snies-reglas.json): o = obligatorio sin condición, t = tipo (n numérico, f fecha, x texto),
+   l = longitud máxima, v = valores permitidos, min0 = no negativo. Solo se aplican las que no dependen de otros campos ni de otras plantillas;
+   las condicionales y los cruces (p. ej. con Participante) quedan para una etapa siguiente. */
+const REGLAS = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
+const celdaVacia = (v) => v == null || (typeof v === 'string' && v.trim() === '');
+const textoCelda = (v) => typeof v === 'number' ? (Number.isInteger(v) ? String(v) : String(v)) : String(v == null ? '' : v).trim();
+function fechaValida(v) {
+  if (typeof v === 'number') return v >= 1 && v < 2958466;   /* fecha de Excel */
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(v).trim());
+  if (!m) return false;
+  const d = new Date(Date.UTC(+m[3], +m[2] - 1, +m[1]));
+  return d.getUTCFullYear() === +m[3] && d.getUTCMonth() === +m[2] - 1 && d.getUTCDate() === +m[1];
+}
+function revisarContenido(wb, t) {
+  const reglas = REGLAS[t.id]; if (!reglas) return [];
+  const hallazgos = [];   /* { hoja, col, msg, filas[] } */
+  for (const hoja of Object.keys(reglas)) {
+    if (!wb.hojas.includes(hoja)) continue;
+    const filas = wb.leer(hoja, { maxCols: 120 });
+    const enc = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase());
+    const cols = Object.keys(reglas[hoja]).map((c) => ({ c, i: enc.indexOf(c.toUpperCase()), r: reglas[hoja][c] })).filter((x) => x.i >= 0);
+    const malas = new Map();   /* clave hoja|col|msg -> filas */
+    const marca = (c, msg, n) => { const k = hoja + '|' + c + '|' + msg; if (!malas.has(k)) malas.set(k, { hoja, col: c, msg, filas: [] }); malas.get(k).filas.push(n); };
+    for (let r = 1; r < filas.length; r++) {
+      const f = filas[r] || [];
+      if (!f.some((c) => !celdaVacia(c))) continue;   /* fila en blanco: se ignora */
+      for (const { c, i, r: R } of cols) {
+        const v = f[i];
+        if (celdaVacia(v)) { if (R.o) marca(c, 'está vacía', r + 1); continue; }
+        const tx = textoCelda(v);
+        if (R.t === 'n' && !(typeof v === 'number' || /^-?\d+([.,]\d+)?$/.test(tx))) { marca(c, 'debe ser un número', r + 1); continue; }
+        if (R.t === 'f' && !fechaValida(v)) { marca(c, 'debe ser una fecha con formato dd/mm/aaaa', r + 1); continue; }
+        if (R.min0 && Number(String(v).replace(',', '.')) < 0) { marca(c, 'no puede ser negativo', r + 1); continue; }
+        if (R.l && R.t !== 'f' && !(R.t === 'n' && /[.,]/.test(tx)) && tx.replace(/^-/, '').length > R.l) { marca(c, `supera la longitud máxima de ${R.l} ${R.t === 'n' ? 'dígitos' : 'caracteres'}`, r + 1); continue; }
+        if (R.v && !R.v.includes(tx.toUpperCase())) marca(c, `tiene un valor no permitido (valores válidos: ${R.v.join(', ')})`, r + 1);
+      }
+    }
+    malas.forEach((x) => hallazgos.push(x));
+  }
+  const lista = (f) => f.length <= 6 ? f.join(', ') : f.slice(0, 6).join(', ') + ` y ${f.length - 6} más`;
+  const textos = hallazgos.map((h) => `Hoja ${h.hoja} · columna ${h.col} ${h.msg} (fila${h.filas.length > 1 ? 's' : ''} ${lista(h.filas)}).`);
+  return textos.length > 25 ? textos.slice(0, 25).concat(`Hay ${textos.length - 25} errores más; corrija estos y vuelva a cargar.`) : textos;
+}
+
 /* ------------------------------ Validación del archivo (estructura) ------------------------------ */
 const vacio = (v) => v == null || (typeof v === 'string' && v.trim() === '');
 function codigoInfo(wb) {
@@ -315,6 +360,7 @@ function revisarArchivo(buf, t, oficial) {
     }
     const conDatos = filas.slice(1).filter((f) => f.some((c) => !vacio(c)));
     if (!conDatos.length) errores.push('La plantilla no tiene filas diligenciadas. Si no hay registros en el semestre, use «No aplica».');
+    else if (!errores.length) { try { errores.push(...revisarContenido(wb, t)); } catch (e) { /* si una regla falla por un formato inesperado, no se bloquea la entrega por eso */ } }
   }
   return errores;
 }
@@ -531,4 +577,4 @@ module.exports = async function handler(req, res) {
   }
 };
 function anterior(p) { const [a, s] = p.split('-').map(Number); return s === 2 ? `${a}-1` : `${a - 1}-2`; }
-module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, TEMPLATES };
+module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, TEMPLATES };
