@@ -1755,6 +1755,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       authority: `https://login.microsoftonline.com/${TENANT_ID}`,
       redirectUri: BRIDGE_REDIRECT_URI,
       postLogoutRedirectUri: REDIRECT_URI,
+      navigateToLoginRequestUrl: false,   /* el login por redirección entra por /SNIES: no se vuelve a navegar a esa URL (dejaba el inicio de sesión «en curso») */
     },
     cache: { cacheLocation: 'sessionStorage', storeAuthStateInCookie: false },
   };
@@ -3153,7 +3154,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       // y procesarSesion() la completa con handleRedirectPromise(). En computador se mantiene la ventana emergente.
       if (esCelular()) {
         try { sessionStorage.setItem('PortalENAP_loginRedirect', '1'); } catch (_) {}
-        await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
+        try {
+          await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' });
+        } catch (e) {
+          if (e && e.errorCode === 'interaction_in_progress') { limpiarBanderaInteraccionColgada(); await instance.loginRedirect({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' }); }
+          else throw e;
+        }
         return;
       }
       const resultado = await conInteraccionMsalExclusiva(() => instance.loginPopup({ ...loginRequest, redirectUri: BRIDGE_REDIRECT_URI, prompt: 'select_account' }));
@@ -3209,6 +3215,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         mostrarCargando(false);
       }
     }
+    /* Sin respuesta de Microsoft pendiente no puede haber un inicio de sesión «en curso»: si quedó la marca de un intento anterior, se borra. */
+    if (!vieneDeRedireccion && !/[#&](code|error)=/.test(window.location.hash)) limpiarBanderaInteraccionColgada();
     const cuentas = instance.getAllAccounts();
     if (cuentas.length === 0) return;
     try {
@@ -3696,15 +3704,21 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     f.src = 'snies/index.html?embedded=1';
     f.dataset.cargado = '1';
   }
-  // Enlace directo: enap.vercel.app/SNIES abre el módulo apenas hay sesión iniciada.
-  if (/^\/snies\/?$/i.test(window.location.pathname)) {
+  // Enlace directo: enap.vercel.app/SNIES abre el módulo apenas hay sesión iniciada. El destino se recuerda en la pestaña
+  // porque, tras iniciar sesión (sobre todo en celular), Microsoft devuelve al inicio y se perdería la ruta.
+  (function () {
+    if (/^\/snies\/?$/i.test(window.location.pathname)) { try { sessionStorage.setItem('PortalENAP_destino', 'snies'); } catch (_) {} }
+    let destino = ''; try { destino = sessionStorage.getItem('PortalENAP_destino') || ''; } catch (_) {}
+    if (destino !== 'snies') return;
     let intentos = 0;
     const espera = setInterval(function () {
       intentos++;
-      if (window.PortalENAP && window.PortalENAP.sesion) { clearInterval(espera); abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }
-      else if (intentos > 240) clearInterval(espera);
+      if (window.PortalENAP && window.PortalENAP.sesion) {
+        clearInterval(espera);
+        setTimeout(function () { try { sessionStorage.removeItem('PortalENAP_destino'); } catch (_) {} abrirSubsistema('viewSnies', 'Plantillas SNIES'); cargarSnies(); }, 700);
+      } else if (intentos > 240) clearInterval(espera);
     }, 500);
-  }
+  })();
   function cargarBajas() {
     const f = document.getElementById('bajasFrame');
     if (f.dataset.cargado) return;
