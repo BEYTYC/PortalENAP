@@ -167,7 +167,7 @@ h1,h2,h3{font-weight:600}
     if (d.admin) {
       barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:600">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(nombreSaludo(d.verComo ? S.nombreReal || '' : d.nombre)) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Actúas en nombre de esta persona: lo que cargues queda a su nombre y no se le envía correo</span>' : '') + '</div>';
     }
-    var h = barra + '<div class="saludo"><h1>Hola, ' + esc(nombreSaludo(d.nombre)) + '</h1><div class="sub">Estas son las plantillas SNIES de tu responsabilidad · periodo ' + esc(d.periodo) + '</div></div>';
+    var h = barra;
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
     var pct = total ? Math.round(100 * ent / total) : 0;
     h += '<div class="card prog"><div style="font-size:14px;color:#4c6386;white-space:nowrap">Avance: <b style="font-size:18px;color:#0b2a55">' + pct + ' %</b></div><div style="flex:1;min-width:220px"><div class="bar' + (pct === 0 ? ' cero' : '') + '"><i style="width:' + pct + '%"></i></div></div></div>';
