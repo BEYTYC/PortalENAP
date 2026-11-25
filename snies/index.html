@@ -93,7 +93,7 @@ h1,h2,h3{font-weight:600}
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   /* El saludo muestra el nombre del login tal como viene (Nombres Apellidos), en mayúscula inicial, salvo artículos y preposiciones (de, del, la, y…). */
   function nombreSaludo(n) {
-    return String(n || '').trim().split(/\s+/).filter(Boolean).map(function (w, i) { var m = w.toLowerCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');
+    return String(n || '').trim().split(/\s+/).filter(Boolean).map(function (w, i) { var m = w.toLowerCase(); if (/^(cc|cf|cn|tn|tf|tk|ctcim|tecim|stcim|mycim|crcim|tccim)$/.test(m)) return m.toUpperCase(); return i > 0 && /^(de|del|la|las|los|el|y|e)$/.test(m) ? m : m.charAt(0).toUpperCase() + m.slice(1); }).join(' ');   /* la sigla de grado (CC, CF, TN…) va siempre en mayúscula */
   }
   function fecha(iso) { return iso ? iso.split('-').reverse().join('/') : ''; }
   function toast(t) { var d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.appendChild(d); setTimeout(function () { d.remove(); }, 3600); }
