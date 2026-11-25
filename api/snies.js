@@ -188,9 +188,9 @@ async function enviarCorreo(para, asunto, html, cc) {
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items, colDias, periodo }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
-  items = items || (plantillas || []).map((n) => ({ nombre: n, fecha, entrega, periodo }));
+  items = items || (plantillas || []).map((n, k) => ({ nombre: n, id: (ids || [])[k], fecha, entrega, periodo }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
   const logo = base + 'assets/escudo.png', boton = base + 'assets/boton-abrir-portal.png';
   const P = (t) => `<p style="font-size:14.5px;color:#334155;margin:0 0 10px">${t}</p>`;
@@ -199,7 +199,7 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, fecha, filas: items, 
   const entregas = Array.from(new Set(items.map((i) => i.entrega || 'Por asignar')));
   const conPeriodo = items.some((i) => i.periodo);
   const variasEntregas = entregas.length > 1;   /* si todas comparten responsable de la entrega, va en una línea; si no, en una columna */
-  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${conPeriodo ? `<td style="${td};white-space:nowrap">${esc(i.periodo || '')}</td>` : ''}${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
+  const filas = items.map((i) => `<tr><td style="${td}">${esc(i.nombre)}${i.id ? `<br><a href="${esc(base)}snies/instructivos/${esc(i.id)}.pdf" target="_blank" style="font-size:12.5px;color:#1b4c92">Instructivo de diligenciamiento</a>` : ''}</td><td style="${td};white-space:nowrap">${esc(i.fecha || '—')}</td>${conPeriodo ? `<td style="${td};white-space:nowrap">${esc(i.periodo || '')}</td>` : ''}${colDias ? `<td style="${td};white-space:nowrap">${esc(i.dias || '')}</td>` : ''}${variasEntregas ? `<td style="${td}">${esc(i.entrega || 'Por asignar')}</td>` : ''}</tr>`).join('');
   const datos = (filas ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d6e0ec;border-radius:10px;border-collapse:separate;overflow:hidden;margin:4px 0 14px"><tr><td style="${th}">Nombre de la plantilla</td><td style="${th}">Fecha límite</td>${conPeriodo ? `<td style="${th}">Periodo que se reporta</td>` : ''}${colDias ? `<td style="${th}">${esc(colDias)}</td>` : ''}${variasEntregas ? `<td style="${th}">Responsable de la entrega</td>` : ''}</tr>${filas}</table>` : '')
     + (variasEntregas ? '' : P(`<b>Responsable de la entrega:</b> ${esc(entregas[0] || 'Por asignar')}`));
   return `<div style="background:#f4f6f8;padding:24px 0;font-family:Aptos,'Segoe UI',Arial,sans-serif;color:#212529">
@@ -251,7 +251,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
     for (const c of d.para) {
       if (opc.soloCorreos && !opc.soloCorreos.includes(c)) continue;
       if (!porCorreo.has(c)) porCorreo.set(c, []);
-      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, periodo: periodoReporte(t, periodo), fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
+      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, id: t.id, periodo: periodoReporte(t, periodo), fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id), dias: v.dias == null ? '' : v.dias < 0 ? `Venció hace ${-v.dias} ${v.dias === -1 ? 'día' : 'días'}` : v.dias === 0 ? 'Vence hoy' : `${v.dias} ${v.dias === 1 ? 'día' : 'días'}` }, posgrados: t.posgrados });
     }
   }
   let correos = 0, fallos = 0;
@@ -288,7 +288,7 @@ async function avisar(cfg, t, tipo, extra) {
     dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
-  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo) }), cc);
+  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo) }), cc);
   return true;
 }
 
