@@ -507,9 +507,12 @@
   footer .copyright{ display:block; font-size:10px; color:var(--navy-300); margin-top:2px; }
   @media (max-width:720px){ footer{ display:none !important; } }
   /* Créditos abajo a la derecha: © de la Escuela Naval y «Desarrollado por», en una pastilla con el color del fondo, sin borde visible y con el contorno difuminado hacia transparente, por encima del contenido. */
-  footer{ background:var(--bg) !important; border:0 !important; border-radius:14px !important;
-    box-shadow:0 0 12px 9px var(--bg) !important; position:fixed !important; right:12px; bottom:10px; left:auto; width:auto !important;
+  footer{ background:transparent !important; border:0 !important; box-shadow:none !important; position:fixed !important; right:12px; bottom:10px; left:auto; width:auto !important;
     z-index:60; pointer-events:none; justify-content:flex-end !important; padding:6px 14px !important; overflow:visible; }
+  /* El fondo de la pastilla toma el color de lo que haya detrás (desenfoque) y se desvanece hacia los bordes. */
+  footer::before{ content:""; position:absolute; inset:-14px -22px; z-index:0; pointer-events:none;
+    -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px);
+    -webkit-mask-image:radial-gradient(ellipse closest-side,#000 62%,transparent 100%); mask-image:radial-gradient(ellipse closest-side,#000 62%,transparent 100%); }
   footer .deco, footer .footer-glow, footer .left{ display:none !important; }
   footer .right{ margin:0 !important; text-align:right !important; }
   footer .right .line1{ text-align:right !important; color:#6B7686 !important; font-size:10px !important; line-height:1.35 !important; text-shadow:none !important; opacity:1 !important; }
