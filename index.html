@@ -3200,7 +3200,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       try { sessionStorage.removeItem('PortalENAP_loginRedirect'); } catch (_) {}
       mostrarCargando(true);
       try {
-        const r = await instance.handleRedirectPromise();
+        const r = await instance.handleRedirectPromise({ navigateToLoginRequestUrl: false });   /* MSAL v5 lee esta opción aquí (no en la configuración): se procesa la respuesta en esta misma página, sin volver a navegar a la URL donde empezó el login */
         if (r && r.account) {
           const sesion = await obtenerRolesUsuario(r.account);
           window.PortalENAP.sesion = sesion;
@@ -3209,6 +3209,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           mostrarVistasSegunSesion(sesion);
           return;
         }
+        limpiarBanderaInteraccionColgada();
       } catch (error) {
         limpiarBanderaInteraccionColgada();
         mostrarError(mensajeErrorGraph(error));
