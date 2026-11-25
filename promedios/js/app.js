@@ -336,37 +336,60 @@
     var fin = new DataView(new ArrayBuffer(22)); fin.setUint32(0, 0x06054b50, true); fin.setUint16(8, fs.length, true); fin.setUint16(10, fs.length, true); fin.setUint32(12, tc, true); fin.setUint32(16, off, true);
     return new Blob(partes.concat(cen, [fin]), { type: 'application/zip' });
   }
+  var ABIERTOS = {};
+  function bajarZip(items, nombre) {
+    var fs = [], i = 0, usados = {};
+    gate(true, 'Preparando el ZIP 1 de ' + items.length + '…');
+    (function sig() {
+      if (i >= items.length) {
+        var z = zipSimple(fs), l = document.createElement('a'); l.href = URL.createObjectURL(z); l.download = nombre + '.zip'; l.click(); gate(false); toast('ZIP descargado (' + fs.length + ').'); return;
+      }
+      var it = items[i++]; gate(true, 'Preparando el ZIP ' + i + ' de ' + items.length + '…');
+      api('descargar', { codigo: it.codigo }).then(function (r) {
+        var n = (r.archivo || (it.codigo + '.pdf')).replace(/[\\/:*?"<>|]/g, ''), k = n, c = 1; while (usados[k]) k = n.replace(/(\.pdf)?$/, ' (' + (++c) + ').pdf'); usados[k] = 1;
+        var bin = atob(r.pdf), u = new Uint8Array(bin.length); for (var j = 0; j < bin.length; j++) u[j] = bin.charCodeAt(j);
+        fs.push({ n: k, d: u }); sig();
+      }).catch(function (er) { gate(false); toast(er.message || 'No se pudo preparar el ZIP.'); });
+    })();
+  }
   function pintarConsulta(lista, q) {
-    var x = N.norm(q), vis = lista.filter(function (r) { return !x || N.norm(r.apellidos + ' ' + r.nombres + ' ' + r.cedula + ' ' + r.sigla + ' ' + r.codigo).indexOf(x) >= 0; }).reverse();
-    var emit = vis.filter(function (r) { return r.estado === 'emitido'; }), nEmit = emit.length;
-    var filas = vis.map(function (r) {
-      var e = ESTADOS[r.estado] || ['rev', r.estado], lk = 'font-size:12px;color:#0b3d66;font-weight:600;white-space:nowrap;cursor:pointer';
-      return '<div class="r rl"><b>' + esc((r.apellidos + ' ' + r.nombres).trim() || '(por validar)') + '</b><span class="rl-s">' + esc(r.sigla || r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><span class="rl-c" style="font-size:12px;color:#566370;white-space:nowrap">' + esc(r.codigo) + ' · ' + new Date(r.fecha).toLocaleDateString('es-CO') + '</span>' +
-        '<div style="display:flex;align-items:center;gap:12px;white-space:nowrap"><span class="chip ' + e[0] + (r.estado === 'emitido' ? ' rl-k' : '') + '">' + e[1] + '</span>' + (r.estado === 'emitido' ? '<a href="#" data-pdf="' + r.codigo + '" style="' + lk + '"><span class="rl-l">Descargar </span>PDF</a><a href="#" data-reenv="' + r.codigo + '" style="' + lk + '">Reenviar<span class="rl-l"> lote</span></a>' : '') + '</div></div>';
+    var x = N.norm(q), grupos = {}, orden = [];
+    lista.forEach(function (r) {   /* una emisión (lote) agrupa los certificados que se cargaron juntos; sin lote, cada día */
+      var id = r.lote && r.lote.id ? r.lote.id : 'dia-' + String(r.fecha || '').slice(0, 10);
+      if (!grupos[id]) { grupos[id] = { id: id, todos: [], vis: [], t: r.fecha }; orden.push(id); }
+      var G = grupos[id]; G.todos.push(r); if (r.fecha && (!G.t || r.fecha < G.t)) G.t = r.fecha;
+      if (!x || N.norm(r.apellidos + ' ' + r.nombres + ' ' + r.cedula + ' ' + r.sigla + ' ' + r.codigo).indexOf(x) >= 0) G.vis.push(r);
+    });
+    var gl = orden.map(function (id) { return grupos[id]; }).filter(function (G) { return G.vis.length; }).sort(function (A, B) { return String(B.t).localeCompare(String(A.t)); });
+    var lk = 'font-size:12px;color:#0b3d66;font-weight:600;white-space:nowrap;cursor:pointer';
+    var html = gl.map(function (G) {
+      var emit = G.todos.filter(function (r) { return r.estado === 'emitido'; }), rev = G.todos.filter(function (r) { return r.estado === 'revision'; }).length;
+      var abierto = !!x || !!ABIERTOS[G.id], d = new Date(G.t);
+      var cab = '<div class="lg" data-tog="' + esc(G.id) + '"><span class="lgc">' + (abierto ? '▾' : '▸') + '</span><b>' + d.toLocaleDateString('es-CO') + ' <span class="lgh">' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) + '</span></b>' +
+        '<span class="lgn">' + G.todos.length + (G.todos.length === 1 ? ' certificado' : ' certificados') + (rev ? ' · ' + rev + ' en revisión' : '') + '</span>' +
+        '<span class="lga">' + (emit.length ? '<a href="#" data-zip="' + esc(G.id) + '" style="' + lk + '">ZIP</a><a href="#" data-reenv="' + emit[0].codigo + '" style="' + lk + '">Reenviar</a>' : '') + '</span></div>';
+      var filas = !abierto ? '' : G.vis.slice().reverse().map(function (r) {
+        var e = ESTADOS[r.estado] || ['rev', r.estado];
+        return '<div class="r rl"><b>' + esc((r.apellidos + ' ' + r.nombres).trim() || '(por validar)') + '</b><span class="rl-s">' + esc(r.sigla || r.programa) + '</span><span style="font-variant-numeric:tabular-nums;font-weight:600">' + (r.promedio != null ? Number(r.promedio).toFixed(3) : '—') + '</span><span class="rl-c" style="font-size:12px;color:#566370;white-space:nowrap">' + esc(r.codigo) + '</span>' +
+          '<div style="display:flex;align-items:center;gap:12px;white-space:nowrap"><span class="chip ' + e[0] + (r.estado === 'emitido' ? ' rl-k' : '') + '">' + e[1] + '</span>' + (r.estado === 'emitido' ? '<a href="#" data-pdf="' + r.codigo + '" style="' + lk + '"><span class="rl-l">Descargar </span>PDF</a>' : '') + '</div></div>';
+      }).join('');
+      return '<div class="lgw">' + cab + (abierto ? '<div class="lgb">' + filas + '</div>' : '') + '</div>';
     }).join('');
-    vista(cab('Certificados de promedio', 'Promedios generados', 'Un certificado emitido no se repite: si hay un error, la corrección la hace la Oficina de Estadística.') +
-      '<div style="margin-top:14px;display:flex;gap:10px;align-items:center"><input class="inp" id="q" placeholder="Buscar por nombre, cédula, sigla o código" value="' + esc(q) + '">' + (nEmit > 1 ? '<button class="btn sec" id="bzip" style="white-space:nowrap">ZIP de todos</button>' : '') + '</div>' +
-      '<div style="overflow:auto;min-height:0;margin-top:8px">' + (filas || '<div class="vac">No hay certificados que coincidan.</div>') + '</div><div style="margin-top:14px">' + volver() + '</div>');
+    vista(cab('Certificados de promedio', 'Promedios generados', 'Cada emisión agrupa los certificados que se cargaron juntos. Un certificado emitido no se repite: si hay un error, la corrección la hace la Oficina de Estadística.') +
+      '<div style="margin-top:14px"><input class="inp" id="q" placeholder="Buscar por nombre, cédula, sigla o código" value="' + esc(q) + '"></div>' +
+      '<div style="overflow:auto;min-height:0;margin-top:8px">' + (html || '<div class="vac">No hay certificados que coincidan.</div>') + '</div><div style="margin-top:14px">' + volver() + '</div>');
     $('bvolver').onclick = inicio; var qi = $('q'); qi.oninput = function () { var p = qi.selectionStart; pintarConsulta(lista, qi.value); $('q').focus(); $('q').setSelectionRange(p, p); };
-    if ($('bzip')) $('bzip').onclick = function () {
-      var fs = [], i = 0, usados = {};
-      gate(true, 'Preparando el ZIP 1 de ' + emit.length + '…');
-      (function sig() {
-        if (i >= emit.length) {
-          var z = zipSimple(fs), l = document.createElement('a'); l.href = URL.createObjectURL(z); l.download = 'Certificados de promedio.zip'; l.click(); gate(false); toast('ZIP descargado (' + fs.length + ').'); return;
-        }
-        var it = emit[i++]; gate(true, 'Preparando el ZIP ' + i + ' de ' + emit.length + '…');
-        api('descargar', { codigo: it.codigo }).then(function (r) {
-          var n = (r.archivo || (it.codigo + '.pdf')).replace(/[\\/:*?"<>|]/g, ''), k = n, c = 1; while (usados[k]) k = n.replace(/(\.pdf)?$/, ' (' + (++c) + ').pdf'); usados[k] = 1;
-          var bin = atob(r.pdf), u = new Uint8Array(bin.length); for (var j = 0; j < bin.length; j++) u[j] = bin.charCodeAt(j);
-          fs.push({ n: k, d: u }); sig();
-        }).catch(function (er) { gate(false); toast(er.message || 'No se pudo preparar el ZIP.'); });
-      })();
-    };
+    document.querySelectorAll('[data-tog]').forEach(function (h) { h.onclick = function (e) { if (e.target.closest('a')) return; ABIERTOS[h.dataset.tog] = !ABIERTOS[h.dataset.tog]; pintarConsulta(lista, qi.value); }; });
+    document.querySelectorAll('[data-zip]').forEach(function (a) {
+      a.onclick = function (e) {
+        e.preventDefault(); var G = grupos[a.dataset.zip], it = G.todos.filter(function (r) { return r.estado === 'emitido'; }), d = new Date(G.t);
+        bajarZip(it, 'Certificados de promedio ' + d.toLocaleDateString('es-CO').replace(/\//g, '-'));
+      };
+    });
     document.querySelectorAll('[data-reenv]').forEach(function (a) {
       a.onclick = function (e) {
         e.preventDefault();
-        confirmarModal('Reenviar lote', 'Se enviarán de nuevo, al correo con el que se cargó, todos los certificados emitidos de este lote.', 'Reenviar', function () {
+        confirmarModal('Reenviar lote', 'Se enviarán de nuevo, al correo con el que se cargó, todos los certificados emitidos de esta emisión.', 'Reenviar', function () {
           gate(true, 'Reenviando…');
           api('reenviar-lote', { codigo: a.dataset.reenv }).then(function (r) { gate(false); toast(r.enviados ? 'Lote reenviado a ' + r.a + ' (' + r.enviados + ').' : 'No hay certificados para reenviar.'); }).catch(function (er) { gate(false); toast(er.message || 'No se pudo reenviar.'); });
         });
