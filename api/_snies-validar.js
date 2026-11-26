@@ -171,6 +171,27 @@ function revisarContenido(wb, t, ctx) {
       }
     }
 
+    /* 5b. Código de la unidad organizacional: para esta institución es siempre 01010101 (si Excel le quitó el cero inicial se acepta como 1010101). */
+    if (idx['CODIGO_UNIDAD_ORGANIZACIONAL'] != null && t.id !== 'unidad-organizacional') {
+      for (const r of filasDatos) {
+        const v = filas[r][idx['CODIGO_UNIDAD_ORGANIZACIONAL']]; if (vacia(v)) continue;
+        if (txt(v).replace(/\D/g, '').replace(/^0+/, '') !== '1010101' || /\D/.test(txt(v))) err(nombre, r + 1, 'CODIGO_UNIDAD_ORGANIZACIONAL', 'debe ser 01010101 (código de la unidad organizacional de la institución)');
+      }
+    }
+    /* 5c. Fechas escritas como texto (por ejemplo «21/08/2026» alineado a la izquierda): deben ser fechas reales de Excel. */
+    for (const c of Object.keys(idx)) {
+      if (!/^FECHA_/.test(c)) continue;
+      for (const r of filasDatos) { const v = filas[r][idx[c]]; if (typeof v === 'string' && v.trim() !== '' && fechaNum(v) != null) err(nombre, r + 1, c, 'está escrita como texto; debe ser una fecha real de Excel (dd/mm/aaaa)'); }
+    }
+    /* 5d. Eventos y actividades: las fechas deben caer dentro del semestre que se reporta (1: 01/01–30/06; 2: 01/07–31/12). */
+    if (['evento-cultural', 'actividad-cultural', 'actividad-de-bienestar'].includes(t.id) && anioRep && semRep) {
+      const ini = serialDe(anioRep, semRep === 1 ? 1 : 7, 1), fin = serialDe(anioRep, semRep === 1 ? 6 : 12, semRep === 1 ? 30 : 31);
+      for (const c of ['FECHA_INICIO', 'FECHA_FINAL']) {
+        if (idx[c] == null) continue;
+        for (const r of filasDatos) { const x = fechaNum(filas[r][idx[c]]); if (x != null && (x < ini || x > fin)) err(nombre, r + 1, c, `debe estar dentro del semestre ${ctx.periodoRep} (${fechaTxt(ini)} a ${fechaTxt(fin)})`); }
+      }
+    }
+
     /* 6. Fechas y números comparados con otra columna */
     for (const [a, op, b] of COMPARACIONES) {
       if (idx[a] == null || idx[b] == null) continue;
