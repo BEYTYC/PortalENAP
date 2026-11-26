@@ -29,7 +29,7 @@ Los avisos de autoría de archivos y páginas no se eliminan ni se alteran (Ley 
 - Todo debe caber en pantalla; scroll solo si es necesario.
 - Escudo ENAP en todo, también como marca de agua tenue.
 - Cursor de flecha sobre texto; mano solo en lo que se puede pulsar.
-- Créditos del Portal (decisión de la autora, 25/11/2026): solo `Desarrollado por PD02 Beyty P. Camargo M. | Oficina de Estadística`, en la barra del menú al lado de los módulos. Sin copyright y sin créditos abajo a la derecha.
+- Créditos del Portal (decisión de la autora, 25/11/2026): solo `Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.`, en la barra del menú al lado de los módulos. Sin copyright y sin créditos abajo a la derecha.
 - "Fuente: Oficina de Estadística" una sola vez por vista, no en cada tarjeta.
 
 ## Texto y datos
