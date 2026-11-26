@@ -3718,9 +3718,12 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   function cargarSnies() {
     const f = document.getElementById('sniesFrame');
     if (f.dataset.cargado) return;
-    f.src = 'snies/index.html?embedded=1';
+    let nov = ''; try { nov = sessionStorage.getItem('PortalENAP_novedades') || ''; sessionStorage.removeItem('PortalENAP_novedades'); } catch (_) {}
+    f.src = 'snies/index.html?embedded=1' + (nov ? '&novedades=' + encodeURIComponent(nov) : '');
     f.dataset.cargado = '1';
   }
+  // El enlace del correo de novedades (enap.vercel.app/SNIES?novedades=<plantilla>) se recuerda en la pestaña hasta que haya sesión y el módulo cargue.
+  (function () { try { const n = new URLSearchParams(window.location.search).get('novedades'); if (n && /^[a-z0-9-]+$/i.test(n)) sessionStorage.setItem('PortalENAP_novedades', n); } catch (_) {} })();
   // Enlace directo: enap.vercel.app/SNIES y enap.vercel.app/promedios abren el módulo apenas hay sesión iniciada. El destino se recuerda
   // en la pestaña porque, tras iniciar sesión (sobre todo en celular), Microsoft devuelve al inicio y se perdería la ruta.
   (function () {
