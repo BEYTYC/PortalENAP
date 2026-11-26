@@ -161,7 +161,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
           </div>
           <div class="sec">CAUSA DEL RETIRO</div>
           <div class="g">
-            <div class="req s2"><label for="ca">Primera causal de retiro</label><select class="field" id="ca"><option value="">Seleccione</option><option>CONSEJO ACADÉMICO</option><option>CONSEJO DISCIPLINARIO</option><option>APTITUD NAVAL</option><option>SOLICITUD PROPIA</option><option>APTITUD PSICOFÍSICA</option></select></div>
+            <div class="req s2"><label for="ca">Primera causal de retiro</label><select class="field" id="ca"><option value="">Seleccione</option><option>CONSEJO ACADÉMICO</option><option>CONSEJO DISCIPLINARIO</option><option>APTITUD NAVAL</option><option>SOLICITUD PROPIA</option><option>APTITUD PSICOFÍSICA</option><option>CULTURA FÍSICA</option></select></div>
             <div class="s4"><label for="ob">Observación</label><input class="field" id="ob" placeholder="Opcional"></div>
           </div>
           <div style="height:10px"></div>
@@ -258,7 +258,7 @@ function pick(i){var d=EST[i];SEL=d;document.body.classList.add('sel');$('list')
   $('sxw').classList.toggle('need',!d.sx);$('sxh').style.display=d.sx?'none':'block';
   ['gr','cu','ai','fi','na','si','co','ca'].forEach(function(k){if(!$(k).value)$(k).parentElement.classList.add('need')});
   $('fill').querySelector('.fb').scrollTop=0}
-function limpiar(){SEL=null;document.body.classList.remove('sel');$('fill').style.display='none';$('empty').style.display='grid';$('q').value='';render('')}
+function limpiar(){var eraEdit=!!EDIT;if(EDIT){salirEdicion()}SEL=null;document.body.classList.remove('sel');$('fill').style.display='none';$('empty').style.display='grid';$('q').value='';render('');if(eraEdit)irTab('pend')}
 
 document.addEventListener('input',function(e){var p=e.target.closest&&e.target.closest('.req');if(p&&e.target.value)p.classList.remove('err','need');if(e.target.id==='sx')$('sxh').style.display=e.target.value?'none':'block'});
 document.addEventListener('change',function(e){var p=e.target.closest&&e.target.closest('.req');if(p&&e.target.value)p.classList.remove('err','need');if(e.target.id==='sx')$('sxh').style.display=e.target.value?'none':'block'});
@@ -275,6 +275,11 @@ $('save').onclick=function(){var n=0,faltan=[];
   var datos={};['ap','no','ce','sx','si','co','ai','fi','na','cu','gr','ca','ob'].forEach(function(k){datos[k]=$(k).value.trim()});
   var b=$('save');b.disabled=true;banner('');
   var nom=datos.ap+' '+datos.no;
+  if(EDIT){resModal('work','Guardando cambios…','Un momento, por favor.');
+    api('editar',{id:EDIT.id,datos:datos}).then(function(r){cargarPend();
+      resModal('ok','Cambios guardados','<b>'+esc(nom)+'</b><br>'+(r.excel?'Se actualizó la fila en Bajas y Ascensos.':'Se actualizó en el Portal; se escribirá en el Excel con el registro pendiente.'),function(){limpiar()})})
+    .catch(function(e){resModal('err','No se pudieron guardar los cambios',esc(e.message),null,detalleErr(e,'Estudiante: C.C. '+datos.ce+' · '+datos.cu))})
+    .then(function(){b.disabled=false});return}
   resModal('work','Registrando baja…','Un momento, por favor.');
   api('registrar',{datos:datos}).then(function(r){
     EST=EST.filter(function(x){return x!==SEL});EST.forEach(function(x,i){x._i=i});
@@ -287,6 +292,20 @@ function resModal(est,t,m,fin,det){RFIN=fin||null;$('rdet').style.display=det?'b
 $('rcop').onclick=function(){var t=$('rdet').textContent;try{navigator.clipboard.writeText(t).then(function(){$('rcop').textContent='Copiado'})}catch(_){var r=document.createRange();r.selectNodeContents($('rdet'));var g=getSelection();g.removeAllRanges();g.addRange(r)}};
 $('rbtn').onclick=function(){$('ovr').classList.remove('on');var f=RFIN;RFIN=null;if(f)f()};
 
+/* ---------- editar una baja ya registrada ---------- */
+var EDIT=null;
+function irTab(t){var b=document.querySelector('.tab[data-t="'+t+'"]');if(b)b.click()}
+function editar(id){var p=ALL.find(function(x){return x.id===id});if(!p)return;EDIT=p;var d=p.datos;
+  irTab('reg');SEL=d;document.body.classList.add('sel');$('list').classList.remove('on');
+  $('empty').style.display='none';$('fill').style.display='flex';
+  $('fname').textContent=d.ap+' '+d.no;$('fsub').textContent='C.C. '+d.ce+(d.co?' · '+d.co:'')+' · Editando baja registrada';
+  ['ap','no','ce','na','si','co','ai','fi','cu','sx','gr','ca','ob'].forEach(function(k){$(k).value=d[k]||''});
+  var c=p.calc||{};$('pr').value=(c.siglas?c.siglas+' · ':'')+(c.programa||'');
+  Array.prototype.forEach.call(document.querySelectorAll('#fill .err,#fill .need'),function(x){x.classList.remove('err','need')});
+  $('sxh').style.display='none';document.querySelector('#fill .badge').textContent='Editando';$('save').textContent='Guardar cambios';
+  $('fill').querySelector('.fb').scrollTop=0}
+function salirEdicion(){EDIT=null;document.querySelector('#fill .badge').textContent='Activo';$('save').textContent='Registrar baja'}
+
 /* ---------- pendientes ---------- */
 var ALL=[];
 function cargarPend(){return api('registros').then(function(r){ALL=r.lista||[];if(r.errorExcel)banner('No se pudo leer Bajas y Ascensos para buscar pendientes: '+r.errorExcel);PEND=ALL.filter(function(x){return x.estado!=='completo'});pintarPend()}).catch(function(e){$('tb').innerHTML='<tr><td colspan="7" class="vac">'+esc(e.message)+'</td></tr>'})}
@@ -294,10 +313,11 @@ function pintarPend(){$('npend').textContent=PEND.length;
   var L=PEND.slice().sort(function(a,b){return (b.dias||0)-(a.dias||0)}).concat(ALL.filter(function(x){return x.estado==='completo'}));
   $('tb').innerHTML=L.length?L.map(function(p){var d=p.datos,ok=p.estado==='completo';
     var ex=p.origen==='excel';var est=ok?'<span class="d" style="background:var(--okbg);color:var(--ok)">Completo</span>':ex?'<span class="d o" title="Cargada en el Excel, sin fecha o documento de retiro">Sin resolución</span>':'<span class="d '+(p.dias>=5?'w':'o')+'">'+p.dias+' día'+(p.dias===1?'':'s')+'</span>';
-    var acc=(ok?'':'<button class="btn btn-p addres" style="padding:7px 14px;font-size:13px" data-id="'+esc(p.id)+'">Añadir resolución</button> ')+(ex?'':'<button class="btn btn-g undo" style="padding:7px 14px;font-size:13px;margin:0" data-id="'+esc(p.id)+'">Deshacer</button>');
+    var acc=(ok?'':'<button class="btn btn-p addres" style="padding:7px 14px;font-size:13px" data-id="'+esc(p.id)+'">Añadir resolución</button> ')+(ex?'':'<button class="btn btn-g edit" style="padding:7px 14px;font-size:13px;margin:0 6px 0 0" data-id="'+esc(p.id)+'">Editar</button><button class="btn btn-g undo" style="padding:7px 14px;font-size:13px;margin:0" data-id="'+esc(p.id)+'">Deshacer</button>');
     return '<tr'+(ok?' style="color:var(--mut)"':'')+'><td><b style="font-weight:600">'+esc(d.ap+' '+d.no)+'</b>'+(p.excel?'':'<div style="font-size:11px;color:var(--warn)" title="'+esc(p.errorExcel||'')+'">Aún no está en el Excel; se reintenta automáticamente</div>')+(ok&&p.documento?'<div style="font-size:11px">'+esc(p.documento)+'</div>':'')+'</td><td>'+esc(d.ce)+'</td><td>'+esc(d.cu)+'</td><td>'+esc(d.ca)+'</td><td>'+(ex?'Excel · '+esc(p.periodo||''):fdmy(p.fecha))+'</td><td>'+est+'</td><td style="text-align:right;white-space:nowrap">'+acc+'</td></tr>'}).join('')
     :'<tr><td colspan="7" class="vac">No hay retiros pendientes de resolución.</td></tr>';
   Array.prototype.forEach.call(document.querySelectorAll('.addres'),function(b){b.onclick=function(){abrirRes(b.dataset.id)}});
+  Array.prototype.forEach.call(document.querySelectorAll('.edit'),function(b){b.onclick=function(){editar(b.dataset.id)}});
   Array.prototype.forEach.call(document.querySelectorAll('.undo'),function(b){b.onclick=function(){abrirUndo(b.dataset.id)}})}
 var UNDO=null;
 function abrirUndo(id){var p=ALL.find(function(x){return x.id===id});if(!p)return;UNDO=p;var d=p.datos;

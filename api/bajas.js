@@ -44,7 +44,7 @@ const DUENO = 'jestadisticaplen@enap.edu.co';
 const AVISAR_A = 'sea@enap.edu.co';
 const PORTAL_URL = process.env.PORTAL_URL || 'https://enap.vercel.app/';
 const CARPETA = 'Bajas';
-const CAUSALES = ['CONSEJO ACADÉMICO', 'CONSEJO DISCIPLINARIO', 'APTITUD NAVAL', 'SOLICITUD PROPIA', 'APTITUD PSICOFÍSICA'];
+const CAUSALES = ['CONSEJO ACADÉMICO', 'CONSEJO DISCIPLINARIO', 'APTITUD NAVAL', 'SOLICITUD PROPIA', 'APTITUD PSICOFÍSICA', 'CULTURA FÍSICA'];
 const GRADOS = ['ASP', 'CD', 'GM', 'ALF'];
 const DIAS_AVISO_BAJA = 5;
 const DIAS_AVISO_ASCENSO = 30;
@@ -645,7 +645,40 @@ module.exports = async function handler(req, res) {
       let extra = [];
       let errExcel = null;
       try { extra = await pendientesExcel(regs); } catch (e) { errExcel = e.message; }
-      res.status(200).json({ errorExcel: errExcel, lista: extra.concat(regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) }))) });
+      res.status(200).json({ errorExcel: errExcel, lista: extra.concat(regs.slice().reverse().slice(0, 200).map((r) => ({ id: r.id, fecha: r.fecha, por: r.por, datos: r.datos, excel: r.excel, calc: r.calc, estado: r.estado, documento: r.documento || null, fechaRetiro: r.fechaRetiro || null, errorExcel: r.errorExcel || null, dias: diasDesde(r.fecha) }))) });
+      return;
+    }
+
+    if (a === 'editar') {
+      const regs = (await leerJson('registros.json')) || [];
+      const r = regs.find((x) => x.id === body.id);
+      if (!r) throw error('No se encontró el registro. Si es un retiro cargado directamente en el Excel, corríjalo en el Excel.', 404);
+      const datos = validarDatos(body.datos || {});
+      if (cedKey(datos.ce) !== cedKey(r.datos.ce) && regs.some((x) => x.id !== r.id && x.estado !== 'completo' && cedKey(x.datos.ce) === cedKey(datos.ce))) throw error('Esa cédula ya tiene otro retiro pendiente de resolución.', 409);
+      const baj = await fuente('bajas', procesarBajas);
+      const calc = programaDe(datos.cu, datos.si, baj.H8);
+      if (r.excel) {
+        const it = await bajasXlsx();
+        const fila = await filaDeBaja(it, r.datos.ce, r.fila);
+        if (!fila) throw error('No se encontró la fila de este retiro en Bajas y Ascensos (búsqueda por cédula).', 404);
+        const base = hojaUrl(it, HOJA_BAJAS);
+        const rg = (c1, c2) => `${base}/range(address='${c1}${fila}:${c2}${fila}')`;
+        const cur = (await gj(`${rg('A', 'W')}?$select=values`, null, 'Bajas')).values[0];
+        if (sinTildes(cur[4]) !== sinTildes(`${r.datos.ap} ${r.datos.no}`)) throw error(`La fila ${fila} del Excel tiene otro nombre (${cur[4]}); no se modificó nada. Corríjalo directamente en el Excel.`, 409);
+        const put = (rango, valores, etiqueta) => gj(rango, { method: 'PATCH', body: { values: [valores] } }, etiqueta);
+        await put(rg('C', 'L'), [datos.si, datos.co, `${datos.ap} ${datos.no}`.trim(), numCed(datos.ce), datos.ai ? +datos.ai || datos.ai : '', serialDe(datos.fi), cur[8], datos.sx, datos.na, datos.cu], 'Editar datos en Bajas');
+        const cM = rg('M', 'M');
+        try { await gj(cM, { method: 'PATCH', body: { numberFormat: [['@']] } }, 'Formato texto'); } catch (e) { /* opcional */ }
+        await put(cM, [String(calc.sinLetra || '')], 'Editar CURSO SIN LETRA');
+        await put(rg('N', 'N'), [datos.gr], 'Editar grado');
+        await put(rg('S', 'U'), [calc.siglas, calc.programa, datos.ca], 'Editar programa y causal');
+        await put(rg('W', 'W'), [datos.ob || ''], 'Editar observación');
+        r.fila = fila;
+      }
+      r.datos = datos; r.calc = calc;
+      (r.ediciones = r.ediciones || []).push({ fecha: ahora(), por: yo.correo });
+      await escribirJson('registros.json', regs);
+      res.status(200).json({ ok: true, excel: !!r.excel });
       return;
     }
 
