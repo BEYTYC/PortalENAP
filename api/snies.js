@@ -290,7 +290,7 @@ async function avisar(cfg, t, tipo, extra) {
     r7: ['Recordatorio SNIES · faltan 7 días', `Le recordamos amablemente que faltan 7 días para la fecha límite de entrega de la siguiente plantilla.${nota}`],
     r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de la siguiente plantilla.${nota}`],
     venc: ['Plantilla SNIES vencida', 'El plazo de entrega de la siguiente plantilla ya venció. Le agradecemos enviarla lo antes posible para evitar hallazgos en la Auditoría.'],
-    ok: ['Plantilla recibida · está al día con el SNIES', 'Hemos recibido su plantilla. ¡Muchas gracias! Quedó En revisión por la Oficina de Estadística.'],
+    ok: ['Plantilla recibida', 'Hemos recibido su plantilla y la Oficina de Estadística la validó. ¡Muchas gracias! No debe hacer nada más.'],
     na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
     dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
@@ -486,7 +486,7 @@ module.exports = async function handler(req, res) {
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
         mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
-        sinCorreo ? Promise.resolve(false) : avisar(cfg, t, 'ok', { limite: v.limite, periodo }).then(() => true, () => false),
+        Promise.resolve(false),   /* al cargar no se envía correo al responsable: «Plantilla recibida» sale solo cuando se valida (decisión de la autora, 26/11/2026) */
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
       res.status(200).json({ ok: true, correo }); return;
@@ -550,7 +550,11 @@ module.exports = async function handler(req, res) {
       if (nuevo === 'devuelta' && !motivo) throw error('Escriba qué debe corregir el responsable.', 400);
       await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla: ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
-      try { if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: vista(t, cfg, est, periodo, '', false).limite });   /* al validar no se envía correo (decisión de la autora, 24/11/2026) */ } catch (e) { correo = false; }
+      try {
+        const lim = vista(t, cfg, est, periodo, '', false).limite;
+        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim });
+        else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
+      } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
     }
     if (a === 'enviar-correo') {   /* envío individual: solicitud (o recordatorio / vencida / devuelta) a los responsables de una plantilla */
