@@ -11,7 +11,7 @@ con su login Microsoft.
 - El inicio público se ve idéntico al de Concesiones: mismo fondo, mismo cuadro, mismo
   tamaño de tarjetas, encabezado "OFICINA DE ESTADÍSTICA" y botón Resoluciones.
 - Pie solo en la pantalla de inicio: © 2026 Escuela Naval de Cadetes "Almirante Padilla"
-  y debajo, en cursiva, "Desarrollado por PD02 Beyty P. Camargo M. | Oficina de Estadística".
+  y debajo, en cursiva, "Desarrollado por la Oficina de Estadística | PD02 Beyty P. Camargo M.".
 - Las tarjetas de comprobante de pago y formato de entrega aparecen solo después de
   agregar al menos un certificado. "Siguiente" en azul fuerte; gris si no hay certificado.
 - La autorización de datos (Ley 1581) va en una tarjeta. "Volver al inicio" arriba a la
