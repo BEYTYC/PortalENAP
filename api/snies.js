@@ -341,7 +341,7 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
     let valor = String(c.v == null ? '' : c.v).trim(), numero = null;
     if (R.t === 'n' && /^-?\d+([.,]\d+)?$/.test(valor)) numero = valor.replace(',', '.');
     else if (R.t === 'f') { const f = VALIDAR.fechaNum(valor); if (f != null && !/^\d+$/.test(valor)) { if (c.num) numero = String(f); } }
-    ops.push({ hoja: h, fila, col: ci, valor, numero });
+    ops.push({ hoja: h, fila, col: ci, valor, numero, fecha: R.t === 'f' && numero != null });
   }
   for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 2) (del[h] = del[h] || []).push(fila); }
   return aplicarXlsx(buf, { cambios: ops, borrar: del });
