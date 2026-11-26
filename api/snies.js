@@ -167,7 +167,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const entrega = r.entrega.includes(yo), dil = r.diligencia.includes(yo);
   const o = {
     id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: periodoReporte(t, periodo), maestroSin: t.modo === 'sin', posgrados: t.posgrados,
-    estado, noAplica: !!e.noAplica, novedades: !!e.novedades, motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
+    estado, noAplica: !!e.noAplica, novedades: !!e.novedades, adjunto: e.adjunto || '', motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
     entregaTexto: textoEntrega(cfg, t.id),
@@ -182,12 +182,18 @@ function vista(t, cfg, est, periodo, yo, admin) {
 }
 
 /* ------------------------------ Correo ------------------------------ */
-async function enviarCorreo(para, asunto, html, cc) {
+async function enviarCorreo(para, asunto, html, cc, adjuntos) {
   const mensaje = { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: para.map((a) => ({ emailAddress: { address: a } })) };
   if (cc && cc.length) mensaje.ccRecipients = cc.map((a) => ({ emailAddress: { address: a } }));
+  if (adjuntos && adjuntos.length) mensaje.attachments = adjuntos.map((x) => ({ '@odata.type': '#microsoft.graph.fileAttachment', name: x.nombre, contentType: 'application/octet-stream', contentBytes: x.datos }));
   const r = await g(`/users/${encodeURIComponent(REMITENTE)}/sendMail`, { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
+/* Documento adjunto a una devolución (por ejemplo, un Excel con los errores marcados): se guarda en OneDrive junto a las entregas. */
+const MAX_ADJUNTO = 3 * 1024 * 1024;
+const nombreAdjunto = (n) => limpio(String(n || 'adjunto').split(/[\\/]/).pop().replace(/[\\/:*?"<>|]/g, ''), 80) || 'adjunto';
+const rutaAdjunto = (periodo, id, nombre) => rutaOd(`${periodo}/devoluciones/${id} - ${nombre}`);
+async function adjuntoDe(periodo, id, e) { if (!e || !e.adjunto) return []; const b = await leerBin(rutaAdjunto(periodo, id, e.adjunto)); return b ? [{ nombre: e.adjunto, datos: b.toString('base64') }] : []; }
 /* Aviso a la Oficina de Estadística cuando un responsable carga una plantilla (o declara «No aplica»). Si falla, no impide la entrega. */
 async function avisarEstadistica(cfg, t, v, periodo, quien, noAplica) {
   const hecho = noAplica ? 'declaró que <b>no hay registros</b> (No aplica) en' : 'cargó';
@@ -280,7 +286,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   }
   return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()), cc: Array.from(copiados) };
 }
-async function avisar(cfg, t, tipo, extra) {
+async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, datos}] se anexan al correo */
   const d = destinosDe(cfg, t.id), para = d.para, cc = ['dev', 'ok', 'na'].includes(tipo) ? d.cc : [];
   if (!para.length) return false;
   await conocerNombres(cfg, para.concat(cc));
@@ -294,11 +300,11 @@ async function avisar(cfg, t, tipo, extra) {
     ok: ['Plantilla recibida', 'Hemos recibido su plantilla y la Oficina de Estadística la validó. ¡Muchas gracias! No debe hacer nada más.'],
     na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
     dev: extra && extra.novedades
-      ? ['Hay novedades en su plantilla', `La Oficina de Estadística revisó la información de su plantilla y encontró novedades: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.`]
-      : ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
+      ? ['Hay novedades en su plantilla', `La Oficina de Estadística revisó la información de su plantilla y encontró novedades: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores.' : ''}`]
+      : ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores; también lo encuentra en el módulo.' : ''}`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
-  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo), urlAbrir: extra && extra.novedades ? PORTAL_URL.split('?')[0] + '?novedades=' + encodeURIComponent(t.id) : '', textoAbrir: 'Abrir las novedades' }), cc);
+  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo), urlAbrir: extra && extra.novedades ? PORTAL_URL.split('?')[0] + '?novedades=' + encodeURIComponent(t.id) : '', textoAbrir: 'Abrir las novedades' }), cc, extra && extra.adjuntos);
   return true;
 }
 
@@ -487,13 +493,22 @@ module.exports = async function handler(req, res) {
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.novedades = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.novedades = false; x.adjunto = ''; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
         Promise.resolve(false),   /* al cargar no se envía correo al responsable: «Plantilla recibida» sale solo cuando se valida (decisión de la autora, 26/11/2026) */
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }
 
+    if (a === 'adjunto-descargar') {   /* documento que la Oficina adjuntó al devolver la plantilla */
+      const t = buscar(body.id);
+      if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
+      const e = est[t.id];
+      if (!e || !e.adjunto) throw error('Esta plantilla no tiene documento adjunto.', 404);
+      const buf = await leerBin(rutaAdjunto(periodo, t.id, e.adjunto));
+      if (!buf) throw error('No se encontró el documento en OneDrive.', 404);
+      res.status(200).json({ nombre: e.adjunto, datos: buf.toString('base64') }); return;
+    }
     if (a === 'novedades') {   /* abre el archivo guardado con novedades para corregirlo en pantalla (responsable de la plantilla o administrador) */
       const t = buscar(body.id);
       if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
@@ -561,11 +576,18 @@ module.exports = async function handler(req, res) {
       if (!ESTADOS.includes(nuevo)) throw error('Estado inválido.', 400);
       const motivo = limpio(body.motivo, 800);
       if (nuevo === 'devuelta' && !motivo) throw error('Escriba qué debe corregir el responsable.', 400);
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla: ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
+      let adj = null;
+      if (nuevo === 'devuelta' && body.adjunto && body.adjunto.datos) {
+        const bufA = Buffer.from(String(body.adjunto.datos), 'base64');
+        if (!bufA.length || bufA.length > MAX_ADJUNTO) throw error('El documento adjunto está vacío o pesa más de 3 MB.', 400);
+        adj = { nombre: nombreAdjunto(body.adjunto.nombre), buf: bufA };
+        await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
+      }
+      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
-        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim });
+        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
         else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
@@ -576,7 +598,7 @@ module.exports = async function handler(req, res) {
       if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
       const r = respDe(cfg, t.id), para = destinosDe(cfg, t.id).para;
       if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
-      if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo, novedades: !!(est[t.id] && est[t.id].novedades) }); res.status(200).json({ ok: true, para }); return; }
+      if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo, novedades: !!(est[t.id] && est[t.id].novedades), adjuntos: await adjuntoDe(periodo, t.id, est[t.id]).catch(() => []) }); res.status(200).json({ ok: true, para }); return; }
       /* Cada responsable de la plantilla recibe un solo correo con todas sus plantillas pendientes. */
       const g = await avisarPorResponsable(cfg, est, periodo, v.vencida ? 'venc' : 'apertura', { soloCorreos: para });
       if (!g.correos) throw error('No se pudo enviar el correo.', 502);
