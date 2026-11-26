@@ -13,7 +13,7 @@ Gestión, seguimiento y control de la entrega de las plantillas de los reportes 
 - Educación continua y Cursos: las facultades envían su parte a posgrados@enap.edu.co y Posgrados centraliza y entrega (aviso en la tarjeta y en los correos).
 
 ## Estados
-Pendiente (rojo), Devuelta (rojo), En revisión (amarillo), Validada (verde). «No aplica» es una marca aparte (el responsable declara que no hubo registros; la plantilla pasa a En revisión). «Vencida» es una alerta, no un estado. Solo Estadística pasa a Validada o Devuelta; al devolver debe escribir las novedades y el responsable las ve en la app y por correo.
+Pendiente (gris; si está vencida, rojo), Devuelta (rojo), En revisión (amarillo), Validada (verde). «No aplica» es una marca aparte (el responsable declara que no hubo registros; la plantilla pasa a En revisión). «Vencida» es una alerta, no un estado. Solo Estadística pasa a Validada o Devuelta; al devolver debe escribir las novedades y el responsable las ve en la app y por correo.
 
 ## Fechas
 - Fecha oficial SNIES por plantilla y semestre: las cuatro fechas del Documento Maestro (`api/_snies-maestro.json`); 1.er semestre usa la 2.ª fecha, 2.º semestre la 4.ª. Se repiten cada año, automáticamente. **Pendiente de confirmar contra la Resolución 9573 del MEN.**
@@ -54,7 +54,7 @@ Validación celda por celda (reglas de la matriz V2.2 y el Manual V9.1), correcc
 
 ## Quién carga (24/11/2026)
 - La plantilla la puede cargar (o marcar «No aplica») tanto el responsable de la **entrega** como el del **diligenciamiento**; cualquiera de los dos. El permiso se verifica en el servidor.
-- Los correos de recepción («recibida» y «No aplica») van al responsable de la entrega con copia a quien diligencia.
+- El correo «Plantilla recibida» (sin «está al día») se envía solo cuando la Oficina de Estadística **valida** la plantilla; al cargarla y quedar En revisión no se envía ningún correo al responsable (decisión de la autora, 26/11/2026). El de «No aplica» sí sale al registrarlo. Ambos van al responsable de la entrega con copia a quien diligencia.
 
 ## Validación del contenido (24/11/2026)
 - Al cargar, además de la estructura se revisa el contenido celda por celda con las reglas del Manual de Validaciones por Plantilla V9.1 (`api/_snies-reglas.json`, generado del manual y de las plantillas oficiales).
