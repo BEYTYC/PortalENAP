@@ -157,7 +157,7 @@ function revisarContenido(wb, t, ctx) {
     /* 0. Filas en blanco (la autora, 27/11/2026): una fila vacía dentro de los datos (o después de ellos) también la rechaza el SNIES; hay que eliminarla. Solo en hojas que tienen al menos un registro. */
     if (filasDatos.length) {
       const conDatos = new Set(filasDatos); let nb = 0;
-      for (let r = 1; r < filas.length && nb < 200; r++) if (!conDatos.has(r)) { err(nombre, r + 1, '(fila)', 'fila en blanco: elimínela (los registros deben ir seguidos, sin filas vacías)'); nb++; }
+      for (let r = 1 + (H.arriba || []).length; r < filas.length && nb < 200; r++) if (!conDatos.has(r)) { err(nombre, r + 1, '(fila)', 'fila en blanco: elimínela (los registros deben ir seguidos, sin filas vacías)'); nb++; }
     }
 
     /* 1. Reglas del manual por columna */
@@ -452,7 +452,7 @@ function detalleVisor(res) {
     const cols = pos.map((i) => H.cols[i]), errs = porHoja[h] || new Map();
     const llena = (row) => row && pos.some((i) => row[i] != null && String(row[i]).trim() !== '');
     const arr = H.arriba || [], todas = [];
-    for (let n = 1; n <= H.filas.length; n++) { if (n <= arr.length) { if (errs.has(n)) todas.push(n); } else if (n >= 2 && (llena(H.filas[n - 1]) || errs.has(n))) todas.push(n); }
+    for (let n = 1; n <= H.filas.length; n++) { if (n <= arr.length) { if (errs.has(n)) todas.push(n); } else if (n >= 2 && n !== arr.length + 1 && (llena(H.filas[n - 1]) || errs.has(n))) todas.push(n); }
     const tope = Math.max(150, Math.floor(60000 / cols.length));
     let elegidas = todas;
     if (todas.length > tope) {

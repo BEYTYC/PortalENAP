@@ -109,3 +109,7 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 
 ## Retiro anterior al periodo (27/11/2026)
 - Si FECHA_RETIRO es anterior al primer día del periodo que se reporta (01/01 en el semestre 1, 01/07 en el 2), la fila es error: esa persona no debe reportarse y se elimina la fila. Aplica a toda hoja con columna FECHA_RETIRO (grupos, redes, proyectos, centros). Un retiro dentro del periodo es válido.
+
+## Cambios del 27/11/2026 (2)
+- El visor no muestra la fila del encabezado cuando hay filas de más encima: la regla de filas en blanco ya no cuenta esa posición.
+- Botón «↻ Actualizar» arriba a la derecha (todas las vistas): vuelve a leer los datos sin reiniciar el Portal.

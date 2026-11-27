@@ -477,11 +477,12 @@ b[style*="#14233a"]{font-weight:500}
   function pintar() {
     var d = S.datos, tabs = '<div class="tabs"><button class="tab' + (S.vista === 'mis' ? ' on' : '') + '" data-v="mis">Mis plantillas</button>';
     if (d.admin) tabs += '<button class="tab' + (S.vista === 'panel' ? ' on' : '') + '" data-v="panel">Panel de Estadística</button><button class="tab' + (S.vista === 'resp' ? ' on' : '') + '" data-v="resp">Responsables</button><button class="tab' + (S.vista === 'oficiales' ? ' on' : '') + '" data-v="oficiales">Plantillas oficiales</button>';
-    tabs += '</div>';
+    tabs += '<button class="btn sec sm" id="actual" style="margin-left:auto" title="Trae los cambios más recientes (cargues, devoluciones, validaciones) sin reiniciar">↻ Actualizar</button></div>';
     var sy = window.scrollY;   /* al filtrar o repintar, la pantalla no salta */
     app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : ''));
     document.getElementById('ld').hidden = !(S.vista !== 'mis' && !S.admin);
     window.scrollTo(0, sy);   /* el Cargando sale solo al inicio o si faltan datos */
+    var ac = document.getElementById('actual'); if (ac) ac.onclick = function () { ac.disabled = true; ac.textContent = 'Actualizando…'; refrescar().then(function () { toast('Actualizado.'); }).catch(function (e) { ac.disabled = false; ac.textContent = '↻ Actualizar'; toast(e.message); }); };
     var f = document.getElementById('filtro'); if (f) f.oninput = function () { S.filtro = f.value; var pos = f.selectionStart; pintar(); var n = document.getElementById('filtro'); n.focus(); n.setSelectionRange(pos, pos); };
   }
 
