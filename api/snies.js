@@ -428,55 +428,72 @@ function normalizarUnidad(buf, t) {
   } catch (e) { return buf; }
 }
 /* Cruce informativo con Participante (la autora, 27/11/2026): lista los documentos que aparecen en una entrega y no están en la entrega de Participante. Se compara solo el número de documento (sin puntos, espacios ni ceros a la izquierda). No bloquea y solo lo ve Estadística. */
-function cruceParticipantes(bufT, t, bufP, extra) {
+function cruceParticipantes(bufT, t, bufP, base) {
   const norm = (v) => String(v == null ? '' : v).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '');
+  const sinT = (v) => String(v == null ? '' : v).normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim();
+  const claveNombre = (partes) => { const tk = partes.map(sinT).join(' ').split(' ').filter(Boolean); return tk.length >= 3 ? tk.sort().join(' ') : ''; };   /* mismo nombre sin importar el orden de nombres y apellidos */
+  const normTipo = (v) => String(v == null ? '' : v).trim().toUpperCase().replace(/[^A-Z]/g, '');
   /* Se revisan TODAS las pestañas: en cada una se busca el encabezado del número de documento (en las primeras filas) y se leen todas sus filas, aunque la pestaña o la columna no sean de la plantilla oficial. */
   const esNum = (c) => /^(NUM|NUMERO|NÚMERO)[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N|CEDULA|CÉDULA)\w*$|^(DOCUMENTO|CEDULA|CÉDULA)$/.test(c), esTipo = (c) => /^(ID_)?TIPO[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N)\w*$/.test(c);
+  const NOM = ['PRIMER_NOMBRE', 'SEGUNDO_NOMBRE', 'PRIMER_APELLIDO', 'SEGUNDO_APELLIDO'];
   const docs = (buf) => {
     const wb = abrir(buf), out = [];
     for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
       const filas = wb.leer(h, { maxCols: 200 }) || [];
-      let e = -1, iN = -1, iT = -1;
+      let e = -1, iN = -1, iT = -1, iNom = [];
       for (let r = 0; r < Math.min(8, filas.length) && e < 0; r++) {
         const enc = (filas[r] || []).map((x) => String(x == null ? '' : x).trim().toUpperCase().replace(/\s+/g, ' '));
-        const k = enc.findIndex(esNum); if (k >= 0) { e = r; iN = k; iT = enc.findIndex(esTipo); }
+        const k = enc.findIndex(esNum); if (k >= 0) { e = r; iN = k; iT = enc.findIndex(esTipo); iNom = NOM.map((c) => enc.indexOf(c)).filter((x) => x >= 0); }
       }
       if (e < 0) continue;
       for (let r = e + 1; r < filas.length; r++) {
         const n = norm((filas[r] || [])[iN]); if (!n) continue;
-        out.push({ hoja: h, fila: r + 1, tipo: iT < 0 ? '' : String((filas[r] || [])[iT] || '').trim(), num: String((filas[r] || [])[iN]).trim(), k: n });
+        out.push({ hoja: h, fila: r + 1, tipo: iT < 0 ? '' : String((filas[r] || [])[iT] || '').trim(), num: String((filas[r] || [])[iN]).trim(), k: n, nom: iNom.length ? claveNombre(iNom.map((x) => (filas[r] || [])[x])) : '' });
       }
     }
     return out;
   };
-  const part = new Set(extra || []); if (bufP) docs(bufP).forEach((x) => part.add(x.k));
-  const mios = docs(bufT), faltan = mios.filter((x) => !part.has(x.k));
+  /* Participantes: base del SNIES cargada (documento, tipo y nombre) y, si existe, la entrega de Participante. */
+  const porDoc = new Map(), porNombre = new Map();
+  const poner = (k, tipo, nom) => { if (!porDoc.has(k)) porDoc.set(k, new Set()); if (tipo) porDoc.get(k).add(normTipo(tipo)); if (nom) { if (!porNombre.has(nom)) porNombre.set(nom, []); porNombre.get(nom).push({ k, tipo }); } };
+  if (base) { if (Array.isArray(base.filas) && base.filas.length) base.filas.forEach((f) => poner(f[0], f[1], f[2])); else (base.docs || []).forEach((k) => poner(k, '', '')); }
+  if (bufP) docs(bufP).forEach((x) => poner(x.k, x.tipo, x.nom));
+  const mios = docs(bufT), faltan = [];
+  for (const x of mios) {
+    const tipos = porDoc.get(x.k);
+    if (tipos) { if (x.tipo && tipos.size && !tipos.has(normTipo(x.tipo))) faltan.push(Object.assign({}, x, { clase: 'tipo', msg: `El tipo de documento ${x.tipo} no coincide con el registrado para este número (${[...tipos].join(' / ')}). Verifique el tipo de documento.` })); continue; }
+    const par = x.nom && porNombre.get(x.nom);
+    if (par && par.length) faltan.push(Object.assign({}, x, { clase: 'nombre', msg: `El nombre aparece registrado con el documento ${par[0].k}${par[0].tipo ? ' (' + par[0].tipo + ')' : ''}. Verifique el número y el tipo de documento cargados.` }));
+    else faltan.push(Object.assign({}, x, { clase: 'ausente', msg: 'El número y el tipo de documento no aparecen registrados en la base de datos de la institución. Verifique que sean correctos.' }));
+  }
   const vistos = new Set(), unicos = [];
-  for (const x of faltan) { const c = x.hoja + '|' + x.k; if (vistos.has(c)) continue; vistos.add(c); unicos.push({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num }); }
-  return { revisados: new Set(mios.map((x) => x.k)).size, participantes: part.size, faltan: unicos.slice(0, 500), total: unicos.length, filas: faltan.slice(0, 2000) };
+  for (const x of faltan) { const c = x.hoja + '|' + x.k; if (vistos.has(c)) continue; vistos.add(c); unicos.push({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num, clase: x.clase, msg: x.msg }); }
+  const cuenta = { ausente: 0, tipo: 0, nombre: 0 }; unicos.forEach((x) => { cuenta[x.clase]++; });
+  return { revisados: new Set(mios.map((x) => x.k)).size, participantes: porDoc.size, faltan: unicos.slice(0, 500), total: unicos.length, cuenta, filas: faltan.slice(0, 2000) };
 }
 
 const MSG_CRUCE = 'El número de cédula no aparece registrado en la base de datos de la institución.';
-/* Filas de la entrega cuyo documento no está en Participantes (o [] si no hay con qué cruzar). */
+/* Filas de la entrega cuyo documento no coincide con Participantes (o [] si no hay con qué cruzar). */
 async function faltantesParticipante(periodo, est, t, buf) {
   if (SIN_CRUCE.has(t.id)) return [];
   const base = (await leerJson('participantes-base.json')).valor, ep = est.participante;
   const bufP = ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null;
   if (!base && !bufP) return [];
-  return cruceParticipantes(buf, t, bufP, base && base.docs).filas;
+  return cruceParticipantes(buf, t, bufP, base).filas;
 }
-/* Pone en el detalle del visor las cédulas que faltan: como candidatas (cr) para Estadística, o como error normal si ya fueron elegidas. */
-function mezclarCruce(detalle, filas, elegidas, comoCandidatas) {
-  if (!detalle || !filas.length) return detalle;
-  const sel = new Set(elegidas || []);
+/* Pone en el detalle del visor las cédulas que no coinciden con Participantes. Estadística elige UN caso para toda la plantilla:
+   «verificar» (el número o el tipo de documento pueden estar mal) o «ausente» (la persona de verdad no está registrada).
+   Para Estadística (vista previa) van como candidatas (cr) con los dos textos; para el responsable, solo el caso elegido, como error normal. */
+function mezclarCruce(detalle, filas, modo, comoCandidatas) {
+  if (!detalle || !filas.length || (!comoCandidatas && !['verificar', 'ausente'].includes(modo))) return detalle;
   for (const h of detalle.hojas) {
     const colDoc = h.cols.find((c) => /^(NUM|NUMERO|NÚMERO)[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N|CEDULA|CÉDULA)\w*$/i.test(c));
     if (!colDoc) continue;
     h.cand = 0;
     for (const f of h.filas) {
-      if (!filas.some((x) => x.hoja === h.nombre && x.fila === f.n)) continue;
-      if (comoCandidatas) { f.e.push({ c: colDoc, m: MSG_CRUCE, cr: true }); h.cand++; }
-      else if (sel.has(h.nombre + '|' + f.n)) { f.e.push({ c: colDoc, m: MSG_CRUCE }); }
+      const x = filas.find((y) => y.hoja === h.nombre && y.fila === f.n); if (!x) continue;
+      if (comoCandidatas) { f.e.push({ c: colDoc, cr: true, k: x.clase, m1: x.msg, m2: MSG_CRUCE }); h.cand++; }
+      else f.e.push({ c: colDoc, m: modo === 'ausente' ? MSG_CRUCE : x.msg });
     }
     h.total = h.filas.filter((f) => f.e.some((x) => !x.cr)).length;
   }
@@ -497,7 +514,7 @@ async function actualizarCruce(periodo, ids, bufs) {
     const t = POR_ID[id], e = est[id]; if (!t || SIN_CRUCE.has(id) || !e || !e.archivo || e.noAplica) continue;
     try {
       const b = (bufs && bufs[id]) || await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) continue;
-      const c = cruceParticipantes(b, t, bufP, base && base.docs); res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
+      const c = cruceParticipantes(b, t, bufP, base); res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
     } catch (x) { /* si un archivo no se puede leer, no se marca nada */ }
   }
   if (Object.keys(res).length) await mutar(`estado-${periodo}.json`, () => ({}), (st) => { for (const id of Object.keys(res)) { const x = st[id] = st[id] || {}; x.cruce = res[id]; } });
@@ -652,7 +669,7 @@ module.exports = async function handler(req, res) {
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.novedades = false; x.adjunto = ''; x.archivo = nombre; x.cruceNov = []; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.novedades = false; x.adjunto = ''; x.archivo = nombre; x.cruceModo = ''; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
         Promise.resolve(false),   /* al cargar no se envía correo al responsable: «Plantilla recibida» sale solo cuando se valida (decisión de la autora, 26/11/2026) */
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
@@ -680,7 +697,7 @@ module.exports = async function handler(req, res) {
       buf = normalizarUnidad(buf, t);   /* correcciones automáticas también en archivos guardados antes */
       const errores = revisarArchivo(buf, t, oficial, periodo, true);
       const falt = await faltantesParticipante(periodo, est, t, buf).catch(() => []);
-      if (errores.detalle) mezclarCruce(errores.detalle, falt, e.cruceNov, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
+      if (errores.detalle) mezclarCruce(errores.detalle, falt, e.cruceModo, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
       res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
     }
     if (a === 'cruce-participantes') {   /* informativo y solo para Estadística: documentos de la entrega que no están en Participante (no bloquea nada ni lo ve el responsable) */
@@ -694,7 +711,7 @@ module.exports = async function handler(req, res) {
       if (!base && !bufP) throw error('Para cruzar, cargue la base de Participantes del SNIES (botón «Base de Participantes») o entregue la plantilla Participante.', 404);
       const bufT = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
       if (!bufT) throw error('No se encontró el archivo en OneDrive.', 404);
-      res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base && base.docs))); return;
+      res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base))); return;
     }
     if (a === 'cruce-actualizar') {   /* calcula el cruce de las entregas que todavía no lo tienen (cargadas antes de existir el cruce) */
       soloAdmin();
@@ -704,10 +721,14 @@ module.exports = async function handler(req, res) {
     }
     if (a === 'participantes-base') {   /* Estadística sube los números de documento de la base de Participantes del SNIES (el CSV UnoAUno); solo se guardan los números, en SharePoint */
       soloAdmin();
-      const docs = Array.isArray(body.docs) ? body.docs.map((x) => String(x == null ? '' : x).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '')).filter(Boolean) : [];
+      const N = (x) => String(x == null ? '' : x).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '');
+      const sinT = (v) => String(v == null ? '' : v).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z ]/g, ' ').replace(/\s+/g, ' ').trim();
+      /* filas: [documento, tipo, primer nombre, segundo nombre, primer apellido, segundo apellido]; solo se guardan documento, tipo y la clave del nombre */
+      const filas = (Array.isArray(body.filas) ? body.filas : []).slice(0, 60000).map((f) => { const tk = [f[2], f[3], f[4], f[5]].map(sinT).join(' ').split(' ').filter(Boolean); return [N(f[0]), String(f[1] || '').trim().toUpperCase().slice(0, 4), tk.length >= 3 ? tk.sort().join(' ') : '']; }).filter((f) => f[0]);
+      const docs = filas.length ? filas.map((f) => f[0]) : (Array.isArray(body.docs) ? body.docs.map(N).filter(Boolean) : []);
       if (!docs.length) throw error('El archivo no trae números de documento.', 400);
       const unicos = [...new Set(docs)];
-      await mutar('participantes-base.json', () => ({}), (v) => { v.fecha = ahora(); v.por = yo.nombre; v.docs = unicos; });
+      await mutar('participantes-base.json', () => ({}), (v) => { v.fecha = ahora(); v.por = yo.nombre; v.docs = unicos; v.filas = filas; });
       await actualizarCruce(periodo, TEMPLATES.map((x) => x.id)).catch(() => {});
       res.status(200).json({ ok: true, n: unicos.length }); return;
     }
@@ -780,7 +801,7 @@ module.exports = async function handler(req, res) {
       soloAdmin(); const t = buscar(body.id), nuevo = body.estado;
       if (!ESTADOS.includes(nuevo)) throw error('Estado inválido.', 400);
       let motivo = limpio(body.motivo, 800), hayNovedades = false;
-      const cruceSel = nuevo === 'devuelta' && Array.isArray(body.cruceIncluir) ? body.cruceIncluir.map((x) => limpio(x, 120)).filter((x) => /^.+\|\d+$/.test(x)).slice(0, 2000) : [];
+      const cruceModo = nuevo === 'devuelta' && ['verificar', 'ausente'].includes(body.cruceModo) ? body.cruceModo : '';   /* un solo caso para toda la plantilla, lo elige Estadística */
       if (nuevo === 'devuelta') {
         /* La plataforma ya sabe qué hay que corregir: si el archivo guardado tiene errores, se detectan solos, el responsable los ve de una en pantalla y no hace falta escribirlos (decisión de la autora, 26/11/2026). */
         const e0 = est[t.id];
@@ -794,7 +815,13 @@ module.exports = async function handler(req, res) {
             }
           } catch (e) { /* si no se puede revisar, se exige el motivo escrito */ }
         }
-        if (cruceSel.length) { hayNovedades = true; if (!motivo) motivo = `Hay ${cruceSel.length} cédula${cruceSel.length > 1 ? 's' : ''} que no aparece${cruceSel.length > 1 ? 'n' : ''} registrada${cruceSel.length > 1 ? 's' : ''} en la base de datos de la institución. Ábralas desde «Mis plantillas» y corríjalas en pantalla.`; }
+        if (cruceModo) {
+          hayNovedades = true;
+          if (!motivo) {
+            let nC = 0; try { const bC = await leerBin(rutaOd(`${periodo}/${(est[t.id] || {}).archivo}`)); if (bC) nC = new Set((await faltantesParticipante(periodo, est, t, bC)).map((x) => x.hoja + '|' + x.num)).size; } catch (e) { /* solo cambia el texto */ }
+            motivo = cruceModo === 'ausente' ? `Hay ${nC || 'algunas'} cédula${nC === 1 ? '' : 's'} que no aparece${nC === 1 ? '' : 'n'} registrada${nC === 1 ? '' : 's'} en la base de datos de la institución. Ábralas desde «Mis plantillas» y corríjalas en pantalla.` : `Hay ${nC || 'algunos'} documento${nC === 1 ? '' : 's'} que no coincide${nC === 1 ? '' : 'n'} con la base de datos de la institución: verifique el número y el tipo de documento. Ábralos desde «Mis plantillas» y corríjalos en pantalla.`;
+          }
+        }
         if (!motivo) throw error('El archivo no tiene errores que la plataforma detecte: escriba qué debe corregir el responsable.', 400);
       }
       let adj = null;
@@ -804,7 +831,7 @@ module.exports = async function handler(req, res) {
         adj = { nombre: nombreAdjunto(body.adjunto.nombre), buf: bufA };
         await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
       }
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; x.cruceNov = nuevo === 'devuelta' ? cruceSel : []; x.novedades = nuevo === 'devuelta' ? (hayNovedades || !!x.novedades) : false; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
+      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; x.cruceModo = nuevo === 'devuelta' ? cruceModo : ''; x.novedades = nuevo === 'devuelta' ? (hayNovedades || !!x.novedades) : false; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
