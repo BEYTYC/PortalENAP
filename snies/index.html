@@ -249,7 +249,7 @@ b[style*="#14233a"]{font-weight:500}
         if (r.devuelta) return refrescar();
         return;
       }
-      toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : 'Plantilla entregada. Quedó En revisión; cuando la Oficina de Estadística la valide te llegará el correo de «Plantilla recibida».');
+      toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : 'Plantilla entregada. Quedó En revisión; cuando todas tus plantillas estén validadas te llegará un correo de confirmación.');
       return refrescar().then(function () { if (S.novedadesVistas) siguienteNovedad(); });
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
@@ -556,7 +556,7 @@ b[style*="#14233a"]{font-weight:500}
       var mc = modal('<div style="font-size:18px">Cruce con Participante · ' + esc(q2.nombre || '') + '</div>' + cuerpo + '<div style="display:flex;justify-content:flex-end"><button class="btn" id="ok">Cerrar</button></div>');
       mc.querySelector('#ok').onclick = function () { mc.remove(); };
     }).catch(function (x) { b.disabled = false; b.textContent = tx; toast(x.message); }); }
-    else if (a === 'validar') api('estado', { id: id, estado: 'validada', periodo: S.admin.periodo }).then(function (r) { toast(r.correo === false ? 'Validada (el correo «Plantilla recibida» no se pudo enviar).' : 'Validada. Se envió el correo «Plantilla recibida» al responsable.'); return refrescar(); }).catch(function (x) { toast(x.message); });
+    else if (a === 'validar') api('estado', { id: id, estado: 'validada', periodo: S.admin.periodo }).then(function (r) { toast(r.correo === false ? 'Validada (el correo de entrega completa no se pudo enviar).' : r.recibidas ? 'Validada. Era la última plantilla del responsable: se le envió el correo de entrega completa.' : 'Validada. Al responsable aún le quedan plantillas por validar; no se envía correo.'); return refrescar(); }).catch(function (x) { toast(x.message); });
     else if (a === 'correo') { b.disabled = true; api('enviar-correo', { id: id, periodo: S.admin.periodo }).then(function (r) { toast('Correo enviado a ' + r.para.join(', ') + '.'); }).catch(function (x) { toast(x.message); }).then(function () { b.disabled = false; }); }
     else if (a === 'deshacer') {
       var md = modal('<div style="font-size:18px">Deshacer cargue</div><div class="mu">La plantilla vuelve a <b>Pendiente</b> y se quita la entrega registrada. Úsalo para deshacer una prueba. Los correos que ya se hayan enviado no se pueden retirar.</div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px"><button class="btn sec" id="dsNo">Cancelar</button><button class="btn" id="dsSi">Deshacer cargue</button></div>');

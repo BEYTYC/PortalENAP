@@ -201,7 +201,7 @@ async function avisarEstadistica(cfg, t, v, periodo, quien, noAplica) {
   await enviarCorreo([REMITENTE], `${noAplica ? 'Plantilla en No aplica' : 'Plantilla cargada'} · ${t.nombre}`, htmlCorreo({ titulo: noAplica ? 'Plantilla declarada como No aplica' : 'Plantilla cargada', cuerpo, entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: v.limite ? fechaLarga(v.limite) : '', periodo: periodoReporte(t, periodo) }));
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo, urlAbrir, textoAbrir }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo, urlAbrir, textoAbrir, sinAccion }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
   items = items || (plantillas || []).map((n, k) => ({ nombre: n, id: (ids || [])[k], fecha, entrega, periodo }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
@@ -224,10 +224,10 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: it
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${P(cuerpo)}
 ${datos}
-${urlAbrir ? '' : `<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>`}
-<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
+${urlAbrir || sinAccion ? '' : `<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>`}
+${sinAccion ? '' : `<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
 ${urlAbrir ? `<a href="${esc(urlAbrir)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;height:36px;padding:0 26px;border-radius:18px;text-decoration:none">${esc(textoAbrir || 'Abrir')}</a>` : `<a href="${esc(urlAbrir || PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="${esc(textoAbrir || 'Abrir el Portal')}" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>`}
-</td></tr></table>
+</td></tr></table>`}
 </td></tr>
 <tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue generado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”.</td></tr>
 </table></div>`;
@@ -292,8 +292,8 @@ async function avisarRecibidas(cfg, est, periodo, t) {
     const n = suyas.length, cc = Array.from(new Set(suyas.flatMap((y) => destinosDe(cfg, y.x.id).cc))).filter((x) => x !== c);
     await conocerNombres(cfg, [c].concat(cc)).catch(() => {});
     try {
-      await enviarCorreo([c], n === 1 ? `Plantilla recibida · ${suyas[0].x.nombre}` : `Plantillas recibidas · ${n} plantillas`,
-        htmlCorreo({ titulo: n === 1 ? 'Plantilla recibida' : 'Plantillas recibidas', cuerpo: n === 1 ? 'Hemos recibido su plantilla y fue validada. ¡Muchas gracias! No debe hacer nada más.' : 'Hemos recibido y validado todas sus plantillas, relacionadas a continuación. ¡Muchas gracias! No debe hacer nada más.', filas: suyas.map((y) => ({ nombre: y.x.nombre, id: y.x.id, periodo: periodoReporte(y.x, periodo), fecha: y.v.limite ? fechaLarga(y.v.limite) : '', entrega: textoEntrega(cfg, y.x.id) })) }), cc);
+      await enviarCorreo([c], n === 1 ? `Entrega completa · ${suyas[0].x.nombre}` : `Entrega completa · ${n} plantillas`,
+        htmlCorreo({ titulo: 'Entrega completa y validada', cuerpo: n === 1 ? 'Nos permitimos informarle que la plantilla a su cargo fue recibida y validada satisfactoriamente. Con ello queda completado su proceso de reporte al SNIES para el periodo indicado. Agradecemos su oportuna gestión; no se requiere ninguna acción adicional.' : 'Nos permitimos informarle que la totalidad de las plantillas a su cargo, relacionadas a continuación, fueron recibidas y validadas satisfactoriamente. Con ello queda completado su proceso de reporte al SNIES para el periodo indicado. Agradecemos su oportuna gestión; no se requiere ninguna acción adicional.', filas: suyas.map((y) => ({ nombre: y.x.nombre, id: y.x.id, periodo: periodoReporte(y.x, periodo), fecha: y.v.limite ? fechaLarga(y.v.limite) : '', entrega: textoEntrega(cfg, y.x.id) })), sinAccion: true }), cc);
       correos++;
     } catch (e) { /* un fallo no impide los demás */ }
   }
@@ -593,7 +593,10 @@ async function identificar(accessToken) {
 }
 
 /* ------------------------------ Cron diario ------------------------------ */
+/* Decisión de la autora (27/11/2026): el responsable solo recibe correo cuando se le devuelve una plantilla (novedades) y cuando todas sus plantillas quedan validadas. Los recordatorios automáticos de 7 días, 1 día y vencidas quedan apagados. */
+const RECORDATORIOS_AUTOMATICOS = false;
 async function cronDiario() {
+  if (!RECORDATORIOS_AUTOMATICOS) return { ok: true, periodo: (await leerConfig()).periodo, enviados: [], recordatorios: 'desactivados' };
   const cfg = await leerConfig(), periodo = cfg.periodo, enviados = [];
   const est = await leerEstado(periodo);
   /* Se agrupan por tipo de aviso (7 días, 1 día, vencida): un correo por responsable con todas sus plantillas de ese aviso. */
@@ -883,15 +886,15 @@ module.exports = async function handler(req, res) {
         await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
       }
       await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; x.cruceModo = nuevo === 'devuelta' ? cruceModo : ''; x.novedades = nuevo === 'devuelta' ? (hayNovedades || !!x.novedades) : false; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
-      let correo = true; const sinCorreo = nuevo === 'devuelta' && (yaDevuelta || body.sinCorreo === true);   /* actualizar lo que ve el responsable sin enviarle otro mensaje */
+      let correo = true, recibidas = 0; const sinCorreo = nuevo === 'devuelta' && (yaDevuelta || body.sinCorreo === true);   /* actualizar lo que ve el responsable sin enviarle otro mensaje */
       if (sinCorreo) { res.status(200).json({ ok: true, correo: false, sinCorreo: true }); return; }
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
         if (nuevo === 'devuelta' && hayNovedades) { const g = await avisarNovedades(cfg, await leerEstado(periodo), periodo, destinosDe(cfg, t.id).para); if (!g.correos) correo = false; }
         else if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, periodo, novedades: hayNovedades, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
-        else if (nuevo === 'validada') await avisarRecibidas(cfg, await leerEstado(periodo), periodo, t);   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
+        else if (nuevo === 'validada') recibidas = await avisarRecibidas(cfg, await leerEstado(periodo), periodo, t);   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
-      res.status(200).json({ ok: true, correo }); return;
+      res.status(200).json({ ok: true, correo, recibidas }); return;
     }
     if (a === 'enviar-correo') {   /* envío individual: solicitud (o recordatorio / vencida / devuelta) a los responsables de una plantilla */
       soloAdmin(); const t = buscar(body.id);

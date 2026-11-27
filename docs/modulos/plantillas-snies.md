@@ -97,3 +97,8 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 - Una fila vacía dentro de los datos, o justo después de ellos, es error: «fila en blanco: elimínela (los registros deben ir seguidos, sin filas vacías)». El SNIES también las rechaza.
 - Solo se revisan en hojas que tienen al menos un registro (si no hay ninguno, ya sale «la plantilla no tiene filas diligenciadas»). Máximo 200 filas en blanco por hoja.
 - En el visor de corrección se eliminan con «Eliminar fila». Los archivos ya cargados se revisan con esta regla cuando Estadística los abre o los devuelve.
+
+## Correos al responsable (autora, 27/11/2026)
+- Solo recibe dos correos: (1) cuando se le **devuelve** una plantilla con novedades (un solo correo con el botón «Abrir las novedades») y (2) cuando la **última** de sus plantillas queda **validada**: «Entrega completa y validada», en tono formal.
+- No hay correo al cargar, ni al validar una plantilla si aún le quedan otras por validar.
+- Los recordatorios automáticos (7 días, 1 día, vencida) están apagados (`RECORDATORIOS_AUTOMATICOS = false` en `api/snies.js`). El envío manual desde el icono de carta de Estadística sigue disponible.
