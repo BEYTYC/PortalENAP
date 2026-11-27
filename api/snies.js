@@ -329,12 +329,12 @@ async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, dato
     r7: ['Recordatorio SNIES · faltan 7 días', `Le recordamos amablemente que faltan 7 días para la fecha límite de entrega de la siguiente plantilla.${nota}`],
     r1: ['Mañana vence el plazo SNIES', `Le recordamos amablemente que mañana vence el plazo de entrega de la siguiente plantilla.${nota}`],
     venc: ['Plantilla SNIES vencida', 'El plazo de entrega de la siguiente plantilla ya venció. Le agradecemos enviarla lo antes posible para evitar hallazgos en la Auditoría.'],
-    ok: ['Plantilla recibida', 'Hemos recibido su plantilla y la Oficina de Estadística la validó. ¡Muchas gracias! No debe hacer nada más.'],
+    ok: ['Plantilla recibida', 'Hemos recibido su plantilla y fue validada. ¡Muchas gracias! No debe hacer nada más.'],
     na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
     dev: extra && extra.novedades
       ? ['Hay novedades en su plantilla', `Se encontraron novedades en la información de su plantilla: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores.' : ''}`]
-      : ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores; también lo encuentra en el módulo.' : ''}`],
-    val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
+      : ['Plantilla devuelta', `La plantilla fue devuelta con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores; también lo encuentra en el módulo.' : ''}`],
+    val: ['Plantilla validada', 'Su plantilla fue validada. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
   await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo), urlAbrir: extra && extra.novedades ? PORTAL_URL.split('?')[0] + '?novedades=' + encodeURIComponent(t.id) : '', textoAbrir: 'Abrir las novedades' }), cc, extra && extra.adjuntos);
   return true;
