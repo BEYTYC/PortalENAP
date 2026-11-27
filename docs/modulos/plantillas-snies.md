@@ -89,3 +89,4 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 ## Cruce informativo con Participantes (27/11/2026)
 - Solo lo ve Estadística; no bloquea nada ni llega al responsable. En el Panel, botón «Cruce con Participante» en cada plantilla con archivo: lista hoja, fila, tipo y número de los documentos que no están en Participantes (acción `cruce-participantes`, solo administrador, función `cruceParticipantes` de `api/snies.js`).
 - Se compara solo el número de documento, sin puntos, espacios ni ceros a la izquierda. Participantes = base del SNIES cargada con «Base de Participantes» (CSV UnoAUno; solo se guardan los números en `SNIES/participantes-base.json` de SharePoint, nunca en el repo) y, si existe, la entrega de Participante del periodo. Si no hay ninguna de las dos, el botón avisa qué falta.
+- Plantillas que no se cruzan con Participante: Inscritos, Inscrito Programa y Admitidos (27/11/2026; constante `SIN_CRUCE`).
