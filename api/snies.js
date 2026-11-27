@@ -258,6 +258,32 @@ const conocerTodos = (cfg) => Promise.race([
 
 /* Un solo correo por responsable con todas sus plantillas (tabla de plantilla y fecha límite). tipo: apertura | r7 | r1 | venc.
    soloIds limita las plantillas consideradas; soloCorreos limita los destinatarios. Devuelve { correos, plantillas } (ids de plantillas avisadas). */
+/* Un SOLO correo por responsable con todas las plantillas que tiene devueltas con novedades; al abrir el Portal le salen todas para corregir. */
+async function avisarNovedades(cfg, est, periodo, soloCorreos) {
+  const porCorreo = new Map();
+  await conocerNombres(cfg, TEMPLATES.flatMap((t) => { const r = respDe(cfg, t.id); return r.entrega.concat(r.diligencia); }));
+  for (const t of TEMPLATES) {
+    const e = est[t.id], v = vista(t, cfg, est, periodo, '', false);
+    if (v.modo === 'sin' || v.noAplica || v.estado !== 'devuelta' || !(e && e.novedades)) continue;
+    const d = destinosDe(cfg, t.id);
+    for (const c of d.para) {
+      if (soloCorreos && !soloCorreos.includes(c)) continue;
+      if (!porCorreo.has(c)) porCorreo.set(c, []);
+      porCorreo.get(c).push({ t, cc: d.cc, fila: { nombre: t.nombre, id: t.id, periodo: periodoReporte(t, periodo), fecha: v.limite ? fechaLarga(v.limite) : '', entrega: textoEntrega(cfg, t.id) } });
+    }
+  }
+  let correos = 0;
+  for (const [c, lista] of porCorreo) {
+    const n = lista.length, cc = Array.from(new Set(lista.flatMap((x) => x.cc))).filter((x) => x !== c);
+    let adj = []; for (const x of lista) adj = adj.concat(await adjuntoDe(periodo, x.t.id, est[x.t.id]).catch(() => []));
+    try {
+      await enviarCorreo([c], n === 1 ? `Hay novedades en su plantilla · ${lista[0].t.nombre}` : `Hay novedades en ${n} plantillas SNIES`,
+        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `La Oficina de Estadística revisó la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'} y encontró novedades. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Cuando las corrija y entregue, quedará a paz y salvo con este reporte.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
+      correos++;
+    } catch (e) { /* un fallo no impide los demás */ }
+  }
+  return { correos, para: Array.from(porCorreo.keys()) };
+}
 async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   opc = opc || {};
   const porCorreo = new Map(), usadas = new Set(), copiados = new Set();
@@ -632,7 +658,8 @@ module.exports = async function handler(req, res) {
       let correo = true;
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
-        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, periodo, novedades: hayNovedades, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
+        if (nuevo === 'devuelta' && hayNovedades) { const g = await avisarNovedades(cfg, await leerEstado(periodo), periodo, destinosDe(cfg, t.id).para); if (!g.correos) correo = false; }
+        else if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, periodo, novedades: hayNovedades, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
         else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
@@ -643,6 +670,7 @@ module.exports = async function handler(req, res) {
       if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
       const r = respDe(cfg, t.id), para = destinosDe(cfg, t.id).para;
       if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
+      if (v.estado === 'devuelta' && est[t.id] && est[t.id].novedades) { const g = await avisarNovedades(cfg, est, periodo, para); if (!g.correos) throw error('No se pudo enviar el correo.', 502); res.status(200).json({ ok: true, para: g.para }); return; }
       if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo, novedades: !!(est[t.id] && est[t.id].novedades), adjuntos: await adjuntoDe(periodo, t.id, est[t.id]).catch(() => []) }); res.status(200).json({ ok: true, para }); return; }
       /* Cada responsable de la plantilla recibe un solo correo con todas sus plantillas pendientes. */
       const g = await avisarPorResponsable(cfg, est, periodo, v.vencida ? 'venc' : 'apertura', { soloCorreos: para });
