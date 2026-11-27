@@ -86,6 +86,38 @@ function leerHoja(wb, nombre) {
   return { nombre, filas, enc, idx };
 }
 
+
+/* Corrector ortográfico sencillo: diccionario de palabras comunes (api/_snies-palabras.json, ordenado por frecuencia) + palabras de los catálogos. */
+const sinTilde = (w) => String(w).toLowerCase().replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i').replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u');
+const PALABRAS_OK = new Set(['funaser', 'aspaen', 'ceadi', 'imetam', 'neuro', 'contry', 'carmelo', 'nuñez', 'nariño', 'calcuta', 'salle']);
+let _dic = null;
+function diccionario() {
+  if (_dic) return _dic;
+  _dic = new Map();
+  try { require('./_snies-palabras.json').forEach((w, i) => _dic.set(w, i)); } catch (e) { return _dic; }
+  try {
+    const cat = require('./_snies-catalogos.json');
+    const rec = (x) => { if (typeof x === 'string') { for (const w of x.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g) || []) { const n = sinTilde(w); if (n.length >= 4 && !_dic.has(n)) _dic.set(n, 1e9); } } else if (x && typeof x === 'object') Object.values(x).forEach(rec); };
+    rec(cat);
+  } catch (e) { /* sin catálogos */ }
+  return _dic;
+}
+function sugerencia(n) {
+  const D = diccionario(); if (!D.size || PALABRAS_OK.has(n) || D.has(n)) return null;
+  /* plurales y femeninos: «américas», «gaviotas», «barbacoas» no son errores si la forma base existe */
+  if (/s$/.test(n) && D.has(n.slice(0, -1))) return null;
+  if (/es$/.test(n) && D.has(n.slice(0, -2))) return null;
+  if (/a$/.test(n) && D.has(n.slice(0, -1) + 'o')) return null;
+  const AB = 'abcdefghijklmnñopqrstuvwxyz'; let mejor = null, mi = 1e10;
+  /* Solo se sugiere una palabra COMÚN (primeras 20 000 del diccionario) que empiece por la misma letra: así los nombres propios casi nunca se marcan. */
+  const prueba = (c) => { const i = D.get(c); if (i != null && i < 20000 && i < mi && c[0] === n[0]) { mi = i; mejor = c; } };
+  for (let i = 0; i <= n.length; i++) {
+    if (i < n.length) { prueba(n.slice(0, i) + n.slice(i + 1)); if (i < n.length - 1) prueba(n.slice(0, i) + n[i + 1] + n[i] + n.slice(i + 2)); for (const a of AB) prueba(n.slice(0, i) + a + n.slice(i + 1)); }
+    for (const a of AB) prueba(n.slice(0, i) + a + n.slice(i));
+  }
+  return mejor;
+}
+
 /** wb: libro abierto (api/_xlsx.js). t: plantilla. ctx: { periodoRep: 'AAAA-S', hoy: serial }.
  *  Devuelve { errores: [{h,f,c,m}], hojas: { nombre: { cols, nFilas } } } */
 function revisarContenido(wb, t, ctx) {
@@ -168,6 +200,54 @@ function revisarContenido(wb, t, ctx) {
       for (const r of filasDatos) {
         const v = filas[r][idx[c]]; if (vacia(v)) continue;
         if (!/^[^\s@,;]+@[^\s@,;]+\.[^\s@,;]{2,}$/.test(txt(v))) err(nombre, r + 1, c, 'no es un correo electrónico válido');
+      }
+    }
+
+    /* 5b. Código de la unidad organizacional: para esta institución es siempre 01010101 (si Excel le quitó el cero inicial se acepta como 1010101). */
+    if (idx['CODIGO_UNIDAD_ORGANIZACIONAL'] != null && t.id !== 'unidad-organizacional') {
+      for (const r of filasDatos) {
+        const v = filas[r][idx['CODIGO_UNIDAD_ORGANIZACIONAL']]; if (vacia(v)) continue;
+        if (txt(v).replace(/\D/g, '').replace(/^0+/, '') !== '1010101' || /\D/.test(txt(v))) err(nombre, r + 1, 'CODIGO_UNIDAD_ORGANIZACIONAL', 'debe ser 01010101 (código de la unidad organizacional de la institución)');
+      }
+    }
+    /* 5c. Fechas escritas como texto (por ejemplo «21/08/2026» alineado a la izquierda): deben ser fechas reales de Excel. */
+    for (const c of Object.keys(idx)) {
+      if (!/^FECHA_/.test(c)) continue;
+      for (const r of filasDatos) { const v = filas[r][idx[c]]; if (typeof v === 'string' && v.trim() !== '' && fechaNum(v) != null) err(nombre, r + 1, c, 'está escrita como texto; debe ser una fecha real de Excel (dd/mm/aaaa)'); }
+    }
+    /* 5c2. Fechas que son números sueltos (por ejemplo 46255 en formato General): la celda debe tener formato de fecha. */
+    {
+      const colsF = Object.keys(idx).filter((c) => /^FECHA_/.test(c));
+      if (colsF.length && wb.formatosFecha) {
+        let fm = null; try { fm = wb.formatosFecha(nombre, { maxCols: 120 }); } catch (e) { fm = null; }
+        if (fm) for (const c of colsF) for (const r of filasDatos) {
+          const v = filas[r][idx[c]];
+          if (typeof v === 'number' && fechaNum(v) != null && !(fm[r] && fm[r][idx[c]])) err(nombre, r + 1, c, 'es un número, no una fecha; la celda debe tener formato de fecha (dd/mm/aaaa)');
+        }
+      }
+    }
+    /* 5c3. Ortografía de las descripciones: una palabra desconocida que está a una letra de una palabra común del español se marca como mal escrita
+       (por ejemplo «PALNETARIO» → «PLANETARIO»). Los nombres propios que no se parecen a ninguna palabra común no se tocan; los que sí, van en PALABRAS_OK. */
+    for (const c of Object.keys(idx).filter((x) => /^DESCRIPCION/.test(x))) {
+      for (const r of filasDatos) {
+        const v = filas[r][idx[c]]; if (typeof v !== 'string') continue;
+        const vistas = new Set();
+        for (const w of (v.match(/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/g) || [])) {
+          const n = sinTilde(w); if (n.length < 5 || vistas.has(n)) continue; vistas.add(n);
+          const sug = sugerencia(n); if (sug) err(nombre, r + 1, c, `la palabra «${w.toUpperCase()}» parece mal escrita (¿${sug.toUpperCase()}?)`);
+        }
+      }
+    }
+    /* 5c4. Valores de financiación en pesos: un valor positivo menor de 1.000 es casi seguro un dato incompleto (por ejemplo 475 en vez de 475.800). */
+    for (const c of Object.keys(idx).filter((x) => /^VLR_FINANCIACION/.test(x))) {
+      for (const r of filasDatos) { const v = filas[r][idx[c]]; if (!vacia(v) && esNum(v) && aNum(v) > 0 && aNum(v) < 1000) err(nombre, r + 1, c, 'es menor de $1.000; el valor se escribe en pesos y parece incompleto'); }
+    }
+    /* 5d. Eventos y actividades: las fechas deben caer dentro del semestre que se reporta (1: 01/01–30/06; 2: 01/07–31/12). */
+    if (['evento-cultural', 'actividad-cultural', 'actividad-de-bienestar'].includes(t.id) && anioRep && semRep) {
+      const ini = serialDe(anioRep, semRep === 1 ? 1 : 7, 1), fin = serialDe(anioRep, semRep === 1 ? 6 : 12, semRep === 1 ? 30 : 31);
+      for (const c of ['FECHA_INICIO', 'FECHA_FINAL']) {
+        if (idx[c] == null) continue;
+        for (const r of filasDatos) { const x = fechaNum(filas[r][idx[c]]); if (x != null && (x < ini || x > fin)) err(nombre, r + 1, c, `debe estar dentro del semestre ${ctx.periodoRep} (${fechaTxt(ini)} a ${fechaTxt(fin)})`); }
       }
     }
 

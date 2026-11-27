@@ -116,9 +116,9 @@ b[style*="#14233a"]{font-weight:600}
   function leerB64(file) {
     return new Promise(function (ok, no) { var r = new FileReader(); r.onload = function () { ok(String(r.result).split(',')[1] || ''); }; r.onerror = function () { no(new Error('No se pudo leer el archivo.')); }; r.readAsDataURL(file); });
   }
-  function bajar(nombre, b64) {
+  function bajar(nombre, b64, tipo) {
     var bin = atob(b64), n = bin.length, u = new Uint8Array(n); for (var i = 0; i < n; i++) u[i] = bin.charCodeAt(i);
-    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([u], { type: tipo || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
   function modal(html) { var m = document.createElement('div'); m.className = 'modal'; m.innerHTML = '<div class="card">' + html + '</div>'; document.body.appendChild(m); m.addEventListener('click', function (e) { if (e.target === m) m.remove(); }); return m; }
 
@@ -152,7 +152,7 @@ b[style*="#14233a"]{font-weight:600}
     if (p.modo === 'directo') {
       zona = '<div class="zone" style="border:0;background:rgba(223,241,241,.6);color:#0f5c5c">Esta plantilla se reporta directo al SNIES con su propio usuario. Aquí solo recibe las notificaciones.</div>';
     } else if (p.estado === 'devuelta') {
-      zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + '</div>';
+      zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:600">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>';
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
       zona = '';
     } else if (p.estado === 'pendiente') {
@@ -160,7 +160,7 @@ b[style*="#14233a"]{font-weight:600}
     } else {
       zona = '';
     }
-    if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Cargar plantilla</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
+    if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = (p.novedades && p.estado === 'devuelta' ? '<button class="btn y" data-a="novedades" data-id="' + p.id + '">Abrir novedades</button>' : '') + '<button class="btn" data-a="cargar" data-id="' + p.id + '">Cargar plantilla</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
@@ -204,6 +204,12 @@ b[style*="#14233a"]{font-weight:600}
       m.remove();
       if (!r.ok) {
         if (r.detalle && r.detalle.hojas && r.detalle.hojas.length && !r.devuelta) { visorCorreccion(id, nombre, r.datos || b64, r, porEstadistica); return; }
+        if (r.guardada) {
+          var gm = modal('<div style="font-size:17px">Archivo guardado con novedades</div><div class="mu">Quedó guardado y la plantilla está Devuelta. Todavía no se envió ningún correo al responsable.</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px;max-height:40vh;overflow:auto">' + r.errores.slice(0, 12).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + (r.errores.length > 12 ? '<li>… y ' + (r.errores.length - 12) + ' novedades más</li>' : '') + '</ul><div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cerrar">Cerrar, enviar después</button><button class="btn" id="enviar">Enviar correo de novedades al responsable</button></div>');
+          gm.querySelector('#cerrar').onclick = function () { gm.remove(); };
+          gm.querySelector('#enviar').onclick = function () { var bt = this; bt.disabled = true; bt.textContent = 'Enviando…'; api('enviar-correo', { id: id, periodo: S.admin && S.admin.periodo }).then(function (x) { gm.remove(); toast('Correo de novedades enviado a ' + x.para.join(', ') + '.'); }).catch(function (x) { bt.disabled = false; bt.textContent = 'Enviar correo de novedades al responsable'; toast(x.message); }); };
+          return refrescar();
+        }
         var mm = modal('<div style="font-size:17px">' + (r.devuelta ? 'El archivo necesita correcciones' : 'Tu archivo no se pudo entregar') + '</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600;font-size:14px">↗ Instructivo de diligenciamiento</a><button class="btn" id="ok">Entendido</button></div>');
         mm.querySelector('#ok').onclick = function () { mm.remove(); };
         if (r.devuelta) return refrescar();
@@ -254,6 +260,15 @@ b[style*="#14233a"]{font-weight:600}
     }
     pinta();
   }
+  /* Abre de una las novedades de un archivo que la Oficina de Estadística cargó en nombre del responsable (enlace del correo o botón de la tarjeta). */
+  function abrirNovedades(id) {
+    api('novedades', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) {
+      if (!r.datos) { toast('El archivo es muy grande para corregirlo en pantalla. Descárgalo, corrígelo y vuelve a cargarlo.'); return; }
+      if (r.detalle && r.detalle.hojas && r.detalle.hojas.length) { visorCorreccion(id, r.nombre, r.datos, r, false); return; }
+      var mm = modal('<div style="font-size:17px">Novedades de la plantilla</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + (r.errores || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><div style="display:flex;justify-content:flex-end"><button class="btn" id="ok">Entendido</button></div>');
+      mm.querySelector('#ok').onclick = function () { mm.remove(); };
+    }).catch(function (e) { toast(e.message); });
+  }
   function noAplica(id) {
     var p = S.datos.plantillas.filter(function (x) { return x.id === id; })[0];
     var m = modal('<div style="font-size:17px">¿Confirmas que no hay registros?</div><div style="font-size:14px;color:#4c6386">Declaras que en este semestre no se generaron registros para <b style="color:#14233a">' + esc(p.nombre) + '</b>. La plantilla pasa a En revisión y Estadística lo verifica.</div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn" id="si">Sí, no aplica</button></div>');
@@ -302,7 +317,7 @@ b[style*="#14233a"]{font-weight:600}
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
       var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
       var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.modo === 'carga' && p.estado !== 'validada' ? '<button class="btn sec sm" data-a="cargar-admin" data-id="' + p.id + '">Cargar entrega</button> ' : '') + ((p.estado === 'pendiente' || p.estado === 'devuelta') && p.entrega.length + p.diligencia.length ? '<button class="btn sec sm" data-a="correo" data-id="' + p.id + '">Enviar correo</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button>' : '');
-      return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
+      return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
@@ -350,6 +365,8 @@ b[style*="#14233a"]{font-weight:600}
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
     else if (a === 'instructivo') verInstructivo(id);
     else if (a === 'na') noAplica(id);
+    else if (a === 'novedades') abrirNovedades(id);
+    else if (a === 'adjunto') api('adjunto-descargar', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) { bajar(r.nombre, r.datos, 'application/octet-stream'); }).catch(function (x) { toast(x.message); });
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'anterior') api('entrega-descargar', { id: id, periodoEntrega: b.dataset.p }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
@@ -357,9 +374,17 @@ b[style*="#14233a"]{font-weight:600}
     else if (a === 'validar') api('estado', { id: id, estado: 'validada', periodo: S.admin.periodo }).then(function (r) { toast(r.correo === false ? 'Validada (el correo «Plantilla recibida» no se pudo enviar).' : 'Validada. Se envió el correo «Plantilla recibida» al responsable.'); return refrescar(); }).catch(function (x) { toast(x.message); });
     else if (a === 'correo') { b.disabled = true; b.textContent = 'Enviando…'; api('enviar-correo', { id: id, periodo: S.admin.periodo }).then(function (r) { toast('Correo enviado a ' + r.para.join(', ') + '.'); }).catch(function (x) { toast(x.message); }).then(function () { b.disabled = false; b.textContent = 'Enviar correo'; }); }
     else if (a === 'devolver') {
-      var m = modal('<div style="font-size:17px">Devolver plantilla</div><div class="mu">Escribe qué debe corregir. El responsable lo ve en Mis plantillas y le llega por correo.</div><textarea class="inp" id="mot" placeholder="Novedades…"></textarea><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn y" id="si">Devolver</button></div>');
+      var m = modal('<div style="font-size:17px">Devolver plantilla</div><div class="mu">Escribe qué debe corregir. El responsable lo ve en Mis plantillas y le llega por correo.</div><textarea class="inp" id="mot" placeholder="Novedades…"></textarea><div><div class="mu" style="margin-bottom:4px">Documento adjunto (opcional, hasta 3 MB): por ejemplo, el Excel con los errores marcados. El responsable lo descarga en su tarjeta y le llega por correo.</div><input type="file" id="adj"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn y" id="si">Devolver</button></div>');
       m.querySelector('#no').onclick = function () { m.remove(); };
-      m.querySelector('#si').onclick = function () { var mot = m.querySelector('#mot').value; api('estado', { id: id, estado: 'devuelta', motivo: mot, periodo: S.admin.periodo }).then(function (r) { m.remove(); toast(r.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); }).catch(function (x) { toast(x.message); }); };
+      m.querySelector('#si').onclick = function () {
+        var mot = m.querySelector('#mot').value, f = m.querySelector('#adj').files[0], bt = this;
+        if (f && f.size > 3 * 1024 * 1024) { toast('El documento adjunto pesa más de 3 MB.'); return; }
+        bt.disabled = true; bt.textContent = 'Devolviendo…';
+        (f ? leerB64(f).then(function (b64) { return { nombre: f.name, datos: b64 }; }) : Promise.resolve(null))
+          .then(function (adj) { return api('estado', { id: id, estado: 'devuelta', motivo: mot, adjunto: adj || undefined, periodo: S.admin.periodo }); })
+          .then(function (r) { m.remove(); toast(r.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); })
+          .catch(function (x) { bt.disabled = false; bt.textContent = 'Devolver'; toast(x.message); });
+      };
     }
     else if (a === 'guardar') {
       var tr = b.closest('tr'), sep = function (s) { return s.split(/[,;\s]+/).filter(Boolean); };
@@ -397,7 +422,7 @@ b[style*="#14233a"]{font-weight:600}
   /* No dejar que soltar un archivo fuera de una tarjeta abra el Excel en el navegador */
   window.addEventListener('dragover', function (e) { e.preventDefault(); }); window.addEventListener('drop', function (e) { e.preventDefault(); });
 
-  cargarSesion().then(function () { pintar(); if (S.datos && S.datos.admin) cargarAdmin().catch(function () {}); }).catch(function (e) { document.getElementById('ld').hidden = true; app.innerHTML = '<div class="ban e">' + esc(e.message) + '</div>'; });
+  cargarSesion().then(function () { pintar(); if (S.datos && S.datos.admin) cargarAdmin().catch(function () {}); var nv = new URLSearchParams(location.search).get('novedades'); if (nv) setTimeout(function () { abrirNovedades(nv); }, 300); }).catch(function (e) { document.getElementById('ld').hidden = true; app.innerHTML = '<div class="ban e">' + esc(e.message) + '</div>'; });
 })();
 </script>
 </body>

@@ -139,7 +139,45 @@ function abrir(buf) {
     for (let i = 0; i < filas.length; i++) if (!filas[i]) filas[i] = [];
     return filas;
   }
-  return { hojas: hojas.map((h) => h.nombre), leer, ruta: (n) => (hojas.find((x) => x.nombre === n) || {}).ruta };
+  /* Celdas numéricas con formato de fecha: devuelve filas[][] de booleanos (true = la celda tiene formato de fecha). Sirve para detectar
+     «fechas» que en realidad son números sueltos (por ejemplo 46255 en formato General). */
+  let esFechaXf = null;
+  function estilosFecha() {
+    if (esFechaXf) return esFechaXf;
+    esFechaXf = [];
+    const st = txt('xl/styles.xml'); if (!st) return esFechaXf;
+    const fmts = {};
+    (st.match(/<numFmt\b[^>]*>/g) || []).forEach((f) => { const id = (f.match(/numFmtId="(\d+)"/) || [])[1], code = (f.match(/formatCode="([^"]*)"/) || [])[1]; if (id) fmts[id] = decode(code || ''); });
+    const integrado = (id) => (id >= 14 && id <= 22) || (id >= 27 && id <= 36) || (id >= 45 && id <= 47) || (id >= 50 && id <= 58);
+    const esCodigoFecha = (c) => /[dmyhs]/i.test(c.replace(/"[^"]*"/g, '').replace(/\[[^\]]*\]/g, '').replace(/\\./g, '')) && !/^general$/i.test(c.trim());
+    const cx = (st.match(/<cellXfs\b[^>]*>([\s\S]*?)<\/cellXfs>/) || [])[1] || '';
+    (cx.match(/<xf\b[^>]*>/g) || []).forEach((xf) => { const id = +((xf.match(/numFmtId="(\d+)"/) || [])[1] || 0); esFechaXf.push(integrado(id) || (fmts[id] != null && esCodigoFecha(fmts[id]))); });
+    return esFechaXf;
+  }
+  function formatosFecha(nombre, op) {
+    op = op || {};
+    const h = hojas.find((x) => x.nombre === nombre);
+    if (!h || !z[h.ruta]) return [];
+    const maxCols = op.maxCols || 200, xs = estilosFecha();
+    const x = leerEntrada(buf, z[h.ruta]).toString('utf8'), filas = [];
+    const reRow = /<row\b([^>]*?)(?:\/>|>([\s\S]*?)<\/row>)/g, reC = /<c\b([^>]*?)(?:\/>|>([\s\S]*?)<\/c>)/g;
+    let m;
+    while ((m = reRow.exec(x))) {
+      const rn = +((m[1].match(/\br="(\d+)"/) || [])[1] || filas.length + 1), fila = [];
+      if (m[2]) {
+        let c; reC.lastIndex = 0; let pos = 0;
+        while ((c = reC.exec(m[2]))) {
+          const at = c[1], ref = (at.match(/\br="([A-Z]+)\d+"/) || [])[1], ci = ref ? colIndex(ref) : pos; pos = ci + 1;
+          if (ci >= maxCols) continue;
+          fila[ci] = !!xs[+((at.match(/\bs="(\d+)"/) || [])[1] || 0)];
+        }
+      }
+      filas[rn - 1] = fila;
+    }
+    for (let i = 0; i < filas.length; i++) if (!filas[i]) filas[i] = [];
+    return filas;
+  }
+  return { hojas: hojas.map((h) => h.nombre), leer, formatosFecha, ruta: (n) => (hojas.find((x) => x.nombre === n) || {}).ruta };
 }
 
 function serialAFecha(v) {

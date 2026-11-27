@@ -16,7 +16,7 @@ const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const letras = (i) => { let s = ''; for (i++; i > 0; i = Math.floor((i - 1) / 26)) s = String.fromCharCode(65 + ((i - 1) % 26)) + s; return s; };
 
-function editarHoja(xml, ediciones, borrar) {
+function editarHoja(xml, ediciones, borrar, estiloFecha) {
   const b = new Set(borrar || []);
   const orden = [...b].sort((x, y) => x - y);
   const antes = (n) => { let k = 0; for (const x of orden) { if (x < n) k++; else break; } return k; };
@@ -36,7 +36,7 @@ function editarHoja(xml, ediciones, borrar) {
       const ci = +k, e = ed[k];
       const prev = celdas.find((c) => c.ci === ci);
       const estilo = prev && (prev.at.match(/\bs="(\d+)"/) || [])[1];
-      const s = estilo ? ` s="${estilo}"` : '';
+      const s = e.fecha && estiloFecha != null ? ` s="${estiloFecha}"` : (estilo ? ` s="${estilo}"` : '');
       let x;
       if (e.valor === '' || e.valor == null) x = `<c r="@"${s}/>`;
       else if (e.numero) x = `<c r="@"${s}><v>${e.numero}</v></c>`;
@@ -50,15 +50,30 @@ function editarHoja(xml, ediciones, borrar) {
   });
 }
 
+/* Estilo de fecha (dd/mm/aaaa) para las fechas corregidas: se reutiliza el de la hoja si existe; si no, se agrega uno a styles.xml. */
+function estiloDeFecha(buf, z) {
+  if (!z['xl/styles.xml']) return null;
+  let st = leerEntrada(buf, z['xl/styles.xml']).toString('utf8');
+  const cx = st.match(/<cellXfs\b([^>]*)>([\s\S]*?)<\/cellXfs>/); if (!cx) return null;
+  const xfs = cx[2].match(/<xf\b[^>]*?(?:\/>|>[\s\S]*?<\/xf>)/g) || [];
+  const ya = xfs.findIndex((x) => /numFmtId="(14|15|16|17)"/.test(x));
+  if (ya >= 0) return { indice: ya, xml: null };
+  const nuevo = '<xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/>';
+  st = st.replace(cx[0], `<cellXfs count="${xfs.length + 1}">${cx[2]}${nuevo}</cellXfs>`);
+  return { indice: xfs.length, xml: Buffer.from(st, 'utf8') };
+}
+
 function aplicar(buf, op) {
   const wb = abrir(buf), z = entradasZip(buf);
   const porHoja = {};
   (op.cambios || []).forEach((c) => { ((porHoja[c.hoja] = porHoja[c.hoja] || {}).e = porHoja[c.hoja].e || {}); (porHoja[c.hoja].e[c.fila] = porHoja[c.hoja].e[c.fila] || {})[c.col] = c; });
   Object.keys(op.borrar || {}).forEach((h) => { porHoja[h] = porHoja[h] || {}; porHoja[h].b = op.borrar[h]; });
   const nuevos = {};
+  let estiloFecha = null;
+  if ((op.cambios || []).some((c) => c.fecha)) { const ef = estiloDeFecha(buf, z); if (ef) { estiloFecha = ef.indice; if (ef.xml) nuevos['xl/styles.xml'] = ef.xml; } }
   for (const h of Object.keys(porHoja)) {
     const ruta = wb.ruta(h); if (!ruta || !z[ruta]) throw new Error(`No se encontró la hoja "${h}".`);
-    nuevos[ruta] = Buffer.from(editarHoja(leerEntrada(buf, z[ruta]).toString('utf8'), porHoja[h].e || {}, porHoja[h].b || []), 'utf8');
+    nuevos[ruta] = Buffer.from(editarHoja(leerEntrada(buf, z[ruta]).toString('utf8'), porHoja[h].e || {}, porHoja[h].b || [], estiloFecha), 'utf8');
   }
   const partes = [], central = []; let off = 0;
   for (const nombre of Object.keys(z)) {

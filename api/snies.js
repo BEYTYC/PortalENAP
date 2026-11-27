@@ -167,7 +167,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const entrega = r.entrega.includes(yo), dil = r.diligencia.includes(yo);
   const o = {
     id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: periodoReporte(t, periodo), maestroSin: t.modo === 'sin', posgrados: t.posgrados,
-    estado, noAplica: !!e.noAplica, motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
+    estado, noAplica: !!e.noAplica, novedades: !!e.novedades, adjunto: e.adjunto || '', motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
     entregaTexto: textoEntrega(cfg, t.id),
@@ -182,12 +182,18 @@ function vista(t, cfg, est, periodo, yo, admin) {
 }
 
 /* ------------------------------ Correo ------------------------------ */
-async function enviarCorreo(para, asunto, html, cc) {
+async function enviarCorreo(para, asunto, html, cc, adjuntos) {
   const mensaje = { subject: asunto, body: { contentType: 'HTML', content: html }, toRecipients: para.map((a) => ({ emailAddress: { address: a } })) };
   if (cc && cc.length) mensaje.ccRecipients = cc.map((a) => ({ emailAddress: { address: a } }));
+  if (adjuntos && adjuntos.length) mensaje.attachments = adjuntos.map((x) => ({ '@odata.type': '#microsoft.graph.fileAttachment', name: x.nombre, contentType: 'application/octet-stream', contentBytes: x.datos }));
   const r = await g(`/users/${encodeURIComponent(REMITENTE)}/sendMail`, { method: 'POST', body: { message: mensaje, saveToSentItems: true } });
   if (!r.ok) throw error(`No se pudo enviar el correo (${r.status}): ${(await r.text()).slice(0, 200)}`, 502);
 }
+/* Documento adjunto a una devolución (por ejemplo, un Excel con los errores marcados): se guarda en OneDrive junto a las entregas. */
+const MAX_ADJUNTO = 3 * 1024 * 1024;
+const nombreAdjunto = (n) => limpio(String(n || 'adjunto').split(/[\\/]/).pop().replace(/[\\/:*?"<>|]/g, ''), 80) || 'adjunto';
+const rutaAdjunto = (periodo, id, nombre) => rutaOd(`${periodo}/devoluciones/${id} - ${nombre}`);
+async function adjuntoDe(periodo, id, e) { if (!e || !e.adjunto) return []; const b = await leerBin(rutaAdjunto(periodo, id, e.adjunto)); return b ? [{ nombre: e.adjunto, datos: b.toString('base64') }] : []; }
 /* Aviso a la Oficina de Estadística cuando un responsable carga una plantilla (o declara «No aplica»). Si falla, no impide la entrega. */
 async function avisarEstadistica(cfg, t, v, periodo, quien, noAplica) {
   const hecho = noAplica ? 'declaró que <b>no hay registros</b> (No aplica) en' : 'cargó';
@@ -195,7 +201,7 @@ async function avisarEstadistica(cfg, t, v, periodo, quien, noAplica) {
   await enviarCorreo([REMITENTE], `${noAplica ? 'Plantilla en No aplica' : 'Plantilla cargada'} · ${t.nombre}`, htmlCorreo({ titulo: noAplica ? 'Plantilla declarada como No aplica' : 'Plantilla cargada', cuerpo, entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: v.limite ? fechaLarga(v.limite) : '', periodo: periodoReporte(t, periodo) }));
 }
 /* Mismo diseño del correo de Generación de Promedios Académicos (api/promedios.js): franja azul con escudo, rótulo dorado, título, botón y pie. */
-function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo }) {
+function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: items, colDias, periodo, urlAbrir, textoAbrir }) {
   /* items = [{ nombre, fecha, entrega }]; si solo viene una plantilla se arma con plantillas/fecha/entrega. */
   items = items || (plantillas || []).map((n, k) => ({ nombre: n, id: (ids || [])[k], fecha, entrega, periodo }));
   const base = (process.env.PORTAL_URL ? new URL(process.env.PORTAL_URL).origin : 'https://enap.vercel.app') + '/';
@@ -218,9 +224,10 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: it
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${P(cuerpo)}
 ${datos}
+${urlAbrir ? `<p style="font-size:15px;margin:0 0 16px"><a href="${esc(urlAbrir)}" target="_blank" style="color:#1b4c92;font-weight:700">▶ ${esc(textoAbrir || 'Abrir')}</a></p>` : ''}
 <p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
-<a href="${esc(PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="Abrir el Portal" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
+<a href="${esc(urlAbrir || PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="${esc(textoAbrir || 'Abrir el Portal')}" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
 </td></tr></table>
 </td></tr>
 <tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue generado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”.</td></tr>
@@ -279,7 +286,7 @@ async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   }
   return { correos, fallos, plantillas: Array.from(usadas), para: Array.from(porCorreo.keys()), cc: Array.from(copiados) };
 }
-async function avisar(cfg, t, tipo, extra) {
+async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, datos}] se anexan al correo */
   const d = destinosDe(cfg, t.id), para = d.para, cc = ['dev', 'ok', 'na'].includes(tipo) ? d.cc : [];
   if (!para.length) return false;
   await conocerNombres(cfg, para.concat(cc));
@@ -292,10 +299,12 @@ async function avisar(cfg, t, tipo, extra) {
     venc: ['Plantilla SNIES vencida', 'El plazo de entrega de la siguiente plantilla ya venció. Le agradecemos enviarla lo antes posible para evitar hallazgos en la Auditoría.'],
     ok: ['Plantilla recibida', 'Hemos recibido su plantilla y la Oficina de Estadística la validó. ¡Muchas gracias! No debe hacer nada más.'],
     na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
-    dev: ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.`],
+    dev: extra && extra.novedades
+      ? ['Hay novedades en su plantilla', `La Oficina de Estadística revisó la información de su plantilla y encontró novedades: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores.' : ''}`]
+      : ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores; también lo encuentra en el módulo.' : ''}`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
-  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo) }), cc);
+  await enviarCorreo(para, `${M[0]} · ${t.nombre}`, htmlCorreo({ titulo: M[0], cuerpo: M[1], entrega: textoEntrega(cfg, t.id), plantillas: [t.nombre], ids: [t.id], fecha: est ? fechaLarga(est) : '', periodo: periodoReporte(t, (extra && extra.periodo) || cfg.periodo), urlAbrir: extra && extra.novedades ? PORTAL_URL.split('?')[0] + '?novedades=' + encodeURIComponent(t.id) : '', textoAbrir: 'Abrir las novedades' }), cc, extra && extra.adjuntos);
   return true;
 }
 
@@ -332,7 +341,7 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
     let valor = String(c.v == null ? '' : c.v).trim(), numero = null;
     if (R.t === 'n' && /^-?\d+([.,]\d+)?$/.test(valor)) numero = valor.replace(',', '.');
     else if (R.t === 'f') { const f = VALIDAR.fechaNum(valor); if (f != null && !/^\d+$/.test(valor)) { if (c.num) numero = String(f); } }
-    ops.push({ hoja: h, fila, col: ci, valor, numero });
+    ops.push({ hoja: h, fila, col: ci, valor, numero, fecha: R.t === 'f' && numero != null });
   }
   for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 2) (del[h] = del[h] || []).push(fila); }
   return aplicarXlsx(buf, { cambios: ops, borrar: del });
@@ -472,26 +481,45 @@ module.exports = async function handler(req, res) {
       const nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
       const errores = revisarArchivo(buf, t, oficial, periodo);
       if (errores.length && porEstadistica) {
-        /* Entregada por correo con errores: se devuelve al responsable y el sistema le envía el correo con las correcciones. */
-        const motivo = limpio(errores.join(' · '), 800);
-        const [, correo] = await Promise.all([
-          mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'devuelta'; x.motivo = motivo; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Devuelta: el archivo recibido por correo necesita correcciones. ' + motivo }); }),
-          avisar(cfg, t, 'dev', { motivo, limite: v.limite, periodo }).then(() => true, () => false),
-        ]);
-        res.status(200).json({ ok: false, errores, devuelta: true, correo }); return;
+        /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
+           la administradora decide cuándo avisar (botón «Enviar correo»); el correo lleva un enlace que abre las novedades de una. */
+        const motivo = limpio(errores.join(' · '), 800), nombreN = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
+        await escribirBin(rutaOd(`${periodo}/${nombreN}`), buf);
+        await mutar(`estado-${periodo}.json`, () => ({}), (st) => { const x = st[t.id] = st[t.id] || {}; x.estado = 'devuelta'; x.noAplica = false; x.novedades = true; x.archivo = nombreN; x.fecha = ahora(); x.por = yo.correo; x.motivo = motivo; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Cargó el archivo en nombre del responsable; tiene novedades y quedó Devuelta (sin correo todavía). ' + motivo }); });
+        res.status(200).json({ ok: false, errores, devuelta: true, guardada: true }); return;
       }
       if (errores.length) { res.status(200).json({ ok: false, errores, detalle: errores.detalle || null, datos: corregido && buf.length < 2800000 ? buf.toString('base64') : undefined }); return; }
       const nombre = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
       const [, correo] = await Promise.all([
-        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
+        mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = 'revision'; x.noAplica = false; x.novedades = false; x.adjunto = ''; x.archivo = nombre; x.fecha = ahora(); x.por = comoCorreo || yo.correo; x.motivo = ''; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: comoCorreo ? `Estadística cargó la plantilla en nombre de ${nombreDe(cfg, comoCorreo)} (entregada por correo). Pasa a En revisión.` : porEstadistica ? 'Estadística cargó la plantilla que el responsable entregó por correo. Pasa a En revisión.' : 'Entregó la plantilla.' + nota + ' Pasa a En revisión.' }); }),
         Promise.resolve(false),   /* al cargar no se envía correo al responsable: «Plantilla recibida» sale solo cuando se valida (decisión de la autora, 26/11/2026) */
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
       res.status(200).json({ ok: true, correo }); return;
     }
 
+    if (a === 'adjunto-descargar') {   /* documento que la Oficina adjuntó al devolver la plantilla */
+      const t = buscar(body.id);
+      if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
+      const e = est[t.id];
+      if (!e || !e.adjunto) throw error('Esta plantilla no tiene documento adjunto.', 404);
+      const buf = await leerBin(rutaAdjunto(periodo, t.id, e.adjunto));
+      if (!buf) throw error('No se encontró el documento en OneDrive.', 404);
+      res.status(200).json({ nombre: e.adjunto, datos: buf.toString('base64') }); return;
+    }
+    if (a === 'novedades') {   /* abre el archivo guardado con novedades para corregirlo en pantalla (responsable de la plantilla o administrador) */
+      const t = buscar(body.id);
+      if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
+      const e = est[t.id];
+      if (!e || !e.novedades || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
+      const buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
+      if (!buf) throw error('No se encontró el archivo en OneDrive.', 404);
+      const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
+      const errores = revisarArchivo(buf, t, oficial, periodo);
+      res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
+    }
     if (a === 'no-aplica') {
       const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false);
       if (!v.soyEntrega && !v.soyDiligencia && !admin) throw error('Usted no es responsable de la entrega ni del diligenciamiento de esta plantilla.', 403);
@@ -548,11 +576,18 @@ module.exports = async function handler(req, res) {
       if (!ESTADOS.includes(nuevo)) throw error('Estado inválido.', 400);
       const motivo = limpio(body.motivo, 800);
       if (nuevo === 'devuelta' && !motivo) throw error('Escriba qué debe corregir el responsable.', 400);
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla: ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
+      let adj = null;
+      if (nuevo === 'devuelta' && body.adjunto && body.adjunto.datos) {
+        const bufA = Buffer.from(String(body.adjunto.datos), 'base64');
+        if (!bufA.length || bufA.length > MAX_ADJUNTO) throw error('El documento adjunto está vacío o pesa más de 3 MB.', 400);
+        adj = { nombre: nombreAdjunto(body.adjunto.nombre), buf: bufA };
+        await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
+      }
+      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
-        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim });
+        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
         else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
@@ -563,7 +598,7 @@ module.exports = async function handler(req, res) {
       if (!['pendiente', 'devuelta'].includes(v.estado)) throw error('Esa plantilla ya fue entregada; no necesita solicitud.', 400);
       const r = respDe(cfg, t.id), para = destinosDe(cfg, t.id).para;
       if (!para.length) throw error('La plantilla no tiene responsables con correo. Asígnalos en la pestaña Responsables.', 400);
-      if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo }); res.status(200).json({ ok: true, para }); return; }
+      if (v.estado === 'devuelta') { await avisar(cfg, t, 'dev', { motivo: v.motivo, limite: v.limite, periodo, novedades: !!(est[t.id] && est[t.id].novedades), adjuntos: await adjuntoDe(periodo, t.id, est[t.id]).catch(() => []) }); res.status(200).json({ ok: true, para }); return; }
       /* Cada responsable de la plantilla recibe un solo correo con todas sus plantillas pendientes. */
       const g = await avisarPorResponsable(cfg, est, periodo, v.vencida ? 'venc' : 'apertura', { soloCorreos: para });
       if (!g.correos) throw error('No se pudo enviar el correo.', 502);
