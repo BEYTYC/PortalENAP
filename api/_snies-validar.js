@@ -203,11 +203,11 @@ function revisarContenido(wb, t, ctx) {
       }
     }
 
-    /* 5b. Código de la unidad organizacional: para esta institución es siempre 01010101 (si Excel le quitó el cero inicial se acepta como 1010101). */
+    /* 5b. Código de la unidad organizacional: siempre 0101010104. Al cargar se reemplaza automáticamente (api/snies.js · normalizarUnidad); esta es la red de seguridad. */
     if (idx['CODIGO_UNIDAD_ORGANIZACIONAL'] != null && t.id !== 'unidad-organizacional') {
       for (const r of filasDatos) {
         const v = filas[r][idx['CODIGO_UNIDAD_ORGANIZACIONAL']]; if (vacia(v)) continue;
-        if (txt(v).replace(/\D/g, '').replace(/^0+/, '') !== '1010101' || /\D/.test(txt(v))) err(nombre, r + 1, 'CODIGO_UNIDAD_ORGANIZACIONAL', 'debe ser 01010101 (código de la unidad organizacional de la institución)');
+        if (txt(v) !== '0101010104') err(nombre, r + 1, 'CODIGO_UNIDAD_ORGANIZACIONAL', 'debe ser 0101010104 (código de la unidad organizacional de la institución)');
       }
     }
     /* 5c. Fechas escritas como texto (por ejemplo «21/08/2026» alineado a la izquierda): deben ser fechas reales de Excel. */
