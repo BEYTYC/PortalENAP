@@ -244,10 +244,11 @@ b[style*="#14233a"]{font-weight:500}
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
   function visorCorreccion(id, nombre, b64, r, porEstadistica, modo) {
     var ver = modo === 'devolver';   /* vista previa para la administradora: lo que verá el responsable, con Devolver / Cancelar */
-    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false, sel = {};
+    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false, modoSel = '';
     /* Cédulas que no están en Participantes: solo las ve Estadística al devolver; ella marca cuáles debe corregir el responsable. */
-    function activo(e, h, f) { return e.cr ? !!sel[h + '|' + f] : !e.ok; }
-    var ncand = 0, vistasC = {}; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { f.e.forEach(function (e) { if (!e.cr) return; var ci = h.cols.indexOf(e.c), kv = h.nombre + '|' + String(f.v[ci]).trim(); if (!vistasC[kv]) { vistasC[kv] = 1; ncand++; } }); }); });   /* una misma cédula repetida cuenta una vez y se marca en todas sus filas */
+    function activo(e) { return e.cr ? !!modoSel : !e.ok; }
+    function texto(e) { return e.cr ? (modoSel === 'ausente' ? e.m2 : e.m1) : e.m; }
+    var ncand = 0, vistasC = {}, clases = { ausente: 0, tipo: 0, nombre: 0 }; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { f.e.forEach(function (e) { if (!e.cr) return; var ci = h.cols.indexOf(e.c), kv = h.nombre + '|' + String(f.v[ci]).trim(); if (!vistasC[kv]) { vistasC[kv] = 1; ncand++; clases[e.k] = (clases[e.k] || 0) + 1; } }); }); });   /* una misma cédula repetida cuenta una vez y se marca en todas sus filas */
     D.hojas.some(function (h, i) { if (h.total || h.cand) { hojaAct = i; return true; } });   /* abre en la primera hoja que tiene errores */
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
     var pie = '', INS = null;
@@ -265,7 +266,7 @@ b[style*="#14233a"]{font-weight:500}
       if (INS) return mostrar();
       fetch('instructivos/datos.json').then(function (r) { return r.json(); }).then(function (d) { INS = d; mostrar(); }).catch(function () { pie = '<div class="mu">No se pudo cargar el instructivo.</div>'; pintaPie(); });
     }
-    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e, h.nombre, f.n)) n++; }); }); }); return n; }
+    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e)) n++; }); }); }); return n; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
       var conErr = D.hojas.map(function (h, i) { return { h: h, i: i }; }).filter(function (x) { return x.h.total || x.h.cand; });
@@ -274,22 +275,26 @@ b[style*="#14233a"]{font-weight:500}
       var cuerpo = H.filas.map(function (f) {
         if (borrar[H.nombre + '|' + f.n]) return '';
         if (soloErr && !f.e.length) return '';
-        var malas = {}, cands = {}; f.e.forEach(function (e) { if (e.cr) cands[e.c] = e.m; if (activo(e, H.nombre, f.n)) (malas[e.c] = malas[e.c] || []).push(e.m); });
-        var filaMal = f.e.some(function (e) { return e.c === '(fila)' && activo(e, H.nombre, f.n); });
+        var malas = {}, cands = {}; f.e.forEach(function (e) { if (e.cr) cands[e.c] = e; if (activo(e)) (malas[e.c] = malas[e.c] || []).push(texto(e)); });
+        var filaMal = f.e.some(function (e) { return e.c === '(fila)' && activo(e); });
         var td = f.v.map(function (v, i) {
           var c = H.cols[i], mal = malas[c], k = H.nombre + '|' + f.n + '|' + c, val = cambios[k] ? cambios[k].v : v;
           var attrs = 'data-h="' + esc(H.nombre) + '" data-f="' + f.n + '" data-c="' + esc(c) + '"';
-          if (cands[c]) { var kk = H.nombre + '|' + f.n; return '<td class="xc ' + (sel[kk] ? 'mal' : 'crc') + '" data-fila="' + f.n + '" data-col="' + esc(c) + '" data-m="' + esc(cands[c]) + '"><label style="display:flex;gap:6px;align-items:center;cursor:pointer;white-space:nowrap"><input type="checkbox" data-cr="' + esc(kk) + '"' + (sel[kk] ? ' checked' : '') + '> <span>' + esc(val) + '</span></label></td>'; }
+          if (cands[c] && !modoSel) return '<td class="xc crc" data-fila="' + f.n + '" data-col="' + esc(c) + '" data-m="' + esc(cands[c].m1) + '">' + esc(val) + '</td>';
           if (mal) return '<td class="xc mal" data-fila="' + f.n + '" data-col="' + esc(c) + '" data-m="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + (ver ? ' readonly' : '') + ' value="' + esc(val) + '"></td>';
           return '<td class="xc" ' + attrs + '>' + esc(val) + '</td>';
         }).join('');
-        var msgs = f.e.filter(function (e) { return activo(e, H.nombre, f.n); }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
+        var msgs = f.e.filter(function (e) { return activo(e); }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
         var aviso = msgs.length && soloErr ? '<tr class="xa"><td colspan="' + (H.cols.length + 2) + '"><div style="position:sticky;left:8px;max-width:min(640px,80vw);font-size:13px;color:#5f4a0b;white-space:normal">' + esc(msgs.join(' · ')) + '</div></td></tr>' : '';
         return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn">' + (ver ? '' : '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>') + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
       var barra = ver ? '' : '<div class="mu" style="font-size:14px">Haz clic en cualquier celda para editarla.</div>';
-      var banda = ver && ncand ? '<div style="background:#eef4fc;border:1px solid #c7d6ea;border-radius:10px;padding:7px 12px;font-size:14px;color:#14233a"><b>' + ncand + ' cédula' + (ncand > 1 ? 's' : '') + ' no aparece' + (ncand > 1 ? 'n' : '') + ' en Participantes.</b> Marca la casilla de las que el responsable debe corregir (le saldrá: «El número de cédula no aparece registrado en la base de datos de la institución»). Las que no marques no se le muestran.</div>' : '';
+      var banda = ver && ncand ? '<div style="background:#eef4fc;border:1px solid #c7d6ea;border-radius:10px;padding:8px 12px;font-size:14px;color:#14233a;display:flex;flex-direction:column;gap:4px"><div><b>' + ncand + ' documento' + (ncand > 1 ? 's' : '') + ' de esta plantilla no coincide' + (ncand > 1 ? 'n' : '') + ' con Participantes</b> (' + [clases.ausente ? clases.ausente + ' no aparece' + (clases.ausente > 1 ? 'n' : '') : '', clases.tipo ? clases.tipo + ' con tipo de documento distinto' : '', clases.nombre ? clases.nombre + ' con el nombre registrado con otro documento' : ''].filter(Boolean).join(' · ') + '). ¿Qué le mostramos al responsable?</div>'
+        + '<label style="cursor:pointer"><input type="radio" name="cm" value=""' + (modoSel === '' ? ' checked' : '') + '> Nada</label>'
+        + '<label style="cursor:pointer"><input type="radio" name="cm" value="verificar"' + (modoSel === 'verificar' ? ' checked' : '') + '> Verificar el número y el tipo de documento (puede que lo cargado esté mal; se le indica en cada fila qué no coincide)</label>'
+        + '<label style="cursor:pointer"><input type="radio" name="cm" value="ausente"' + (modoSel === 'ausente' ? ' checked' : '') + '> La persona no aparece registrada: «El número de cédula no aparece registrado en la base de datos de la institución»</label>'
+        + '<div><button class="btn sec sm" id="listado" title="Descarga en Excel/CSV el listado de documentos que no coinciden, para enviarlo">Descargar listado</button></div></div>' : '';
       var cnt = '<span id="cnt" style="font-size:16px;font-weight:500;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
       m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:19px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:500;font-size:14px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + banda + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
@@ -308,7 +313,13 @@ b[style*="#14233a"]{font-weight:500}
         });
       }
       m.querySelectorAll('input[data-f]').forEach(conectar);
-      m.querySelectorAll('input[data-cr]').forEach(function (ck) { ck.onchange = function () { var fl = +ck.getAttribute('data-cr').split('|').pop(), ci = H.cols.indexOf(H.filas.filter(function (x) { return x.n === fl; })[0].e.filter(function (e) { return e.cr; })[0].c), val = String(H.filas.filter(function (x) { return x.n === fl; })[0].v[ci]).trim(), on = ck.checked; H.filas.forEach(function (x) { if (x.e.some(function (e) { return e.cr; }) && String(x.v[ci]).trim() === val) sel[H.nombre + '|' + x.n] = on; }); pinta(); }; });
+      m.querySelectorAll('input[name=cm]').forEach(function (rd) { rd.onchange = function () { modoSel = rd.value; pinta(); }; });
+      var lb = m.querySelector('#listado'); if (lb) lb.onclick = function () {
+        var fil = [['Hoja', 'Fila', 'Tipo de documento', 'Documento', 'Observación']];
+        D.hojas.forEach(function (h) { var ci = {}; h.filas.forEach(function (f) { f.e.forEach(function (e) { if (!e.cr) return; var k = h.nombre + '|' + String(f.v[h.cols.indexOf(e.c)]).trim(); if (ci[k]) return; ci[k] = 1; var ti = h.cols.indexOf('ID_TIPO_DOCUMENTO'); fil.push([h.nombre, f.n, ti >= 0 ? f.v[ti] : '', f.v[h.cols.indexOf(e.c)], modoSel === 'ausente' ? e.m2 : e.m1]); }); }); });
+        var csv = '\ufeff' + fil.map(function (r) { return r.map(function (v) { return '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
+        bajar('Documentos que no coinciden con Participantes - ' + nombre.replace(/\.xlsx$/i, '') + '.csv', btoa(unescape(encodeURIComponent(csv))), 'text/csv');
+      };
       /* Nota de la corrección: al pasar el cursor o hacer clic en una celda amarilla aparece qué falla y cómo corregirlo. */
       m.querySelectorAll('td.xc.mal').forEach(function (td) {
         td.addEventListener('click', function () { nota(td); });
@@ -327,10 +338,10 @@ b[style*="#14233a"]{font-weight:500}
       m.querySelector('#cancelar').onclick = function () { nota(null); m.remove(); };
       var dy = m.querySelector('#devolverya');
       if (dy) dy.onclick = function () {
-        var elegidas = Object.keys(sel).filter(function (k) { return sel[k]; });
-        if (!quedan()) { nota(null); m.remove(); devolverManual(id); return; }   /* nada que la plataforma pueda mostrar: se pide la nota escrita */
+        
+        if (!quedan() && !modoSel) { nota(null); m.remove(); devolverManual(id); return; }   /* nada que la plataforma pueda mostrar: se pide la nota escrita */
         dy.disabled = true; dy.textContent = 'Devolviendo…';
-        api('estado', { id: id, estado: 'devuelta', motivo: '', cruceIncluir: elegidas, periodo: S.admin && S.admin.periodo })
+        api('estado', { id: id, estado: 'devuelta', motivo: '', cruceModo: modoSel, periodo: S.admin && S.admin.periodo })
           .then(function (x) { nota(null); m.remove(); toast(x.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); })
           .catch(function (e) { dy.disabled = false; dy.textContent = 'Devolver'; toast(e.message); });
       };
@@ -421,7 +432,7 @@ b[style*="#14233a"]{font-weight:500}
       };
       var B = function (act, tit, on, cls) { return '<button class="ib ' + (on ? 'ib-' + act : 'off') + '" title="' + tit + '" aria-label="' + tit + '" ' + (on ? 'data-a="' + act + '" data-id="' + p.id + '"' : 'disabled') + '>' + IC[act] + '</button>'; };
       var acc = p.modo === 'directo' ? '' : B('ver', 'Descargar entrega', !!p.archivo) + B('correo', 'Enviar correo', (p.estado === 'pendiente' || p.estado === 'devuelta') && conResp) + B('devolver', 'Devolver', p.estado === 'revision' || p.estado === 'validada') + B('validar', 'Validar', p.estado === 'revision') + B('deshacer', 'Deshacer cargue', p.modo === 'carga' && tieneCargue);
-      return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (!p.cruce && p.archivo && ['participante', 'inscritos-relacion-de-inscritos', 'inscrito-programa', 'admitidos'].indexOf(p.id) < 0 && S.admin && S.admin.hayBase === false ? '<div class="mu">Cruce con Participantes pendiente: cargue la base (botón «Base de Participantes»)</div>' : '') + (p.cruce ? '<div class="mu"><a href="#" data-a="cruce" data-id="' + p.id + '" style="color:' + (p.cruce.total ? '#7a5200' : '#1f7a55') + '">' + (p.cruce.total ? '⚠ ' + p.cruce.total + ' sin Participante' : '✓ Participantes') + '</a></div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
+      return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (!p.cruce && p.archivo && ['participante', 'inscritos-relacion-de-inscritos', 'inscrito-programa', 'admitidos'].indexOf(p.id) < 0 && S.admin && S.admin.hayBase === false ? '<div class="mu">Cruce con Participantes pendiente: cargue la base (botón «Base de Participantes»)</div>' : '') + (p.cruce ? '<div class="mu"><a href="#" data-a="cruce" data-id="' + p.id + '" style="color:' + (p.cruce.total ? '#7a5200' : '#1f7a55') + '">' + (p.cruce.total ? '⚠ ' + p.cruce.total + ' por revisar en Participantes' : '✓ Participantes') + '</a></div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
@@ -509,12 +520,13 @@ b[style*="#14233a"]{font-weight:500}
     else if (a === 'basepart') { var fi = document.getElementById('basepartf'); if (!fi) { fi = document.createElement('input'); fi.type = 'file'; fi.id = 'basepartf'; fi.accept = '.csv,.txt'; fi.hidden = true; document.body.appendChild(fi); } /* fuera del Panel: si el Panel se vuelve a pintar mientras se elige el archivo, no se pierde */ fi.onchange = function () { var f = fi.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () {
       var ls = String(rd.result).split(/\r?\n/), sep = (ls[0] || '').indexOf(';') >= 0 ? ';' : ',', cab = (ls[0] || '').split(sep).map(function (x) { return x.replace(/"/g, '').trim().toUpperCase(); }), i = cab.indexOf('NUM_DOCUMENTO');
       if (i < 0) { toast('El archivo no tiene la columna NUM_DOCUMENTO.'); fi.value = ''; return; }
-      var docs = []; for (var k = 1; k < ls.length; k++) { if (!ls[k]) continue; var c = ls[k].split(sep)[i]; if (c) docs.push(c.replace(/"/g, '')); }
-      toast('Cargando la base y cruzando las plantillas…'); api('participantes-base', { docs: docs, periodo: S.admin.periodo }).then(function (r) { toast('Base de Participantes guardada: ' + r.n + ' documentos.'); return cargarAdmin(S.admin.periodo).then(pintar); }).catch(function (x) { toast(x.message); }); fi.value = ''; }; rd.readAsText(f, 'utf-8'); }; fi.click(); }
+      var ix = ['ID_TIPO_DOCUMENTO', 'PRIMER_NOMBRE', 'SEGUNDO_NOMBRE', 'PRIMER_APELLIDO', 'SEGUNDO_APELLIDO'].map(function (c) { return cab.indexOf(c); }), filas = [];
+      for (var k = 1; k < ls.length; k++) { if (!ls[k]) continue; var cs = ls[k].split(sep).map(function (x) { return x.replace(/"/g, '').trim(); }); if (cs[i]) filas.push([cs[i]].concat(ix.map(function (q) { return q >= 0 ? cs[q] || '' : ''; }))); }
+      toast('Cargando la base y cruzando las plantillas…'); api('participantes-base', { filas: filas, periodo: S.admin.periodo }).then(function (r) { toast('Base de Participantes guardada: ' + r.n + ' documentos.'); return cargarAdmin(S.admin.periodo).then(pintar); }).catch(function (x) { toast(x.message); }); fi.value = ''; }; rd.readAsText(f, 'utf-8'); }; fi.click(); }
     else if (a === 'cruce') { b.disabled = true; var tx = b.textContent; b.textContent = 'Cruzando…'; api('cruce-participantes', { id: id, periodo: S.admin.periodo }).then(function (r) {
       b.disabled = false; b.textContent = tx;
       var q2 = S.admin.plantillas.filter(function (x) { return x.id === id; })[0] || {};
-      var cuerpo = r.total ? '<div class="mu">' + r.total + ' documento(s) de esta entrega no están en Participantes' + (r.base ? ' (base del SNIES de ' + r.base.n + ' documentos' + (r.entrega ? ' y entrega de Participante' : '') + ')' : ' (entrega de Participante)') + '. Es solo informativo: no bloquea la plantilla y el responsable no lo ve.</div><div style="max-height:46vh;overflow:auto"><table><thead><tr><th>Hoja</th><th>Fila</th><th>Tipo</th><th>Documento</th></tr></thead><tbody>' + r.faltan.map(function (x) { return '<tr><td>' + esc(x.hoja) + '</td><td>' + x.fila + '</td><td>' + esc(x.tipo) + '</td><td>' + esc(x.num) + '</td></tr>'; }).join('') + '</tbody></table></div>' + (r.total > r.faltan.length ? '<div class="mu">Se muestran los primeros ' + r.faltan.length + '.</div>' : '') : '<div class="mu">Todos los documentos de esta entrega (' + r.revisados + ') están en Participantes.</div>';
+      var cuerpo = r.total ? '<div class="mu">' + r.total + ' documento(s) de esta entrega no están en Participantes' + (r.base ? ' (base del SNIES de ' + r.base.n + ' documentos' + (r.entrega ? ' y entrega de Participante' : '') + ')' : ' (entrega de Participante)') + '. Es solo informativo: no bloquea la plantilla y el responsable no lo ve.</div><div style="max-height:46vh;overflow:auto"><table><thead><tr><th>Hoja</th><th>Fila</th><th>Tipo</th><th>Documento</th><th>Observación</th></tr></thead><tbody>' + r.faltan.map(function (x) { return '<tr><td>' + esc(x.hoja) + '</td><td>' + x.fila + '</td><td>' + esc(x.tipo) + '</td><td>' + esc(x.num) + '</td><td>' + esc(x.msg || '') + '</td></tr>'; }).join('') + '</tbody></table></div>' + (r.total > r.faltan.length ? '<div class="mu">Se muestran los primeros ' + r.faltan.length + '.</div>' : '') : '<div class="mu">Todos los documentos de esta entrega (' + r.revisados + ') están en Participantes.</div>';
       var mc = modal('<div style="font-size:18px">Cruce con Participante · ' + esc(q2.nombre || '') + '</div>' + cuerpo + '<div style="display:flex;justify-content:flex-end"><button class="btn" id="ok">Cerrar</button></div>');
       mc.querySelector('#ok').onclick = function () { mc.remove(); };
     }).catch(function (x) { b.disabled = false; b.textContent = tx; toast(x.message); }); }
