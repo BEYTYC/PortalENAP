@@ -14,46 +14,46 @@
 :root{--sb:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:400;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
-b,strong{font-weight:400}
+body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:300;color:#14233a;background:transparent;font-size:14px;line-height:1.45;cursor:default}
+b,strong{font-weight:300}
 button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
 input,textarea{cursor:text}
 .wrap{max-width:1700px;margin:0 auto;padding:18px 72px 40px;display:flex;flex-direction:column;gap:18px;animation:ent .35s ease both}
 @keyframes ent{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
+h1{margin:0;font-size:20px;font-weight:500;color:#062a4a}
 .sub{font-size:13px;color:#4c6386;margin-top:2px}
 .tabs{display:flex;gap:8px;flex-wrap:wrap}
 .wrap{position:relative}
-.tab{font:inherit;font-weight:600;font-size:14px;padding:8px 18px;border-radius:999px;border:1px solid #c4d2e7;background:#fff;color:#123a73;transition:all .15s}
+.tab{font:inherit;font-weight:500;font-size:14px;padding:8px 18px;border-radius:999px;border:1px solid #c4d2e7;background:#fff;color:#123a73;transition:all .15s}
 .tab:hover{background:#eef4fb}.tab.on{background:#123a73;border-color:#123a73;color:#fff;box-shadow:0 4px 12px rgba(18,58,115,.22)}
 .card{background:#fff;border:1px solid #d6e0ec;border-radius:14px;box-shadow:0 1px 2px rgba(7,28,60,.05),0 6px 18px rgba(7,28,60,.05)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:14px;font-weight:600;border-radius:8px;padding:9px 16px;border:1px solid #123a73;background:#123a73;color:#fff;white-space:nowrap;transition:transform .12s,background .15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font:inherit;font-size:14px;font-weight:500;border-radius:8px;padding:9px 16px;border:1px solid #123a73;background:#123a73;color:#fff;white-space:nowrap;transition:transform .12s,background .15s}
 .btn:hover{transform:translateY(-1px);background:#184a92}
 .btn.sec{background:#fff;color:#123a73;border-color:#c4d2e7}.btn.sec:hover{background:#eef4fb}
 .btn.teal{background:#fff;color:#0f5c5c;border-color:#bfe0e0}.btn.teal:hover{background:#f1f8f8}
 .btn.y{background:#d3a62a;border-color:#d3a62a;color:#071142}
 .btn:disabled{background:#c8d3de;border-color:#c8d3de;color:#fff;transform:none;cursor:default}
 .btn.sm{padding:6px 12px;font-size:13px}
-.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.chip{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:500;white-space:nowrap}
 .c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;align-items:stretch}
 .t{padding:12px 14px;border:1px solid;display:flex;flex-direction:column;gap:7px;transition:box-shadow .15s}
 .xl{border-collapse:separate;border-spacing:0;font-size:13px}
-.xl th{position:sticky;top:0;z-index:2;background:#eaf1fb;color:#14233a;font-weight:600;padding:6px 8px;border-right:1px solid #d6e0ee;border-bottom:1px solid #d6e0ee;text-align:left}
+.xl th{position:sticky;top:0;z-index:2;background:#eaf1fb;color:#14233a;font-weight:500;padding:6px 8px;border-right:1px solid #d6e0ee;border-bottom:1px solid #d6e0ee;text-align:left}
 .xl td{border-right:1px solid #e6ecf5;border-bottom:1px solid #e6ecf5;background:#fff}
 .xl td.xc{padding:4px 8px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;min-height:26px;cursor:cell}
 .xl td.xc:hover{background:#f3f8ff}
 .xl td.xc.mal{padding:3px 4px;background:#fff3a8}
 .xl td.xn{position:sticky;left:0;z-index:1;background:#f4f7fb;padding:3px 6px}
-.xl td.xr,.xl th.xr{left:0;text-align:right;font-weight:600;color:#44546a}
+.xl td.xr,.xl th.xr{left:0;text-align:right;font-weight:500;color:#44546a}
 .xl tr.xf td{background:#fff8d1}
 .xl tr.xa td{background:#fffbe0;padding:2px 8px 8px}
 .t.soltar{position:relative;outline:2px dashed #3b82d6;outline-offset:-4px;box-shadow:0 0 0 4px rgba(59,130,214,.14),0 8px 22px rgba(30,64,120,.16)}
-.t.soltar::after{content:"Suelta el archivo para cargarlo";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(235,244,255,.88);color:#1b4c92;font-family:var(--sb);font-weight:600;font-size:15px;border-radius:inherit;pointer-events:none}
+.t.soltar::after{content:"Suelta el archivo para cargarlo";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(235,244,255,.88);color:#1b4c92;font-family:var(--sb);font-weight:500;font-size:15px;border-radius:inherit;pointer-events:none}
 .t.rojo{background:#fdf1f0;border-color:#d9726a}.t.ambar{background:#fff8dc;border-color:#d9b445}.t.verde{background:#f0f9f4;border-color:#5fb68a}.t.gris{background:#f3f6fa;border-color:#a9b8cb}
-.t h3{margin:0;font-size:18px;font-weight:600;line-height:1.2}
+.t h3{margin:0;font-size:18px;font-weight:500;line-height:1.2}
 .mu{color:#4c6386;font-size:12px}
-.t .acts{margin-top:auto}.t .resp{display:flex;flex-direction:column;gap:0;line-height:1.2}.t .resp .mu{line-height:1.2}.t .resp .rv{color:#14233a;font-family:var(--sb);font-weight:600}.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .acts{margin-top:auto}.t .resp{display:flex;flex-direction:column;gap:0;line-height:1.2}.t .resp .mu{line-height:1.2}.t .resp .rv{color:#14233a;font-family:var(--sb);font-weight:500}.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone{min-height:48px;padding-top:4px;padding-bottom:4px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
 .pb{width:132px;justify-content:center;text-align:center;padding-left:6px;padding-right:6px}.btn.off,.btn.off:disabled{background:#eceff3;border-color:#dde3ea;color:#a3aebd;cursor:default;box-shadow:none;opacity:1}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:10px;min-height:38px;align-items:center}
@@ -79,7 +79,7 @@ textarea.inp{resize:vertical;min-height:54px}
 .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:#123a73;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:30;box-shadow:0 8px 24px rgba(7,28,60,.3)}
 .cargando[hidden]{display:none}.cargando{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
 .cargando .gk{font-size:13px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:#b58b2a;margin-bottom:4px}
-.cargando .gmod{margin:0 0 6px;font-size:clamp(26px,5vw,34px);font-weight:600;line-height:1.1;color:#14233a}
+.cargando .gmod{margin:0 0 6px;font-size:clamp(26px,5vw,34px);font-weight:500;line-height:1.1;color:#14233a}
 .cargando .gm{font-size:16px;color:#123a73}
 .cargando .gsp{width:34px;height:34px;margin:14px auto 0;border:3px solid #d6e2f0;border-top-color:#123a73;border-radius:50%;animation:gspin .9s linear infinite}
 .cargando b{display:block;margin-top:10px;font-size:18px;color:#14233a}
@@ -91,11 +91,15 @@ textarea.inp{resize:vertical;min-height:54px}
 body{zoom:.88}
 @media(max-width:700px){body{zoom:.85}}
 /* Letra menos negrita: texto normal 500; solo los títulos y los números grandes en semi negrita */
-.tab,.btn,.chip,th,.inp,.mu,.zone,.ban,.toast{font-weight:400}
-b,strong{font-weight:400}
-h1,h2,h3{font-weight:600}
-.btn,.tab,.chip,h1,h2,h3,.t h3,.kpi .kn,b[style*="#14233a"],.cargando .gmod{font-family:var(--sb);font-weight:600}
-b[style*="#14233a"]{font-weight:600}
+.tab,.btn,.chip,th,.inp,.mu,.zone,.ban,.toast{font-weight:300}
+.btn,.tab,.chip{font-weight:400;letter-spacing:.1px}
+td,li,label,.card,.modal{font-weight:300}
+th{letter-spacing:.6px;font-weight:400}
+h1,h2,h3{letter-spacing:-.1px}
+b,strong{font-weight:300}
+h1,h2,h3{font-weight:400}
+.btn,.tab,.chip,h1,h2,h3,.t h3,.kpi .kn,b[style*="#14233a"],.cargando .gmod{font-family:var(--sb);font-weight:400}
+b[style*="#14233a"]{font-weight:400}
 </style>
 <style>/* Sin cursor de texto parpadeante fuera de los campos de escritura */html,body{caret-color:transparent}input,textarea,select,[contenteditable="true"]{caret-color:auto}</style>
 </head>
@@ -165,7 +169,7 @@ b[style*="#14233a"]{font-weight:600}
     if (p.modo === 'directo') {
       zona = '<div class="zone" style="border:0;background:rgba(223,241,241,.6);color:#0f5c5c">Esta plantilla se reporta directo al SNIES con su propio usuario. Aquí solo recibe las notificaciones.</div>';
     } else if (p.estado === 'devuelta') {
-      zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:600">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>';
+      zona = '<div class="zone" style="border-color:#c8372d;color:#a3281d">Devuelta por Estadística: ' + esc(p.motivo) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:500">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>';
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
       zona = '';
     } else if (p.estado === 'pendiente') {
@@ -182,7 +186,7 @@ b[style*="#14233a"]{font-weight:600}
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:13px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
     return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:11px;line-height:1.25">Periodo: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
-      + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;font-family:var(--sb);color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:600;font-family:var(--sb);color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:13px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:13px;font-weight:600;font-family:var(--sb)">' + esc(plazo) + '</div></div></div>')
+      + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:500;font-family:var(--sb);color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:15px;font-weight:500;font-family:var(--sb);color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:flex;gap:18px;font-size:13px"><div><div class="mu">Entrega antes del</div><div style="font-size:13px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:13px;font-weight:500;font-family:var(--sb)">' + esc(plazo) + '</div></div></div>')
       + '<div class="resp">' + '<div class="mu l1" title="' + esc(p.entregaTexto) + '">Responsable de la entrega: <span class="rv">' + esc(p.entregaTexto) + '</span></div>' + (p.diligenciaTexto ? '<div class="mu l1" title="' + esc(p.diligenciaTexto) + '">Responsable del diligenciamiento: <span class="rv">' + esc(p.diligenciaTexto) + '</span></div>' : '') + '</div>' + nota + zona
       + (acts ? '<div class="acts">' + acts + '</div>' : '<div class="acts"></div>')
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
@@ -192,7 +196,7 @@ b[style*="#14233a"]{font-weight:600}
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
     var barra = '';
     if (d.admin) {
-      barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:600">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(d.verComo ? S.nombreReal || '' : d.nombre) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Actúas en nombre de esta persona: lo que cargues queda a su nombre y no se le envía correo</span>' : '') + '</div>';
+      barra = '<div class="card" style="padding:8px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;width:fit-content;margin-bottom:12px"><span class="mu" style="font-weight:500">Modo administrador · Ver como:</span><select class="inp" id="vercomo" style="width:auto;min-width:260px"><option value="">Yo (' + esc(d.verComo ? S.nombreReal || '' : d.nombre) + ')</option>' + (S.usuarios || []).map(function (u) { return '<option value="' + esc(u.correo) + '"' + (u.correo === S.verComo ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.correo) + '</option>'; }).join('') + '</select>' + (S.verComo ? '<span class="chip c-teal">Actúas en nombre de esta persona: lo que cargues queda a su nombre y no se le envía correo</span>' : '') + '</div>';
     }
     var h = barra;
     if (!ps.length) return h + '<div class="card" style="padding:28px;text-align:center;color:#4c6386">Todavía no tienes plantillas asignadas. Si crees que es un error, escribe a la Oficina de Estadística.</div>';
@@ -223,7 +227,7 @@ b[style*="#14233a"]{font-weight:600}
           gm.querySelector('#enviar').onclick = function () { var bt = this; bt.disabled = true; bt.textContent = 'Enviando…'; api('enviar-correo', { id: id, periodo: S.admin && S.admin.periodo }).then(function (x) { gm.remove(); toast('Correo de novedades enviado a ' + x.para.join(', ') + '.'); }).catch(function (x) { bt.disabled = false; bt.textContent = 'Enviar correo de novedades al responsable'; toast(x.message); }); };
           return refrescar();
         }
-        var mm = modal('<div style="font-size:17px">' + (r.devuelta ? 'El archivo necesita correcciones' : 'Tu archivo no se pudo entregar') + '</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600;font-size:14px">↗ Instructivo de diligenciamiento</a><button class="btn" id="ok">Entendido</button></div>');
+        var mm = modal('<div style="font-size:17px">' + (r.devuelta ? 'El archivo necesita correcciones' : 'Tu archivo no se pudo entregar') + '</div><ul class="err" style="margin:0;padding-left:18px;font-size:14px">' + r.errores.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:500;font-size:14px">↗ Instructivo de diligenciamiento</a><button class="btn" id="ok">Entendido</button></div>');
         mm.querySelector('#ok').onclick = function () { mm.remove(); };
         if (r.devuelta) return refrescar();
         return;
@@ -276,8 +280,8 @@ b[style*="#14233a"]{font-weight:600}
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
       var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label>' + (ver ? '' : '<span class="mu">Haz clic en cualquier celda para editarla.</span>') + '</div>';
-      var cnt = '<span id="cnt" style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
-      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:18px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600;font-size:13px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + barra + mas
+      var cnt = '<span id="cnt" style="font-size:15px;font-weight:500;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
+      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:18px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:500;font-size:13px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div id="pie" style="display:none;background:#fffbe0;border:1px solid #e6d48a;border-radius:10px;padding:8px 12px"></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (ver ? '<button class="btn y" id="devolverya">Devolver</button>' : (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button>') + '</div></div>';
