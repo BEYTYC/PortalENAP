@@ -126,15 +126,8 @@ b[style*="#14233a"]{font-weight:500}
     if (!P || !P.tokenMicrosoft) return Promise.reject(new Error('Este módulo se abre desde el Portal (Facultades › Plantillas SNIES).'));
     return Promise.race([P.tokenMicrosoft(), new Promise(function (_, no) { setTimeout(function () { no(new Error('No se pudo obtener su sesión de Microsoft. Cierre sesión, vuelva a entrar y abra de nuevo el módulo.')); }, 25000); })]);
   }
-  /* Aviso «Cargando…» mientras hay una consulta al servidor; mientras tanto los botones no repiten la acción (evita abrir varias veces lo mismo). */
-  var pend = 0, pastilla = null, tPast = 0;
-  function enEspera(on) {
-    pend += on ? 1 : -1; if (pend < 0) pend = 0;
-    if (pend > 0 && !tPast && !pastilla) tPast = setTimeout(function () { tPast = 0; if (pend > 0 && !pastilla) { pastilla = document.createElement('div'); pastilla.textContent = 'Cargando…'; pastilla.style.cssText = 'position:fixed;left:50%;top:16px;transform:translateX(-50%);z-index:99999;background:#0b3d66;color:#fff;padding:8px 20px;border-radius:18px;font-size:15px;box-shadow:0 4px 14px rgba(11,61,102,.25)'; document.body.appendChild(pastilla); } }, 250);
-    if (pend === 0) { if (tPast) { clearTimeout(tPast); tPast = 0; } if (pastilla) { pastilla.remove(); pastilla = null; } }
-  }
-  var FONDO = { sesion: 1, admin: 1 };   /* actualizaciones automáticas de pantalla: no muestran aviso ni bloquean botones */
-  var FONDO = { sesion: 1, admin: 1 };   /* actualizaciones automáticas de pantalla: no muestran aviso ni bloquean botones */
+  var FONDO = {};
+  function enEspera() { }
   function api0(accion, extra) {
     return token().then(function (t) {
       return fetch('/api/snies', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({ accessToken: t, accion: accion }, extra || {})) });
@@ -380,15 +373,17 @@ b[style*="#14233a"]{font-weight:500}
     pinta();
   }
   /* Abre de una las novedades de un archivo que la Oficina de Estadística cargó en nombre del responsable (enlace del correo o botón de la tarjeta). */
-  function abrirNovedades(id) {
+  function abrirNovedades(id, fin) {
+    var listo = function () { if (fin) fin(); };
     S.novedadesVistas = true;
-    if (id === 'todas') { var q = S.datos && S.datos.plantillas && S.datos.plantillas.filter(function (x) { return x.puedeCargar && x.estado === 'devuelta' && x.novedades; })[0]; if (!q) { toast('No tienes novedades por corregir.'); return; } id = q.id; }
+    if (id === 'todas') { var q = S.datos && S.datos.plantillas && S.datos.plantillas.filter(function (x) { return x.puedeCargar && x.estado === 'devuelta' && x.novedades; })[0]; if (!q) { listo(); toast('No tienes novedades por corregir.'); return; } id = q.id; }
     api('novedades', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) {
+      listo();
       if (!r.datos) { toast('El archivo es muy grande para corregirlo en pantalla. Descárgalo, corrígelo y vuelve a cargarlo.'); return; }
       if (r.detalle && r.detalle.hojas && r.detalle.hojas.length) { visorCorreccion(id, r.nombre, r.datos, r, false); return; }
       var mm = modal('<div style="font-size:18px">Novedades de la plantilla</div><ul class="err" style="margin:0;padding-left:18px;font-size:15px">' + (r.errores || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul><div style="display:flex;justify-content:flex-end"><button class="btn" id="ok">Entendido</button></div>');
       mm.querySelector('#ok').onclick = function () { mm.remove(); };
-    }).catch(function (e) { toast(e.message); });
+    }).catch(function (e) { listo(); toast(e.message); });
   }
   function noAplica(id) {
     var p = S.datos.plantillas.filter(function (x) { return x.id === id; })[0];
@@ -519,7 +514,6 @@ b[style*="#14233a"]{font-weight:500}
     var v = e.target.closest('[data-v]'); if (v) {
       S.vista = v.dataset.v; pintar();   /* se muestra al instante con lo ya cargado */
       var antes = JSON.stringify(S.vista === 'mis' ? S.datos : S.admin);
-      enEspera(true);   /* el usuario pulsó un botón: se avisa «Cargando…» mientras se actualiza */
       (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(function () {
         if (JSON.stringify(S.vista === 'mis' ? S.datos : S.admin) !== antes) pintar();   /* solo se vuelve a dibujar si algo cambió */
         enEspera(false);
@@ -529,11 +523,10 @@ b[style*="#14233a"]{font-weight:500}
     var k = e.target.closest('[data-k]'); if (k) { S.kpi = S.kpi === k.dataset.k ? '' : k.dataset.k; pintar(); return; }
     var b = e.target.closest('[data-a]'); if (!b || b.tagName === 'INPUT') return;
     var a = b.dataset.a, id = b.dataset.id; if (a !== 'subir') e.preventDefault();
-    if (pend > 0 && a !== 'subir' && a !== 'cargar' && a !== 'instructivo') return;   /* ya hay algo cargando: no se repite la acción; se ve el aviso «Cargando…» */
     if (a === 'cargar') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0]); }; oculto.click(); }
     else if (a === 'instructivo') verInstructivo(id);
     else if (a === 'na') noAplica(id);
-    else if (a === 'novedades') abrirNovedades(id);
+    else if (a === 'novedades') { if (b.disabled) return; var tx = b.textContent; b.disabled = true; b.textContent = 'Cargando…'; abrirNovedades(id, function () { b.disabled = false; b.textContent = tx; }); }
     else if (a === 'adjunto') api('adjunto-descargar', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) { bajar(r.nombre, r.datos, 'application/octet-stream'); }).catch(function (x) { toast(x.message); });
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
