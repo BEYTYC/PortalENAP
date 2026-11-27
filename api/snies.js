@@ -393,9 +393,10 @@ function revisarArchivo(buf, t, oficial, periodo) {
       else {
         for (const h of datos) {
           const real = (wb.leer(h, { maxCols: 200, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()).filter((x) => x);
-          const ok = esperado[h], f = ok.filter((c) => !real.includes(c)), e = real.filter((c) => !ok.includes(c));
-          if (f.length || e.length) errores.push(`La hoja ${h} no coincide con la plantilla oficial vigente${f.length ? `: faltan las columnas ${f.slice(0, 8).join(', ')}` : ''}${e.length ? `${f.length ? ';' : ':'} sobran ${e.slice(0, 8).join(', ')}` : ''}.` + AVISO);
-          else if (JSON.stringify(real) !== JSON.stringify(ok)) errores.push(`La hoja ${h} tiene las columnas en otro orden que la plantilla oficial vigente.` + AVISO);
+          /* Columnas con encabezado escrito que NO están en la plantilla oficial (extras) no son error (decisión de la autora, 26/11/2026): solo faltan o desorden de las oficiales. */
+          const ok = esperado[h], f = ok.filter((c) => !real.includes(c));
+          if (f.length) errores.push(`La hoja ${h} no coincide con la plantilla oficial vigente: faltan las columnas ${f.slice(0, 8).join(', ')}.` + AVISO);
+          else if (JSON.stringify(real.filter((c) => ok.includes(c))) !== JSON.stringify(ok)) errores.push(`La hoja ${h} tiene las columnas en otro orden que la plantilla oficial vigente.` + AVISO);
         }
       }
     }
