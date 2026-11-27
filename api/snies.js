@@ -628,6 +628,17 @@ module.exports = async function handler(req, res) {
       await mutar('config.json', configBase, (c) => { c.prorrogas = c.prorrogas || {}; if (f) c.prorrogas[t.id] = f; else delete c.prorrogas[t.id]; });
       res.status(200).json({ ok: true }); return;
     }
+    if (a === 'deshacer-cargue') {   /* deshace el último cargue (p. ej. una prueba): la plantilla vuelve a Pendiente; solo el administrador */
+      soloAdmin(); const t = buscar(body.id), e0 = est[t.id];
+      if (!e0 || (!e0.archivo && !e0.noAplica)) throw error('Esta plantilla no tiene un cargue para deshacer.', 400);
+      await mutar(`estado-${periodo}.json`, () => ({}), (s) => {
+        const x = s[t.id] = s[t.id] || {}, antes = x.estado, arch = x.archivo;
+        x.estado = 'pendiente'; x.noAplica = false; x.novedades = false; x.archivo = ''; x.adjunto = ''; x.motivo = ''; x.fecha = ''; x.por = '';
+        (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Deshizo el cargue' + (arch ? ' (' + arch + ')' : '') + '; la plantilla volvió a Pendiente (estaba ' + antes + ').' });
+      });
+      res.status(200).json({ ok: true }); return;
+    }
+
     if (a === 'estado') {
       soloAdmin(); const t = buscar(body.id), nuevo = body.estado;
       if (!ESTADOS.includes(nuevo)) throw error('Estado inválido.', 400);
