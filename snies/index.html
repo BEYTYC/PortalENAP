@@ -38,6 +38,8 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;align-items:stretch}
 .t{padding:12px 14px;border:1px solid;display:flex;flex-direction:column;gap:7px;transition:box-shadow .15s}
+.t.soltar{position:relative;outline:2px dashed #3b82d6;outline-offset:-4px;box-shadow:0 0 0 4px rgba(59,130,214,.14),0 8px 22px rgba(30,64,120,.16)}
+.t.soltar::after{content:"Suelta el archivo para cargarlo";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(235,244,255,.88);color:#1b4c92;font-family:var(--sb);font-weight:600;font-size:15px;border-radius:inherit;pointer-events:none}
 .t.rojo{background:#fdf1f0;border-color:#d9726a}.t.ambar{background:#fff8dc;border-color:#d9b445}.t.verde{background:#f0f9f4;border-color:#5fb68a}.t.gris{background:#f3f6fa;border-color:#a9b8cb}
 .t h3{margin:0;font-size:18px;font-weight:600;line-height:1.2}
 .mu{color:#4c6386;font-size:12px}
@@ -349,6 +351,21 @@ b[style*="#14233a"]{font-weight:600}
   }
 
   /* ---------------- Eventos ---------------- */
+  /* Arrastrar un archivo sobre la tarjeta: equivale a «Cargar plantilla» (solo en tarjetas que tienen ese botón). */
+  (function () {
+    var enTarjeta = function (e) { var c = e.target.closest && e.target.closest('.t'); return c && c.querySelector('[data-a="cargar"]') ? c : null; };
+    var traeArchivo = function (e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0; };
+    var quitar = function () { document.querySelectorAll('.t.soltar').forEach(function (x) { x.classList.remove('soltar'); }); };
+    document.addEventListener('dragover', function (e) { if (!traeArchivo(e)) return; var c = enTarjeta(e); quitar(); if (c) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; c.classList.add('soltar'); } });
+    document.addEventListener('dragleave', function (e) { if (!e.relatedTarget) quitar(); });
+    document.addEventListener('drop', function (e) {
+      if (!traeArchivo(e)) return; var c = enTarjeta(e); quitar(); e.preventDefault();   /* también evita que el navegador abra el archivo */
+      if (!c) return;
+      var f = e.dataTransfer.files[0]; if (!f) return;
+      if (e.dataTransfer.files.length > 1) { toast('Suelta un solo archivo por plantilla.'); return; }
+      cargarArchivo(c.querySelector('[data-a="cargar"]').getAttribute('data-id'), f);
+    });
+  })();
   var oculto = document.createElement('input'); oculto.type = 'file'; oculto.hidden = true; /* sin accept: con el filtro .xlsx el explorador de Windows tarda mucho en abrir; la extensión se valida al elegir */ document.body.appendChild(oculto);
   app.addEventListener('click', function (e) {
     var v = e.target.closest('[data-v]'); if (v) {
