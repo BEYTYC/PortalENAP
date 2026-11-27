@@ -44,8 +44,9 @@ h1{margin:0;font-size:21px;font-weight:500;color:#062a4a}
 .xl td.xc{padding:4px 8px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;min-height:26px;cursor:cell}
 .xl td.xc:hover{background:#f3f8ff}
 .xl td.xc.mal{padding:3px 4px;background:#fff3a8}
-.xl td.xn{position:sticky;left:0;z-index:1;background:#f4f7fb;padding:3px 6px}
-.xl td.xr,.xl th.xr{left:0;text-align:right;font-weight:500;color:#44546a}
+.xl td.xn,.xl th.xn{position:sticky;left:0;z-index:1;background:#f4f7fb;padding:3px 6px;min-width:var(--xb,0)}
+.xl th.xn{z-index:3}
+.xl td.xr,.xl th.xr{left:var(--xb,0);text-align:right;font-weight:500;color:#44546a}
 .xl td.crc{background:#eef4fc;box-shadow:inset 0 0 0 1px #c7d6ea}.xl tr.xf td{background:#fff8d1}
 .xl tr.xa td{background:#fffbe0;padding:2px 8px 8px}
 .t.soltar{position:relative;outline:2px dashed #3b82d6;outline-offset:-4px;box-shadow:0 0 0 4px rgba(59,130,214,.14),0 8px 22px rgba(30,64,120,.16)}
@@ -313,7 +314,7 @@ b[style*="#14233a"]{font-weight:500}
         + '<div><button class="btn sec sm" id="listado" title="Descarga en Excel/CSV el listado de documentos que no coinciden, para enviarlo">Descargar listado</button></div></div>' : '';
       var cnt = '<span id="cnt" style="font-size:16px;font-weight:500;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
       m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:19px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:500;font-size:14px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + banda + barra + mas
-        + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
+        + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl" style="--xb:' + (ver ? 0 : 112) + 'px"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div id="pie" style="display:none;background:#fffbe0;border:1px solid #e6d48a;border-radius:10px;padding:8px 12px"></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (ver ? '<button class="btn y" id="devolverya">Devolver</button>' : (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button>') + '</div></div>';
       m.querySelectorAll('[data-solo]').forEach(function (b) { b.onclick = function (ev) { ev.preventDefault(); soloErr = !soloErr; pie = ''; pinta(); }; });
