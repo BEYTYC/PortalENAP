@@ -430,21 +430,27 @@ function normalizarUnidad(buf, t) {
 /* Cruce informativo con Participante (la autora, 27/11/2026): lista los documentos que aparecen en una entrega y no están en la entrega de Participante. Se compara solo el número de documento (sin puntos, espacios ni ceros a la izquierda). No bloquea y solo lo ve Estadística. */
 function cruceParticipantes(bufT, t, bufP, extra) {
   const norm = (v) => String(v == null ? '' : v).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '');
-  const docs = (buf, cod, soloHoja) => {
-    const wb = abrir(buf), esp = COLUMNAS[String(cod)] || {}, out = [];
-    for (const h of wb.hojas.filter((x) => x !== 'INFO' && (!soloHoja || x === soloHoja))) {
-      const cols = esp[h]; if (!cols || !cols.includes('NUM_DOCUMENTO')) continue;
-      const hoja = VALIDAR.leerHoja ? VALIDAR.leerHoja(wb, h, cols) : null; if (!hoja) continue;
-      const iN = hoja.idx.NUM_DOCUMENTO, iT = hoja.idx.ID_TIPO_DOCUMENTO;
-      for (let r = 1; r < hoja.filas.length; r++) {
-        const n = norm((hoja.filas[r] || [])[iN]); if (!n) continue;
-        out.push({ hoja: h, fila: r + 1, tipo: iT == null ? '' : String((hoja.filas[r] || [])[iT] || '').trim(), num: String((hoja.filas[r] || [])[iN]).trim(), k: n });
+  /* Se revisan TODAS las pestañas: en cada una se busca el encabezado del número de documento (en las primeras filas) y se leen todas sus filas, aunque la pestaña o la columna no sean de la plantilla oficial. */
+  const esNum = (c) => /^(NUM|NUMERO|NÚMERO)[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N|CEDULA|CÉDULA)\w*$|^(DOCUMENTO|CEDULA|CÉDULA)$/.test(c), esTipo = (c) => /^(ID_)?TIPO[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N)\w*$/.test(c);
+  const docs = (buf) => {
+    const wb = abrir(buf), out = [];
+    for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
+      const filas = wb.leer(h, { maxCols: 200 }) || [];
+      let e = -1, iN = -1, iT = -1;
+      for (let r = 0; r < Math.min(8, filas.length) && e < 0; r++) {
+        const enc = (filas[r] || []).map((x) => String(x == null ? '' : x).trim().toUpperCase().replace(/\s+/g, ' '));
+        const k = enc.findIndex(esNum); if (k >= 0) { e = r; iN = k; iT = enc.findIndex(esTipo); }
+      }
+      if (e < 0) continue;
+      for (let r = e + 1; r < filas.length; r++) {
+        const n = norm((filas[r] || [])[iN]); if (!n) continue;
+        out.push({ hoja: h, fila: r + 1, tipo: iT < 0 ? '' : String((filas[r] || [])[iT] || '').trim(), num: String((filas[r] || [])[iN]).trim(), k: n });
       }
     }
     return out;
   };
-  const part = new Set(extra || []); if (bufP) docs(bufP, 55).forEach((x) => part.add(x.k));
-  const mios = docs(bufT, t.codigo), faltan = mios.filter((x) => !part.has(x.k));
+  const part = new Set(extra || []); if (bufP) docs(bufP).forEach((x) => part.add(x.k));
+  const mios = docs(bufT), faltan = mios.filter((x) => !part.has(x.k));
   const vistos = new Set(), unicos = [];
   for (const x of faltan) { const c = x.hoja + '|' + x.k; if (vistos.has(c)) continue; vistos.add(c); unicos.push({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num }); }
   return { revisados: new Set(mios.map((x) => x.k)).size, participantes: part.size, faltan: unicos.slice(0, 500), total: unicos.length };
@@ -658,6 +664,12 @@ module.exports = async function handler(req, res) {
       const bufT = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
       if (!bufT) throw error('No se encontró el archivo en OneDrive.', 404);
       res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base && base.docs))); return;
+    }
+    if (a === 'cruce-actualizar') {   /* calcula el cruce de las entregas que todavía no lo tienen (cargadas antes de existir el cruce) */
+      soloAdmin();
+      const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && !est[x.id].cruce).map((x) => x.id);
+      if (ids.length) await actualizarCruce(periodo, ids);
+      res.status(200).json({ ok: true, n: ids.length }); return;
     }
     if (a === 'participantes-base') {   /* Estadística sube los números de documento de la base de Participantes del SNIES (el CSV UnoAUno); solo se guardan los números, en SharePoint */
       soloAdmin();
