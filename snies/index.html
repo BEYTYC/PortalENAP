@@ -466,7 +466,7 @@ b[style*="#14233a"]{font-weight:500}
     var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Periodo que se solicita</th><th>Responsable de la entrega (carga)</th><th>Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       var dir = p.modo === 'directo' ? '<div class="mu" style="color:#0f5c5c">Reporta directo al SNIES: solo notificaciones</div>' : (p.maestroSin && p.modo === 'sin' ? '<div class="mu">El Documento Maestro no tiene responsable para esta plantilla; si le asignas uno, se gestiona como las demás.</div>' : '');
-      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '</td><td style="white-space:nowrap">' + esc(p.periodoReporte || '') + '</td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
+      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '</td><td><input class="inp r-per" style="width:92px" value="' + esc(p.periodoReporte || '') + '" placeholder="2026-2" title="Periodo que se solicita (AAAA-1 o AAAA-2). Si lo cambias, se usa en los correos y en la validación."></td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
     }, 6);
     return h + '</tbody></table></div>';
   }
@@ -581,10 +581,10 @@ b[style*="#14233a"]{font-weight:500}
     else if (a === 'guardar') {
       var tr = b.closest('tr'), sep = function (s) { return s.split(/[,;\s]+/).filter(Boolean); };
       var est = tr.querySelector('.r-est'), txt = b.textContent; b.disabled = true; b.textContent = 'Guardando…'; est.textContent = ''; est.style.color = '#14633d';
-      api('responsables', { id: id, entrega: sep(tr.querySelector('.r-ent').value), diligencia: sep(tr.querySelector('.r-dil').value), fecha: tr.querySelector('.r-pro').value }).then(function (r) {
+      api('responsables', { id: id, entrega: sep(tr.querySelector('.r-ent').value), diligencia: sep(tr.querySelector('.r-dil').value), fecha: tr.querySelector('.r-pro').value, periodoRep: tr.querySelector('.r-per').value.trim() }).then(function (r) {
         b.disabled = false; b.textContent = txt; est.textContent = 'Guardado ✓';
-        tr.querySelector('.r-ent').value = r.entrega.join(', '); tr.querySelector('.r-dil').value = r.diligencia.join(', ');
-        var p = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; if (p) { p.entrega = r.entrega; p.diligencia = r.diligencia; p.prorroga = tr.querySelector('.r-pro').value; }
+        tr.querySelector('.r-ent').value = r.entrega.join(', '); tr.querySelector('.r-dil').value = r.diligencia.join(', '); if (r.periodoRep) tr.querySelector('.r-per').value = r.periodoRep;
+        var p = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; if (p) { p.entrega = r.entrega; p.diligencia = r.diligencia; p.prorroga = tr.querySelector('.r-pro').value; if (r.periodoRep) p.periodoReporte = r.periodoRep; }
         toast('Guardado.');
       }).catch(function (x) { b.disabled = false; b.textContent = txt; est.style.color = '#a3281d'; est.textContent = x.message; toast(x.message); });
     }

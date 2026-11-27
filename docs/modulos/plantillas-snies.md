@@ -127,3 +127,7 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 - Con MOVILIDAD_POR_CONVENIO = NO, CODIGO_CONVENIO debe ir vacío (error: «debe estar vacío si MOVILIDAD_POR_CONVENIO es NO»).
 - Todo CODIGO_CONVENIO debe estar en la plantilla Convenios Internacionales (hoja CONVENIOS_INTERNACIONALES) de este periodo: si no, «el convenio no se encuentra creado». Si esa plantilla no se ha entregado o es «No aplica», este cruce no se hace.
 - En las plantillas de movilidad CODIGO_CONVENIO ya no se trata como llave única: puede repetirse en varias filas.
+
+## Periodo que se solicita, editable (27/11/2026)
+- En Responsables, la columna «Periodo que se solicita» es un campo editable por plantilla (formato AAAA-1 o AAAA-2). Se guarda con el botón Guardar de la fila en `config.json › periodosRep`. Si se deja vacío o igual al del ciclo, vuelve al periodo por defecto.
+- El valor editado se usa en las tarjetas, los correos y la validación del contenido (por ejemplo, la regla de retiro anterior al periodo).

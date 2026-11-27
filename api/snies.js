@@ -54,7 +54,10 @@ const ofreceAnterior = (t) => CON_ANTERIOR.has(t.id) || ['INTERNACIONALIZACIÓN'
 const CUPOS = 'cupos-proyectados-y-matricula-esperada';
 /* Cupos proyectados siempre va adelantado: el ciclo 2026-2 reporta 2027-2 (lo pendiente a la fecha; el 2027-1 ya se reportó el 12 de septiembre) y el ciclo 2027-1 reporta 2027-2 (12 de marzo). */
 /* Periodo que se reporta: el mismo del ciclo (ciclo 2026-2 → 2026-2); Cupos proyectados va adelantado (ciclo 2026-2 → 2027-2). */
-const periodoReporte = (t, periodo) => { if (t.id !== CUPOS) return periodo; const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-2` : `${a}-2`; };
+const periodoBase = (t, periodo) => { if (t.id !== CUPOS) return periodo; const [a, s] = periodo.split('-').map(Number); return s === 2 ? `${a + 1}-2` : `${a}-2`; };
+/* Periodo que se solicita: la autora puede editarlo por plantilla (se guarda en config.periodosRep; se refresca en cada leerConfig). */
+let PERIODOS_REP = {};
+const periodoReporte = (t, periodo) => PERIODOS_REP[t.id] || periodoBase(t, periodo);
 const TEMPLATES = MAESTRO.map((t) => {
   const sin = t.cargo === 'NA' || t.cargo === 'NO APLICA';
   const modo = sin ? 'sin' : t.cargo === 'PINO' ? 'directo' : 'carga';  /* directo = sube al SNIES con su propio usuario; solo recibe notificaciones */
@@ -134,7 +137,7 @@ async function mutar(nombre, porDefecto, fn) {
   }
 }
 const configBase = () => ({ periodo: periodoPorDefecto(), responsables: {}, prorrogas: {}, usuarios: {}, oficiales: {}, abierto: {} });
-async function leerConfig() { const { valor } = await leerJson('config.json'); return Object.assign(configBase(), valor || {}); }
+async function leerConfig() { const { valor } = await leerJson('config.json'); const c = Object.assign(configBase(), valor || {}); PERIODOS_REP = c.periodosRep || {}; return c; }
 async function leerEstado(periodo) { const { valor } = await leerJson(`estado-${periodo}.json`); return valor || {}; }
 
 /* ------------------------------ Responsables ------------------------------ */
@@ -836,10 +839,12 @@ module.exports = async function handler(req, res) {
       const f = limpio(body.fecha, 10);
       if (f && !/^\d{4}-\d{2}-\d{2}$/.test(f)) throw error('Fecha inválida.', 400);
       const ent = listaCorreos(body.entrega).slice(0, 3), dil = listaCorreos(body.diligencia).slice(0, 12);
-      /* Responsables y prórroga se guardan juntos, en una sola escritura. */
-      await mutar('config.json', configBase, (c) => { c.responsables = c.responsables || {}; c.responsables[t.id] = { entrega: ent, diligencia: dil }; c.prorrogas = c.prorrogas || {}; if (f) c.prorrogas[t.id] = f; else delete c.prorrogas[t.id]; });
+      const pr = body.periodoRep == null ? null : limpio(body.periodoRep, 10).toUpperCase();
+      if (pr && !/^\d{4}-[12]$/.test(pr)) throw error('Periodo inválido: use el formato AAAA-1 o AAAA-2 (por ejemplo 2026-2).', 400);
+      /* Responsables, prórroga y periodo que se solicita se guardan juntos, en una sola escritura. */
+      await mutar('config.json', configBase, (c) => { if (pr !== null) { c.periodosRep = c.periodosRep || {}; if (pr && pr !== periodoBase(t, c.periodo)) c.periodosRep[t.id] = pr; else delete c.periodosRep[t.id]; } c.responsables = c.responsables || {}; c.responsables[t.id] = { entrega: ent, diligencia: dil }; c.prorrogas = c.prorrogas || {}; if (f) c.prorrogas[t.id] = f; else delete c.prorrogas[t.id]; });
       await conocerNombres(cfg, ent.concat(dil)).catch(() => {});
-      res.status(200).json({ ok: true, entrega: ent, diligencia: dil }); return;
+      res.status(200).json({ ok: true, entrega: ent, diligencia: dil, periodoRep: pr ? pr : (pr === null ? undefined : periodoBase(t, cfg.periodo)) }); return;
     }
     if (a === 'prorroga') {
       soloAdmin(); const t = buscar(body.id), f = limpio(body.fecha, 10);
