@@ -522,7 +522,16 @@ b[style*="#14233a"]{font-weight:500}
     }
   });
   app.addEventListener('change', function (e) {
-    if (e.target.id === 'vercomo') { S.verComo = e.target.value; S.datos = null; cargarSesion().then(pintar).catch(function (x) { toast(x.message); }); return; }
+    if (e.target.id === 'vercomo') {
+      S.verComo = e.target.value; S.datos = null;
+      /* Cargando mientras llegan las plantillas de la otra persona */
+      var ldv = document.getElementById('ld'), sel = e.target, nom = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
+      app.style.opacity = '.35'; app.style.pointerEvents = 'none'; app.style.transition = 'opacity .15s';
+      if (ldv) { ldv.querySelector('b').textContent = 'Cargando las plantillas' + (S.verComo && nom ? ' de ' + nom.split(' · ')[0].split(' - ')[0] : '') + '…'; ldv.hidden = false; }
+      var fin = function () { app.style.opacity = ''; app.style.pointerEvents = ''; if (ldv) { ldv.hidden = true; ldv.querySelector('b').textContent = 'Cargando'; } };
+      cargarSesion().then(function () { fin(); pintar(); }).catch(function (x) { fin(); toast(x.message); });
+      return;
+    }
     var i = e.target; if (i.dataset && i.dataset.a === 'subir' && i.files[0]) {
       var id = i.dataset.id, f = i.files[0];
       leerB64(f).then(function (b64) { return api('oficial-subir', { id: id, nombre: f.name, datos: b64 }).then(function (r) {
