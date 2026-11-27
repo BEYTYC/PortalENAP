@@ -224,7 +224,7 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: it
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${P(cuerpo)}
 ${datos}
-<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>
+${urlAbrir ? '' : `<p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>`}
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
 ${urlAbrir ? `<a href="${esc(urlAbrir)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;height:36px;padding:0 26px;border-radius:18px;text-decoration:none">${esc(textoAbrir || 'Abrir')}</a>` : `<a href="${esc(urlAbrir || PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="${esc(textoAbrir || 'Abrir el Portal')}" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>`}
 </td></tr></table>
@@ -277,7 +277,7 @@ async function avisarNovedades(cfg, est, periodo, soloCorreos) {
     let adj = []; for (const x of lista) adj = adj.concat(await adjuntoDe(periodo, x.t.id, est[x.t.id]).catch(() => []));
     try {
       await enviarCorreo([c], n === 1 ? `Hay novedades en su plantilla · ${lista[0].t.nombre}` : `Hay novedades en ${n} plantillas SNIES`,
-        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `Se encontraron novedades en la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'}. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Una vez las corrija y entregue, quedará completado su proceso de reporte al SNIES.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
+        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `Se encontraron novedades en la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'}. Presione el botón «Abrir las novedades»: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Una vez las corrija y entregue, quedará completado su proceso de reporte al SNIES.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
       correos++;
     } catch (e) { /* un fallo no impide los demás */ }
   }
