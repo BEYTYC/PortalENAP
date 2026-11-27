@@ -113,3 +113,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 ## Cambios del 27/11/2026 (2)
 - El visor no muestra la fila del encabezado cuando hay filas de más encima: la regla de filas en blanco ya no cuenta esa posición.
 - Botón «↻ Actualizar» arriba a la derecha (todas las vistas): vuelve a leer los datos sin reiniciar el Portal.
+
+## Eliminar filas desde «Devolver» (27/11/2026)
+- La vista previa de Devolver (administradora) también tiene «Eliminar fila» en cada fila y el botón «Guardar eliminación de filas»: guarda el archivo sin esas filas y lo revisa de nuevo. La fila de encabezados no se puede eliminar.
