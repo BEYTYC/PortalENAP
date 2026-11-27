@@ -383,16 +383,24 @@ const COLUMNAS = (() => { try { return require('./_snies-columnas.json'); } catc
 /* El código de la unidad organizacional de la institución es SIEMPRE 0101010104 (decisión de la autora, 26/11/2026): lo que carguen (por ejemplo 101010104,
    sin el cero inicial) se reemplaza automáticamente, como texto, en todas las filas con datos. No aplica a la plantilla Unidad organizacional. */
 const CODIGO_UNIDAD = '0101010104';
+/* Correcciones automáticas (decisión de la autora, 26/11/2026): el código de unidad organizacional siempre se deja en 0101010104 y las fechas escritas
+   como texto (dd/mm/aaaa) que son válidas se convierten solas en fechas reales de Excel. Así no se marcan como error. */
 function normalizarUnidad(buf, t) {
-  if (t.id === 'unidad-organizacional') return buf;
   try {
     const wb = abrir(buf), cambios = [];
     for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
       const filas = VALIDAR.ubicarEncabezado(wb.leer(h, { maxCols: 120 }), (COLUMNAS[String(t.codigo)] || {})[h]);
-      const ci = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase()).indexOf('CODIGO_UNIDAD_ORGANIZACIONAL'); if (ci < 0) continue;
+      const enc = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase());
+      const ci = t.id === 'unidad-organizacional' ? -1 : enc.indexOf('CODIGO_UNIDAD_ORGANIZACIONAL');
+      const cf = []; enc.forEach((c, i) => { if (/^FECHA/.test(c)) cf.push(i); });
+      if (ci < 0 && !cf.length) continue;
       for (let r = 1; r < filas.length; r++) {
         const f = filas[r] || []; if (!f.some((x) => x != null && String(x).trim() !== '')) continue;
-        if (typeof f[ci] !== 'string' || f[ci].trim() !== CODIGO_UNIDAD) cambios.push({ hoja: h, fila: r + 1, col: ci, valor: CODIGO_UNIDAD });
+        if (ci >= 0 && (typeof f[ci] !== 'string' || f[ci].trim() !== CODIGO_UNIDAD)) cambios.push({ hoja: h, fila: r + 1, col: ci, valor: CODIGO_UNIDAD });
+        for (const c of cf) {
+          const v = f[c];
+          if (typeof v === 'string' && v.trim() !== '' && !/^\d+$/.test(v.trim())) { const n = VALIDAR.fechaNum(v); if (n != null) cambios.push({ hoja: h, fila: r + 1, col: c, valor: '', numero: String(n), fecha: true }); }
+        }
       }
     }
     return cambios.length ? aplicarXlsx(buf, { cambios, borrar: {} }) : buf;
@@ -569,9 +577,10 @@ module.exports = async function handler(req, res) {
       if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
       const e = est[t.id];
       if (!e || (!e.novedades && !(admin && body.vista)) || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
-      const buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
+      let buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
       if (!buf) throw error('No se encontró el archivo en OneDrive.', 404);
       const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
+      buf = normalizarUnidad(buf, t);   /* correcciones automáticas también en archivos guardados antes */
       const errores = revisarArchivo(buf, t, oficial, periodo);
       res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
     }
@@ -651,7 +660,7 @@ module.exports = async function handler(req, res) {
             const bufE = await leerBin(rutaOd(`${periodo}/${e0.archivo}`));
             if (bufE) {
               const ofi = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
-              const er = revisarArchivo(bufE, t, ofi, periodo);
+              const er = revisarArchivo(normalizarUnidad(bufE, t), t, ofi, periodo);
               if (er.length) { hayNovedades = true; if (!motivo) motivo = `La plataforma encontró ${er.detalle && er.detalle.total ? er.detalle.total : er.length} error${(er.detalle && er.detalle.total ? er.detalle.total : er.length) > 1 ? 'es' : ''} en el archivo cargado. Ábralos desde «Mis plantillas» y corríjalos en pantalla.`; }
             }
           } catch (e) { /* si no se puede revisar, se exige el motivo escrito */ }
