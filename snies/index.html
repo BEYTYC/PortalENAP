@@ -244,7 +244,7 @@ b[style*="#14233a"]{font-weight:500}
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
   function visorCorreccion(id, nombre, b64, r, porEstadistica, modo) {
     var ver = modo === 'devolver';   /* vista previa para la administradora: lo que verá el responsable, con Devolver / Cancelar */
-    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false, modoSel = '';
+    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = true, modoSel = '';
     /* Cédulas que no están en Participantes: solo las ve Estadística al devolver; ella marca cuáles debe corregir el responsable. */
     function activo(e) { return e.cr ? !!modoSel : !e.ok; }
     function texto(e) { return e.cr ? (modoSel === 'ausente' ? e.m2 : e.m1) : e.m; }
@@ -289,7 +289,7 @@ b[style*="#14233a"]{font-weight:500}
         return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn">' + (ver ? '' : '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>') + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
-      var barra = ver ? '' : '<div class="mu" style="font-size:14px">Haz clic en cualquier celda para editarla.</div>';
+      var barra = '<div class="mu" style="font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">' + (ver ? '' : '<span>Haz clic en una celda amarilla para corregirla.</span>') + '<a href="#" data-solo="1" style="color:#1b4f8a">' + (soloErr ? 'Ver todas las filas' : 'Ver solo las filas con errores') + '</a></div>';
       var banda = ver && ncand ? '<div style="background:#eef4fc;border:1px solid #c7d6ea;border-radius:10px;padding:8px 12px;font-size:14px;color:#14233a;display:flex;flex-direction:column;gap:4px"><div><b>' + ncand + ' documento' + (ncand > 1 ? 's' : '') + ' de esta plantilla no coincide' + (ncand > 1 ? 'n' : '') + ' con Participantes</b> (' + [clases.ausente ? clases.ausente + ' no aparece' + (clases.ausente > 1 ? 'n' : '') : '', clases.tipo ? clases.tipo + ' con tipo de documento distinto' : '', clases.nombre ? clases.nombre + ' con el nombre registrado con otro documento' : ''].filter(Boolean).join(' · ') + '). ¿Qué le mostramos al responsable?</div>'
         + '<label style="cursor:pointer"><input type="radio" name="cm" value=""' + (modoSel === '' ? ' checked' : '') + '> Nada</label>'
         + '<label style="cursor:pointer"><input type="radio" name="cm" value="verificar"' + (modoSel === 'verificar' ? ' checked' : '') + '> Verificar el número y el tipo de documento (puede que lo cargado esté mal; se le indica en cada fila qué no coincide)</label>'
@@ -300,6 +300,7 @@ b[style*="#14233a"]{font-weight:500}
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div id="pie" style="display:none;background:#fffbe0;border:1px solid #e6d48a;border-radius:10px;padding:8px 12px"></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (ver ? '<button class="btn y" id="devolverya">Devolver</button>' : (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button>') + '</div></div>';
+      m.querySelectorAll('[data-solo]').forEach(function (b) { b.onclick = function (ev) { ev.preventDefault(); soloErr = !soloErr; pinta(); }; });
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
       m.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { borrar[H.nombre + '|' + b.getAttribute('data-del')] = 1; pinta(); }; });
       function conectar(i) {
