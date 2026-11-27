@@ -358,6 +358,17 @@ function revisarContenido(wb, t, ctx) {
     }
   }
 
+  /* 9b. Cruce con Cursos (la autora, 27/11/2026): todo curso de Educación Continua tiene que estar también en la plantilla Cursos. */
+  if (ctx.cursos instanceof Set && t.id === 'educacion-continua') {
+    for (const nombre of Object.keys(hojas)) {
+      const H = hojas[nombre], i = H.idx.CODIGO_CURSO; if (i == null) continue;
+      for (let r = 1; r < H.filas.length; r++) {
+        const f = H.filas[r] || []; if (!f.some((c) => !vacia(c)) || vacia(f[i])) continue;
+        if (!ctx.cursos.has(String(f[i]).trim().toUpperCase())) err(nombre, r + 1, 'CODIGO_CURSO', 'no aparece en la plantilla Cursos (todo curso de Educación Continua debe estar también en Cursos)');
+      }
+    }
+  }
+
   /* 10. Relación entre hojas de la misma plantilla */
   const rel = RELACIONES[t.id];
   const principal = hojas[nombres[0]];
