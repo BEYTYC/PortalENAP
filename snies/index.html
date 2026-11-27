@@ -228,7 +228,7 @@ b[style*="#14233a"]{font-weight:600}
         return;
       }
       toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : 'Plantilla entregada. Quedó En revisión; cuando la Oficina de Estadística la valide te llegará el correo de «Plantilla recibida».');
-      return refrescar();
+      return refrescar().then(function () { if (S.novedadesVistas) siguienteNovedad(); });
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
@@ -320,6 +320,8 @@ b[style*="#14233a"]{font-weight:600}
   }
   /* Abre de una las novedades de un archivo que la Oficina de Estadística cargó en nombre del responsable (enlace del correo o botón de la tarjeta). */
   function abrirNovedades(id) {
+    S.novedadesVistas = true;
+    if (id === 'todas') { var q = S.datos && S.datos.plantillas && S.datos.plantillas.filter(function (x) { return x.puedeCargar && x.estado === 'devuelta' && x.novedades; })[0]; if (!q) { toast('No tienes novedades por corregir.'); return; } id = q.id; }
     api('novedades', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) {
       if (!r.datos) { toast('El archivo es muy grande para corregirlo en pantalla. Descárgalo, corrígelo y vuelve a cargarlo.'); return; }
       if (r.detalle && r.detalle.hojas && r.detalle.hojas.length) { visorCorreccion(id, r.nombre, r.datos, r, false); return; }
@@ -333,6 +335,8 @@ b[style*="#14233a"]{font-weight:600}
     m.querySelector('#no').onclick = function () { m.remove(); };
     m.querySelector('#si').onclick = function () { m.remove(); api('no-aplica', { id: id, verComo: S.verComo || undefined }).then(function () { toast('Registrado como No aplica.'); return refrescar(); }).catch(function (e) { toast(e.message); }); };
   }
+  /* Cola de novedades: al terminar una, abre la siguiente que tenga el responsable, hasta quedar a paz y salvo. */
+  function siguienteNovedad() { if (S.verComo || !S.datos || !S.datos.plantillas) return; var pn = S.datos.plantillas.filter(function (x) { return x.puedeCargar && x.estado === 'devuelta' && x.novedades; })[0]; if (pn) setTimeout(function () { abrirNovedades(pn.id); }, 300); else if (S.vista === 'mis' && S.novedadesVistas) toast('¡Listo! No tienes más novedades por corregir.'); }
   function refrescar() { return (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(pintar); }
 
   /* ---------------- Administración ---------------- */
