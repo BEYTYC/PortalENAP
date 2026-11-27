@@ -89,6 +89,8 @@ function ubicarEncabezado(filas, cols) {
   if (!mejor) return filas;
   const out = filas.slice(); out[0] = filas[mejor];
   for (let i = 1; i <= mejor; i++) out[i] = [];
+  /* filas que estaban encima del encabezado (títulos como «2026 2»): se conservan para marcarlas como error y poder eliminarlas */
+  out.arriba = filas.slice(0, mejor);
   return out;
 }
 function leerHoja(wb, nombre, cols) {
@@ -96,7 +98,7 @@ function leerHoja(wb, nombre, cols) {
   const enc = (filas[0] || []).map((x) => up(x).replace(/\s+/g, ' '));
   const idx = {};
   enc.forEach((c, i) => { if (c && idx[c] == null) idx[c] = i; });
-  return { nombre, filas, enc, idx };
+  return { nombre, filas, enc, idx, arriba: filas.arriba || [] };
 }
 
 
@@ -141,6 +143,8 @@ function revisarContenido(wb, t, ctx) {
   nombres.forEach((n) => { try { hojas[n] = leerHoja(wb, n, ctx.columnas && ctx.columnas[n]); } catch (e) { /* hoja ilegible */ } });
   const errores = [];
   const err = (h, f, c, m) => { if (errores.length < 3000) errores.push({ h, f, c, m }); };
+  /* La fila 1 de cada hoja DEBE ser la de los encabezados (decisión de la autora, 27/11/2026): cualquier fila encima del encabezado (títulos como «2026 2») es un error y se elimina. */
+  Object.keys(hojas).forEach((n) => { (hojas[n].arriba || []).forEach((_, i) => err(n, i + 1, '(fila)', i === 0 ? 'La fila 1 debe ser la de los encabezados de las columnas; esta fila sobra: elimínela' : 'Esta fila está encima de los encabezados; elimínela para que los encabezados queden en la fila 1')); });
   const [anioRep, semRep] = String(ctx.periodoRep || '').split('-').map(Number);
 
   for (const nombre of Object.keys(hojas)) {
@@ -283,8 +287,13 @@ function revisarContenido(wb, t, ctx) {
       const lim = serialDe(anioRep, semRep === 2 ? 7 : 1, 1);
       for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_PRUEBA_SABER_11']]); if (x != null && x >= lim) err(nombre, r + 1, 'FECHA_PRUEBA_SABER_11', `debe ser anterior al ${fechaTxt(lim)}`); }
     }
+    /* FECHA_INGRESO debe estar entre 80 años atrás y la fecha actual (regla SNIES, p. ej. GRUPO_INVESTIGAD_INTERNOS_IES). */
+    if (idx['FECHA_INGRESO'] != null && ctx.hoy) {
+      const hd = new Date(Math.round((ctx.hoy - 25569) * 86400000)), min = serialDe(hd.getUTCFullYear() - 80, hd.getUTCMonth() + 1, hd.getUTCDate());
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x < min) err(nombre, r + 1, 'FECHA_INGRESO', `revise la fecha: tiene más de 80 años y podría ser un error (debe estar entre ${fechaTxt(min)} y la fecha actual)`); else if (x != null && x > ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', `debe estar entre 80 años atrás (${fechaTxt(min)}) y la fecha actual`); }
+    }
     if (idx['FECHA_INGRESO'] != null && /integrantes/.test(t.id) && ctx.hoy) {
-      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x > ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', 'no puede ser posterior a la fecha de reporte'); }
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x > ctx.hoy && x <= ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', 'no puede ser posterior a la fecha de reporte'); }
     }
 
     /* 7. Totales: porcentajes de dedicación suman 100 */
@@ -407,7 +416,7 @@ function revisarContenido(wb, t, ctx) {
   }
 
   const out = {};
-  for (const n of Object.keys(hojas)) out[n] = { cols: hojas[n].enc, datos: hojas[n].datos, filas: hojas[n].filas };
+  for (const n of Object.keys(hojas)) out[n] = { cols: hojas[n].enc, datos: hojas[n].datos, filas: hojas[n].filas, arriba: hojas[n].arriba };
   return { errores, hojas: out };
 }
 
@@ -431,7 +440,8 @@ function detalleVisor(res) {
     if (!pos.length) continue;
     const cols = pos.map((i) => H.cols[i]), errs = porHoja[h] || new Map();
     const llena = (row) => row && pos.some((i) => row[i] != null && String(row[i]).trim() !== '');
-    const todas = []; for (let n = 2; n <= H.filas.length; n++) if (llena(H.filas[n - 1]) || errs.has(n)) todas.push(n);
+    const arr = H.arriba || [], todas = [];
+    for (let n = 1; n <= H.filas.length; n++) { if (n <= arr.length) { if (errs.has(n)) todas.push(n); } else if (n >= 2 && (llena(H.filas[n - 1]) || errs.has(n))) todas.push(n); }
     const tope = Math.max(150, Math.floor(60000 / cols.length));
     let elegidas = todas;
     if (todas.length > tope) {
@@ -441,7 +451,7 @@ function detalleVisor(res) {
     }
     const filas = elegidas.map((n) => ({
       n,
-      v: pos.map((i) => { const x = (H.filas[n - 1] || [])[i]; return x == null ? '' : (typeof x === 'number' && /^FECHA/.test(H.cols[i]) && fechaTxt(x)) || x; }),
+      v: pos.map((i) => { const x = ((n <= arr.length ? arr[n - 1] : H.filas[n - 1]) || [])[i]; return x == null ? '' : (typeof x === 'number' && /^FECHA/.test(H.cols[i]) && fechaTxt(x)) || x; }),
       e: (errs.get(n) || []).map((x) => ({ c: x.c, m: x.m })),
     }));
     hojas.push({ nombre: h, cols, fecha: cols.filter((c) => /^FECHA/.test(c)), filas, total: errs.size, filasTotal: todas.length });

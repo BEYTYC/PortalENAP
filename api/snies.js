@@ -410,7 +410,7 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
     else if (R.t === 'f') { const f = VALIDAR.fechaNum(valor); if (f != null && !/^\d+$/.test(valor)) { if (c.num) numero = String(f); } }
     ops.push({ hoja: h, fila, col: ci, valor, numero, fecha: R.t === 'f' && numero != null });
   }
-  for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 2) (del[h] = del[h] || []).push(fila); }
+  for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 1) (del[h] = del[h] || []).push(fila); }
   return aplicarXlsx(buf, { cambios: ops, borrar: del });
 }
 const REGLAS_COL = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
@@ -523,7 +523,7 @@ function mezclarCruce(detalle, filas, modo, comoCandidatas) {
   return detalle;
 }
 /* Plantillas que NO se cruzan con Participante (la autora, 27/11/2026). */
-const SIN_CRUCE = new Set(['participante', 'inscritos-relacion-de-inscritos', 'inscrito-programa', 'admitidos']);
+const SIN_CRUCE = new Set(['participante', 'inscritos-relacion-de-inscritos', 'inscrito-programa', 'admitidos', 'grupos-de-investigacion']);
 /* Calcula el cruce con Participantes de las plantillas con archivo y lo deja en su estado (cruce = { total, n, fecha }) para mostrarlo en el Panel. Nunca bloquea nada. */
 async function actualizarCruce(periodo, ids, bufs) {
   const est = await leerEstado(periodo);
