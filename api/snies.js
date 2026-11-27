@@ -318,7 +318,7 @@ async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, dato
 /* Las reglas viven en api/_snies-validar.js (manual V9.1 + reglas de la Oficina de Estadística). Aquí solo se conecta con el periodo del ciclo. */
 const VALIDAR = require('./_snies-validar');
 function revisarContenido(wb, t, periodo) {
-  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569 });
+  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569, hojas: COLUMNAS[String(t.codigo)] ? Object.keys(COLUMNAS[String(t.codigo)]) : null });
   const textos = VALIDAR.resumenTextos(res.errores);
   textos.detalle = res.errores.length ? VALIDAR.detalleVisor(res) : null;
   return textos;
@@ -388,10 +388,11 @@ function revisarArchivo(buf, t, oficial, periodo) {
     const esperado = COLUMNAS[String(t.codigo)];
     if (esperado && !errores.length) {
       const AVISO = ' Descargue la plantilla oficial vigente desde la tarjeta («Plantilla oficial vacía») y copie sus datos en ella sin cambiar el encabezado.';
-      const faltan = Object.keys(esperado).filter((h) => !datos.includes(h)), sobran = datos.filter((h) => !esperado[h]);
-      if (faltan.length || sobran.length) errores.push(`Las hojas del archivo no coinciden con la plantilla oficial vigente${faltan.length ? ` (faltan: ${faltan.join(', ')})` : ''}${sobran.length ? ` (sobran: ${sobran.join(', ')})` : ''}.` + AVISO);
+      /* Hojas y columnas de MÁS (con otro nombre, copias «(2)», columnas propias) no son error ni se revisan: solo importa que estén todas las oficiales (decisión de la autora, 26/11/2026). */
+      const faltan = Object.keys(esperado).filter((h) => !datos.includes(h));
+      if (faltan.length) errores.push(`Las hojas del archivo no coinciden con la plantilla oficial vigente (faltan: ${faltan.join(', ')}).` + AVISO);
       else {
-        for (const h of datos) {
+        for (const h of datos.filter((x) => esperado[x])) {
           const real = (wb.leer(h, { maxCols: 200, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()).filter((x) => x);
           /* Columnas con encabezado escrito que NO están en la plantilla oficial (extras) no son error (decisión de la autora, 26/11/2026): solo faltan o desorden de las oficiales. */
           const ok = esperado[h], f = ok.filter((c) => !real.includes(c));
