@@ -177,7 +177,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
     tieneOficial: !!cfg.oficiales[t.id], versionOficial: ((cfg.oficiales[t.id] || [])[0] || {}).version || 0,
     puedeVerAnterior: !!(e.anterior),
   };
-  if (admin) Object.assign(o, { cargo: t.cargo, cargoTexto: t.cargoTexto, codigo: t.codigo, oficial, entrega: r.entrega, diligencia: r.diligencia, prorroga: cfg.prorrogas[t.id] || '', fechas: t.fechas, historial: (e.historial || []).slice(-8) });
+  if (admin) Object.assign(o, { cargo: t.cargo, cargoTexto: t.cargoTexto, codigo: t.codigo, oficial, entrega: r.entrega, diligencia: r.diligencia, prorroga: cfg.prorrogas[t.id] || '', fechas: t.fechas, historial: (e.historial || []).slice(-8), cruce: e.cruce || null });
   return o;
 }
 
@@ -450,6 +450,23 @@ function cruceParticipantes(bufT, t, bufP, extra) {
   return { revisados: new Set(mios.map((x) => x.k)).size, participantes: part.size, faltan: unicos.slice(0, 500), total: unicos.length };
 }
 
+/* Calcula el cruce con Participantes de las plantillas con archivo y lo deja en su estado (cruce = { total, n, fecha }) para mostrarlo en el Panel. Nunca bloquea nada. */
+async function actualizarCruce(periodo, ids, bufs) {
+  const est = await leerEstado(periodo);
+  const base = (await leerJson('participantes-base.json')).valor;
+  const ep = est.participante;
+  const bufP = (bufs && bufs.participante) || (ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null);
+  if (!base && !bufP) return;
+  const res = {};
+  for (const id of ids) {
+    const t = POR_ID[id], e = est[id]; if (!t || id === 'participante' || !e || !e.archivo || e.noAplica) continue;
+    try {
+      const b = (bufs && bufs[id]) || await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) continue;
+      const c = cruceParticipantes(b, t, bufP, base && base.docs); res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
+    } catch (x) { /* si un archivo no se puede leer, no se marca nada */ }
+  }
+  if (Object.keys(res).length) await mutar(`estado-${periodo}.json`, () => ({}), (st) => { for (const id of Object.keys(res)) { const x = st[id] = st[id] || {}; x.cruce = res[id]; } });
+}
 function revisarArchivo(buf, t, oficial, periodo) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
@@ -604,6 +621,7 @@ module.exports = async function handler(req, res) {
         Promise.resolve(false),   /* al cargar no se envía correo al responsable: «Plantilla recibida» sale solo cuando se valida (decisión de la autora, 26/11/2026) */
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
+      await actualizarCruce(periodo, t.id === 'participante' ? TEMPLATES.map((x) => x.id) : [t.id], { [t.id]: buf }).catch(() => {});   /* informativo, solo Estadística */
       res.status(200).json({ ok: true, correo }); return;
     }
 
@@ -647,6 +665,7 @@ module.exports = async function handler(req, res) {
       if (!docs.length) throw error('El archivo no trae números de documento.', 400);
       const unicos = [...new Set(docs)];
       await mutar('participantes-base.json', () => ({}), (v) => { v.fecha = ahora(); v.por = yo.nombre; v.docs = unicos; });
+      await actualizarCruce(periodo, TEMPLATES.map((x) => x.id)).catch(() => {});
       res.status(200).json({ ok: true, n: unicos.length }); return;
     }
     if (a === 'no-aplica') {
@@ -707,7 +726,7 @@ module.exports = async function handler(req, res) {
       if (!e0 || (!e0.archivo && !e0.noAplica)) throw error('Esta plantilla no tiene un cargue para deshacer.', 400);
       await mutar(`estado-${periodo}.json`, () => ({}), (s) => {
         const x = s[t.id] = s[t.id] || {}, antes = x.estado, arch = x.archivo;
-        x.estado = 'pendiente'; x.noAplica = false; x.novedades = false; x.archivo = ''; x.adjunto = ''; x.motivo = ''; x.fecha = ''; x.por = '';
+        x.estado = 'pendiente'; x.noAplica = false; x.novedades = false; x.archivo = ''; x.cruce = null; x.adjunto = ''; x.motivo = ''; x.fecha = ''; x.por = '';
         (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Deshizo el cargue' + (arch ? ' (' + arch + ')' : '') + '; la plantilla volvió a Pendiente (estaba ' + antes + ').' });
       });
       res.status(200).json({ ok: true }); return;
