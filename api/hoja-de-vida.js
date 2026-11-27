@@ -1100,7 +1100,7 @@ module.exports = async function handler(req, res) {
     if (!body.accessToken || !body.accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(body.accessToken);
     // Trayectoria del Estudiante está abierta a toda cuenta institucional del Portal; solo lo de mantenimiento queda para Estadística.
-    if (!yo.correo.endsWith('@enap.edu.co')) throw error('Esta cuenta no puede usar el Portal.', 403);
+    if (!(await require('./accesos-modulos.js').puedeEntrar(yo.correo))) throw error('Esta cuenta no puede usar el Portal.', 403);
     const a = body.accion;
     if (['refrescar', 'fuentes'].includes(a) && !ADMINS.includes(yo.correo)) throw error('Solo disponible para la Oficina de Estadística.', 403);
     if (a === 'sesion') { res.status(200).json({ correo: yo.correo, nombre: yo.nombre }); return; }

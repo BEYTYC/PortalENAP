@@ -41,6 +41,9 @@ const DEFAULT_SITE_PATH = 'sites/TitulacionENAP';
 const LISTA_PERMISOS = 'ENAP_Permisos_Usuarios';
 
 const CORREOS_BLOQUEADOS = [];
+/* Cuentas de otro dominio que sí pueden entrar al Portal (pedido de la autora, 26/11/2026). Mantener igual que CUENTAS_EXTERNAS en index.html. */
+const CUENTAS_EXTERNAS = ['cadiden@escuelanaval.edu.co'];
+const esInstitucional = (c) => { c = String(c || '').trim().toLowerCase(); return c.endsWith('@enap.edu.co') || CUENTAS_EXTERNAS.includes(c); };
 
 function setCors(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -357,3 +360,5 @@ module.exports.resolveListId = resolveListId;
 module.exports.leerFilas = leerFilas;
 module.exports.rolesActivosPara = rolesActivosPara;
 module.exports.CORREOS_BLOQUEADOS = CORREOS_BLOQUEADOS;
+module.exports.CUENTAS_EXTERNAS = CUENTAS_EXTERNAS;
+module.exports.esInstitucional = esInstitucional;

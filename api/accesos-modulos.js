@@ -31,6 +31,7 @@ const MODULOS = [
   'Centro de Datos ENAP',
   'Antigüedades ENAP',
   'Trayectoria del Estudiante',
+  'Acceso al Portal', // cuentas que no pueden entrar (otro dominio) y piden acceso desde la pantalla de inicio
 ];
 
 function error(m, status) { const e = new Error(m); e.status = status || 500; return e; }
@@ -89,13 +90,13 @@ module.exports = async function handler(req, res) {
     const b = typeof req.body === 'object' && req.body ? req.body : {};
     if (!b.accessToken || !b.accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(b.accessToken);
-    if (!yo.correo.endsWith('@enap.edu.co') || roles.CORREOS_BLOQUEADOS.includes(yo.correo)) throw error('Esta cuenta no puede usar el Portal.', 403);
-    if (b.accion === 'mios') { res.status(200).json({ modulos: await modulosDe(yo.correo) }); return; }
+    if (b.accion === 'mios') { res.status(200).json({ modulos: await modulosDe(yo.correo) }); return; } // cualquier cuenta autenticada ve solo los suyos
+    if (!(await puedeEntrar(yo.correo))) throw error('Esta cuenta no puede usar el Portal.', 403);
     if (!(await esAdmin(yo.correo))) throw error('Solo un administrador puede gestionar los módulos de cada usuario.', 403);
     if (b.accion === 'listar') { const d = await leer(true); res.status(200).json({ catalogo: MODULOS, usuarios: d.usuarios, decisiones: d.decisiones || {} }); return; }
     if (b.accion === 'decidir') {
       const objetivo = String(b.objetivo || '').trim().toLowerCase(), modulo = String(b.modulo || ''), dec = String(b.decision || '');
-      if (!/^[^@\s]+@enap\.edu\.co$/.test(objetivo)) throw error('El correo debe ser institucional (@enap.edu.co).', 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(objetivo)) throw error('El correo no es válido.', 400);
       if (!MODULOS.includes(modulo)) throw error('Ese módulo se gestiona dentro del propio módulo.', 400);
       if (!['aceptar', 'rechazar', 'quitar'].includes(dec)) throw error('Decisión desconocida.', 400);
       const d = await leer(true); d.decisiones = d.decisiones || {};
@@ -109,7 +110,7 @@ module.exports = async function handler(req, res) {
     }
     if (b.accion === 'guardar') {
       const objetivo = String(b.objetivo || '').trim().toLowerCase();
-      if (!/^[^@\s]+@enap\.edu\.co$/.test(objetivo)) throw error('El correo debe ser institucional (@enap.edu.co).', 400);
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(objetivo)) throw error('El correo no es válido.', 400);
       const mods = Array.from(new Set((Array.isArray(b.modulos) ? b.modulos : []).filter((m) => MODULOS.includes(m))));
       const d = await leer(true);
       if (mods.length) d.usuarios[objetivo] = { modulos: mods, actualizado: new Date().toISOString(), por: yo.correo };
@@ -123,6 +124,14 @@ module.exports = async function handler(req, res) {
     res.status(e.status || 500).json({ error: e.message || String(e) });
   }
 };
+/** ¿Puede entrar al Portal? Cuenta institucional (o autorizada en roles.js) no bloqueada, o con «Acceso al Portal» aceptado. */
+async function puedeEntrar(correo) {
+  const c = String(correo || '').trim().toLowerCase();
+  if (roles.CORREOS_BLOQUEADOS.includes(c)) return false;
+  if (roles.esInstitucional(c)) return true;
+  return (await modulosDe(c)).includes('Acceso al Portal');
+}
+module.exports.puedeEntrar = puedeEntrar;
 module.exports.modulosDe = modulosDe;
 module.exports.tieneModulo = tieneModulo;
 module.exports.MODULOS = MODULOS;

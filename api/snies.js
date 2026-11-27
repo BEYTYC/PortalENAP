@@ -493,7 +493,7 @@ module.exports = async function handler(req, res) {
     const body = typeof req.body === 'object' && req.body ? req.body : {};
     if (!body.accessToken || !body.accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(body.accessToken);
-    if (!/@enap\.edu\.co$/.test(yo.correo)) throw error('Use su cuenta institucional @enap.edu.co.', 403);
+    if (!(await require('./accesos-modulos.js').puedeEntrar(yo.correo))) throw error('Use su cuenta institucional @enap.edu.co.', 403);
     await ctx();
     const admin = ADMINS.includes(yo.correo);
     const soloAdmin = () => { if (!admin) throw error('Esta acción es solo del administrador del módulo.', 403); };

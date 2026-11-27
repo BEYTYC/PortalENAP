@@ -131,7 +131,7 @@ module.exports = async function handler(req, res) {
     if (accion === 'registrar') {
       let resultado = 'Ingresó';
       if (roles.CORREOS_BLOQUEADOS.includes(yo.correo)) resultado = 'Bloqueada';
-      else if (!yo.correo.endsWith(DOMINIO)) resultado = 'Cuenta no institucional';
+      else if (!(await require('./accesos-modulos.js').puedeEntrar(yo.correo))) resultado = 'Cuenta no institucional';
       const eventos = await leer(token, siteId);
       const ahora = Date.now();
       const repetido = eventos.some((e) => e.correo === yo.correo && e.resultado === resultado && ahora - Date.parse(e.fecha) < VENTANA_MS);

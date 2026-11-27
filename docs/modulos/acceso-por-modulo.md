@@ -6,3 +6,8 @@
 - `api/roles.js` devuelve también `modulos`; el menú del Portal desbloquea esos módulos.
 - Verificación en servidor: Registro de bajas y Antigüedades ENAP (entra como CONSULTA). Los módulos de Apps Script (Concesiones, Certificados, Grados, Balances) validan por su cuenta: aquí solo se desbloquea el menú; si el script exige el correo en su propia lista, hay que agregarlo allí (pedir el código a la autora).
 - Catálogo de módulos: constante `MODULOS` en `api/accesos-modulos.js` (mismos nombres que el menú).
+
+## Cuentas que no pueden entrar: solicitar acceso al Portal (26/11/2026)
+- `api/roles.js` → `CUENTAS_EXTERNAS`: cuentas de otro dominio que entran sin pedir permiso (hoy `cadiden@escuelanaval.edu.co`). Mantener igual que `CUENTAS_EXTERNAS` en `index.html`.
+- Si una cuenta no es `@enap.edu.co` (o está bloqueada), la pantalla de inicio muestra el botón **Solicitar acceso**. La solicitud queda como módulo «Acceso al Portal» en «Solicitudes de acceso» y avisa por correo a jestadisticaplen@.
+- Al **Aceptar** ahí, la cuenta queda con «Acceso al Portal» y puede iniciar sesión (`puedeEntrar` en `api/accesos-modulos.js`, usado por todas las APIs). Los módulos siguen concediéndose uno a uno.
