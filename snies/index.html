@@ -235,6 +235,15 @@ b[style*="#14233a"]{font-weight:600}
   function visorCorreccion(id, nombre, b64, r, porEstadistica) {
     var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false;
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
+    function nota(td) {
+      var n = document.querySelector('.nota-corr');
+      if (!td || !td.getAttribute('data-m')) { if (n) n.remove(); return; }
+      if (!n) { n = document.createElement('div'); n.className = 'nota-corr'; n.style.cssText = 'position:fixed;z-index:10000;max-width:min(360px,86vw);background:#fffbe0;border:1px solid #d9b92e;border-left:4px solid #d9b92e;border-radius:8px;box-shadow:0 6px 18px rgba(20,35,58,.18);padding:8px 10px;font-size:12.5px;line-height:1.35;color:#5f4a0b;pointer-events:none'; document.body.appendChild(n); }
+      n.innerHTML = '<b style="display:block;margin-bottom:2px">Corrección necesaria</b>' + esc(td.getAttribute('data-m'));
+      var r = td.getBoundingClientRect(), w = n.offsetWidth, h = n.offsetHeight;
+      n.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+      n.style.top = (r.bottom + h + 12 < window.innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+    }
     function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (!e.ok) n++; }); }); }); return n; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
@@ -248,7 +257,7 @@ b[style*="#14233a"]{font-weight:600}
         var td = f.v.map(function (v, i) {
           var c = H.cols[i], mal = malas[c], k = H.nombre + '|' + f.n + '|' + c, val = cambios[k] ? cambios[k].v : v;
           var attrs = 'data-h="' + esc(H.nombre) + '" data-f="' + f.n + '" data-c="' + esc(c) + '"';
-          if (mal) return '<td class="xc mal" title="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + ' value="' + esc(val) + '"></td>';
+          if (mal) return '<td class="xc mal" data-m="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + ' value="' + esc(val) + '"></td>';
           return '<td class="xc" ' + attrs + '>' + esc(val) + '</td>';
         }).join('');
         var msgs = f.e.filter(function (e) { return !e.ok; }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
@@ -257,7 +266,7 @@ b[style*="#14233a"]{font-weight:600}
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
       var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label><span class="mu">Haz clic en cualquier celda para editarla.</span></div>';
-      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:92vh"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div style="font-size:18px">Corrige tu archivo en pantalla</div><div class="mu">' + esc(nombre) + ' · Es tu archivo completo, como en Excel: las celdas en amarillo tienen error. Edita el valor o elimina la fila completa. Pasa el cursor sobre una celda amarilla para ver qué falla (o marca «Mostrar solo las filas con error» para verlo escrito). <a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600">↗ Instructivo de diligenciamiento</a></div></div><div style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</div></div>' + tabs + barra + mas
+      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:92vh"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div style="font-size:18px">Corrige tu archivo en pantalla</div><div class="mu">' + esc(nombre) + ' · Es tu archivo completo, como en Excel: las celdas en amarillo tienen error. Edita el valor o elimina la fila completa. Pasa el cursor o haz clic sobre una celda amarilla para ver la nota de qué falla (o marca «Mostrar solo las filas con error» para verlo escrito). <a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600">↗ Instructivo de diligenciamiento</a></div></div><div style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</div></div>' + tabs + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button><button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button></div></div>';
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
@@ -268,12 +277,20 @@ b[style*="#14233a"]{font-weight:600}
           var h = i.getAttribute('data-h'), f = +i.getAttribute('data-f'), c = i.getAttribute('data-c');
           cambios[h + '|' + f + '|' + c] = { h: h, f: f, c: c, v: i.value, num: /^FECHA/.test(c) };
           D.hojas.forEach(function (x) { if (x.nombre === h) x.filas.forEach(function (fl) { if (fl.n === f) fl.e.forEach(function (e) { if (e.c === c) e.ok = 1; }); }); });
-          i.style.background = '#fff'; i.style.borderColor = ''; i.parentNode.style.background = ''; i.parentNode.title = '';
+          i.style.background = '#fff'; i.style.borderColor = ''; i.parentNode.style.background = ''; i.parentNode.removeAttribute('data-m'); nota(null);
           var t = m.querySelector('.card > div > div:last-child'); if (t) { var q = quedan(); t.textContent = q ? q + ' error' + (q > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes'; t.style.color = q ? '#7a5200' : '#1b7a4f'; }
           var rv = m.querySelector('#revisar'); if (rv) { var q2 = quedan(); rv.disabled = q2 > 0; rv.title = q2 ? 'Disponible cuando corrijas todos los errores' : ''; }
         });
       }
       m.querySelectorAll('input[data-f]').forEach(conectar);
+      /* Nota de la corrección: al pasar el cursor o hacer clic en una celda amarilla aparece qué falla y cómo corregirlo. */
+      m.querySelectorAll('td.xc.mal').forEach(function (td) {
+        td.addEventListener('mouseenter', function () { nota(td); });
+        td.addEventListener('mouseleave', function () { if (!td.contains(document.activeElement)) nota(null); });
+        td.addEventListener('click', function () { nota(td); });
+        td.addEventListener('focusin', function () { nota(td); });
+        td.addEventListener('focusout', function () { nota(null); });
+      });
       /* Las celdas sin error se ven como texto (más liviano); al hacer clic se vuelven editables. */
       m.querySelectorAll('td.xc[data-f]').forEach(function (td) {
         td.onclick = function () {
@@ -282,10 +299,10 @@ b[style*="#14233a"]{font-weight:600}
           td.textContent = ''; td.onclick = null; td.appendChild(i); conectar(i); i.focus(); i.select();
         };
       });
-      m.querySelector('#cancelar').onclick = function () { m.remove(); };
+      m.querySelector('#cancelar').onclick = function () { nota(null); m.remove(); };
       m.querySelector('#revisar').onclick = function () {
         var ch = Object.keys(cambios).map(function (k) { return cambios[k]; }), bo = Object.keys(borrar).map(function (k) { var p = k.split('|'); return { h: p[0], f: +p[1] }; });
-        m.remove(); enviarArchivo(id, nombre, b64, porEstadistica, ch, bo);
+        nota(null); m.remove(); enviarArchivo(id, nombre, b64, porEstadistica, ch, bo);
       };
     }
     pinta();
