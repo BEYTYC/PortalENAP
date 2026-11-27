@@ -190,9 +190,9 @@ b[style*="#14233a"]{font-weight:500}
     } else {
       zona = '';
     }
-    if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = (p.novedades && p.estado === 'devuelta' ? '<button class="btn y" data-a="novedades" data-id="' + p.id + '">Abrir novedades</button>' : '') + '<button class="btn" data-a="cargar" data-id="' + p.id + '">Cargar plantilla</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
+    if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = (p.novedades && p.estado === 'devuelta' ? '<button class="btn y" data-a="novedades" data-id="' + p.id + '">Abrir novedades</button>' : '') + '<button class="btn" data-a="cargar" data-id="' + p.id + '">' + (p.archivo ? 'Volver a cargar' : 'Cargar plantilla') + '</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
     var icDesc = p.puedeCargar && p.archivo && (p.estado === 'devuelta' || p.estado === 'revision') ? '<button class="ib" data-a="mia" data-id="' + p.id + '" title="Descargar archivo cargado" aria-label="Descargar archivo cargado"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>' : '';
-    if (p.estado === 'devuelta' && icDesc) acts = acts.replace('Cargar plantilla</button>', 'Cargar plantilla</button>' + icDesc);   /* el icono de descarga va junto a «Cargar plantilla» */
+    if (p.estado === 'devuelta' && icDesc) acts = acts.replace('Volver a cargar</button>', 'Volver a cargar</button>' + icDesc);   /* el icono de descarga va junto a «Volver a cargar» */
     else if (p.puedeCargar && p.estado === 'revision' && p.archivo) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Volver a cargar</button>' + icDesc;
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
