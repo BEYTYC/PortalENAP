@@ -358,13 +358,33 @@ async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, dato
 /* ------------------------------ Validación del contenido ------------------------------ */
 /* Las reglas viven en api/_snies-validar.js (manual V9.1 + reglas de la Oficina de Estadística). Aquí solo se conecta con el periodo del ciclo. */
 const VALIDAR = require('./_snies-validar');
-function revisarContenido(wb, t, periodo, conDetalle) {
-  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569, hojas: COLUMNAS[String(t.codigo)] ? Object.keys(COLUMNAS[String(t.codigo)]) : null, columnas: COLUMNAS[String(t.codigo)] || null });
+function revisarContenido(wb, t, periodo, conDetalle, cursos) {
+  const res = VALIDAR.revisarContenido(wb, t, { cursos, periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569, hojas: COLUMNAS[String(t.codigo)] ? Object.keys(COLUMNAS[String(t.codigo)]) : null, columnas: COLUMNAS[String(t.codigo)] || null });
   const textos = VALIDAR.resumenTextos(res.errores);
   textos.detalle = res.errores.length || conDetalle ? VALIDAR.detalleVisor(res) : null;
   return textos;
 }
 const CICLO_DEFECTO = '2026-2';
+
+/* Códigos de curso de la entrega de Cursos de este periodo (para cruzar Educación Continua). null si Cursos aún no se ha entregado. */
+async function codigosCursos(periodo, est, t) {
+  if (!t || t.id !== 'educacion-continua') return null;
+  const e = est && est.cursos; if (!e || !e.archivo || e.noAplica) return null;
+  try {
+    const b = await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) return null;
+    const wb = abrir(b), set = new Set(); let hallo = false;
+    for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
+      const filas = wb.leer(h, { maxCols: 40 }) || [];
+      for (let r = 0; r < Math.min(8, filas.length); r++) {
+        const k = (filas[r] || []).findIndex((x) => String(x == null ? '' : x).trim().toUpperCase() === 'CODIGO_CURSO');
+        if (k < 0) continue; hallo = true;
+        for (let q = r + 1; q < filas.length; q++) { const v = (filas[q] || [])[k]; if (v != null && String(v).trim() !== '') set.add(String(v).trim().toUpperCase()); }
+        break;
+      }
+    }
+    return hallo ? set : null;
+  } catch (x) { return null; }
+}
 
 /* ------------------------------ Validación del archivo (estructura) ------------------------------ */
 const vacio = (v) => v == null || (typeof v === 'string' && v.trim() === '');
@@ -521,7 +541,7 @@ async function actualizarCruce(periodo, ids, bufs) {
   }
   if (Object.keys(res).length) await mutar(`estado-${periodo}.json`, () => ({}), (st) => { for (const id of Object.keys(res)) { const x = st[id] = st[id] || {}; x.cruce = res[id]; } });
 }
-function revisarArchivo(buf, t, oficial, periodo, conDetalle) {
+function revisarArchivo(buf, t, oficial, periodo, conDetalle, cursos) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
   let wb;
@@ -559,7 +579,7 @@ function revisarArchivo(buf, t, oficial, periodo, conDetalle) {
     }
     const conDatos = filas.slice(1).filter((f) => f.some((c) => !vacio(c)));
     if (!conDatos.length) errores.push('La plantilla no tiene filas diligenciadas. Si no hay registros en el semestre, use «No aplica».');
-    else if (!errores.length) { try { const r = revisarContenido(wb, t, periodo, conDetalle); errores.push(...r); errores.detalle = r.detalle; } catch (e) { /* si una regla falla por un formato inesperado, no se bloquea la entrega por eso */ } }
+    else if (!errores.length) { try { const r = revisarContenido(wb, t, periodo, conDetalle, cursos); errores.push(...r); errores.detalle = r.detalle; } catch (e) { /* si una regla falla por un formato inesperado, no se bloquea la entrega por eso */ } }
   }
   return errores;
 }
@@ -657,7 +677,7 @@ module.exports = async function handler(req, res) {
       let nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
       const sinAjuste = buf; buf = normalizarUnidad(buf, t);
       if (buf !== sinAjuste) nota += ' El Portal ajustó automáticamente el código de la unidad organizacional a ' + CODIGO_UNIDAD + '.';
-      const errores = revisarArchivo(buf, t, oficial, periodo);
+      const errores = revisarArchivo(buf, t, oficial, periodo, false, await codigosCursos(periodo, est, t));
       if (errores.length && (porEstadistica || (admin && body.guardarNovedades))) {   /* «Guardar y enviar novedades» desde la corrección en pantalla: también al actuar en nombre de otra persona */
         /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
            la administradora decide cuándo avisar (botón «Enviar correo»); el correo lleva un enlace que abre las novedades de una. */
@@ -697,7 +717,7 @@ module.exports = async function handler(req, res) {
       const [buf0, oficial] = await Promise.all([leerBin(rutaOd(`${periodo}/${e.archivo}`)), cfg.oficiales[t.id] ? leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null]);
       if (!buf0) throw error('No se encontró el archivo en OneDrive.', 404);
       const buf = normalizarUnidad(buf0, t);   /* correcciones automáticas también en archivos guardados antes */
-      const errores = revisarArchivo(buf, t, oficial, periodo, true);
+      const errores = revisarArchivo(buf, t, oficial, periodo, true, await codigosCursos(periodo, est, t));
       /* el cruce con Participantes (lee una base grande) solo se hace si Estadística lo está viendo o si eligió un caso para esta plantilla */
       const falt = (admin && body.vista) || ['verificar', 'ausente'].includes(e.cruceModo) ? await faltantesParticipante(periodo, est, t, buf).catch(() => []) : [];
       if (errores.detalle) mezclarCruce(errores.detalle, falt, e.cruceModo, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
@@ -813,7 +833,7 @@ module.exports = async function handler(req, res) {
             const bufE = await leerBin(rutaOd(`${periodo}/${e0.archivo}`));
             if (bufE) {
               const ofi = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
-              const er = revisarArchivo(normalizarUnidad(bufE, t), t, ofi, periodo);
+              const er = revisarArchivo(normalizarUnidad(bufE, t), t, ofi, periodo, false, await codigosCursos(periodo, est, t));
               if (er.length) { hayNovedades = true; if (!motivo) motivo = `La plataforma encontró ${er.detalle && er.detalle.total ? er.detalle.total : er.length} error${(er.detalle && er.detalle.total ? er.detalle.total : er.length) > 1 ? 'es' : ''} en el archivo cargado. Corríjalos en pantalla.`; }
             }
           } catch (e) { /* si no se puede revisar, se exige el motivo escrito */ }
