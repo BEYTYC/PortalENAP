@@ -693,12 +693,13 @@ module.exports = async function handler(req, res) {
       if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
       const e = est[t.id];
       if (!e || (!e.novedades && !(admin && body.vista)) || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
-      let buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
-      if (!buf) throw error('No se encontró el archivo en OneDrive.', 404);
-      const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
-      buf = normalizarUnidad(buf, t);   /* correcciones automáticas también en archivos guardados antes */
+      /* el archivo y la plantilla oficial se leen a la vez (antes, uno tras otro) */
+      const [buf0, oficial] = await Promise.all([leerBin(rutaOd(`${periodo}/${e.archivo}`)), cfg.oficiales[t.id] ? leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null]);
+      if (!buf0) throw error('No se encontró el archivo en OneDrive.', 404);
+      const buf = normalizarUnidad(buf0, t);   /* correcciones automáticas también en archivos guardados antes */
       const errores = revisarArchivo(buf, t, oficial, periodo, true);
-      const falt = await faltantesParticipante(periodo, est, t, buf).catch(() => []);
+      /* el cruce con Participantes (lee una base grande) solo se hace si Estadística lo está viendo o si eligió un caso para esta plantilla */
+      const falt = (admin && body.vista) || ['verificar', 'ausente'].includes(e.cruceModo) ? await faltantesParticipante(periodo, est, t, buf).catch(() => []) : [];
       if (errores.detalle) mezclarCruce(errores.detalle, falt, e.cruceModo, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
       res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
     }
