@@ -813,7 +813,7 @@ module.exports = async function handler(req, res) {
             if (bufE) {
               const ofi = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
               const er = revisarArchivo(normalizarUnidad(bufE, t), t, ofi, periodo);
-              if (er.length) { hayNovedades = true; if (!motivo) motivo = `La plataforma encontró ${er.detalle && er.detalle.total ? er.detalle.total : er.length} error${(er.detalle && er.detalle.total ? er.detalle.total : er.length) > 1 ? 'es' : ''} en el archivo cargado. Ábralos desde «Mis plantillas» y corríjalos en pantalla.`; }
+              if (er.length) { hayNovedades = true; if (!motivo) motivo = `La plataforma encontró ${er.detalle && er.detalle.total ? er.detalle.total : er.length} error${(er.detalle && er.detalle.total ? er.detalle.total : er.length) > 1 ? 'es' : ''} en el archivo cargado. Corríjalos en pantalla.`; }
             }
           } catch (e) { /* si no se puede revisar, se exige el motivo escrito */ }
         }
@@ -821,7 +821,7 @@ module.exports = async function handler(req, res) {
           hayNovedades = true;
           if (!motivo) {
             let nC = 0; try { const bC = await leerBin(rutaOd(`${periodo}/${(est[t.id] || {}).archivo}`)); if (bC) nC = new Set((await faltantesParticipante(periodo, est, t, bC)).map((x) => x.hoja + '|' + x.num)).size; } catch (e) { /* solo cambia el texto */ }
-            motivo = cruceModo === 'ausente' ? `Hay ${nC || 'algunas'} cédula${nC === 1 ? '' : 's'} que no aparece${nC === 1 ? '' : 'n'} registrada${nC === 1 ? '' : 's'} en la base de datos de la institución. Ábralas desde «Mis plantillas» y corríjalas en pantalla.` : `Hay ${nC || 'algunos'} documento${nC === 1 ? '' : 's'} que no coincide${nC === 1 ? '' : 'n'} con la base de datos de la institución: verifique el número y el tipo de documento. Ábralos desde «Mis plantillas» y corríjalos en pantalla.`;
+            motivo = cruceModo === 'ausente' ? `Hay ${nC || 'algunas'} cédula${nC === 1 ? '' : 's'} que no aparece${nC === 1 ? '' : 'n'} registrada${nC === 1 ? '' : 's'} en la base de datos de la institución. Corríjalas en pantalla.` : `Hay ${nC || 'algunos'} documento${nC === 1 ? '' : 's'} que no coincide${nC === 1 ? '' : 'n'} con la base de datos de la institución: verifique el número y el tipo de documento. Corríjalos en pantalla.`;
           }
         }
         if (!motivo) throw error('El archivo no tiene errores que la plataforma detecte: escriba qué debe corregir el responsable.', 400);
