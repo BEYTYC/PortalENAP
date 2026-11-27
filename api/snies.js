@@ -509,7 +509,7 @@ module.exports = async function handler(req, res) {
       const sinAjuste = buf; buf = normalizarUnidad(buf, t);
       if (buf !== sinAjuste) nota += ' El Portal ajustó automáticamente el código de la unidad organizacional a ' + CODIGO_UNIDAD + '.';
       const errores = revisarArchivo(buf, t, oficial, periodo);
-      if (errores.length && porEstadistica) {
+      if (errores.length && (porEstadistica || (admin && body.guardarNovedades))) {   /* «Guardar y enviar novedades» desde la corrección en pantalla: también al actuar en nombre de otra persona */
         /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
            la administradora decide cuándo avisar (botón «Enviar correo»); el correo lleva un enlace que abre las novedades de una. */
         const motivo = limpio(errores.join(' · '), 800), nombreN = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
