@@ -175,13 +175,15 @@ b[style*="#14233a"]{font-weight:500}
     var est = ESTADO[p.estado], color = est[1], cuerpo = '', acts = '', zona = '';
     if (p.modo === 'directo') color = 'gris';
     else if (p.vencida && p.estado !== 'validada') color = 'rojo';   /* vencida = rojo; pendiente a tiempo = gris */
-    var chips = p.modo === 'directo' ? '<span class="chip c-teal">Solo notificaciones</span>' : '<span class="chip c-' + est[1] + '">' + est[0] + '</span>' + (p.noAplica ? '<span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? '<span class="chip c-rojo">Vencida</span>' : '');
+    var chips = p.modo === 'directo' ? '<span class="chip c-teal">Solo notificaciones</span>' : '<span class="chip c-' + est[1] + '">' + (p.estado === 'devuelta' && p.novedades ? 'Devuelta con novedades' : est[0]) + '</span>' + (p.noAplica ? '<span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? '<span class="chip c-rojo">Vencida</span>' : '');
     var fechaTxt = p.limite ? fecha(p.limite) : (p.textoFecha || 'Cuando se presente la novedad');
     var plazo = p.dias == null ? '—' : (p.dias < 0 ? 'Vencida hace ' + (-p.dias) + ' días' : p.dias === 0 ? 'Vence hoy' : 'Faltan ' + p.dias + ' días');
     if (p.modo === 'directo') {
       zona = '<div class="zone" style="border:0;background:rgba(223,241,241,.6);color:#0f5c5c">Esta plantilla se reporta directo al SNIES con su propio usuario. Aquí solo recibe las notificaciones.</div>';
     } else if (p.estado === 'devuelta') {
-      zona = '<div class="zone" style="border:0;background:rgba(255,255,255,.75);color:#8a3a34;font-size:13px;line-height:1.55;text-align:left;justify-content:flex-start;padding:12px 16px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(150,60,50,.08)">' + esc(String(p.motivo || '').replace(/ ?Ábral(os|as) desde «Mis plantillas» y corríj(alos|alas) en pantalla\./, ' Corríj$2 en pantalla.').replace(/^Devuelta por Estadística: ?/, '')) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:500">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>';
+      var mot = String(p.motivo || '').replace(/ ?Ábral(os|as) desde «Mis plantillas» y corríj(alos|alas) en pantalla\./, ' Corríj$2 en pantalla.').replace(/^Devuelta por Estadística: ?/, '');
+      if (/^La plataforma encontró \d+ errores?/.test(mot)) mot = '';   /* el estado «Devuelta con novedades» ya lo dice */
+      zona = (mot || p.adjunto) ? '<div class="zone" style="border:0;background:rgba(255,255,255,.75);color:#8a3a34;font-size:13px;line-height:1.55;text-align:left;justify-content:flex-start;padding:12px 16px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(150,60,50,.08)">' + esc(mot) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:500">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>' : '';
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
       zona = '';
     } else if (p.estado === 'pendiente') {
@@ -190,14 +192,16 @@ b[style*="#14233a"]{font-weight:500}
       zona = '';
     }
     if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = (p.novedades && p.estado === 'devuelta' ? '<button class="btn y" data-a="novedades" data-id="' + p.id + '">Abrir novedades</button>' : '') + '<button class="btn" data-a="cargar" data-id="' + p.id + '">Cargar plantilla</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
+    var icDesc = p.puedeCargar && p.archivo && (p.estado === 'devuelta' || p.estado === 'revision') ? '<button class="ib" data-a="mia" data-id="' + p.id + '" title="Descargar archivo cargado" aria-label="Descargar archivo cargado"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>' : '';
+    if (p.estado === 'devuelta') acts += icDesc;
+    else if (p.puedeCargar && p.estado === 'revision' && p.archivo) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Volver a cargar</button>' + icDesc;
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
-    if (p.puedeCargar && p.estado === 'devuelta' && p.archivo) links += '<a href="#" data-a="mia" data-id="' + p.id + '">↓ Descargar mi archivo cargado</a>';
     if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" data-a="instructivo" data-id="' + p.id + '">↗ Instructivo de diligenciamiento</a>';
     if (p.anterior) links += '<a href="#" data-a="anterior" data-id="' + p.id + '" data-p="' + p.anterior + '">↓ Plantilla diligenciada ' + p.anterior + '</a>';
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:14px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
-    return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta') ? p.id : '') + '">'
+    return '<div class="card t ' + color + '" data-drop="' + (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta' || (p.estado === 'revision' && p.archivo)) ? p.id : '') + '">'
       + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><h3>' + esc(p.nombre) + '</h3><div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end;text-align:right;flex:none;max-width:48%">' + chips + (p.periodoReporte ? '<span class="mu" style="font-size:12px;line-height:1.25">Periodo: <b style="color:#14233a">' + esc(p.periodoReporte) + '</b></span>' : '') + '</div></div>'
       + (p.estado === 'validada' && p.modo !== 'directo' ? '<div style="font-size:16px;font-weight:500;font-family:var(--sb);color:#1f7a55">Plantilla entregada satisfactoriamente</div>' : p.estado === 'revision' && p.modo !== 'directo' ? '<div style="font-size:16px;font-weight:500;font-family:var(--sb);color:#7a5200">Plantilla cargada. En revisión por Estadística.</div>' : '<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;font-size:14px"><div><div class="mu">Entrega antes del</div><div style="font-size:14px">' + esc(fechaTxt) + '</div></div><div><div class="mu">Plazo</div><div style="font-size:14px;font-weight:500;font-family:var(--sb)' + (p.dias === 0 ? ';color:#a3281d' : '') + '">' + esc(plazo) + '</div></div></div>')
       + '<div class="resp">' + '<div class="mu l1" title="' + esc(p.entregaTexto) + '">Responsable de la entrega: <span class="rv">' + esc(p.entregaTexto) + '</span></div>' + (p.diligenciaTexto ? '<div class="mu l1" title="' + esc(p.diligenciaTexto) + '">Responsable del diligenciamiento: <span class="rv">' + esc(p.diligenciaTexto) + '</span></div>' : '') + '</div>' + nota + zona
@@ -436,7 +440,7 @@ b[style*="#14233a"]{font-weight:500}
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
-      var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
+      var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + (p.estado === 'devuelta' && p.novedades ? 'Devuelta con novedades' : ESTADO[p.estado][0]) + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
       var tieneCargue = !!(p.archivo || p.noAplica), conResp = p.entrega.length + p.diligencia.length > 0;
       var IC = {
         ver: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>',
