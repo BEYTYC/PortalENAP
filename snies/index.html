@@ -233,7 +233,8 @@ b[style*="#14233a"]{font-weight:600}
   }
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
   function visorCorreccion(id, nombre, b64, r, porEstadistica) {
-    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false;
+    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = !!(r.detalle && r.detalle.total);
+    D.hojas.some(function (h, i) { if (h.total) { hojaAct = i; return true; } });   /* abre en la primera hoja que tiene errores */
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
     function nota(td) {
       var n = document.querySelector('.nota-corr');
@@ -484,7 +485,7 @@ b[style*="#14233a"]{font-weight:600}
   /* No dejar que soltar un archivo fuera de una tarjeta abra el Excel en el navegador */
   window.addEventListener('dragover', function (e) { e.preventDefault(); }); window.addEventListener('drop', function (e) { e.preventDefault(); });
 
-  cargarSesion().then(function () { pintar(); if (S.datos && S.datos.admin) cargarAdmin().catch(function () {}); var nv = new URLSearchParams(location.search).get('novedades'); if (nv) setTimeout(function () { abrirNovedades(nv); }, 300); }).catch(function (e) { document.getElementById('ld').hidden = true; app.innerHTML = '<div class="ban e">' + esc(e.message) + '</div>'; });
+  cargarSesion().then(function () { pintar(); if (S.datos && S.datos.admin) cargarAdmin().catch(function () {}); var nv = new URLSearchParams(location.search).get('novedades'); if (nv) setTimeout(function () { abrirNovedades(nv); }, 300); else if (!S.verComo && S.datos && S.datos.plantillas) { /* Al entrar, al responsable le sale de una lo que debe corregir (sin que Estadística se lo diga). */ var pn = S.datos.plantillas.filter(function (x) { return x.puedeCargar && x.estado === 'devuelta' && x.novedades; })[0]; if (pn) setTimeout(function () { abrirNovedades(pn.id); }, 400); } }).catch(function (e) { document.getElementById('ld').hidden = true; app.innerHTML = '<div class="ban e">' + esc(e.message) + '</div>'; });
 })();
 </script>
 </body>
