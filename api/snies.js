@@ -503,8 +503,9 @@ module.exports = async function handler(req, res) {
       const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
       const corregido = aplicarCorrecciones(buf, t, body.cambios, body.borrar);
       if (corregido) buf = corregido;
-      const nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
-      buf = normalizarUnidad(buf, t);
+      let nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
+      const sinAjuste = buf; buf = normalizarUnidad(buf, t);
+      if (buf !== sinAjuste) nota += ' El Portal ajustó automáticamente el código de la unidad organizacional a ' + CODIGO_UNIDAD + '.';
       const errores = revisarArchivo(buf, t, oficial, periodo);
       if (errores.length && porEstadistica) {
         /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
