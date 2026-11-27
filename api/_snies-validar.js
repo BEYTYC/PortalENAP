@@ -438,4 +438,4 @@ function detalleVisor(res) {
   return { hojas, total: res.errores.length };
 }
 
-module.exports = { ubicarEncabezado, revisarContenido, resumenTextos, detalleVisor, fechaNum };
+module.exports = { leerHoja, ubicarEncabezado, revisarContenido, resumenTextos, detalleVisor, fechaNum };

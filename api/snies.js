@@ -427,6 +427,29 @@ function normalizarUnidad(buf, t) {
     return cambios.length ? aplicarXlsx(buf, { cambios, borrar: {} }) : buf;
   } catch (e) { return buf; }
 }
+/* Cruce informativo con Participante (la autora, 27/11/2026): lista los documentos que aparecen en una entrega y no están en la entrega de Participante. Se compara solo el número de documento (sin puntos, espacios ni ceros a la izquierda). No bloquea y solo lo ve Estadística. */
+function cruceParticipantes(bufT, t, bufP, extra) {
+  const norm = (v) => String(v == null ? '' : v).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '');
+  const docs = (buf, cod, soloHoja) => {
+    const wb = abrir(buf), esp = COLUMNAS[String(cod)] || {}, out = [];
+    for (const h of wb.hojas.filter((x) => x !== 'INFO' && (!soloHoja || x === soloHoja))) {
+      const cols = esp[h]; if (!cols || !cols.includes('NUM_DOCUMENTO')) continue;
+      const hoja = VALIDAR.leerHoja ? VALIDAR.leerHoja(wb, h, cols) : null; if (!hoja) continue;
+      const iN = hoja.idx.NUM_DOCUMENTO, iT = hoja.idx.ID_TIPO_DOCUMENTO;
+      for (let r = 1; r < hoja.filas.length; r++) {
+        const n = norm((hoja.filas[r] || [])[iN]); if (!n) continue;
+        out.push({ hoja: h, fila: r + 1, tipo: iT == null ? '' : String((hoja.filas[r] || [])[iT] || '').trim(), num: String((hoja.filas[r] || [])[iN]).trim(), k: n });
+      }
+    }
+    return out;
+  };
+  const part = new Set(extra || []); if (bufP) docs(bufP, 55).forEach((x) => part.add(x.k));
+  const mios = docs(bufT, t.codigo), faltan = mios.filter((x) => !part.has(x.k));
+  const vistos = new Set(), unicos = [];
+  for (const x of faltan) { const c = x.hoja + '|' + x.k; if (vistos.has(c)) continue; vistos.add(c); unicos.push({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num }); }
+  return { revisados: new Set(mios.map((x) => x.k)).size, participantes: part.size, faltan: unicos.slice(0, 500), total: unicos.length };
+}
+
 function revisarArchivo(buf, t, oficial, periodo) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
@@ -605,6 +628,27 @@ module.exports = async function handler(req, res) {
       const errores = revisarArchivo(buf, t, oficial, periodo);
       res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
     }
+    if (a === 'cruce-participantes') {   /* informativo y solo para Estadística: documentos de la entrega que no están en Participante (no bloquea nada ni lo ve el responsable) */
+      soloAdmin();
+      const t = buscar(body.id);
+      if (t.id === 'participante') throw error('Participante es la plantilla contra la que se cruzan las demás.', 400);
+      const e = est[t.id], ep = est.participante;
+      if (!e || !e.archivo) throw error('Esta plantilla no tiene un archivo entregado.', 404);
+      const base = (await leerJson('participantes-base.json')).valor;   /* documentos de la base de Participantes del SNIES que cargó Estadística */
+      const bufP = ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null;
+      if (!base && !bufP) throw error('Para cruzar, cargue la base de Participantes del SNIES (botón «Base de Participantes») o entregue la plantilla Participante.', 404);
+      const bufT = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
+      if (!bufT) throw error('No se encontró el archivo en OneDrive.', 404);
+      res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base && base.docs))); return;
+    }
+    if (a === 'participantes-base') {   /* Estadística sube los números de documento de la base de Participantes del SNIES (el CSV UnoAUno); solo se guardan los números, en SharePoint */
+      soloAdmin();
+      const docs = Array.isArray(body.docs) ? body.docs.map((x) => String(x == null ? '' : x).replace(/[^0-9A-Za-z]/g, '').toUpperCase().replace(/^0+(?=.)/, '')).filter(Boolean) : [];
+      if (!docs.length) throw error('El archivo no trae números de documento.', 400);
+      const unicos = [...new Set(docs)];
+      await mutar('participantes-base.json', () => ({}), (v) => { v.fecha = ahora(); v.por = yo.nombre; v.docs = unicos; });
+      res.status(200).json({ ok: true, n: unicos.length }); return;
+    }
     if (a === 'no-aplica') {
       const t = buscar(body.id), v = vista(t, cfg, est, periodo, comoCorreo || yo.correo, false);
       if (!v.soyEntrega && !v.soyDiligencia && !admin) throw error('Usted no es responsable de la entrega ni del diligenciamiento de esta plantilla.', 403);
@@ -750,4 +794,4 @@ module.exports = async function handler(req, res) {
   }
 };
 function anterior(p) { const [a, s] = p.split('-').map(Number); return s === 2 ? `${a}-1` : `${a - 1}-2`; }
-module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, normalizarUnidad, TEMPLATES };
+module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, normalizarUnidad, cruceParticipantes, TEMPLATES };
