@@ -279,7 +279,7 @@ b[style*="#14233a"]{font-weight:400}
         return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn">' + (ver ? '' : '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>') + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
-      var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label>' + (ver ? '' : '<span class="mu">Haz clic en cualquier celda para editarla.</span>') + '</div>';
+      var barra = ver ? '' : '<div class="mu" style="font-size:13px">Haz clic en cualquier celda para editarla.</div>';
       var cnt = '<span id="cnt" style="font-size:15px;font-weight:500;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
       m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:18px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:500;font-size:13px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
@@ -287,7 +287,6 @@ b[style*="#14233a"]{font-weight:400}
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (ver ? '<button class="btn y" id="devolverya">Devolver</button>' : (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button>') + '</div></div>';
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
       m.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { borrar[H.nombre + '|' + b.getAttribute('data-del')] = 1; pinta(); }; });
-      var so = m.querySelector('#soloerr'); if (so) so.onchange = function () { soloErr = so.checked; pinta(); };
       function conectar(i) {
         i.addEventListener('change', function () {
           var h = i.getAttribute('data-h'), f = +i.getAttribute('data-f'), c = i.getAttribute('data-c');
