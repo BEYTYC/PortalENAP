@@ -396,20 +396,31 @@ function resumenTextos(errores) {
   return t.length > 25 ? t.slice(0, 25).concat(`Hay ${t.length - 25} grupos de errores más; corrija estos y vuelva a cargar.`) : t;
 }
 
-/** Datos para el visor: solo las filas con error (máx. 400 por hoja) y los errores por celda. */
+/** Datos para el visor: la tabla completa de cada hoja, como en Excel (todas las filas con datos), con los errores por celda.
+ *  Si hay más celdas de las que caben en pantalla, siempre se incluyen las filas con error (máx. 400) y se completa con las primeras filas. */
 function detalleVisor(res) {
   const porHoja = {};
   for (const e of res.errores) { (porHoja[e.h] = porHoja[e.h] || new Map()); if (!porHoja[e.h].has(e.f)) porHoja[e.h].set(e.f, []); porHoja[e.h].get(e.f).push(e); }
   const hojas = [];
-  for (const h of Object.keys(porHoja)) {
+  for (const h of Object.keys(res.hojas)) {
     const H = res.hojas[h], pos = []; H.cols.forEach((c, i) => { if (c) pos.push(i); });
-    const cols = pos.map((i) => H.cols[i]);
-    const filas = [...porHoja[h].keys()].sort((a, b) => a - b).slice(0, 400).map((n) => ({
+    if (!pos.length) continue;
+    const cols = pos.map((i) => H.cols[i]), errs = porHoja[h] || new Map();
+    const llena = (row) => row && pos.some((i) => row[i] != null && String(row[i]).trim() !== '');
+    const todas = []; for (let n = 2; n <= H.filas.length; n++) if (llena(H.filas[n - 1]) || errs.has(n)) todas.push(n);
+    const tope = Math.max(150, Math.floor(60000 / cols.length));
+    let elegidas = todas;
+    if (todas.length > tope) {
+      const conError = todas.filter((n) => errs.has(n)).slice(0, 400), set = new Set(conError);
+      for (const n of todas) { if (set.size >= tope) break; set.add(n); }
+      elegidas = [...set].sort((x, y) => x - y);
+    }
+    const filas = elegidas.map((n) => ({
       n,
       v: pos.map((i) => { const x = (H.filas[n - 1] || [])[i]; return x == null ? '' : (typeof x === 'number' && /^FECHA/.test(H.cols[i]) && fechaTxt(x)) || x; }),
-      e: porHoja[h].get(n).map((x) => ({ c: x.c, m: x.m })),
+      e: (errs.get(n) || []).map((x) => ({ c: x.c, m: x.m })),
     }));
-    hojas.push({ nombre: h, cols, fecha: cols.filter((c) => /^FECHA/.test(c)), filas, total: porHoja[h].size });
+    hojas.push({ nombre: h, cols, fecha: cols.filter((c) => /^FECHA/.test(c)), filas, total: errs.size, filasTotal: todas.length });
   }
   return { hojas, total: res.errores.length };
 }

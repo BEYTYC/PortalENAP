@@ -38,6 +38,16 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .c-rojo{background:#fbe4e1;color:#a3281d}.c-ambar{background:#fdf0c4;color:#7a5200}.c-verde{background:#dff3e8;color:#14633d}.c-teal{background:#dff1f1;color:#0f5c5c}.c-gris{background:#e8edf4;color:#4c6386}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;align-items:stretch}
 .t{padding:12px 14px;border:1px solid;display:flex;flex-direction:column;gap:7px;transition:box-shadow .15s}
+.xl{border-collapse:separate;border-spacing:0;font-size:13px}
+.xl th{position:sticky;top:0;z-index:2;background:#eaf1fb;color:#14233a;font-weight:600;padding:6px 8px;border-right:1px solid #d6e0ee;border-bottom:1px solid #d6e0ee;text-align:left}
+.xl td{border-right:1px solid #e6ecf5;border-bottom:1px solid #e6ecf5;background:#fff}
+.xl td.xc{padding:4px 8px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;min-height:26px;cursor:cell}
+.xl td.xc:hover{background:#f3f8ff}
+.xl td.xc.mal{padding:3px 4px;background:#fff3a8}
+.xl td.xn{position:sticky;left:0;z-index:1;background:#f4f7fb;padding:3px 6px}
+.xl td.xr,.xl th.xr{left:0;text-align:right;font-weight:600;color:#44546a}
+.xl tr.xf td{background:#fff8d1}
+.xl tr.xa td{background:#fffbe0;padding:2px 8px 8px}
 .t.soltar{position:relative;outline:2px dashed #3b82d6;outline-offset:-4px;box-shadow:0 0 0 4px rgba(59,130,214,.14),0 8px 22px rgba(30,64,120,.16)}
 .t.soltar::after{content:"Suelta el archivo para cargarlo";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(235,244,255,.88);color:#1b4c92;font-family:var(--sb);font-weight:600;font-size:15px;border-radius:inherit;pointer-events:none}
 .t.rojo{background:#fdf1f0;border-color:#d9726a}.t.ambar{background:#fff8dc;border-color:#d9b445}.t.verde{background:#f0f9f4;border-color:#5fb68a}.t.gris{background:#f3f6fa;border-color:#a9b8cb}
@@ -223,29 +233,37 @@ b[style*="#14233a"]{font-weight:600}
   }
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
   function visorCorreccion(id, nombre, b64, r, porEstadistica) {
-    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0;
+    var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false;
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
     function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (!e.ok) n++; }); }); }); return n; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
-      var tabs = D.hojas.length > 1 ? '<div style="display:flex;gap:6px;flex-wrap:wrap">' + D.hojas.map(function (h, i) { return '<button class="btn ' + (i === hojaAct ? '' : 'sec ') + 'sm" data-t="' + i + '">' + esc(h.nombre) + ' (' + h.total + ')</button>'; }).join('') + '</div>' : '';
-      var cab = '<th></th><th>Fila</th>' + H.cols.map(function (c) { return '<th style="white-space:nowrap">' + esc(c) + '</th>'; }).join('');
+      var tabs = D.hojas.length > 1 ? '<div style="display:flex;gap:6px;flex-wrap:wrap">' + D.hojas.map(function (h, i) { return '<button class="btn ' + (i === hojaAct ? '' : 'sec ') + 'sm" data-t="' + i + '">' + esc(h.nombre) + (h.total ? ' (' + h.total + ')' : '') + '</button>'; }).join('') + '</div>' : '';
+      var cab = '<th class="xn"></th><th class="xn xr">Fila</th>' + H.cols.map(function (c) { return '<th style="white-space:nowrap">' + esc(c) + '</th>'; }).join('');
       var cuerpo = H.filas.map(function (f) {
         if (borrar[H.nombre + '|' + f.n]) return '';
+        if (soloErr && !f.e.length) return '';
         var malas = {}; f.e.forEach(function (e) { if (!e.ok) (malas[e.c] = malas[e.c] || []).push(e.m); });
         var filaMal = f.e.some(function (e) { return e.c === '(fila)' && !e.ok; });
-        var td = f.v.map(function (v, i) { var c = H.cols[i], mal = malas[c]; return '<td style="padding:4px 5px' + (mal ? ';background:#fff3a8' : '') + '"' + (mal ? ' title="' + esc(mal.join(' · ')) + '"' : '') + '><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400' + (mal ? ';background:#fff3a8;border-color:#d9b92e' : '') + '" data-h="' + esc(H.nombre) + '" data-f="' + f.n + '" data-c="' + esc(c) + '" value="' + esc(cambios[H.nombre + '|' + f.n + '|' + c] != null ? cambios[H.nombre + '|' + f.n + '|' + c].v : v) + '"></td>'; }).join('');
+        var td = f.v.map(function (v, i) {
+          var c = H.cols[i], mal = malas[c], k = H.nombre + '|' + f.n + '|' + c, val = cambios[k] ? cambios[k].v : v;
+          var attrs = 'data-h="' + esc(H.nombre) + '" data-f="' + f.n + '" data-c="' + esc(c) + '"';
+          if (mal) return '<td class="xc mal" title="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + ' value="' + esc(val) + '"></td>';
+          return '<td class="xc" ' + attrs + '>' + esc(val) + '</td>';
+        }).join('');
         var msgs = f.e.filter(function (e) { return !e.ok; }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
-        var aviso = msgs.length ? '<tr style="background:#fffbe0"><td colspan="' + (H.cols.length + 2) + '" style="padding:2px 8px 8px;border-top:0"><div style="position:sticky;left:8px;max-width:min(640px,80vw);font-size:12px;color:#5f4a0b;white-space:normal">' + esc(msgs.join(' · ')) + '</div></td></tr>' : '';
-        return '<tr' + (filaMal ? ' style="background:#fff8d1"' : '') + '><td style="padding:4px 5px"><button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button></td><td style="padding:4px 8px;white-space:nowrap;font-weight:600">' + f.n + '</td>' + td + '</tr>' + aviso;
+        var aviso = msgs.length && soloErr ? '<tr class="xa"><td colspan="' + (H.cols.length + 2) + '"><div style="position:sticky;left:8px;max-width:min(640px,80vw);font-size:12px;color:#5f4a0b;white-space:normal">' + esc(msgs.join(' · ')) + '</div></td></tr>' : '';
+        return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn"><button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button></td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
-      var mas = H.total > H.filas.length ? '<div class="mu">Se muestran las primeras ' + H.filas.length + ' filas con error de ' + H.total + '. Revisa de nuevo para ver las siguientes.</div>' : '';
-      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:92vh"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div style="font-size:18px">Corrige tu archivo en pantalla</div><div class="mu">' + esc(nombre) + ' · Las celdas en amarillo tienen error. Edita el valor o elimina la fila completa. Pasa el cursor sobre una celda para ver qué falla. <a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600">↗ Instructivo de diligenciamiento</a></div></div><div style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</div></div>' + tabs + mas
-        + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
+      var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
+      var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label><span class="mu">Haz clic en cualquier celda para editarla.</span></div>';
+      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:92vh"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div style="font-size:18px">Corrige tu archivo en pantalla</div><div class="mu">' + esc(nombre) + ' · Es tu archivo completo, como en Excel: las celdas en amarillo tienen error. Edita el valor o elimina la fila completa. Pasa el cursor sobre una celda amarilla para ver qué falla (o marca «Mostrar solo las filas con error» para verlo escrito). <a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600">↗ Instructivo de diligenciamiento</a></div></div><div style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</div></div>' + tabs + barra + mas
+        + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button><button class="btn" id="revisar">Revisar y entregar</button></div></div>';
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
       m.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { borrar[H.nombre + '|' + b.getAttribute('data-del')] = 1; pinta(); }; });
-      m.querySelectorAll('input[data-f]').forEach(function (i) {
+      var so = m.querySelector('#soloerr'); if (so) so.onchange = function () { soloErr = so.checked; pinta(); };
+      function conectar(i) {
         i.addEventListener('change', function () {
           var h = i.getAttribute('data-h'), f = +i.getAttribute('data-f'), c = i.getAttribute('data-c');
           cambios[h + '|' + f + '|' + c] = { h: h, f: f, c: c, v: i.value, num: /^FECHA/.test(c) };
@@ -253,6 +271,15 @@ b[style*="#14233a"]{font-weight:600}
           i.style.background = '#fff'; i.style.borderColor = ''; i.parentNode.style.background = ''; i.parentNode.title = '';
           var t = m.querySelector('.card > div > div:last-child'); if (t) { var q = quedan(); t.textContent = q ? q + ' error' + (q > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes'; }
         });
+      }
+      m.querySelectorAll('input[data-f]').forEach(conectar);
+      /* Las celdas sin error se ven como texto (más liviano); al hacer clic se vuelven editables. */
+      m.querySelectorAll('td.xc[data-f]').forEach(function (td) {
+        td.onclick = function () {
+          var i = document.createElement('input'); i.className = 'inp'; i.style.cssText = 'min-width:90px;font-weight:400;width:100%'; i.value = td.textContent;
+          ['h', 'f', 'c'].forEach(function (k) { i.setAttribute('data-' + k, td.getAttribute('data-' + k)); });
+          td.textContent = ''; td.onclick = null; td.appendChild(i); conectar(i); i.focus(); i.select();
+        };
       });
       m.querySelector('#cancelar').onclick = function () { m.remove(); };
       m.querySelector('#revisar').onclick = function () {
