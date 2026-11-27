@@ -177,7 +177,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
     tieneOficial: !!cfg.oficiales[t.id], versionOficial: ((cfg.oficiales[t.id] || [])[0] || {}).version || 0,
     puedeVerAnterior: !!(e.anterior),
   };
-  if (admin) Object.assign(o, { cargo: t.cargo, cargoTexto: t.cargoTexto, codigo: t.codigo, oficial, entrega: r.entrega, diligencia: r.diligencia, prorroga: cfg.prorrogas[t.id] || '', fechas: t.fechas, historial: (e.historial || []).slice(-8), cruce: e.cruce || null });
+  if (admin) Object.assign(o, { cargo: t.cargo, cargoTexto: t.cargoTexto, codigo: t.codigo, oficial, entrega: r.entrega, diligencia: r.diligencia, prorroga: cfg.prorrogas[t.id] || '', fechas: t.fechas, historial: (e.historial || []).slice(-8), cruce: SIN_CRUCE.has(t.id) ? null : (e.cruce || null) });
   return o;
 }
 
@@ -456,6 +456,8 @@ function cruceParticipantes(bufT, t, bufP, extra) {
   return { revisados: new Set(mios.map((x) => x.k)).size, participantes: part.size, faltan: unicos.slice(0, 500), total: unicos.length };
 }
 
+/* Plantillas que NO se cruzan con Participante (la autora, 27/11/2026). */
+const SIN_CRUCE = new Set(['participante', 'inscritos-relacion-de-inscritos', 'inscrito-programa', 'admitidos']);
 /* Calcula el cruce con Participantes de las plantillas con archivo y lo deja en su estado (cruce = { total, n, fecha }) para mostrarlo en el Panel. Nunca bloquea nada. */
 async function actualizarCruce(periodo, ids, bufs) {
   const est = await leerEstado(periodo);
@@ -465,7 +467,7 @@ async function actualizarCruce(periodo, ids, bufs) {
   if (!base && !bufP) return;
   const res = {};
   for (const id of ids) {
-    const t = POR_ID[id], e = est[id]; if (!t || id === 'participante' || !e || !e.archivo || e.noAplica) continue;
+    const t = POR_ID[id], e = est[id]; if (!t || SIN_CRUCE.has(id) || !e || !e.archivo || e.noAplica) continue;
     try {
       const b = (bufs && bufs[id]) || await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) continue;
       const c = cruceParticipantes(b, t, bufP, base && base.docs); res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
@@ -655,7 +657,7 @@ module.exports = async function handler(req, res) {
     if (a === 'cruce-participantes') {   /* informativo y solo para Estadística: documentos de la entrega que no están en Participante (no bloquea nada ni lo ve el responsable) */
       soloAdmin();
       const t = buscar(body.id);
-      if (t.id === 'participante') throw error('Participante es la plantilla contra la que se cruzan las demás.', 400);
+      if (SIN_CRUCE.has(t.id)) throw error('Esta plantilla no se cruza con Participante.', 400);
       const e = est[t.id], ep = est.participante;
       if (!e || !e.archivo) throw error('Esta plantilla no tiene un archivo entregado.', 404);
       const base = (await leerJson('participantes-base.json')).valor;   /* documentos de la base de Participantes del SNIES que cargó Estadística */
@@ -667,7 +669,7 @@ module.exports = async function handler(req, res) {
     }
     if (a === 'cruce-actualizar') {   /* calcula el cruce de las entregas que todavía no lo tienen (cargadas antes de existir el cruce) */
       soloAdmin();
-      const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && !est[x.id].cruce).map((x) => x.id);
+      const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && !est[x.id].cruce && !SIN_CRUCE.has(x.id)).map((x) => x.id);
       if (ids.length) await actualizarCruce(periodo, ids);
       res.status(200).json({ ok: true, n: ids.length }); return;
     }
