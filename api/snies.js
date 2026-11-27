@@ -487,17 +487,20 @@ async function faltantesParticipante(periodo, est, t, buf) {
 function mezclarCruce(detalle, filas, modo, comoCandidatas) {
   if (!detalle || !filas.length || (!comoCandidatas && !['verificar', 'ausente'].includes(modo))) return detalle;
   for (const h of detalle.hojas) {
-    const colDoc = h.cols.find((c) => /^(NUM|NUMERO|NÚMERO)[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N|CEDULA|CÉDULA)\w*$/i.test(c));
-    if (!colDoc) continue;
+    const ci = h.cols.findIndex((c) => /^(NUM|NUMERO|NÚMERO)[ _]*(DE[ _]*)?(DOC|DOCUMENTO|IDENTIFICACI[OÓ]N|CEDULA|CÉDULA)\w*$/i.test(c));
+    if (ci < 0) continue;
+    const colDoc = h.cols[ci], vistos = new Set();
     h.cand = 0;
     for (const f of h.filas) {
       const x = filas.find((y) => y.hoja === h.nombre && y.fila === f.n); if (!x) continue;
-      if (comoCandidatas) { f.e.push({ c: colDoc, cr: true, k: x.clase, m1: x.msg, m2: MSG_CRUCE }); h.cand++; }
-      else f.e.push({ c: colDoc, m: modo === 'ausente' ? MSG_CRUCE : x.msg });
+      /* La misma cédula repetida en varias filas es UN solo error: solo la primera fila cuenta (u). */
+      const clave = String(f.v[ci]).trim(), u = !vistos.has(clave); vistos.add(clave);
+      if (comoCandidatas) { f.e.push({ c: colDoc, cr: true, u, k: x.clase, m1: x.msg, m2: MSG_CRUCE }); if (u) h.cand++; }
+      else f.e.push({ c: colDoc, cx: true, u, m: modo === 'ausente' ? MSG_CRUCE : x.msg });
     }
-    h.total = h.filas.filter((f) => f.e.some((x) => !x.cr)).length;
+    h.total = h.filas.reduce((n, f) => n + f.e.filter((x) => !x.cr && (!x.cx || x.u)).length, 0);
   }
-  detalle.total = detalle.hojas.reduce((n, h) => n + h.filas.reduce((k, f) => k + f.e.filter((x) => !x.cr).length, 0), 0);
+  detalle.total = detalle.hojas.reduce((n, h) => n + h.filas.reduce((k, f) => k + f.e.filter((x) => !x.cr && (!x.cx || x.u)).length, 0), 0);
   return detalle;
 }
 /* Plantillas que NO se cruzan con Participante (la autora, 27/11/2026). */

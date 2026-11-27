@@ -266,7 +266,7 @@ b[style*="#14233a"]{font-weight:500}
       if (INS) return mostrar();
       fetch('instructivos/datos.json').then(function (r) { return r.json(); }).then(function (d) { INS = d; mostrar(); }).catch(function () { pie = '<div class="mu">No se pudo cargar el instructivo.</div>'; pintaPie(); });
     }
-    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e)) n++; }); }); }); return n; }
+    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e) && (!(e.cr || e.cx) || e.u)) n++;   /* una misma cédula repetida es un solo error */ }); }); }); return n; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
       var conErr = D.hojas.map(function (h, i) { return { h: h, i: i }; }).filter(function (x) { return x.h.total || x.h.cand; });
