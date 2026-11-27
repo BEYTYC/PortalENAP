@@ -119,3 +119,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 
 ## Códigos con espacios (27/11/2026)
 - Todo valor de una columna CODIGO_* (o terminada en _CODIGO) con un espacio al inicio, al final o en medio es error: «el código no puede tener espacios…».
+
+## Errores de fila completa en el visor (27/11/2026)
+- Las filas amarillas (fila repetida, fila en blanco, fila de más) no tienen una celda concreta: al hacer clic en la fila, el panel inferior muestra qué falla. Al abrir el visor aparece ya el de la primera fila amarilla.
