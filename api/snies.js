@@ -224,10 +224,9 @@ function htmlCorreo({ titulo, cuerpo, entrega, plantillas, ids, fecha, filas: it
 <p style="font-size:14.5px;color:#334155;margin:0 0 10px">Cordial saludo.</p>
 ${P(cuerpo)}
 ${datos}
-${urlAbrir ? `<p style="font-size:15px;margin:0 0 16px"><a href="${esc(urlAbrir)}" target="_blank" style="color:#1b4c92;font-weight:700">▶ ${esc(textoAbrir || 'Abrir')}</a></p>` : ''}
 <p style="font-size:14.5px;color:#334155;margin:0 0 18px">Para gestionar sus plantillas, ingrese al módulo Plantillas SNIES del Portal de Servicios Digitales - Oficina de Estadística.</p>
 <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px"><tr><td>
-<a href="${esc(urlAbrir || PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="${esc(textoAbrir || 'Abrir el Portal')}" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>
+${urlAbrir ? `<a href="${esc(urlAbrir)}" target="_blank" style="display:inline-block;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;height:36px;padding:0 26px;border-radius:18px;text-decoration:none">${esc(textoAbrir || 'Abrir')}</a>` : `<a href="${esc(urlAbrir || PORTAL_URL)}" target="_blank" style="text-decoration:none"><img src="${esc(boton)}" width="176" height="36" alt="${esc(textoAbrir || 'Abrir el Portal')}" style="display:block;border:0;width:176px;height:36px;border-radius:18px;background:#0b3d66;color:#ffffff;font-family:'Segoe UI',Arial,sans-serif;font-size:14px;font-weight:600;line-height:36px;text-align:center"></a>`}
 </td></tr></table>
 </td></tr>
 <tr><td style="background:#f8fafc;border-top:1px solid #e3eaf1;padding:14px 28px;font-size:12px;color:#7b8794;line-height:1.5">Este mensaje fue generado automáticamente desde el Portal de Servicios Digitales - Oficina de Estadística de la Escuela Naval de Cadetes “Almirante Padilla”.</td></tr>
