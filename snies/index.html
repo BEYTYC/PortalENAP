@@ -259,7 +259,7 @@ b[style*="#14233a"]{font-weight:600}
       var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label><span class="mu">Haz clic en cualquier celda para editarla.</span></div>';
       m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:92vh"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap"><div><div style="font-size:18px">Corrige tu archivo en pantalla</div><div class="mu">' + esc(nombre) + ' · Es tu archivo completo, como en Excel: las celdas en amarillo tienen error. Edita el valor o elimina la fila completa. Pasa el cursor sobre una celda amarilla para ver qué falla (o marca «Mostrar solo las filas con error» para verlo escrito). <a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600">↗ Instructivo de diligenciamiento</a></div></div><div style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</div></div>' + tabs + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
-        + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button><button class="btn" id="revisar">Revisar y entregar</button></div></div>';
+        + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button><button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button></div></div>';
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
       m.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { borrar[H.nombre + '|' + b.getAttribute('data-del')] = 1; pinta(); }; });
       var so = m.querySelector('#soloerr'); if (so) so.onchange = function () { soloErr = so.checked; pinta(); };
@@ -269,7 +269,8 @@ b[style*="#14233a"]{font-weight:600}
           cambios[h + '|' + f + '|' + c] = { h: h, f: f, c: c, v: i.value, num: /^FECHA/.test(c) };
           D.hojas.forEach(function (x) { if (x.nombre === h) x.filas.forEach(function (fl) { if (fl.n === f) fl.e.forEach(function (e) { if (e.c === c) e.ok = 1; }); }); });
           i.style.background = '#fff'; i.style.borderColor = ''; i.parentNode.style.background = ''; i.parentNode.title = '';
-          var t = m.querySelector('.card > div > div:last-child'); if (t) { var q = quedan(); t.textContent = q ? q + ' error' + (q > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes'; }
+          var t = m.querySelector('.card > div > div:last-child'); if (t) { var q = quedan(); t.textContent = q ? q + ' error' + (q > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes'; t.style.color = q ? '#7a5200' : '#1b7a4f'; }
+          var rv = m.querySelector('#revisar'); if (rv) { var q2 = quedan(); rv.disabled = q2 > 0; rv.title = q2 ? 'Disponible cuando corrijas todos los errores' : ''; }
         });
       }
       m.querySelectorAll('input[data-f]').forEach(conectar);
