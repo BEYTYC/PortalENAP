@@ -519,9 +519,11 @@ b[style*="#14233a"]{font-weight:500}
     var v = e.target.closest('[data-v]'); if (v) {
       S.vista = v.dataset.v; pintar();   /* se muestra al instante con lo ya cargado */
       var antes = JSON.stringify(S.vista === 'mis' ? S.datos : S.admin);
+      enEspera(true);   /* el usuario pulsó un botón: se avisa «Cargando…» mientras se actualiza */
       (S.vista === 'mis' ? cargarSesion() : cargarAdmin(S.admin && S.admin.periodo)).then(function () {
         if (JSON.stringify(S.vista === 'mis' ? S.datos : S.admin) !== antes) pintar();   /* solo se vuelve a dibujar si algo cambió */
-      }).catch(function (x) { toast(x.message); });
+        enEspera(false);
+      }).catch(function (x) { enEspera(false); toast(x.message); });
       return;
     }
     var k = e.target.closest('[data-k]'); if (k) { S.kpi = S.kpi === k.dataset.k ? '' : k.dataset.k; pintar(); return; }
