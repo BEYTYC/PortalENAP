@@ -303,10 +303,10 @@ b[style*="#14233a"]{font-weight:500}
         }).join('');
         var msgs = f.e.filter(function (e) { return activo(e); }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
         var aviso = false && msgs.length && soloErr ? '<tr class="xa"><td colspan="' + (H.cols.length + 2) + '"><div style="position:sticky;left:8px;max-width:min(640px,80vw);font-size:13px;color:#5f4a0b;white-space:normal">' + esc(msgs.join(' · ')) + '</div></td></tr>' : '';
-        return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn">' + '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>' + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
+        return '<tr' + (filaMal ? ' class="xf" data-fm="' + esc(f.e.filter(function (e) { return e.c === '(fila)' && activo(e); }).map(function (e) { return e.m; }).join(' · ')) + '" data-fn="' + f.n + '" title="Clic para ver qué falla en esta fila"' : '') + '><td class="xn">' + '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>' + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
-      var barra = '<div class="mu" style="font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">' + (ver ? '' : '<span>Haz clic en una celda amarilla para corregirla.</span>') + '<a href="#" data-solo="1" style="color:#1b4f8a">' + (soloErr ? 'Ver todas las filas' : 'Ver solo las filas con errores') + '</a></div>';
+      var barra = '<div class="mu" style="font-size:14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">' + (ver ? '' : '<span>Haz clic en una celda amarilla para corregirla; en una fila amarilla, para ver qué falla.</span>') + '<a href="#" data-solo="1" style="color:#1b4f8a">' + (soloErr ? 'Ver todas las filas' : 'Ver solo las filas con errores') + '</a></div>';
       var banda = ver && ncand ? '<div style="background:#eef4fc;border:1px solid #c7d6ea;border-radius:10px;padding:8px 12px;font-size:14px;color:#14233a;display:flex;flex-direction:column;gap:4px"><div><b>' + ncand + ' documento' + (ncand > 1 ? 's' : '') + ' de esta plantilla no coincide' + (ncand > 1 ? 'n' : '') + ' con Participantes</b> (' + [clases.ausente ? clases.ausente + ' no aparece' + (clases.ausente > 1 ? 'n' : '') : '', clases.tipo ? clases.tipo + ' con tipo de documento distinto' : '', clases.nombre ? clases.nombre + ' con el nombre registrado con otro documento' : ''].filter(Boolean).join(' · ') + '). ¿Qué le mostramos al responsable?</div>'
         + '<label style="cursor:pointer"><input type="radio" name="cm" value=""' + (modoSel === '' ? ' checked' : '') + '> Nada</label>'
         + '<label style="cursor:pointer"><input type="radio" name="cm" value="verificar"' + (modoSel === 'verificar' ? ' checked' : '') + '> Verificar el número y el tipo de documento (puede que lo cargado esté mal; se le indica en cada fila qué no coincide)</label>'
@@ -344,6 +344,8 @@ b[style*="#14233a"]{font-weight:500}
         td.addEventListener('focusin', function () { nota(td); });
       });
       m.querySelectorAll('th[data-enc]').forEach(function (th) { th.onclick = function () { ayuda(th.getAttribute('data-enc'), H.nombre); }; });
+      m.querySelectorAll('tr.xf').forEach(function (tr) { tr.style.cursor = 'default'; tr.addEventListener('click', function (ev) { if (ev.target.closest('button,input,td.mal')) return; nota({ getAttribute: function (k) { return { 'data-m': tr.getAttribute('data-fm'), 'data-fila': tr.getAttribute('data-fn'), 'data-col': 'toda la fila' }[k]; } }); pintaPie(); }); });
+      if (!pie && m.querySelector('tr.xf')) { var pf = m.querySelector('tr.xf'); nota({ getAttribute: function (k) { return { 'data-m': pf.getAttribute('data-fm'), 'data-fila': pf.getAttribute('data-fn'), 'data-col': 'toda la fila' }[k]; } }); }
       pintaPie();
       /* Las celdas sin error se ven como texto (más liviano); al hacer clic se vuelven editables. */
       if (!ver) m.querySelectorAll('td.xc[data-f]').forEach(function (td) {
