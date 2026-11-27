@@ -736,6 +736,34 @@ module.exports = async function handler(req, res) {
       if (!bufT) throw error('No se encontró el archivo en OneDrive.', 404);
       res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base))); return;
     }
+    if (a === 'rehacer-novedades') {   /* vuelve a revisar con las reglas vigentes los archivos ya cargados (devueltas y en revisión) y rehace sus novedades; no envía correos ni cambia estados */
+      soloAdmin();
+      const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && ['devuelta', 'revision'].includes(est[x.id].estado)).map((x) => x.id);
+      const resu = [];
+      for (let i = 0; i < ids.length; i += 4) {
+        await Promise.all(ids.slice(i, i + 4).map(async (id) => {
+          const t = buscar(id), e = est[id];
+          try {
+            const [buf0, ofi] = await Promise.all([leerBin(rutaOd(`${periodo}/${e.archivo}`)), cfg.oficiales[id] ? leerBin(rutaSp(`oficiales/${id}.xlsx`)) : null]);
+            if (!buf0) { resu.push({ id, nombre: t.nombre, estado: e.estado, error: 'No se encontró el archivo' }); return; }
+            const er = revisarArchivo(normalizarUnidad(buf0, t), t, ofi, periodo, false, await codigosCursos(periodo, est, t));
+            const n = er.detalle && er.detalle.total ? er.detalle.total : er.length;
+            resu.push({ id, nombre: t.nombre, estado: e.estado, n, motivoAuto: /^La plataforma encontró/.test(e.motivo || '') });
+          } catch (x) { resu.push({ id, nombre: t.nombre, estado: e.estado, error: 'No se pudo revisar' }); }
+        }));
+      }
+      await mutar(`estado-${periodo}.json`, () => ({}), (st) => {
+        for (const r of resu) {
+          const x = st[r.id]; if (!x || r.error) continue;
+          if (x.estado === 'devuelta') {
+            x.novedades = r.n > 0;
+            if (r.motivoAuto || !x.motivo) x.motivo = r.n > 0 ? `La plataforma encontró ${r.n} error${r.n > 1 ? 'es' : ''} en el archivo cargado. Corríjalos en pantalla.` : x.motivo;
+            (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: `Se volvió a revisar el archivo cargado con las reglas vigentes: ${r.n} error${r.n === 1 ? '' : 'es'}.` });
+          }
+        }
+      });
+      res.status(200).json({ ok: true, revisadas: resu.length, devueltas: resu.filter((r) => r.estado === 'devuelta' && !r.error).map((r) => ({ nombre: r.nombre, n: r.n })), enRevisionConErrores: resu.filter((r) => r.estado === 'revision' && !r.error && r.n > 0).map((r) => ({ nombre: r.nombre, n: r.n })), fallidas: resu.filter((r) => r.error).map((r) => r.nombre) }); return;
+    }
     if (a === 'cruce-actualizar') {   /* calcula el cruce de las entregas que todavía no lo tienen (cargadas antes de existir el cruce) */
       soloAdmin();
       const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && !est[x.id].cruce && !SIN_CRUCE.has(x.id)).map((x) => x.id);
