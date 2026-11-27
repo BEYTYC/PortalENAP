@@ -56,7 +56,7 @@ h1{margin:0;font-size:21px;font-weight:500;color:#062a4a}
 .t .acts{margin-top:auto}.t .resp{display:flex;flex-direction:column;gap:0;line-height:1.2}.t .resp .mu{line-height:1.2}.t .resp .rv{color:#14233a;font-family:var(--sb);font-weight:500}.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone{min-height:48px;padding-top:4px;padding-bottom:4px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:14px;color:#4c6386;padding:0 12px;line-height:1.35}
 .ib{width:34px;height:34px;padding:0;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid #c9d6e8;background:#fff;color:#1b4c92;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s}.ib:hover{background:#eef4fc;box-shadow:0 2px 6px rgba(20,60,120,.15);transform:translateY(-1px)}.ib.off,.ib:disabled{background:#eceff3;border-color:#dde3ea;color:#a3aebd;cursor:default;box-shadow:none;transform:none}.ib-validar{color:#fff;background:#2f9e72;border-color:#2f9e72}.ib-validar:hover{background:#278a64}.ib-devolver{color:#7a5200;background:#fbeec2;border-color:#e8cf84}.ib-devolver:hover{background:#f6e3a6}.ib-deshacer{color:#8a96a8}.ib-deshacer:hover{color:#b3261e;background:#fdf1f0}
-.pb{width:150px;white-space:nowrap;justify-content:center;text-align:center;padding-left:6px;padding-right:6px}.btn.off,.btn.off:disabled{background:#eceff3;border-color:#dde3ea;color:#a3aebd;cursor:default;box-shadow:none;opacity:1}
+.tp th,.tp td{white-space:nowrap}.tp td>.mu{display:inline-block;max-width:340px;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;margin-left:8px}.tp td>.mu a{margin-left:0}.tp td .mu:first-of-type{max-width:none}.pb{width:150px;white-space:nowrap;justify-content:center;text-align:center;padding-left:6px;padding-right:6px}.btn.off,.btn.off:disabled{background:#eceff3;border-color:#dde3ea;color:#a3aebd;cursor:default;box-shadow:none;opacity:1}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:10px;min-height:38px;align-items:center}
 .acts .btn{padding:7px 15px;font-size:14px;border-radius:8px}
 .links{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;padding-top:4px}
@@ -394,7 +394,7 @@ b[style*="#14233a"]{font-weight:500}
     return h;
   }
   function tablaPanel(ps) {
-    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+    var h = '<div class="card" style="overflow:auto"><table class="tp"><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
