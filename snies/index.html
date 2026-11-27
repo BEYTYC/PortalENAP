@@ -276,10 +276,12 @@ b[style*="#14233a"]{font-weight:500}
       fetch('instructivos/datos.json').then(function (r) { return r.json(); }).then(function (d) { INS = d; mostrar(); }).catch(function () { pie = '<div class="mu">No se pudo cargar el instructivo.</div>'; pintaPie(); });
     }
     function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e) && (!(e.cr || e.cx) || e.u)) n++;   /* una misma cédula repetida es un solo error */ }); }); }); return n; }
+    /* errores por corregir de una hoja: se cuentan igual que el total de arriba, así las hojas suman ese total */
+    function conteoHoja(h) { var c = 0, vs = {}; h.filas.forEach(function (f) { if (borrar[h.nombre + '|' + f.n]) return; f.e.forEach(function (e) { if (!activo(e)) return; if (e.cr || e.cx) { if (!e.u) return; } c++; }); }); return c; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
       var conErr = D.hojas.map(function (h, i) { return { h: h, i: i }; }).filter(function (x) { return x.h.total || x.h.cand; });
-      var tabs = conErr.length > 1 || (conErr.length === 1 && ncand) ? conErr.map(function (x) { return '<button class="btn ' + (x.i === hojaAct ? '' : 'sec ') + 'sm" data-t="' + x.i + '">' + esc(x.h.nombre) + ' (' + (x.h.total + (x.h.cand || 0)) + ')</button>'; }).join('') : '';
+      var tabs = conErr.length > 1 || (conErr.length === 1 && ncand) ? conErr.map(function (x) { return '<button class="btn ' + (x.i === hojaAct ? '' : 'sec ') + 'sm" data-t="' + x.i + '">' + esc(x.h.nombre) + ' (' + conteoHoja(x.h) + ')</button>'; }).join('') : '';
       var cab = '<th class="xn"></th><th class="xn xr">Fila</th>' + H.cols.map(function (c) { return '<th data-enc="' + esc(c) + '" title="Haz clic para ver las opciones de respuesta" style="white-space:nowrap;cursor:pointer">' + esc(c) + '</th>'; }).join('');
       var cuerpo = H.filas.map(function (f) {
         if (borrar[H.nombre + '|' + f.n]) return '';
