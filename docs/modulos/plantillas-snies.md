@@ -106,3 +106,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 ## Filas de más encima del encabezado (27/11/2026)
 - El visor muestra «Eliminar fila» en cada fila (antes la columna «Fila» lo tapaba). La fila de encabezados no aparece como fila y el servidor nunca la elimina, aunque se le pida.
 - Con filas de más encima del encabezado (por ejemplo «2026 2»), las correcciones de celdas también se aplican bien: el encabezado se ubica igual que al revisar.
+
+## Retiro anterior al periodo (27/11/2026)
+- Si FECHA_RETIRO es anterior al primer día del periodo que se reporta (01/01 en el semestre 1, 01/07 en el 2), la fila es error: esa persona no debe reportarse y se elimina la fila. Aplica a toda hoja con columna FECHA_RETIRO (grupos, redes, proyectos, centros). Un retiro dentro del periodo es válido.
