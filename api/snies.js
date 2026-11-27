@@ -278,7 +278,7 @@ async function avisarNovedades(cfg, est, periodo, soloCorreos) {
     let adj = []; for (const x of lista) adj = adj.concat(await adjuntoDe(periodo, x.t.id, est[x.t.id]).catch(() => []));
     try {
       await enviarCorreo([c], n === 1 ? `Hay novedades en su plantilla · ${lista[0].t.nombre}` : `Hay novedades en ${n} plantillas SNIES`,
-        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `La Oficina de Estadística revisó la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'} y encontró novedades. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Cuando las corrija y entregue, quedará a paz y salvo con este reporte.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
+        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `La Oficina de Estadística revisó la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'} y encontró novedades. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Una vez las corrija y entregue, quedará completado su proceso de reporte al SNIES.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
       correos++;
     } catch (e) { /* un fallo no impide los demás */ }
   }
