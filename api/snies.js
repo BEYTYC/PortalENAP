@@ -318,7 +318,7 @@ async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, dato
 /* Las reglas viven en api/_snies-validar.js (manual V9.1 + reglas de la Oficina de Estadística). Aquí solo se conecta con el periodo del ciclo. */
 const VALIDAR = require('./_snies-validar');
 function revisarContenido(wb, t, periodo) {
-  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569, hojas: COLUMNAS[String(t.codigo)] ? Object.keys(COLUMNAS[String(t.codigo)]) : null });
+  const res = VALIDAR.revisarContenido(wb, t, { periodoRep: periodoReporte(t, periodo || CICLO_DEFECTO), hoy: Math.floor(Date.now() / 86400000) + 25569, hojas: COLUMNAS[String(t.codigo)] ? Object.keys(COLUMNAS[String(t.codigo)]) : null, columnas: COLUMNAS[String(t.codigo)] || null });
   const textos = VALIDAR.resumenTextos(res.errores);
   textos.detalle = res.errores.length ? VALIDAR.detalleVisor(res) : null;
   return textos;
@@ -362,7 +362,7 @@ function normalizarUnidad(buf, t) {
   try {
     const wb = abrir(buf), cambios = [];
     for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
-      const filas = wb.leer(h, { maxCols: 120 });
+      const filas = VALIDAR.ubicarEncabezado(wb.leer(h, { maxCols: 120 }), (COLUMNAS[String(t.codigo)] || {})[h]);
       const ci = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase()).indexOf('CODIGO_UNIDAD_ORGANIZACIONAL'); if (ci < 0) continue;
       for (let r = 1; r < filas.length; r++) {
         const f = filas[r] || []; if (!f.some((x) => x != null && String(x).trim() !== '')) continue;
@@ -382,7 +382,7 @@ function revisarArchivo(buf, t, oficial, periodo) {
   const datos = wb.hojas.filter((h) => h !== 'INFO');
   if (!datos.length) errores.push('El archivo no tiene hojas de datos.');
   else {
-    const filas = wb.leer(datos[0], { maxCols: 80 });
+    const filas = VALIDAR.ubicarEncabezado(wb.leer(datos[0], { maxCols: 80 }), (COLUMNAS[String(t.codigo)] || {})[datos[0]]);
     const enc = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase());
     /* Estructura contra la plantilla oficial vigente (hojas y encabezados), para detectar archivos viejos o de otra versión. */
     const esperado = COLUMNAS[String(t.codigo)];
@@ -393,7 +393,7 @@ function revisarArchivo(buf, t, oficial, periodo) {
       if (faltan.length) errores.push(`Las hojas del archivo no coinciden con la plantilla oficial vigente (faltan: ${faltan.join(', ')}).` + AVISO);
       else {
         for (const h of datos.filter((x) => esperado[x])) {
-          const real = (wb.leer(h, { maxCols: 200, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()).filter((x) => x);
+          const real = (VALIDAR.ubicarEncabezado(wb.leer(h, { maxCols: 200, maxRows: 8 }), esperado[h])[0] || []).map((x) => limpio(x, 80).toUpperCase()).filter((x) => x);
           /* Columnas con encabezado escrito que NO están en la plantilla oficial (extras) no son error (decisión de la autora, 26/11/2026): solo faltan o desorden de las oficiales. */
           const ok = esperado[h], f = ok.filter((c) => !real.includes(c));
           if (f.length) errores.push(`La hoja ${h} no coincide con la plantilla oficial vigente: faltan las columnas ${f.slice(0, 8).join(', ')}.` + AVISO);

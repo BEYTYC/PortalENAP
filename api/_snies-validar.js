@@ -78,8 +78,21 @@ const RELACIONES = {
   'docentes-universidad-publica': { todas: [] },
 };
 
-function leerHoja(wb, nombre) {
-  const filas = wb.leer(nombre, { maxCols: 120 });
+/* Si el encabezado no está en la fila 1 (hay un título o filas en blanco encima, como «2026 2»), lo busca entre las primeras 8 filas
+   (la que más columnas oficiales tenga) y lo deja en la fila 0; las filas de arriba quedan vacías y la numeración no cambia. */
+function ubicarEncabezado(filas, cols) {
+  if (!cols || !cols.length) return filas;
+  const L = new Set(cols.map((c) => up(c).replace(/\s+/g, ' ')));
+  const pts = (f) => (f || []).reduce((n, x) => n + (L.has(up(x).replace(/\s+/g, ' ')) ? 1 : 0), 0);
+  let mejor = 0, mp = pts(filas[0]);
+  for (let i = 1; i < Math.min(8, filas.length); i++) { const p = pts(filas[i]); if (p > mp) { mp = p; mejor = i; } }
+  if (!mejor) return filas;
+  const out = filas.slice(); out[0] = filas[mejor];
+  for (let i = 1; i <= mejor; i++) out[i] = [];
+  return out;
+}
+function leerHoja(wb, nombre, cols) {
+  const filas = ubicarEncabezado(wb.leer(nombre, { maxCols: 120 }), cols);
   const enc = (filas[0] || []).map((x) => up(x).replace(/\s+/g, ' '));
   const idx = {};
   enc.forEach((c, i) => { if (c && idx[c] == null) idx[c] = i; });
@@ -125,7 +138,7 @@ function revisarContenido(wb, t, ctx) {
   const reglas = REGLAS[t.id] || {};
   const nombres = wb.hojas.filter((h) => h !== 'INFO' && (!ctx.hojas || ctx.hojas.includes(h)));   /* hojas de más no se revisan */
   const hojas = {};
-  nombres.forEach((n) => { try { hojas[n] = leerHoja(wb, n); } catch (e) { /* hoja ilegible */ } });
+  nombres.forEach((n) => { try { hojas[n] = leerHoja(wb, n, ctx.columnas && ctx.columnas[n]); } catch (e) { /* hoja ilegible */ } });
   const errores = [];
   const err = (h, f, c, m) => { if (errores.length < 3000) errores.push({ h, f, c, m }); };
   const [anioRep, semRep] = String(ctx.periodoRep || '').split('-').map(Number);
@@ -425,4 +438,4 @@ function detalleVisor(res) {
   return { hojas, total: res.errores.length };
 }
 
-module.exports = { revisarContenido, resumenTextos, detalleVisor, fechaNum };
+module.exports = { ubicarEncabezado, revisarContenido, resumenTextos, detalleVisor, fechaNum };
