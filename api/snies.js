@@ -605,8 +605,22 @@ module.exports = async function handler(req, res) {
     if (a === 'estado') {
       soloAdmin(); const t = buscar(body.id), nuevo = body.estado;
       if (!ESTADOS.includes(nuevo)) throw error('Estado inválido.', 400);
-      const motivo = limpio(body.motivo, 800);
-      if (nuevo === 'devuelta' && !motivo) throw error('Escriba qué debe corregir el responsable.', 400);
+      let motivo = limpio(body.motivo, 800), hayNovedades = false;
+      if (nuevo === 'devuelta') {
+        /* La plataforma ya sabe qué hay que corregir: si el archivo guardado tiene errores, se detectan solos, el responsable los ve de una en pantalla y no hace falta escribirlos (decisión de la autora, 26/11/2026). */
+        const e0 = est[t.id];
+        if (e0 && e0.archivo) {
+          try {
+            const bufE = await leerBin(rutaOd(`${periodo}/${e0.archivo}`));
+            if (bufE) {
+              const ofi = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;
+              const er = revisarArchivo(bufE, t, ofi, periodo);
+              if (er.length) { hayNovedades = true; if (!motivo) motivo = `La plataforma encontró ${er.detalle && er.detalle.total ? er.detalle.total : er.length} error${(er.detalle && er.detalle.total ? er.detalle.total : er.length) > 1 ? 'es' : ''} en el archivo cargado. Ábralos desde «Mis plantillas» y corríjalos en pantalla.`; }
+            }
+          } catch (e) { /* si no se puede revisar, se exige el motivo escrito */ }
+        }
+        if (!motivo) throw error('El archivo no tiene errores que la plataforma detecte: escriba qué debe corregir el responsable.', 400);
+      }
       let adj = null;
       if (nuevo === 'devuelta' && body.adjunto && body.adjunto.datos) {
         const bufA = Buffer.from(String(body.adjunto.datos), 'base64');
@@ -614,11 +628,11 @@ module.exports = async function handler(req, res) {
         adj = { nombre: nombreAdjunto(body.adjunto.nombre), buf: bufA };
         await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
       }
-      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
+      await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; x.novedades = nuevo === 'devuelta' ? (hayNovedades || !!x.novedades) : false; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
       let correo = true;
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
-        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
+        if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, periodo, novedades: hayNovedades, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
         else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
