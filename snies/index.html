@@ -13,7 +13,7 @@
 <style>
 :root{--sb:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif}
 *{box-sizing:border-box}
-html,body{margin:0}
+html,body{margin:0}html{overflow-y:scroll;scrollbar-gutter:stable}.card.tabla{min-height:58vh}
 body{font-family:"Aptos Display",Aptos,"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;font-weight:400;color:#14233a;background:transparent;font-size:15px;line-height:1.45;cursor:default}
 b,strong{font-weight:400}
 button,.btn,label.btn,select,.tab,.drop{cursor:pointer}
@@ -417,7 +417,7 @@ b[style*="#14233a"]{font-weight:500}
     return h;
   }
   function tablaPanel(ps) {
-    var h = '<div class="card" style="overflow:auto"><table class="tp"><thead><tr><th>Plantilla</th><th>Responsable</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+    var h = '<div class="card tabla" style="overflow:auto"><table class="tp"><thead><tr><th>Plantilla</th><th>Responsable</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
@@ -458,8 +458,10 @@ b[style*="#14233a"]{font-weight:500}
     var d = S.datos, tabs = '<div class="tabs"><button class="tab' + (S.vista === 'mis' ? ' on' : '') + '" data-v="mis">Mis plantillas</button>';
     if (d.admin) tabs += '<button class="tab' + (S.vista === 'panel' ? ' on' : '') + '" data-v="panel">Panel de Estadística</button><button class="tab' + (S.vista === 'resp' ? ' on' : '') + '" data-v="resp">Responsables</button><button class="tab' + (S.vista === 'oficiales' ? ' on' : '') + '" data-v="oficiales">Plantillas oficiales</button>';
     tabs += '</div>';
+    var sy = window.scrollY;   /* al filtrar o repintar, la pantalla no salta */
     app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : ''));
-    document.getElementById('ld').hidden = !(S.vista !== 'mis' && !S.admin);   /* el Cargando sale solo al inicio o si faltan datos */
+    document.getElementById('ld').hidden = !(S.vista !== 'mis' && !S.admin);
+    window.scrollTo(0, sy);   /* el Cargando sale solo al inicio o si faltan datos */
     var f = document.getElementById('filtro'); if (f) f.oninput = function () { S.filtro = f.value; var pos = f.selectionStart; pintar(); var n = document.getElementById('filtro'); n.focus(); n.setSelectionRange(pos, pos); };
   }
 
