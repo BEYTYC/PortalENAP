@@ -834,7 +834,8 @@ module.exports = async function handler(req, res) {
         await escribirBin(rutaAdjunto(periodo, t.id, adj.nombre), bufA);
       }
       await mutar(`estado-${periodo}.json`, () => ({}), (s) => { const x = s[t.id] = s[t.id] || {}; x.estado = nuevo; x.motivo = nuevo === 'devuelta' ? motivo : ''; x.cruceModo = nuevo === 'devuelta' ? cruceModo : ''; x.novedades = nuevo === 'devuelta' ? (hayNovedades || !!x.novedades) : false; if (nuevo === 'devuelta') x.adjunto = adj ? adj.nombre : ''; else x.adjunto = ''; if (nuevo === 'pendiente') { x.noAplica = false; } (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: nuevo === 'devuelta' ? 'Devolvió la plantilla' + (adj ? ' con documento adjunto (' + adj.nombre + ')' : '') + ': ' + motivo : 'Cambió el estado a ' + nuevo + '.' }); });
-      let correo = true;
+      let correo = true; const sinCorreo = nuevo === 'devuelta' && body.sinCorreo === true;   /* actualizar lo que ve el responsable sin enviarle otro mensaje */
+      if (sinCorreo) { res.status(200).json({ ok: true, correo: false, sinCorreo: true }); return; }
       try {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
         if (nuevo === 'devuelta' && hayNovedades) { const g = await avisarNovedades(cfg, await leerEstado(periodo), periodo, destinosDe(cfg, t.id).para); if (!g.correos) correo = false; }
