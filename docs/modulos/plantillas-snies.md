@@ -102,3 +102,7 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 - Solo recibe dos correos: (1) cuando se le **devuelve** una plantilla con novedades (un solo correo con el botón «Abrir las novedades») y (2) cuando la **última** de sus plantillas queda **validada**: «Entrega completa y validada», en tono formal.
 - No hay correo al cargar, ni al validar una plantilla si aún le quedan otras por validar.
 - Los recordatorios automáticos (7 días, 1 día, vencida) están apagados (`RECORDATORIOS_AUTOMATICOS = false` en `api/snies.js`). El envío manual desde el icono de carta de Estadística sigue disponible.
+
+## Filas de más encima del encabezado (27/11/2026)
+- El visor muestra «Eliminar fila» en cada fila (antes la columna «Fila» lo tapaba). La fila de encabezados no aparece como fila y el servidor nunca la elimina, aunque se le pida.
+- Con filas de más encima del encabezado (por ejemplo «2026 2»), las correcciones de celdas también se aplican bien: el encabezado se ubica igual que al revisar.

@@ -400,17 +400,20 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
   if (!cambios.length && !borrar.length) return null;
   const wb = abrir(buf), ops = [], del = {};
   const cache = {};
-  const enc = (h) => cache[h] || (cache[h] = (wb.leer(h, { maxCols: 120, maxRows: 1 })[0] || []).map((x) => limpio(x, 80).toUpperCase()));
+  /* El encabezado puede no estar en la fila 1 (hay filas de más encima): se ubica igual que al revisar; esa fila NUNCA se elimina. */
+  const ub = (h) => cache[h] || (cache[h] = VALIDAR.ubicarEncabezado(wb.leer(h, { maxCols: 120, maxRows: 8 }), (COLUMNAS[String(t.codigo)] || {})[h]));
+  const enc = (h) => (ub(h)[0] || []).map((x) => limpio(x, 80).toUpperCase());
+  const filaEnc = (h) => (ub(h).arriba || []).length + 1;
   for (const c of cambios) {
     const h = String(c.h || ''); if (!wb.hojas.includes(h) || h === 'INFO') continue;
-    const ci = enc(h).indexOf(String(c.c || '').toUpperCase()), fila = Math.floor(+c.f); if (ci < 0 || !(fila >= 2)) continue;
+    const ci = enc(h).indexOf(String(c.c || '').toUpperCase()), fila = Math.floor(+c.f); if (ci < 0 || !(fila >= 2) || fila <= filaEnc(h)) continue;
     const R = ((REGLAS_COL[t.id] || {})[h] || {})[String(c.c).toUpperCase()] || {};
     let valor = String(c.v == null ? '' : c.v).trim(), numero = null;
     if (R.t === 'n' && /^-?\d+([.,]\d+)?$/.test(valor)) numero = valor.replace(',', '.');
     else if (R.t === 'f') { const f = VALIDAR.fechaNum(valor); if (f != null && !/^\d+$/.test(valor)) { if (c.num) numero = String(f); } }
     ops.push({ hoja: h, fila, col: ci, valor, numero, fecha: R.t === 'f' && numero != null });
   }
-  for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 1) (del[h] = del[h] || []).push(fila); }
+  for (const d of borrar) { const h = String(d.h || ''); const fila = Math.floor(+d.f); if (wb.hojas.includes(h) && h !== 'INFO' && fila >= 1 && fila !== filaEnc(h)) (del[h] = del[h] || []).push(fila); }
   return aplicarXlsx(buf, { cambios: ops, borrar: del });
 }
 const REGLAS_COL = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
@@ -941,4 +944,4 @@ module.exports = async function handler(req, res) {
   }
 };
 function anterior(p) { const [a, s] = p.split('-').map(Number); return s === 2 ? `${a}-1` : `${a - 1}-2`; }
-module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, normalizarUnidad, cruceParticipantes, mezclarCruce, TEMPLATES };
+module.exports._interno = {htmlCorreo, aplicarCorrecciones,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, normalizarUnidad, cruceParticipantes, mezclarCruce, TEMPLATES };
