@@ -264,6 +264,10 @@ function revisarContenido(wb, t, ctx) {
     for (const c of Object.keys(idx).filter((x) => /^VLR_FINANCIACION/.test(x))) {
       for (const r of filasDatos) { const v = filas[r][idx[c]]; if (!vacia(v) && esNum(v) && aNum(v) > 0 && aNum(v) < 1000) err(nombre, r + 1, c, 'es menor de $1.000; el valor se escribe en pesos y parece incompleto'); }
     }
+    /* 5c5. Códigos con espacios (la autora, 27/11/2026): un código con un espacio al inicio, al final o en medio es inválido. */
+    for (const c of Object.keys(idx).filter((x) => /^CODIGO_|_CODIGO$/.test(x))) {
+      for (const r of filasDatos) { const v = filas[r][idx[c]]; if (typeof v === 'string' && /\s/.test(v)) err(nombre, r + 1, c, 'el código no puede tener espacios (ni al inicio, ni al final, ni en medio): quítelos'); }
+    }
     /* 5d. Eventos y actividades: las fechas deben caer dentro del semestre que se reporta (1: 01/01–30/06; 2: 01/07–31/12). */
     if (['evento-cultural', 'actividad-cultural', 'actividad-de-bienestar'].includes(t.id) && anioRep && semRep) {
       const ini = serialDe(anioRep, semRep === 1 ? 1 : 7, 1), fin = serialDe(anioRep, semRep === 1 ? 6 : 12, semRep === 1 ? 30 : 31);
