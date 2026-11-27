@@ -250,6 +250,12 @@ async function conocerNombres(cfg, correos) {
   try { await mutar('config.json', configBase, (x) => { x.usuarios = x.usuarios || {}; claves.forEach((c) => { if (!(x.usuarios[c] && x.usuarios[c].nombre)) x.usuarios[c] = { nombre: hallados[c] }; }); return x; }); } catch (e) { /* se vuelve a intentar en el próximo envío */ }
 }
 
+/* Busca en el directorio los nombres que falten de TODOS los responsables, sin esperar más de 4 segundos (para no frenar la pantalla). */
+const conocerTodos = (cfg) => Promise.race([
+  conocerNombres(cfg, Object.values(cfg.responsables || {}).flatMap((r) => (r.entrega || []).concat(r.diligencia || []))).catch(() => {}),
+  new Promise((ok) => setTimeout(ok, 4000)),
+]);
+
 /* Un solo correo por responsable con todas sus plantillas (tabla de plantilla y fecha límite). tipo: apertura | r7 | r1 | venc.
    soloIds limita las plantillas consideradas; soloCorreos limita los destinatarios. Devuelve { correos, plantillas } (ids de plantillas avisadas). */
 async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
@@ -475,6 +481,7 @@ module.exports = async function handler(req, res) {
     const buscar = (id) => { const t = POR_ID[id]; if (!t) throw error('Plantilla desconocida.', 400); return t; };
 
     if (a === 'sesion') {
+      await conocerTodos(cfg);   /* los nombres salen del directorio de la organización: no hace falta que la persona haya entrado */
       const pAnt = anterior(cfg.periodo), estAnt = await leerEstado(pAnt);
       /* Modo súper admin: el administrador puede ver el aplicativo como lo ve cualquier responsable (solo lectura: no puede cargar ni actuar como esa persona). */
       const como = admin ? String(body.verComo || '').trim().toLowerCase() : '';
@@ -572,6 +579,7 @@ module.exports = async function handler(req, res) {
     /* ---------- Administración ---------- */
     if (a === 'admin') {
       soloAdmin();
+      await conocerTodos(cfg);
       const lista = TEMPLATES.map((t) => vista(t, cfg, est, periodo, '', true));
       res.status(200).json({ periodo, periodoActivo: cfg.periodo, plantillas: lista, cargos: CARGOS }); return;
     }
@@ -582,6 +590,7 @@ module.exports = async function handler(req, res) {
       const ent = listaCorreos(body.entrega).slice(0, 3), dil = listaCorreos(body.diligencia).slice(0, 12);
       /* Responsables y prórroga se guardan juntos, en una sola escritura. */
       await mutar('config.json', configBase, (c) => { c.responsables = c.responsables || {}; c.responsables[t.id] = { entrega: ent, diligencia: dil }; c.prorrogas = c.prorrogas || {}; if (f) c.prorrogas[t.id] = f; else delete c.prorrogas[t.id]; });
+      await conocerNombres(cfg, ent.concat(dil)).catch(() => {});
       res.status(200).json({ ok: true, entrega: ent, diligencia: dil }); return;
     }
     if (a === 'prorroga') {
