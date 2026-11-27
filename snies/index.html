@@ -182,7 +182,6 @@ b[style*="#14233a"]{font-weight:500}
       zona = '<div class="zone" style="border:0;background:rgba(223,241,241,.6);color:#0f5c5c">Esta plantilla se reporta directo al SNIES con su propio usuario. Aquí solo recibe las notificaciones.</div>';
     } else if (p.estado === 'devuelta') {
       var mot = String(p.motivo || '').replace(/ ?Ábral(os|as) desde «Mis plantillas» y corríj(alos|alas) en pantalla\./, ' Corríj$2 en pantalla.').replace(/^Devuelta por Estadística: ?/, '');
-      if (/^La plataforma encontró \d+ errores?/.test(mot)) mot = '';   /* el estado «Devuelta con novedades» ya lo dice */
       zona = (mot || p.adjunto) ? '<div class="zone" style="border:0;background:rgba(255,255,255,.75);color:#8a3a34;font-size:13px;line-height:1.55;text-align:left;justify-content:flex-start;padding:12px 16px;margin:6px 0 4px;box-shadow:0 1px 3px rgba(150,60,50,.08)">' + esc(mot) + (p.adjunto ? '<div style="margin-top:6px"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92;font-weight:500">↓ Descargar documento adjunto: ' + esc(p.adjunto) + '</a></div>' : '') + '</div>' : '';
     } else if (p.estado === 'pendiente' && p.puedeCargar) {
       zona = '';
