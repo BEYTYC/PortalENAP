@@ -43,6 +43,7 @@ Los avisos de autoría de archivos y páginas no se eliminan ni se alteran (Ley 
   de entregarlos. Lo que no esté 100 % confirmado se dice.
 - Búsquedas por cédula normalizada y por nombre. Un cruce hecho solo por nombre se trata
   como "por verificar".
+- Criterio de validación de cargues (autora, 26/11/2026): ante la duda se acepta. Un cargue solo se bloquea por las reglas que la autora ha pedido puntualmente; hojas o columnas de más, otro orden o cualquier cosa no pedida no bloquean. Prefiere aceptar posibles errores a impedir que los usuarios carguen.
 - Las descargas Excel del Portal comparten un mismo formato (escudo, encabezados azul
   marino, fila de fuente). Copiar el de un módulo existente.
 
