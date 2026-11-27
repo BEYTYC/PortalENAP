@@ -1940,6 +1940,8 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   // La misma lista esta en api/roles.js; para bloquear a alguien mas, agregue
   // su correo (en minusculas) en ambos sitios.
   const CORREOS_BLOQUEADOS = [];
+  /* Cuentas de otro dominio que sí entran al Portal (pedido de la autora, 26/11/2026). Igual que CUENTAS_EXTERNAS en api/roles.js. */
+  const CUENTAS_EXTERNAS = ['cadiden@escuelanaval.edu.co'];
   function correoBloqueado(correo) {
     return CORREOS_BLOQUEADOS.indexOf(String(correo || '').trim().toLowerCase()) !== -1;
   }
@@ -1954,10 +1956,21 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     const perfil = await obtenerPerfil(cuenta);
     const correo = perfil.mail || perfil.userPrincipalName;
     if (!correo) throw new Error('El usuario autenticado no tiene un correo asociado en su perfil de Microsoft.');
-    if (correoBloqueado(correo) || correoBloqueado(perfil.userPrincipalName)) { await anotarYEsperar(cuenta); throw bloquearCuenta(correo); }
-    if (!correo.trim().toLowerCase().endsWith('@' + DOMINIO_INSTITUCIONAL)) {
+    if (correoBloqueado(correo) || correoBloqueado(perfil.userPrincipalName)) { let tokB = null; try { tokB = await adquirirToken(['User.Read'], cuenta); } catch (_) {} await anotarYEsperar(cuenta); const eB = bloquearCuenta(correo); if (tokB) eB.solicitud = { correo: String(correo).trim().toLowerCase(), token: tokB }; throw eB; }
+    if (!correo.trim().toLowerCase().endsWith('@' + DOMINIO_INSTITUCIONAL) && CUENTAS_EXTERNAS.indexOf(correo.trim().toLowerCase()) === -1) {
+      // ¿Ya le aceptaron «Acceso al Portal»? Si no, queda anotada y puede solicitarlo desde esta pantalla.
+      let tokSol = null, aceptada = false;
+      try {
+        tokSol = await adquirirToken(['User.Read'], cuenta);
+        const rr = await fetch('/api/accesos-modulos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ accessToken: tokSol, accion: 'mios' }) });
+        if (rr.ok) aceptada = ((await rr.json()).modulos || []).indexOf('Acceso al Portal') !== -1;
+      } catch (_) {}
+      if (!aceptada) {
       await anotarYEsperar(cuenta);
-      throw new Error(`El Portal es exclusivo para cuentas institucionales de ENAP (@${DOMINIO_INSTITUCIONAL}). La cuenta "${correo}" no pertenece a ese dominio.`);
+      const eSol = new Error(`La cuenta "${correo}" no pertenece a una cuenta institucional con acceso al Portal. Puedes solicitar acceso y la Oficina de Estadística lo revisará.`);
+      if (tokSol) eSol.solicitud = { correo: correo.trim().toLowerCase(), token: tokSol };
+      throw eSol;
+      }
     }
 
     let rolesEspeciales = [], modulosExtra = [];
@@ -2982,9 +2995,23 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
     });
   }
 
-  function mostrarError(msg) {
+  function mostrarError(msg, solicitud) {
     document.getElementById('loginGateError').classList.add('show');
     document.getElementById('loginGateErrorMsg').textContent = msg;
+    const viejo = document.getElementById('loginGateSolicitar'); if (viejo) viejo.remove();
+    if (!solicitud) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.id = 'loginGateSolicitar'; b.textContent = 'Solicitar acceso';
+    b.style.cssText = 'margin-top:10px;height:38px;padding:0 20px;border:0;border-radius:10px;background:linear-gradient(180deg,#1F4E96,#163C78);color:#fff;font-weight:600;cursor:pointer';
+    b.addEventListener('click', async () => {
+      b.disabled = true; b.textContent = 'Enviando…';
+      try {
+        await llamarIngresos('modulo', solicitud.token, { modulo: 'Acceso al Portal', resultado: 'Solicitó acceso' });
+        document.getElementById('loginGateErrorMsg').textContent = 'Solicitud enviada. La Oficina de Estadística la revisará y, si corresponde, te dará acceso. Cuando te avisen, vuelve a iniciar sesión.';
+        b.remove();
+      } catch (e) { b.disabled = false; b.textContent = 'Reintentar'; document.getElementById('loginGateErrorMsg').textContent = 'No se pudo enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.'; }
+    });
+    document.getElementById('loginGateError').appendChild(b);
   }
   function ocultarError() {
     document.getElementById('loginGateError').classList.remove('show');
@@ -3191,7 +3218,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
       // mensaje traducido -- asi el usuario puede simplemente volver a
       // pulsar "Iniciar sesion" y elegir OTRA cuenta en el selector, en vez
       // de quedarse con una pantalla colgada o un error crudo de Graph.
-      mostrarError(mensajeErrorGraph(error));
+      mostrarError(mensajeErrorGraph(error), error && error.solicitud);
     } finally {
       loginEnCurso = false;
       mostrarCargando(false);
@@ -3226,7 +3253,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
         limpiarBanderaInteraccionColgada();
       } catch (error) {
         limpiarBanderaInteraccionColgada();
-        mostrarError(mensajeErrorGraph(error));
+        mostrarError(mensajeErrorGraph(error), error && error.solicitud);
         return;
       } finally {
         mostrarCargando(false);
@@ -3385,7 +3412,7 @@ input,textarea,[contenteditable="true"]{caret-color:auto;cursor:text;-webkit-use
   const STATUS_LABEL = { ok: 'Disponible', soon: '' };
 
   /* Cuentas que entran a cualquier módulo del menú (pedido de la autora, 2026-11-19). */
-  const CUENTAS_TODO_ACCESO = ['jestadisticaplen@enap.edu.co'];
+  const CUENTAS_TODO_ACCESO = ['jestadisticaplen@enap.edu.co', 'cadiden@escuelanaval.edu.co'];
   /* Módulos habilitados a la cuenta desde «Solicitudes de acceso» (api/accesos-modulos). */
   let diagModulos = '';
   async function refrescarModulos(nombre) {

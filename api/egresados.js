@@ -114,7 +114,7 @@ module.exports = async function handler(req, res) {
   try {
     if (!accessToken || !accion) throw error('Faltan "accessToken" o "accion".', 400);
     const yo = await identificar(accessToken);
-    if (!yo.correo.endsWith(DOMINIO) || roles.CORREOS_BLOQUEADOS.includes(yo.correo)) throw error('Esta cuenta no puede usar el Portal.', 403);
+    if (!(await require('./accesos-modulos.js').puedeEntrar(yo.correo))) throw error('Esta cuenta no puede usar el Portal.', 403);
     await contexto();
     const admin = ADMINS.includes(yo.correo);
     const sols = (await leerJson('solicitudes.json')) || [];

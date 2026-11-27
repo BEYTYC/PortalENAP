@@ -360,7 +360,7 @@ module.exports = async function handler(req, res) {
       } catch (e) { puede = false; }
     }
     /* Abierto a todas las cuentas institucionales con sesión válida (pedido de la autora, 2026-11-18). */
-    if (!puede && /^[^@\s]+@enap\.edu\.co$/.test(yo.correo)) puede = true;
+    if (!puede && (await require('./accesos-modulos.js').puedeEntrar(yo.correo))) puede = true;
     if (!puede) throw error('No tiene acceso a Generación de Promedios Académicos.', 403);
     const soloEst = () => { if (!esEst) throw error('Esta acción es solo de la Oficina de Estadística.', 403); };
     const a = body.accion;
