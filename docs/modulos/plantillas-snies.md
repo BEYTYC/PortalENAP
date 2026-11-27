@@ -116,3 +116,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 
 ## Eliminar filas desde «Devolver» (27/11/2026)
 - La vista previa de Devolver (administradora) también tiene «Eliminar fila» en cada fila y el botón «Guardar eliminación de filas»: guarda el archivo sin esas filas y lo revisa de nuevo. La fila de encabezados no se puede eliminar.
+
+## Códigos con espacios (27/11/2026)
+- Todo valor de una columna CODIGO_* (o terminada en _CODIGO) con un espacio al inicio, al final o en medio es error: «el código no puede tener espacios…».
