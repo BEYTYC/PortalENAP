@@ -424,13 +424,13 @@ b[style*="#14233a"]{font-weight:500}
     }
     return h;
   }
-  function filas(ps, fn) {
+  function filas(ps, fn, cols) {
     var h = '', g = '';
     ps.forEach(function (p) {
       if (S.filtro && p.nombre.toLowerCase().indexOf(S.filtro.toLowerCase()) < 0) return;
       var fila = fn(p);
       if (!fila) return;
-      if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="5">' + esc(g) + '</td></tr>'; }
+      if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="' + (cols || 5) + '">' + esc(g) + '</td></tr>'; }
       h += fila;
     });
     return h;
@@ -456,11 +456,11 @@ b[style*="#14233a"]{font-weight:500}
     return h + '</tbody></table></div>';
   }
   function tablaResp(ps) {
-    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega (carga)</th><th>Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
+    var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Periodo que se solicita</th><th>Responsable de la entrega (carga)</th><th>Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       var dir = p.modo === 'directo' ? '<div class="mu" style="color:#0f5c5c">Reporta directo al SNIES: solo notificaciones</div>' : (p.maestroSin && p.modo === 'sin' ? '<div class="mu">El Documento Maestro no tiene responsable para esta plantilla; si le asignas uno, se gestiona como las demás.</div>' : '');
-      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '</td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
-    });
+      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '</td><td style="white-space:nowrap">' + esc(p.periodoReporte || '') + '</td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
+    }, 6);
     return h + '</tbody></table></div>';
   }
   function tablaOficiales(ps) {
