@@ -284,6 +284,22 @@ async function avisarNovedades(cfg, est, periodo, soloCorreos) {
   }
   return { correos, para: Array.from(porCorreo.keys()) };
 }
+/* «Plantilla(s) recibida(s)»: si un responsable tiene varias plantillas, el correo sale UNA sola vez, cuando todas están validadas (decisión de la autora, 26/11/2026). */
+async function avisarRecibidas(cfg, est, periodo, t) {
+  let correos = 0;
+  for (const c of destinosDe(cfg, t.id).para) {
+    const suyas = TEMPLATES.filter((x) => destinosDe(cfg, x.id).para.includes(c)).map((x) => ({ x, v: vista(x, cfg, est, periodo, '', false) })).filter((y) => y.v.modo !== 'sin' && y.v.modo !== 'directo');
+    if (!suyas.length || !suyas.every((y) => y.v.estado === 'validada')) continue;
+    const n = suyas.length, cc = Array.from(new Set(suyas.flatMap((y) => destinosDe(cfg, y.x.id).cc))).filter((x) => x !== c);
+    await conocerNombres(cfg, [c].concat(cc)).catch(() => {});
+    try {
+      await enviarCorreo([c], n === 1 ? `Plantilla recibida · ${suyas[0].x.nombre}` : `Plantillas recibidas · ${n} plantillas`,
+        htmlCorreo({ titulo: n === 1 ? 'Plantilla recibida' : 'Plantillas recibidas', cuerpo: n === 1 ? 'Hemos recibido su plantilla y fue validada. ¡Muchas gracias! No debe hacer nada más.' : 'Hemos recibido y validado todas sus plantillas, relacionadas a continuación. ¡Muchas gracias! No debe hacer nada más.', filas: suyas.map((y) => ({ nombre: y.x.nombre, id: y.x.id, periodo: periodoReporte(y.x, periodo), fecha: y.v.limite ? fechaLarga(y.v.limite) : '', entrega: textoEntrega(cfg, y.x.id) })) }), cc);
+      correos++;
+    } catch (e) { /* un fallo no impide los demás */ }
+  }
+  return correos;
+}
 async function avisarPorResponsable(cfg, est, periodo, tipo, opc) {
   opc = opc || {};
   const porCorreo = new Map(), usadas = new Set(), copiados = new Set();
@@ -683,7 +699,7 @@ module.exports = async function handler(req, res) {
         const lim = vista(t, cfg, est, periodo, '', false).limite;
         if (nuevo === 'devuelta' && hayNovedades) { const g = await avisarNovedades(cfg, await leerEstado(periodo), periodo, destinosDe(cfg, t.id).para); if (!g.correos) correo = false; }
         else if (nuevo === 'devuelta') await avisar(cfg, t, 'dev', { motivo, limite: lim, periodo, novedades: hayNovedades, adjuntos: adj ? [{ nombre: adj.nombre, datos: adj.buf.toString('base64') }] : [] });
-        else if (nuevo === 'validada') await avisar(cfg, t, 'ok', { limite: lim, periodo });   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
+        else if (nuevo === 'validada') await avisarRecibidas(cfg, await leerEstado(periodo), periodo, t);   /* «Plantilla recibida»: solo al validar (decisión de la autora, 26/11/2026) */
       } catch (e) { correo = false; }
       res.status(200).json({ ok: true, correo }); return;
     }
