@@ -154,6 +154,11 @@ function revisarContenido(wb, t, ctx) {
     const filasDatos = [];
     for (let r = 1; r < filas.length; r++) { const f = filas[r] || []; if (f.some((c) => !vacia(c))) filasDatos.push(r); }
     H.datos = filasDatos;
+    /* 0. Filas en blanco (la autora, 27/11/2026): una fila vacía dentro de los datos (o después de ellos) también la rechaza el SNIES; hay que eliminarla. Solo en hojas que tienen al menos un registro. */
+    if (filasDatos.length) {
+      const conDatos = new Set(filasDatos); let nb = 0;
+      for (let r = 1; r < filas.length && nb < 200; r++) if (!conDatos.has(r)) { err(nombre, r + 1, '(fila)', 'fila en blanco: elimínela (los registros deben ir seguidos, sin filas vacías)'); nb++; }
+    }
 
     /* 1. Reglas del manual por columna */
     for (const r of filasDatos) {
