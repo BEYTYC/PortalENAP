@@ -193,6 +193,7 @@ b[style*="#14233a"]{font-weight:500}
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
+    if (p.puedeCargar && p.estado === 'devuelta' && p.archivo) links += '<a href="#" data-a="mia" data-id="' + p.id + '">↓ Descargar mi archivo cargado</a>';
     if (INSTRUCTIVOS.indexOf(p.id) >= 0) links += '<a href="instructivo.html?p=' + p.id + '" data-a="instructivo" data-id="' + p.id + '">↗ Instructivo de diligenciamiento</a>';
     if (p.anterior) links += '<a href="#" data-a="anterior" data-id="' + p.id + '" data-p="' + p.anterior + '">↓ Plantilla diligenciada ' + p.anterior + '</a>';
     var nota = p.posgrados ? '<div class="ban i" style="padding:8px 12px;font-size:14px"><span>Las facultades envían su parte a <b>posgrados@enap.edu.co</b>; Posgrados centraliza y entrega esta plantilla.</span></div>' : '';
@@ -257,7 +258,7 @@ b[style*="#14233a"]{font-weight:500}
     /* Cédulas que no están en Participantes: solo las ve Estadística al devolver; ella marca cuáles debe corregir el responsable. */
     function activo(e) { return e.cr ? !!modoSel : !e.ok; }
     function texto(e) { return e.cr ? (modoSel === 'ausente' ? e.m2 : e.m1) : e.m; }
-    var ncand = 0, vistasC = {}, clases = { ausente: 0, tipo: 0, nombre: 0 }; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { f.e.forEach(function (e) { if (!e.cr) return; var ci = h.cols.indexOf(e.c), kv = h.nombre + '|' + String(f.v[ci]).trim(); if (!vistasC[kv]) { vistasC[kv] = 1; ncand++; clases[e.k] = (clases[e.k] || 0) + 1; } }); }); });   /* una misma cédula repetida cuenta una vez y se marca en todas sus filas */
+    var ncand = 0, vistasC = {}, clases = { ausente: 0, tipo: 0, nombre: 0 }; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { f.e.forEach(function (e) { if (!e.cr) return; var ci = h.cols.indexOf(e.c), kv = h.nombre + '|' + String(f.v[ci]).trim(); ncand++; clases[e.k] = (clases[e.k] || 0) + 1; }); }); });   /* una misma cédula repetida cuenta una vez y se marca en todas sus filas */
     D.hojas.some(function (h, i) { if (h.total || h.cand) { hojaAct = i; return true; } });   /* abre en la primera hoja que tiene errores */
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
     var pie = '', INS = null;
@@ -275,9 +276,9 @@ b[style*="#14233a"]{font-weight:500}
       if (INS) return mostrar();
       fetch('instructivos/datos.json').then(function (r) { return r.json(); }).then(function (d) { INS = d; mostrar(); }).catch(function () { pie = '<div class="mu">No se pudo cargar el instructivo.</div>'; pintaPie(); });
     }
-    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e) && (!(e.cr || e.cx) || e.u)) n++;   /* una misma cédula repetida es un solo error */ }); }); }); return n; }
+    function quedan() { var n = 0; D.hojas.forEach(function (h) { h.filas.forEach(function (f) { if (!borrar[h.nombre + '|' + f.n]) f.e.forEach(function (e) { if (activo(e)) n++;   /* cada error cuenta, aunque la cédula se repita */ }); }); }); return n; }
     /* errores por corregir de una hoja: se cuentan igual que el total de arriba, así las hojas suman ese total */
-    function conteoHoja(h) { var c = 0, vs = {}; h.filas.forEach(function (f) { if (borrar[h.nombre + '|' + f.n]) return; f.e.forEach(function (e) { if (!activo(e)) return; if (e.cr || e.cx) { if (!e.u) return; } c++; }); }); return c; }
+    function conteoHoja(h) { var c = 0, vs = {}; h.filas.forEach(function (f) { if (borrar[h.nombre + '|' + f.n]) return; f.e.forEach(function (e) { if (activo(e)) c++; }); }); return c; }
     function pinta() {
       var H = D.hojas[hojaAct], n = quedan();
       var conErr = D.hojas.map(function (h, i) { return { h: h, i: i }; }).filter(function (x) { return x.h.total || x.h.cand; });
@@ -532,6 +533,7 @@ b[style*="#14233a"]{font-weight:500}
     else if (a === 'adjunto') api('adjunto-descargar', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) { bajar(r.nombre, r.datos, 'application/octet-stream'); }).catch(function (x) { toast(x.message); });
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
+    else if (a === 'mia') api('entrega-descargar', { id: id, actual: true, verComo: S.verComo || undefined }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'anterior') api('entrega-descargar', { id: id, periodoEntrega: b.dataset.p }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'ver') { var q = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; api('entrega-descargar', { id: id, periodoEntrega: S.admin.periodo }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); }); }
     else if (a === 'basepart') { var fi = document.getElementById('basepartf'); if (!fi) { fi = document.createElement('input'); fi.type = 'file'; fi.id = 'basepartf'; fi.accept = '.csv,.txt'; fi.hidden = true; document.body.appendChild(fi); } /* fuera del Panel: si el Panel se vuelve a pintar mientras se elige el archivo, no se pierde */ fi.onchange = function () { var f = fi.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () {

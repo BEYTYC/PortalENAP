@@ -755,7 +755,7 @@ module.exports = async function handler(req, res) {
     }
 
     if (a === 'entrega-descargar') {   /* la entrega hecha en el periodo indicado (semestre anterior) */
-      const t = buscar(body.id), p = /^\d{4}-[12]$/.test(body.periodoEntrega || '') ? body.periodoEntrega : anterior(cfg.periodo);
+      const t = buscar(body.id), p = body.actual === true ? periodo : /^\d{4}-[12]$/.test(body.periodoEntrega || '') ? body.periodoEntrega : anterior(cfg.periodo);   /* actual: el archivo que la persona cargó en este periodo (para corregirlo y volver a cargarlo) */
       if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
       const e = (await leerEstado(p))[t.id];
       if (!e || !e.archivo) throw error('No hay un archivo entregado en ese periodo.', 404);
