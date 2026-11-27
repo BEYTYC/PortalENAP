@@ -66,7 +66,7 @@ h1{margin:0;font-size:21px;font-weight:500;color:#062a4a}
 .prog{padding:10px 18px;display:flex;gap:18px;align-items:center;flex-wrap:nowrap;width:100%}
 .kpi{padding:14px 18px;min-width:140px;flex:1;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s}.kpi:hover{transform:translateY(-2px);box-shadow:0 2px 4px rgba(7,28,60,.06),0 10px 24px rgba(7,28,60,.1)}.kpi.on{border-color:#2f6fba;box-shadow:0 0 0 2px #cfe0f5,0 10px 24px rgba(7,28,60,.1);background:#f3f8ff}.kpi .kn{font-size:34px;line-height:1.15}.kpi .kp{font-size:14.5px;color:#4c6386}.kpi>.mu{font-size:17px;color:#14233a;font-family:var(--sb);font-weight:500}
 .bar{height:22px;background:#e2eaf4;border-radius:11px;overflow:hidden}.bar.cero{background:transparent;box-shadow:inset 0 0 0 1.5px #f1a7a1}.bar i{display:block;height:100%;background:linear-gradient(90deg,#e5584f 0%,#f2b834 50%,#2f9e72 100%);background-repeat:no-repeat;border-radius:11px;transition:width .4s}.bar.full i{background:#2f9e72}
-table{width:100%;border-collapse:collapse}.card>table:not(.xl) th:last-child,.card>table:not(.xl) td:last-child{text-align:right}.card>table:not(.xl) tr.gh td:last-child{text-align:left}.card>table:not(.xl) td:last-child>div[style*=flex]{justify-content:flex-end;flex-wrap:nowrap!important}.card>table:not(.xl) td:last-child{white-space:nowrap}
+table{width:100%;border-collapse:collapse}.card>table:not(.xl){table-layout:fixed}.card>table:not(.xl) th,.card>table:not(.xl) td{overflow:hidden;text-overflow:ellipsis}.card>table:not(.xl) td:has(.inp),.card>table:not(.xl) td:has(.btn){overflow:visible}.card>table:not(.xl) th:last-child,.card>table:not(.xl) td:last-child{text-align:right}.card>table:not(.xl) tr.gh td:last-child{text-align:left}.card>table:not(.xl) td:last-child>div[style*=flex]{justify-content:flex-end;flex-wrap:nowrap!important}.card>table:not(.xl) td:last-child{white-space:nowrap}
 th{font-size:14px;color:#4c6386;text-transform:uppercase;letter-spacing:.3px;text-align:left;padding:8px 10px;font-weight:400}
 td{padding:9px 10px;border-top:1px solid #e3eaf2;vertical-align:top;font-size:15.5px}
 .gh td{background:#0b2a55;color:#fff;font-size:14px;letter-spacing:.4px;border:0}
@@ -392,13 +392,13 @@ b[style*="#14233a"]{font-weight:500}
       if (S.filtro && p.nombre.toLowerCase().indexOf(S.filtro.toLowerCase()) < 0) return;
       var fila = fn(p);
       if (!fila) return;
-      if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="6">' + esc(g) + '</td></tr>'; }
+      if (p.grupo !== g) { g = p.grupo; h += '<tr class="gh"><td colspan="5">' + esc(g) + '</td></tr>'; }
       h += fila;
     });
     return h;
   }
   function tablaPanel(ps) {
-    var h = '<div class="card" style="overflow:auto"><table class="tp"><thead><tr><th>Plantilla</th><th>Responsable de la entrega</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
+    var h = '<div class="card" style="overflow:auto"><table class="tp"><thead><tr><th>Plantilla</th><th>Responsable</th><th>Fecha límite</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
@@ -413,7 +413,7 @@ b[style*="#14233a"]{font-weight:500}
       };
       var B = function (act, tit, on, cls) { return '<button class="ib ' + (on ? 'ib-' + act : 'off') + '" title="' + tit + '" aria-label="' + tit + '" ' + (on ? 'data-a="' + act + '" data-id="' + p.id + '"' : 'disabled') + '>' + IC[act] + '</button>'; };
       var acc = p.modo === 'directo' ? '' : B('ver', 'Descargar entrega', !!p.archivo) + B('correo', 'Enviar correo', (p.estado === 'pendiente' || p.estado === 'devuelta') && conResp) + B('devolver', 'Devolver', p.estado === 'revision' || p.estado === 'validada') + B('validar', 'Validar', p.estado === 'revision') + B('deshacer', 'Deshacer cargue', p.modo === 'carga' && tieneCargue);
-      return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (!p.cruce && p.archivo && p.id !== 'participante' && S.admin && S.admin.hayBase === false ? '<div class="mu">Cruce con Participantes pendiente: cargue la base (botón «Base de Participantes»)</div>' : '') + (p.cruce ? '<div class="mu"><a href="#" data-a="cruce" data-id="' + p.id + '" style="color:' + (p.cruce.total ? '#7a5200' : '#1f7a55') + '">' + (p.cruce.total ? p.cruce.total + ' documento(s) no están en Participantes' : 'Todos en Participantes') + '</a></div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
+      return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (!p.cruce && p.archivo && p.id !== 'participante' && S.admin && S.admin.hayBase === false ? '<div class="mu">Cruce con Participantes pendiente: cargue la base (botón «Base de Participantes»)</div>' : '') + (p.cruce ? '<div class="mu"><a href="#" data-a="cruce" data-id="' + p.id + '" style="color:' + (p.cruce.total ? '#7a5200' : '#1f7a55') + '">' + (p.cruce.total ? '⚠ ' + p.cruce.total + ' sin Participante' : '✓ Participantes') + '</a></div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
@@ -421,7 +421,7 @@ b[style*="#14233a"]{font-weight:500}
     var h = '<div class="card" style="overflow:auto"><table><thead><tr><th>Plantilla</th><th>Responsable de la entrega (carga)</th><th>Responsables del diligenciamiento</th><th>Prórroga</th><th></th></tr></thead><tbody>';
     h += filas(ps, function (p) {
       var dir = p.modo === 'directo' ? '<div class="mu" style="color:#0f5c5c">Reporta directo al SNIES: solo notificaciones</div>' : (p.maestroSin && p.modo === 'sin' ? '<div class="mu">El Documento Maestro no tiene responsable para esta plantilla; si le asignas uno, se gestiona como las demás.</div>' : '');
-      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
+      return '<tr data-id="' + p.id + '"><td>' + esc(p.nombre) + '</td><td><input class="inp r-ent" value="' + esc(p.entrega.join(', ')) + '" placeholder="correo@enap.edu.co">' + dir + '</td><td><textarea class="inp r-dil" placeholder="correo@enap.edu.co, otro@enap.edu.co">' + esc(p.diligencia.join(', ')) + '</textarea></td><td><input type="date" class="inp r-pro" value="' + esc(p.prorroga) + '"></td><td><button class="btn sm" data-a="guardar" data-id="' + p.id + '">Guardar</button><div class="r-est mu" style="margin-top:6px"></div></td></tr>';
     });
     return h + '</tbody></table></div>';
   }
