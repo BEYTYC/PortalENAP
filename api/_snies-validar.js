@@ -123,7 +123,7 @@ function sugerencia(n) {
 function revisarContenido(wb, t, ctx) {
   ctx = ctx || {};
   const reglas = REGLAS[t.id] || {};
-  const nombres = wb.hojas.filter((h) => h !== 'INFO');
+  const nombres = wb.hojas.filter((h) => h !== 'INFO' && (!ctx.hojas || ctx.hojas.includes(h)));   /* hojas de más no se revisan */
   const hojas = {};
   nombres.forEach((n) => { try { hojas[n] = leerHoja(wb, n); } catch (e) { /* hoja ilegible */ } });
   const errores = [];
