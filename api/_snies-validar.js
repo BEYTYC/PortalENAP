@@ -290,7 +290,7 @@ function revisarContenido(wb, t, ctx) {
     /* FECHA_INGRESO debe estar entre 80 años atrás y la fecha actual (regla SNIES, p. ej. GRUPO_INVESTIGAD_INTERNOS_IES). */
     if (idx['FECHA_INGRESO'] != null && ctx.hoy) {
       const hd = new Date(Math.round((ctx.hoy - 25569) * 86400000)), min = serialDe(hd.getUTCFullYear() - 80, hd.getUTCMonth() + 1, hd.getUTCDate());
-      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && (x < min || x > ctx.hoy)) err(nombre, r + 1, 'FECHA_INGRESO', `debe estar entre 80 años atrás (${fechaTxt(min)}) y la fecha actual`); }
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x < min) err(nombre, r + 1, 'FECHA_INGRESO', `revise la fecha: tiene más de 80 años y podría ser un error (debe estar entre ${fechaTxt(min)} y la fecha actual)`); else if (x != null && x > ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', `debe estar entre 80 años atrás (${fechaTxt(min)}) y la fecha actual`); }
     }
     if (idx['FECHA_INGRESO'] != null && /integrantes/.test(t.id) && ctx.hoy) {
       for (const r of filasDatos) { const x = fechaNum(filas[r][idx['FECHA_INGRESO']]); if (x != null && x > ctx.hoy && x <= ctx.hoy) err(nombre, r + 1, 'FECHA_INGRESO', 'no puede ser posterior a la fecha de reporte'); }
