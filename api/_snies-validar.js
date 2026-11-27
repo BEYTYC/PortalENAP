@@ -273,6 +273,12 @@ function revisarContenido(wb, t, ctx) {
       }
     }
 
+    /* 5e. Retiro anterior al periodo (la autora, 27/11/2026): quien se retiró antes de que empiece el periodo que se reporta no debe reportarse. */
+    if (idx.FECHA_RETIRO != null && anioRep && semRep) {
+      const ini = serialDe(anioRep, semRep === 1 ? 1 : 7, 1);
+      for (const r of filasDatos) { const x = fechaNum(filas[r][idx.FECHA_RETIRO]); if (x != null && x < ini) err(nombre, r + 1, 'FECHA_RETIRO', `es anterior al inicio del periodo ${ctx.periodoRep} (${fechaTxt(ini)}): quien se retiró antes del periodo no debe reportarse; elimine la fila`); }
+    }
+
     /* 6. Fechas y números comparados con otra columna */
     for (const [a, op, b] of COMPARACIONES) {
       if (idx[a] == null || idx[b] == null) continue;
