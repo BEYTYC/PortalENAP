@@ -416,6 +416,8 @@ function normalizarUnidad(buf, t) {
         if (ci >= 0 && (typeof f[ci] !== 'string' || f[ci].trim() !== CODIGO_UNIDAD)) cambios.push({ hoja: h, fila: r + 1, col: ci, valor: CODIGO_UNIDAD });
         for (const c of cf) {
           const v = f[c];
+          /* una fecha en cero (0, «0» o 00/00/0000) es una fecha vacía: se deja la celda en blanco en vez de marcarla como error */
+          if (v === 0 || (typeof v === 'string' && /^(0|0{1,2}\/0{1,2}\/0{2,4})$/.test(v.trim()))) { cambios.push({ hoja: h, fila: r + 1, col: c, valor: '' }); continue; }
           /* número válido de fecha en una celda sin formato de fecha (o con un formato que no se reconoce): se le pone formato dd/mm/aaaa */
           if (typeof v === 'number' && VALIDAR.fechaNum(v) != null && !(fm[r] && fm[r][c])) { cambios.push({ hoja: h, fila: r + 1, col: c, valor: '', numero: String(v), fecha: true }); continue; }
           if (typeof v === 'string' && v.trim() !== '' && !/^\d+$/.test(v.trim())) { const n = VALIDAR.fechaNum(v); if (n != null) cambios.push({ hoja: h, fila: r + 1, col: c, valor: '', numero: String(n), fecha: true }); }
