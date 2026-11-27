@@ -348,6 +348,24 @@ function aplicarCorrecciones(buf, t, cambios, borrar) {
 }
 const REGLAS_COL = (() => { try { return require('./_snies-reglas.json'); } catch (e) { return {}; } })();
 const COLUMNAS = (() => { try { return require('./_snies-columnas.json'); } catch (e) { return {}; } })();
+/* El código de la unidad organizacional de la institución es SIEMPRE 0101010104 (decisión de la autora, 26/11/2026): lo que carguen (por ejemplo 101010104,
+   sin el cero inicial) se reemplaza automáticamente, como texto, en todas las filas con datos. No aplica a la plantilla Unidad organizacional. */
+const CODIGO_UNIDAD = '0101010104';
+function normalizarUnidad(buf, t) {
+  if (t.id === 'unidad-organizacional') return buf;
+  try {
+    const wb = abrir(buf), cambios = [];
+    for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
+      const filas = wb.leer(h, { maxCols: 120 });
+      const ci = (filas[0] || []).map((x) => limpio(x, 80).toUpperCase()).indexOf('CODIGO_UNIDAD_ORGANIZACIONAL'); if (ci < 0) continue;
+      for (let r = 1; r < filas.length; r++) {
+        const f = filas[r] || []; if (!f.some((x) => x != null && String(x).trim() !== '')) continue;
+        if (typeof f[ci] !== 'string' || f[ci].trim() !== CODIGO_UNIDAD) cambios.push({ hoja: h, fila: r + 1, col: ci, valor: CODIGO_UNIDAD });
+      }
+    }
+    return cambios.length ? aplicarXlsx(buf, { cambios, borrar: {} }) : buf;
+  } catch (e) { return buf; }
+}
 function revisarArchivo(buf, t, oficial, periodo) {
   const errores = [];
   if (buf.length < 4 || buf.readUInt32LE(0) !== 0x04034b50) return ['El archivo no es un Excel (.xlsx).'];
@@ -479,6 +497,7 @@ module.exports = async function handler(req, res) {
       const corregido = aplicarCorrecciones(buf, t, body.cambios, body.borrar);
       if (corregido) buf = corregido;
       const nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
+      buf = normalizarUnidad(buf, t);
       const errores = revisarArchivo(buf, t, oficial, periodo);
       if (errores.length && porEstadistica) {
         /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
@@ -636,4 +655,4 @@ module.exports = async function handler(req, res) {
   }
 };
 function anterior(p) { const [a, s] = p.split('-').map(Number); return s === 2 ? `${a}-1` : `${a - 1}-2`; }
-module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, TEMPLATES };
+module.exports._interno = {htmlCorreo,  fechaOficial, menosUnMes, anterior, revisarArchivo, revisarContenido, normalizarUnidad, TEMPLATES };
