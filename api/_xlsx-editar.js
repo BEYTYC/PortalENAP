@@ -38,8 +38,8 @@ function editarHoja(xml, ediciones, borrar, estiloFecha) {
       const estilo = prev && (prev.at.match(/\bs="(\d+)"/) || [])[1];
       const s = e.fecha && estiloFecha != null ? ` s="${estiloFecha}"` : (estilo ? ` s="${estilo}"` : '');
       let x;
-      if (e.valor === '' || e.valor == null) x = `<c r="@"${s}/>`;
-      else if (e.numero) x = `<c r="@"${s}><v>${e.numero}</v></c>`;
+      if (e.numero) x = `<c r="@"${s}><v>${e.numero}</v></c>`;
+      else if (e.valor === '' || e.valor == null) x = `<c r="@"${s}/>`;
       else x = `<c r="@"${s} t="inlineStr"><is><t xml:space="preserve">${esc(e.valor)}</t></is></c>`;
       if (prev) { prev.x = x; prev.at = ''; } else celdas.push({ ci, at: '', x });
     }
