@@ -526,9 +526,9 @@ b[style*="#14233a"]{font-weight:500}
       S.verComo = e.target.value; S.datos = null;
       /* Cargando mientras llegan las plantillas de la otra persona */
       var ldv = document.getElementById('ld'), sel = e.target, nom = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : '';
-      app.style.opacity = '.35'; app.style.pointerEvents = 'none'; app.style.transition = 'opacity .15s';
+      /* Se quitan las tarjetas de la persona anterior; solo quedan las pestañas y el selector */ var ocultos = []; Array.prototype.forEach.call(app.children, function (c) { if (!c.classList.contains('tabs') && !c.contains(sel)) { ocultos.push([c, c.style.display]); c.style.display = 'none'; } }); app.style.pointerEvents = 'none';
       if (ldv) { ldv.querySelector('b').textContent = 'Cargando las plantillas' + (S.verComo && nom ? ' de ' + nom.split(' · ')[0].split(' - ')[0] : '') + '…'; ldv.hidden = false; }
-      var fin = function () { app.style.opacity = ''; app.style.pointerEvents = ''; if (ldv) { ldv.hidden = true; ldv.querySelector('b').textContent = 'Cargando'; } };
+      var fin = function () { ocultos.forEach(function (o) { o[0].style.display = o[1]; }); app.style.pointerEvents = ''; if (ldv) { ldv.hidden = true; ldv.querySelector('b').textContent = 'Cargando'; } };
       cargarSesion().then(function () { fin(); pintar(); }).catch(function (x) { fin(); toast(x.message); });
       return;
     }
