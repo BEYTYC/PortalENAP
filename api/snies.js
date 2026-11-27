@@ -278,7 +278,7 @@ async function avisarNovedades(cfg, est, periodo, soloCorreos) {
     let adj = []; for (const x of lista) adj = adj.concat(await adjuntoDe(periodo, x.t.id, est[x.t.id]).catch(() => []));
     try {
       await enviarCorreo([c], n === 1 ? `Hay novedades en su plantilla · ${lista[0].t.nombre}` : `Hay novedades en ${n} plantillas SNIES`,
-        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `La Oficina de Estadística revisó la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'} y encontró novedades. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Una vez las corrija y entregue, quedará completado su proceso de reporte al SNIES.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
+        htmlCorreo({ titulo: n === 1 ? 'Hay novedades en su plantilla' : `Hay novedades en ${n} plantillas`, cuerpo: `Se encontraron novedades en la información de ${n === 1 ? 'la siguiente plantilla' : 'las siguientes plantillas'}. Ingrese al Portal: allí le aparecen de una todas las novedades que debe corregir, ${n === 1 ? 'señaladas' : 'plantilla por plantilla, señaladas'} en pantalla. Una vez las corrija y entregue, quedará completado su proceso de reporte al SNIES.`, filas: lista.map((x) => x.fila), urlAbrir: PORTAL_URL.split('?')[0] + '?novedades=todas', textoAbrir: 'Abrir las novedades' }), cc, adj.length ? adj : undefined);
       correos++;
     } catch (e) { /* un fallo no impide los demás */ }
   }
@@ -332,7 +332,7 @@ async function avisar(cfg, t, tipo, extra) {   /* extra.adjuntos: [{nombre, dato
     ok: ['Plantilla recibida', 'Hemos recibido su plantilla y la Oficina de Estadística la validó. ¡Muchas gracias! No debe hacer nada más.'],
     na: ['Plantilla marcada como No aplica', 'Hemos registrado que no se generaron registros en este semestre. Gracias por informarlo; la plantilla pasa a En revisión.'],
     dev: extra && extra.novedades
-      ? ['Hay novedades en su plantilla', `La Oficina de Estadística revisó la información de su plantilla y encontró novedades: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores.' : ''}`]
+      ? ['Hay novedades en su plantilla', `Se encontraron novedades en la información de su plantilla: <b>${esc(extra.motivo || '')}</b>. Ábralas desde el botón de abajo, corríjalas en pantalla y entregue de nuevo.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores.' : ''}`]
       : ['Plantilla devuelta', `La Oficina de Estadística devolvió la plantilla con las siguientes novedades: <b>${esc(extra.motivo || '')}</b>. Le agradecemos corregirla y volver a cargarla.${extra && extra.adjuntos && extra.adjuntos.length ? ' Con este correo va un documento adjunto que muestra los errores; también lo encuentra en el módulo.' : ''}`],
     val: ['Plantilla validada', 'La Oficina de Estadística validó su plantilla. ¡Muchas gracias! No debe hacer nada más.'],
   }[tipo];
