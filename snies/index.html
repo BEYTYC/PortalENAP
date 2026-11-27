@@ -192,7 +192,7 @@ b[style*="#14233a"]{font-weight:400}
       + (links ? '<div class="links">' + links + '</div>' : '') + '</div>';
   }
   function vistaMis() {
-    var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && (p.estado === 'revision' || p.estado === 'validada'); }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
+    var d = S.datos, ps = d.plantillas, ent = ps.filter(function (p) { return p.modo !== 'directo' && p.estado === 'validada'; }).length, total = ps.filter(function (p) { return p.modo !== 'directo'; }).length;
     var fl = ps.filter(function (p) { return p.limite && p.modo !== 'directo'; }).map(function (p) { return p.limite; }).sort()[0];
     var barra = '';
     if (d.admin) {
