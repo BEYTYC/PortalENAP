@@ -368,15 +368,19 @@ const CICLO_DEFECTO = '2026-2';
 
 /* Códigos de curso de la entrega de Cursos de este periodo (para cruzar Educación Continua). null si Cursos aún no se ha entregado. */
 async function codigosCursos(periodo, est, t) {
-  if (!t || t.id !== 'educacion-continua') return null;
-  const e = est && est.cursos; if (!e || !e.archivo || e.noAplica) return null;
+  /* Educación Continua → códigos de Cursos; Movilidad → códigos de Convenios Internacionales (hoja principal). */
+  const esMov = !!t && /^movilidad-/.test(t.id);
+  if (!t || (t.id !== 'educacion-continua' && !esMov)) return null;
+  const colCod = esMov ? 'CODIGO_CONVENIO' : 'CODIGO_CURSO';
+  const e = est && est[esMov ? 'convenios-internacionales' : 'cursos']; if (!e || !e.archivo || e.noAplica) return null;
   try {
     const b = await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) return null;
     const wb = abrir(b), set = new Set(); let hallo = false;
-    for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
+    const hojasC = wb.hojas.filter((x) => x !== 'INFO'), principal = esMov ? hojasC.filter((x) => x.toUpperCase() === 'CONVENIOS_INTERNACIONALES') : [];
+    for (const h of (principal.length ? principal : hojasC)) {
       const filas = wb.leer(h, { maxCols: 40 }) || [];
       for (let r = 0; r < Math.min(8, filas.length); r++) {
-        const k = (filas[r] || []).findIndex((x) => String(x == null ? '' : x).trim().toUpperCase() === 'CODIGO_CURSO');
+        const k = (filas[r] || []).findIndex((x) => String(x == null ? '' : x).trim().toUpperCase() === colCod);
         if (k < 0) continue; hallo = true;
         for (let q = r + 1; q < filas.length; q++) { const v = (filas[q] || [])[k]; if (v != null && String(v).trim() !== '') set.add(String(v).trim().toUpperCase()); }
         break;

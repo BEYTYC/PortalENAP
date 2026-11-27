@@ -333,6 +333,11 @@ function revisarContenido(wb, t, ctx) {
     for (const r of filasDatos) {
       const f = filas[r];
       if (iConv != null && ['S', 'SI', 'SÍ', '1'].includes(up(f[iConv])) && idx['CODIGO_CONVENIO'] != null) exige(f, r, ['CODIGO_CONVENIO'], 'si la movilidad es por convenio');
+      /* Movilidad (la autora, 27/11/2026): sin convenio no se reporta código; y el convenio debe estar creado en la plantilla Convenios Internacionales. */
+      if (iConv != null && idx['CODIGO_CONVENIO'] != null && !vacia(f[idx['CODIGO_CONVENIO']])) {
+        if (['N', 'NO', '0'].includes(up(f[iConv]))) err(nombre, r + 1, 'CODIGO_CONVENIO', 'debe estar vacío si MOVILIDAD_POR_CONVENIO es NO');
+        if (ctx.cursos instanceof Set && /^movilidad-/.test(t.id) && !ctx.cursos.has(String(f[idx['CODIGO_CONVENIO']]).trim().toUpperCase())) err(nombre, r + 1, 'CODIGO_CONVENIO', 'el convenio no se encuentra creado: no aparece en la plantilla Convenios Internacionales');
+      }
       if (nacCols.length > 1 && nacCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, nacCols, 'si se tiene fuente de financiación nacional');
       if (intCols.length > 1 && intCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, intCols, 'si se tiene fuente de financiación internacional');
       if (idx['ES_REINTEGRO_ESTD_ANTES_DE1998'] != null && up(f[idx['ES_REINTEGRO_ESTD_ANTES_DE1998']]) === 'S') exige(f, r, ['AÑO_PRIMER_CURSO', 'SEMESTRE_PRIMER_CURSO'], 'si es reintegro anterior a 1998');
@@ -371,7 +376,7 @@ function revisarContenido(wb, t, ctx) {
     if (nombre === nombres[0]) {
       const cc = Object.keys(idx).filter((c) => /^CODIGO_/.test(c));
       const esClave = cc.length && (cc.some((c) => c !== 'CODIGO_UNIDAD_ORGANIZACIONAL') || t.id === 'unidad-organizacional');
-      if (esClave && !(CLAVES_DUP[t.id])) {
+      if (esClave && !(CLAVES_DUP[t.id]) && !/^movilidad-/.test(t.id)) {   /* en movilidad CODIGO_CONVENIO se repite legítimamente: no es llave */
         const k = new Map();
         for (const r of filasDatos) {
           if (dupFila.has(r + 1)) continue;
