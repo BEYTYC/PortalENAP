@@ -568,7 +568,7 @@ module.exports = async function handler(req, res) {
       const t = buscar(body.id);
       if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
       const e = est[t.id];
-      if (!e || !e.novedades || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
+      if (!e || (!e.novedades && !(admin && body.vista)) || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
       const buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
       if (!buf) throw error('No se encontró el archivo en OneDrive.', 404);
       const oficial = cfg.oficiales[t.id] ? await leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null;

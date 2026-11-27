@@ -55,6 +55,7 @@ h1{margin:0;font-size:20px;font-weight:600;color:#062a4a}
 .mu{color:#4c6386;font-size:12px}
 .t .acts{margin-top:auto}.t .resp{display:flex;flex-direction:column;gap:0;line-height:1.2}.t .resp .mu{line-height:1.2}.t .resp .rv{color:#14233a;font-family:var(--sb);font-weight:600}.mu.l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .zone{min-height:48px;padding-top:4px;padding-bottom:4px;border:2px dashed;border-radius:10px;background:rgba(255,255,255,.65);display:flex;align-items:center;justify-content:center;text-align:center;font-size:13px;color:#4c6386;padding:0 12px;line-height:1.35}
+.pb{width:132px;justify-content:center;text-align:center;padding-left:6px;padding-right:6px}.btn.off,.btn.off:disabled{background:#eceff3;border-color:#dde3ea;color:#a3aebd;cursor:default;box-shadow:none;opacity:1}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:10px;min-height:38px;align-items:center}
 .acts .btn{padding:7px 15px;font-size:13px;border-radius:8px}
 .links{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;padding-top:4px}
@@ -232,7 +233,8 @@ b[style*="#14233a"]{font-weight:600}
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
-  function visorCorreccion(id, nombre, b64, r, porEstadistica) {
+  function visorCorreccion(id, nombre, b64, r, porEstadistica, modo) {
+    var ver = modo === 'devolver';   /* vista previa para la administradora: lo que verá el responsable, con Devolver / Cancelar */
     var D = r.detalle, cambios = {}, borrar = {}, hojaAct = 0, soloErr = false;
     D.hojas.some(function (h, i) { if (h.total) { hojaAct = i; return true; } });   /* abre en la primera hoja que tiene errores */
     var m = document.createElement('div'); m.className = 'modal'; document.body.appendChild(m);
@@ -265,20 +267,20 @@ b[style*="#14233a"]{font-weight:600}
         var td = f.v.map(function (v, i) {
           var c = H.cols[i], mal = malas[c], k = H.nombre + '|' + f.n + '|' + c, val = cambios[k] ? cambios[k].v : v;
           var attrs = 'data-h="' + esc(H.nombre) + '" data-f="' + f.n + '" data-c="' + esc(c) + '"';
-          if (mal) return '<td class="xc mal" data-fila="' + f.n + '" data-col="' + esc(c) + '" data-m="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + ' value="' + esc(val) + '"></td>';
+          if (mal) return '<td class="xc mal" data-fila="' + f.n + '" data-col="' + esc(c) + '" data-m="' + esc(mal.join(' · ')) + '"><input class="inp" style="min-width:' + (/^FECHA/.test(c) ? 110 : 90) + 'px;font-weight:400;background:#fff3a8;border-color:#d9b92e" ' + attrs + (ver ? ' readonly' : '') + ' value="' + esc(val) + '"></td>';
           return '<td class="xc" ' + attrs + '>' + esc(val) + '</td>';
         }).join('');
         var msgs = f.e.filter(function (e) { return !e.ok; }).map(function (e) { return (e.c === '(fila)' ? '' : e.c + ' ') + e.m; });
         var aviso = msgs.length && soloErr ? '<tr class="xa"><td colspan="' + (H.cols.length + 2) + '"><div style="position:sticky;left:8px;max-width:min(640px,80vw);font-size:12px;color:#5f4a0b;white-space:normal">' + esc(msgs.join(' · ')) + '</div></td></tr>' : '';
-        return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn"><button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button></td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
+        return '<tr' + (filaMal ? ' class="xf"' : '') + '><td class="xn">' + (ver ? '' : '<button class="btn sec sm" data-del="' + f.n + '" title="Eliminar esta fila completa">Eliminar fila</button>') + '</td><td class="xn xr">' + f.n + '</td>' + td + '</tr>' + aviso;
       }).join('');
       var mas = (H.filasTotal || 0) > H.filas.length ? '<div class="mu">La hoja tiene ' + H.filasTotal + ' filas; se muestran ' + H.filas.length + ' (todas las que tienen error y las primeras del resto). Corrige y vuelve a revisar para ver las demás.</div>' : '';
-      var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label><span class="mu">Haz clic en cualquier celda para editarla.</span></div>';
+      var barra = '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:13px"><label style="cursor:pointer"><input type="checkbox" id="soloerr"' + (soloErr ? ' checked' : '') + '> Mostrar solo las filas con error</label>' + (ver ? '' : '<span class="mu">Haz clic en cualquier celda para editarla.</span>') + '</div>';
       var cnt = '<span id="cnt" style="font-size:15px;font-weight:600;color:' + (n ? '#7a5200' : '#1b7a4f') + '">' + (n ? n + ' error' + (n > 1 ? 'es' : '') + ' por corregir' : 'Sin errores pendientes') + '</span>';
-      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:18px">Corrige tu archivo en pantalla</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600;font-size:13px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + barra + mas
+      m.innerHTML = '<div class="card" style="max-width:min(1200px,96vw);max-height:94vh;gap:8px"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap"><div style="font-size:18px">' + (ver ? 'Esto verá el responsable al abrir las novedades' : 'Corrige tu archivo en pantalla') + '</div><a href="instructivo.html?p=' + id + '" target="_blank" rel="noopener" style="color:#1b4c92;font-weight:600;font-size:13px">↗ Instructivo de diligenciamiento</a></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' + tabs + cnt + '</div>' + barra + mas
         + '<div style="overflow:auto;border:1px solid #e3eaf2;border-radius:10px;flex:1"><table class="xl"><thead><tr>' + cab + '</tr></thead><tbody>' + cuerpo + '</tbody></table></div>'
         + '<div id="pie" style="display:none;background:#fffbe0;border:1px solid #e6d48a;border-radius:10px;padding:8px 12px"></div>'
-        + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button></div></div>';
+        + '<div style="display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap"><button class="btn sec" id="cancelar">Cancelar</button>' + (ver ? '<button class="btn y" id="devolverya">Devolver</button>' : (S.admin ? '<button class="btn y" id="enviarnov" title="Guarda el archivo tal como está y le envía al responsable un correo para que vea estas novedades en pantalla">Guardar y enviar novedades al responsable</button>' : '') + '<button class="btn" id="revisar"' + (n ? ' disabled title="Disponible cuando corrijas todos los errores"' : '') + '>Revisar y entregar</button>') + '</div></div>';
       m.querySelectorAll('[data-t]').forEach(function (b) { b.onclick = function () { hojaAct = +b.getAttribute('data-t'); pinta(); }; });
       m.querySelectorAll('[data-del]').forEach(function (b) { b.onclick = function () { borrar[H.nombre + '|' + b.getAttribute('data-del')] = 1; pinta(); }; });
       var so = m.querySelector('#soloerr'); if (so) so.onchange = function () { soloErr = so.checked; pinta(); };
@@ -301,7 +303,7 @@ b[style*="#14233a"]{font-weight:600}
       m.querySelectorAll('th[data-enc]').forEach(function (th) { th.onclick = function () { ayuda(th.getAttribute('data-enc'), H.nombre); }; });
       pintaPie();
       /* Las celdas sin error se ven como texto (más liviano); al hacer clic se vuelven editables. */
-      m.querySelectorAll('td.xc[data-f]').forEach(function (td) {
+      if (!ver) m.querySelectorAll('td.xc[data-f]').forEach(function (td) {
         td.onclick = function () {
           var i = document.createElement('input'); i.className = 'inp'; i.style.cssText = 'min-width:90px;font-weight:400;width:100%'; i.value = td.textContent;
           ['h', 'f', 'c'].forEach(function (k) { i.setAttribute('data-' + k, td.getAttribute('data-' + k)); });
@@ -309,6 +311,13 @@ b[style*="#14233a"]{font-weight:600}
         };
       });
       m.querySelector('#cancelar').onclick = function () { nota(null); m.remove(); };
+      var dy = m.querySelector('#devolverya');
+      if (dy) dy.onclick = function () {
+        dy.disabled = true; dy.textContent = 'Devolviendo…';
+        api('estado', { id: id, estado: 'devuelta', motivo: '', periodo: S.admin && S.admin.periodo })
+          .then(function (x) { nota(null); m.remove(); toast(x.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); })
+          .catch(function (e) { dy.disabled = false; dy.textContent = 'Devolver'; toast(e.message); });
+      };
       var en = m.querySelector('#enviarnov');
       if (en) en.onclick = function () {
         var ch = Object.keys(cambios).map(function (k) { return cambios[k]; }), bo = Object.keys(borrar).map(function (k) { var p = k.split('|'); return { h: p[0], f: +p[1] }; });
@@ -319,7 +328,7 @@ b[style*="#14233a"]{font-weight:600}
             return api('enviar-correo', { id: id, periodo: S.admin && S.admin.periodo }).then(function (y) { nota(null); m.remove(); toast('Novedades guardadas y correo enviado a ' + y.para.join(', ') + '.'); return refrescar(); });
           }).catch(function (e) { en.disabled = false; en.textContent = 'Guardar y enviar novedades al responsable'; toast(e.message); });
       };
-      m.querySelector('#revisar').onclick = function () {
+      if (m.querySelector('#revisar')) m.querySelector('#revisar').onclick = function () {
         var ch = Object.keys(cambios).map(function (k) { return cambios[k]; }), bo = Object.keys(borrar).map(function (k) { var p = k.split('|'); return { h: p[0], f: +p[1] }; });
         nota(null); m.remove(); enviarArchivo(id, nombre, b64, porEstadistica, ch, bo);
       };
@@ -386,7 +395,9 @@ b[style*="#14233a"]{font-weight:600}
       if (p.modo === 'sin') return '';   /* plantillas sin responsable: no se muestran en el panel */
       if (S.kpi && (p.modo === 'directo' || !(S.kpi === 'vencida' ? p.vencida : S.kpi === 'proximas' ? (p.dias != null && p.dias >= 0 && p.dias <= 7 && (p.estado === 'pendiente' || p.estado === 'devuelta')) : p.estado === S.kpi))) return '';
       var est = p.modo === 'directo' ? '<span class="chip c-teal">Directo al SNIES</span>' : '<span class="chip c-' + ESTADO[p.estado][1] + '">' + ESTADO[p.estado][0] + '</span>' + (p.noAplica ? ' <span class="chip c-teal">No aplica</span>' : '') + (p.vencida ? ' <span class="chip c-rojo">Vencida</span>' : '');
-      var acc = p.modo === 'directo' ? '' : (p.archivo ? '<button class="btn sec sm" data-a="ver" data-id="' + p.id + '">Descargar entrega</button> ' : '') + (p.estado === 'revision' ? '<button class="btn sm" data-a="validar" data-id="' + p.id + '">Validar</button> ' : '') + (p.modo === 'carga' && p.estado !== 'validada' ? '<button class="btn sec sm" data-a="cargar-admin" data-id="' + p.id + '">Cargar entrega</button> ' : '') + ((p.estado === 'pendiente' || p.estado === 'devuelta') && p.entrega.length + p.diligencia.length ? '<button class="btn sec sm" data-a="correo" data-id="' + p.id + '">Enviar correo</button> ' : '') + (p.estado === 'revision' || p.estado === 'validada' ? '<button class="btn y sm" data-a="devolver" data-id="' + p.id + '">Devolver</button> ' : '') + (p.modo === 'carga' && p.archivo ? '<button class="btn sec sm" data-a="deshacer" data-id="' + p.id + '">Deshacer cargue</button>' : '');
+      var tieneCargue = !!(p.archivo || p.noAplica), conResp = p.entrega.length + p.diligencia.length > 0;
+      var B = function (act, txt, on, cls) { return '<button class="btn pb ' + (on ? cls : 'sec off') + ' sm" ' + (on ? 'data-a="' + act + '" data-id="' + p.id + '"' : 'disabled') + '>' + txt + '</button>'; };
+      var acc = p.modo === 'directo' ? '' : B('ver', 'Descargar entrega', !!p.archivo, 'sec') + B('validar', 'Validar', p.estado === 'revision', '') + B('correo', 'Enviar correo', (p.estado === 'pendiente' || p.estado === 'devuelta') && conResp, 'sec') + B('devolver', 'Devolver', p.estado === 'revision' || p.estado === 'validada', 'y') + B('deshacer', 'Deshacer cargue', p.modo === 'carga' && tieneCargue, 'sec');
       return '<tr><td>' + esc(p.nombre) + '<div class="mu">' + esc(p.cargoTexto) + '</div></td><td>' + esc(p.entrega.length ? p.entregaTexto : 'Por asignar') + '</td><td>' + esc(p.limite ? fecha(p.limite) : (p.textoFecha || '—')) + (p.prorroga ? '<div class="mu">Prórroga</div>' : '') + '</td><td>' + est + (p.motivo ? '<div class="mu">' + esc(p.motivo) + '</div>' : '') + (p.adjunto ? '<div class="mu"><a href="#" data-a="adjunto" data-id="' + p.id + '" style="color:#1b4c92">↓ ' + esc(p.adjunto) + '</a></div>' : '') + '</td><td><div style="display:flex;gap:6px;flex-wrap:wrap">' + acc + '</div></td></tr>';
     });
     return h + '</tbody></table></div>';
@@ -416,6 +427,22 @@ b[style*="#14233a"]{font-weight:600}
     app.innerHTML = tabs + (S.vista === 'mis' ? vistaMis() : (S.admin ? vistaAdmin() : ''));
     document.getElementById('ld').hidden = !(S.vista !== 'mis' && !S.admin);   /* el Cargando sale solo al inicio o si faltan datos */
     var f = document.getElementById('filtro'); if (f) f.oninput = function () { S.filtro = f.value; var pos = f.selectionStart; pintar(); var n = document.getElementById('filtro'); n.focus(); n.setSelectionRange(pos, pos); };
+  }
+
+  /* Devolver sin errores detectados por la plataforma: se pide la nota (y, si quiere, un documento adjunto). */
+  function devolverManual(id) {
+    var m2 = modal('<div style="font-size:17px">Devolver plantilla</div><div class="mu">La plataforma no detectó errores en el archivo. Escribe qué debe corregir el responsable; le llega por correo.</div><textarea class="inp" id="mot" placeholder="Novedades…"></textarea><div><div class="mu" style="margin-bottom:4px">Documento adjunto (opcional, hasta 3 MB).</div><input type="file" id="adj"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no2">Cancelar</button><button class="btn y" id="si2">Devolver</button></div>');
+    m2.querySelector('#no2').onclick = function () { m2.remove(); };
+    m2.querySelector('#si2').onclick = function () {
+      var mot = m2.querySelector('#mot').value, f = m2.querySelector('#adj').files[0], b2 = this;
+      if (!mot.trim()) { toast('Escribe qué debe corregir.'); return; }
+      if (f && f.size > 3 * 1024 * 1024) { toast('El documento adjunto pesa más de 3 MB.'); return; }
+      b2.disabled = true; b2.textContent = 'Devolviendo…';
+      (f ? leerB64(f).then(function (b64) { return { nombre: f.name, datos: b64 }; }) : Promise.resolve(null))
+        .then(function (adj) { return api('estado', { id: id, estado: 'devuelta', motivo: mot, adjunto: adj || undefined, periodo: S.admin.periodo }); })
+        .then(function (r) { m2.remove(); toast(r.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); })
+        .catch(function (y) { b2.disabled = false; b2.textContent = 'Devolver'; toast(y.message); });
+    };
   }
 
   /* ---------------- Eventos ---------------- */
@@ -464,17 +491,11 @@ b[style*="#14233a"]{font-weight:600}
       md.querySelector('#dsSi').onclick = function () { var bs = this; bs.disabled = true; bs.textContent = 'Deshaciendo…'; api('deshacer-cargue', { id: id, periodo: S.admin.periodo }).then(function () { md.remove(); toast('Cargue deshecho. La plantilla volvió a Pendiente.'); return cargarAdmin(S.admin.periodo); }).then(function () { pintar(); }).catch(function (x) { bs.disabled = false; bs.textContent = 'Deshacer cargue'; toast(x.message); }); };
     }
     else if (a === 'devolver') {
-      var m = modal('<div style="font-size:17px">Devolver plantilla</div><div class="mu">Si el archivo tiene errores, la plataforma los detecta sola y el responsable los ve de una en pantalla: no hace falta escribirlos. Agrega una nota solo si quieres decirle algo más. Le llega por correo.</div><textarea class="inp" id="mot" placeholder="Nota adicional (opcional)…"></textarea><div><div class="mu" style="margin-bottom:4px">Documento adjunto (opcional, hasta 3 MB). El responsable lo descarga en su tarjeta y le llega por correo.</div><input type="file" id="adj"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn sec" id="no">Cancelar</button><button class="btn y" id="si">Devolver</button></div>');
-      m.querySelector('#no').onclick = function () { m.remove(); };
-      m.querySelector('#si').onclick = function () {
-        var mot = m.querySelector('#mot').value, f = m.querySelector('#adj').files[0], bt = this;
-        if (f && f.size > 3 * 1024 * 1024) { toast('El documento adjunto pesa más de 3 MB.'); return; }
-        bt.disabled = true; bt.textContent = 'Devolviendo…';
-        (f ? leerB64(f).then(function (b64) { return { nombre: f.name, datos: b64 }; }) : Promise.resolve(null))
-          .then(function (adj) { return api('estado', { id: id, estado: 'devuelta', motivo: mot, adjunto: adj || undefined, periodo: S.admin.periodo }); })
-          .then(function (r) { m.remove(); toast(r.correo ? 'Devuelta. Se avisó al responsable.' : 'Devuelta (el correo no pudo enviarse).'); return refrescar(); })
-          .catch(function (x) { bt.disabled = false; bt.textContent = 'Devolver'; toast(x.message); });
-      };
+      api('novedades', { id: id, vista: true, periodo: S.admin.periodo }).then(function (r) {
+        if (r.datos && r.detalle && r.detalle.hojas && r.detalle.hojas.length) { visorCorreccion(id, r.nombre, r.datos, r, false, 'devolver'); return; }
+        devolverManual(id);
+      }).catch(function () { devolverManual(id); });
+      return;
     }
     else if (a === 'guardar') {
       var tr = b.closest('tr'), sep = function (s) { return s.split(/[,;\s]+/).filter(Boolean); };
