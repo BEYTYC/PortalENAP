@@ -715,7 +715,8 @@ module.exports = async function handler(req, res) {
       soloAdmin();
       await conocerTodos(cfg);
       const lista = TEMPLATES.map((t) => vista(t, cfg, est, periodo, '', true));
-      res.status(200).json({ periodo, periodoActivo: cfg.periodo, plantillas: lista, cargos: CARGOS }); return;
+      const hayBase = (await g(rutaSp('participantes-base.json'))).ok || !!(est.participante && est.participante.archivo);   /* sin base ni entrega de Participante no hay con qué cruzar */
+      res.status(200).json({ periodo, periodoActivo: cfg.periodo, plantillas: lista, cargos: CARGOS, hayBase }); return;
     }
     if (a === 'responsables') {
       soloAdmin(); const t = buscar(body.id);
