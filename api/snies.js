@@ -394,11 +394,14 @@ function normalizarUnidad(buf, t) {
       const ci = t.id === 'unidad-organizacional' ? -1 : enc.indexOf('CODIGO_UNIDAD_ORGANIZACIONAL');
       const cf = []; enc.forEach((c, i) => { if (/^FECHA/.test(c)) cf.push(i); });
       if (ci < 0 && !cf.length) continue;
+      const fm = cf.length ? wb.formatosFecha(h) : [];
       for (let r = 1; r < filas.length; r++) {
         const f = filas[r] || []; if (!f.some((x) => x != null && String(x).trim() !== '')) continue;
         if (ci >= 0 && (typeof f[ci] !== 'string' || f[ci].trim() !== CODIGO_UNIDAD)) cambios.push({ hoja: h, fila: r + 1, col: ci, valor: CODIGO_UNIDAD });
         for (const c of cf) {
           const v = f[c];
+          /* número válido de fecha en una celda sin formato de fecha (o con un formato que no se reconoce): se le pone formato dd/mm/aaaa */
+          if (typeof v === 'number' && VALIDAR.fechaNum(v) != null && !(fm[r] && fm[r][c])) { cambios.push({ hoja: h, fila: r + 1, col: c, valor: '', numero: String(v), fecha: true }); continue; }
           if (typeof v === 'string' && v.trim() !== '' && !/^\d+$/.test(v.trim())) { const n = VALIDAR.fechaNum(v); if (n != null) cambios.push({ hoja: h, fila: r + 1, col: c, valor: '', numero: String(n), fecha: true }); }
         }
       }
