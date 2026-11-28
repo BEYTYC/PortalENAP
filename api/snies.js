@@ -777,9 +777,17 @@ module.exports = async function handler(req, res) {
       const base = (await leerJson('participantes-base.json')).valor;   /* documentos de la base de Participantes del SNIES que cargó Estadística */
       const bufP = ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null;
       if (!base && !bufP) throw error('Para cruzar, cargue la base de Participantes del SNIES (botón «Base de Participantes») o entregue la plantilla Participante.', 404);
-      const bufT = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
+      let bufT = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
       if (!bufT) throw error('No se encontró el archivo en OneDrive.', 404);
-      res.status(200).json(Object.assign({ ok: true, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base))); return;
+      let corregidas = 0;
+      if (e.estado === 'revision') {   /* al abrir el cruce, las que están en revisión ya quedan con el tipo de documento de Participantes */
+        const ct = await corregirTipoDoc(periodo, est, t, bufT).catch(() => null);
+        if (ct) {
+          await escribirBin(rutaOd(`${periodo}/${e.archivo}`), ct.buf); bufT = ct.buf; corregidas = ct.n;
+          await mutar(`estado-${periodo}.json`, () => ({}), (st) => { const x = st[t.id]; if (x) (x.historial = x.historial || []).push({ f: ahora(), por: 'Portal', t: `El Portal cambió automáticamente el tipo de documento en ${ct.n} fila${ct.n === 1 ? '' : 's'} para que coincida con Participantes.` }); }).catch(() => {});
+        }
+      }
+      res.status(200).json(Object.assign({ ok: true, corregidas, base: base ? { fecha: base.fecha, n: base.docs.length } : null, entrega: !!bufP }, cruceParticipantes(bufT, t, bufP, base))); return;
     }
     if (a === 'rehacer-novedades') {   /* vuelve a revisar con las reglas vigentes los archivos ya cargados (devueltas y en revisión) y rehace sus novedades; no envía correos ni cambia estados */
       soloAdmin();
