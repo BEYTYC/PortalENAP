@@ -515,6 +515,7 @@ async function corregirTipoDoc(periodo, est, t, buf, bufPDado) {
   return nb ? { buf: nb, n: c.corregir.length, ejemplo: c.corregir[0] } : null;
 }
 /* Plantillas de docentes: al cargar, el responsable ve de una vez los documentos que no están en Participantes (informativo, no bloquea) y puede descargar Participantes para buscarlos (la autora, 27/11/2026). */
+const DOCENTE_NO_REPORTADO = new Set(['movilidad-de-docentes-hacia-el-exterior', 'movilidad-de-docentes-del-exterior-hacia-colombia']);
 const CRUCE_AL_CARGAR = new Set(['movilidad-de-docentes-hacia-el-exterior', 'movilidad-de-docentes-del-exterior-hacia-colombia', 'docentes-universidad-publica']);
 async function cruceInfo(periodo, est, t, buf) {
   if (!CRUCE_AL_CARGAR.has(t.id) || SIN_CRUCE.has(t.id)) return null;
@@ -771,8 +772,13 @@ module.exports = async function handler(req, res) {
       const buf = normalizarUnidad(buf0, t);   /* correcciones automáticas también en archivos guardados antes */
       const errores = revisarArchivo(buf, t, oficial, periodo, true, await codigosCursos(periodo, est, t));
       /* el cruce con Participantes (lee una base grande) solo se hace si Estadística lo está viendo o si eligió un caso para esta plantilla */
-      const falt = (admin && body.vista) || ['verificar', 'ausente'].includes(e.cruceModo) ? await faltantesParticipante(periodo, est, t, buf).catch(() => []) : [];
-      if (errores.detalle) mezclarCruce(errores.detalle, falt, e.cruceModo, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
+      const esDocMov = DOCENTE_NO_REPORTADO.has(t.id);
+      const falt = (admin && body.vista) || esDocMov || ['verificar', 'ausente'].includes(e.cruceModo) ? await faltantesParticipante(periodo, est, t, buf).catch(() => []) : [];
+      if (errores.detalle && esDocMov) {   /* movilidad de docentes: «El docente no se encuentra reportado» es error de verdad (regla del SNIES); lo demás sigue como antes */
+        const aus = falt.filter((x) => x.clase === 'ausente').map((x) => Object.assign({}, x, { msg: 'El docente no se encuentra reportado en Participantes. Verifique el número y el tipo de documento.' }));
+        if (aus.length) mezclarCruce(errores.detalle, aus, 'verificar', false);
+      }
+      if (errores.detalle) mezclarCruce(errores.detalle, esDocMov ? falt.filter((x) => x.clase !== 'ausente') : falt, e.cruceModo, !!(admin && body.vista));   /* Estadística las ve como candidatas; el responsable solo las que ella eligió */
       res.status(200).json({ ok: true, nombre: e.archivo, errores, detalle: errores.detalle || null, datos: buf.length < 2800000 ? buf.toString('base64') : undefined }); return;
     }
     if (a === 'cruce-participantes') {   /* informativo y solo para Estadística: documentos de la entrega que no están en Participante (no bloquea nada ni lo ve el responsable) */
