@@ -338,6 +338,11 @@ function revisarContenido(wb, t, ctx) {
         if (['N', 'NO', '0'].includes(up(f[iConv]))) err(nombre, r + 1, 'CODIGO_CONVENIO', 'debe estar vacío si MOVILIDAD_POR_CONVENIO es NO');
         if (ctx.cursos instanceof Set && /^movilidad-/.test(t.id) && !ctx.cursos.has(String(f[idx['CODIGO_CONVENIO']]).trim().toUpperCase())) err(nombre, r + 1, 'CODIGO_CONVENIO', 'el convenio no se encuentra creado: no aparece en la plantilla Convenios Internacionales');
       }
+      /* Fuente internacional = Organismo Multilateral (7): no hay país financiador y el código del país debe ser 0 (regla del SNIES, 27/11/2026). */
+      if (idx['ID_FUENTE_INTERNACIONAL'] != null && idx['ID_PAIS_FINANCIADOR'] != null && up(f[idx['ID_FUENTE_INTERNACIONAL']]) === '7') {
+        const pf = txt(f[idx['ID_PAIS_FINANCIADOR']]);
+        if (pf !== '' && Number(pf) !== 0) err(nombre, r + 1, 'ID_PAIS_FINANCIADOR', 'debe ser 0 si la fuente internacional es un Organismo Multilateral (ID_FUENTE_INTERNACIONAL = 7)');
+      }
       if (nacCols.length > 1 && nacCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, nacCols, 'si se tiene fuente de financiación nacional');
       if (intCols.length > 1 && intCols.some((c) => !vacia(f[idx[c]]))) exige(f, r, intCols, 'si se tiene fuente de financiación internacional');
       if (idx['ES_REINTEGRO_ESTD_ANTES_DE1998'] != null && up(f[idx['ES_REINTEGRO_ESTD_ANTES_DE1998']]) === 'S') exige(f, r, ['AÑO_PRIMER_CURSO', 'SEMESTRE_PRIMER_CURSO'], 'si es reintegro anterior a 1998');
@@ -353,6 +358,7 @@ function revisarContenido(wb, t, ctx) {
       const S = conj(tb[0]);
       for (const r of filasDatos) {
         const v = filas[r][idx[c]]; if (vacia(v) || !esNum(v)) continue;
+        if (c === 'ID_PAIS_FINANCIADOR' && aNum(v) === 0 && idx['ID_FUENTE_INTERNACIONAL'] != null && up(filas[r][idx['ID_FUENTE_INTERNACIONAL']]) === '7') continue;   /* Organismo Multilateral: el país es 0 */
         const k = tb[0] === 'cine_especifico' ? String(Math.floor(aNum(v) / 10)) : String(Math.round(aNum(v)));
         if (!S.has(k)) err(nombre, r + 1, c, tb[0] === 'cine_especifico' ? `no corresponde a ningún campo CINE (su campo específico ${k} no existe)` : `el código ${txt(v)} no existe en la tabla de ${tb[1]}`);
       }

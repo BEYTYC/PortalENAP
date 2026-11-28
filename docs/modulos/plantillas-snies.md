@@ -139,3 +139,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 
 ## Tipo de documento automático según Participantes (27/11/2026)
 - Si el número de documento aparece en Participantes pero con otro tipo (y Participantes tiene un único tipo para ese número), el Portal cambia solo el tipo en el archivo, sin preguntar: al cargar (`corregirTipoDoc`) y en las plantillas que ya están en revisión (al subir la base de Participantes, al cargar cualquier plantilla y con «Revisar cargadas de nuevo»). Queda en el historial. Si hay varios tipos posibles, no se toca.
+
+## Organismo Multilateral sin país (27/11/2026)
+- Si ID_FUENTE_INTERNACIONAL = 7 (Organismo Multilateral), ID_PAIS_FINANCIADOR debe ser 0 (regla del SNIES); con un país distinto es error y el 0 es válido en ese caso (no se valida contra la tabla de países).
