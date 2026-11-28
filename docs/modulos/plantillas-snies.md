@@ -142,3 +142,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 
 ## Organismo Multilateral sin país (27/11/2026)
 - Si ID_FUENTE_INTERNACIONAL = 7 (Organismo Multilateral), ID_PAIS_FINANCIADOR debe ser 0 (regla del SNIES); con un país distinto es error y el 0 es válido en ese caso (no se valida contra la tabla de países).
+
+## Movilidad de docentes: «El docente no se encuentra reportado» (27/11/2026)
+- En las dos plantillas de movilidad de docentes, un documento que no aparece en Participantes (ni con otro tipo ni por nombre) sale como error real en el visor: «El docente no se encuentra reportado en Participantes…». Los casos de tipo de documento o de nombre siguen el flujo anterior (tipo automático / candidatas).
