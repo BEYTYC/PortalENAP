@@ -759,8 +759,15 @@ module.exports = async function handler(req, res) {
       const e = est[t.id];
       if (!e || (!e.novedades && !(admin && body.vista)) || !e.archivo) throw error('Esta plantilla no tiene novedades por abrir.', 404);
       /* el archivo y la plantilla oficial se leen a la vez (antes, uno tras otro) */
-      const [buf0, oficial] = await Promise.all([leerBin(rutaOd(`${periodo}/${e.archivo}`)), cfg.oficiales[t.id] ? leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null]);
+      let [buf0, oficial] = await Promise.all([leerBin(rutaOd(`${periodo}/${e.archivo}`)), cfg.oficiales[t.id] ? leerBin(rutaSp(`oficiales/${t.id}.xlsx`)) : null]);
       if (!buf0) throw error('No se encontró el archivo en OneDrive.', 404);
+      if (e.estado === 'revision' && admin && body.vista) {   /* en revisión: el tipo de documento se cambia solo por el de Participantes */
+        const ct = await corregirTipoDoc(periodo, est, t, buf0).catch(() => null);
+        if (ct) {
+          await escribirBin(rutaOd(`${periodo}/${e.archivo}`), ct.buf); buf0 = ct.buf;
+          await mutar(`estado-${periodo}.json`, () => ({}), (st) => { const x = st[t.id]; if (x) (x.historial = x.historial || []).push({ f: ahora(), por: 'Portal', t: `El Portal cambió automáticamente el tipo de documento en ${ct.n} fila${ct.n === 1 ? '' : 's'} para que coincida con Participantes.` }); }).catch(() => {});
+        }
+      }
       const buf = normalizarUnidad(buf0, t);   /* correcciones automáticas también en archivos guardados antes */
       const errores = revisarArchivo(buf, t, oficial, periodo, true, await codigosCursos(periodo, est, t));
       /* el cruce con Participantes (lee una base grande) solo se hace si Estadística lo está viendo o si eligió un caso para esta plantilla */
