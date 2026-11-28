@@ -169,7 +169,7 @@ function vista(t, cfg, est, periodo, yo, admin) {
   const depOk = !dep || ['revision', 'validada'].includes((est[dep] || {}).estado);
   const entrega = r.entrega.includes(yo), dil = r.diligencia.includes(yo);
   const o = {
-    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, periodoReporte: periodoReporte(t, periodo), maestroSin: t.modo === 'sin', posgrados: t.posgrados,
+    id: t.id, nombre: t.nombre, grupo: t.grupo, modo, cruceVer: CRUCE_AL_CARGAR.has(t.id), periodoReporte: periodoReporte(t, periodo), maestroSin: t.modo === 'sin', posgrados: t.posgrados,
     estado, noAplica: !!e.noAplica, novedades: !!e.novedades, adjunto: e.adjunto || '', motivo: e.motivo || '', archivo: e.archivo || '', fechaCarga: e.fecha || '',
     limite, dias: dif, vencida: ['pendiente', 'devuelta'].includes(estado) && dif != null && dif < 0,
     sinFecha: !limite, textoFecha: !limite ? (t.fechas[0] || '') : '',
@@ -501,6 +501,16 @@ function cruceParticipantes(bufT, t, bufP, base) {
   return { revisados: new Set(mios.map((x) => x.k)).size, participantes: porDoc.size, faltan: unicos.slice(0, 500), total: unicos.length, cuenta, filas: faltan.slice(0, 2000) };
 }
 
+/* Plantillas de docentes: al cargar, el responsable ve de una vez los documentos que no están en Participantes (informativo, no bloquea) y puede descargar Participantes para buscarlos (la autora, 27/11/2026). */
+const CRUCE_AL_CARGAR = new Set(['movilidad-de-docentes-hacia-el-exterior', 'movilidad-de-docentes-del-exterior-hacia-colombia', 'docentes-universidad-publica']);
+async function cruceInfo(periodo, est, t, buf) {
+  if (!CRUCE_AL_CARGAR.has(t.id) || SIN_CRUCE.has(t.id)) return null;
+  const base = (await leerJson('participantes-base.json')).valor, ep = est.participante;
+  const bufP = ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null;
+  if (!base && !bufP) return null;
+  const c = cruceParticipantes(buf, t, bufP, base);
+  return { total: c.total, revisados: c.revisados, faltan: c.faltan.map((x) => ({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num, clase: x.clase })) };
+}
 const MSG_CRUCE = 'El número de cédula no aparece registrado en la base de datos de la institución.';
 /* Filas de la entrega cuyo documento no coincide con Participantes (o [] si no hay con qué cruzar). */
 async function faltantesParticipante(periodo, est, t, buf) {
@@ -709,7 +719,8 @@ module.exports = async function handler(req, res) {
         admin ? Promise.resolve() : avisarEstadistica(cfg, t, v, periodo, yo, false).catch(() => {}),
       ]);
       await actualizarCruce(periodo, t.id === 'participante' ? TEMPLATES.map((x) => x.id) : [t.id], { [t.id]: buf }).catch(() => {});   /* informativo, solo Estadística */
-      res.status(200).json({ ok: true, correo }); return;
+      const cruce = await cruceInfo(periodo, est, t, buf).catch(() => null);   /* informativo: el archivo ya quedó cargado */
+      res.status(200).json({ ok: true, correo, cruce }); return;
     }
 
     if (a === 'adjunto-descargar') {   /* documento que la Oficina adjuntó al devolver la plantilla */
@@ -824,6 +835,24 @@ module.exports = async function handler(req, res) {
       const buf = await leerBin(rutaOd(`${p}/${e.archivo}`));
       if (!buf) throw error('No se encontró el archivo en OneDrive.', 404);
       res.status(200).json({ nombre: e.archivo, datos: buf.toString('base64') }); return;
+    }
+
+    if (a === 'cruce-mio' || a === 'participantes-descargar') {   /* documentos de mi entrega que no están en Participantes / descargar Participantes para buscarlos */
+      const t = buscar(body.id);
+      if (!CRUCE_AL_CARGAR.has(t.id)) throw error('Esta plantilla no tiene verificación con Participantes.', 400);
+      if (!admin && !mias().some((x) => x.id === t.id)) throw error('No tiene acceso a esta plantilla.', 403);
+      if (a === 'cruce-mio') {
+        const e = est[t.id]; if (!e || !e.archivo) { res.status(200).json({ ok: true, cruce: null }); return; }
+        const buf = await leerBin(rutaOd(`${periodo}/${e.archivo}`));
+        res.status(200).json({ ok: true, cruce: buf ? await cruceInfo(periodo, est, t, buf).catch(() => null) : null }); return;
+      }
+      const ep = est.participante;
+      const bufP = ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null;
+      if (bufP) { res.status(200).json({ nombre: ep.archivo, datos: bufP.toString('base64') }); return; }
+      const base = (await leerJson('participantes-base.json')).valor;
+      if (!base || !Array.isArray(base.filas) || !base.filas.length) throw error('Participantes todavía no está disponible para descargar.', 404);
+      const csv = '\ufeffTIPO_DOCUMENTO;NUM_DOCUMENTO\r\n' + base.filas.map((f) => `${f[1] || ''};${f[0]}`).join('\r\n');
+      res.status(200).json({ nombre: `Participantes - ${periodo}.csv`, datos: Buffer.from(csv, 'utf8').toString('base64') }); return;
     }
 
     /* ---------- Administración ---------- */

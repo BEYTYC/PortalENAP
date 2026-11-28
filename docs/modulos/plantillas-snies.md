@@ -131,3 +131,8 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 ## Periodo que se solicita, editable (27/11/2026)
 - En Responsables, la columna «Periodo que se solicita» es un campo editable por plantilla (formato AAAA-1 o AAAA-2). Se guarda con el botón Guardar de la fila en `config.json › periodosRep`. Si se deja vacío o igual al del ciclo, vuelve al periodo por defecto.
 - El valor editado se usa en las tarjetas, los correos y la validación del contenido (por ejemplo, la regla de retiro anterior al periodo).
+
+## Plantillas de docentes: verificación con Participantes al cargar (27/11/2026)
+- Aplica a Movilidad de docentes hacia el exterior, Movilidad de docentes del exterior hacia Colombia y Docentes Universidad Pública (`CRUCE_AL_CARGAR` en `api/snies.js`; para agregar otra plantilla basta añadir su id).
+- Al cargar, el responsable ve de una vez los documentos que no aparecen en Participantes (hoja, fila, tipo, documento) con la advertencia de revisar sobre todo el tipo de documento. Es informativo: el archivo queda cargado. También puede reabrirlo desde la tarjeta («Verificar con Participantes»).
+- «Descargar Participantes»: entrega la plantilla Participante del periodo si fue cargada; si no, un CSV con tipo y número de la base del SNIES. Acciones `cruce-mio` y `participantes-descargar`; solo el responsable de esa plantilla o Estadística.

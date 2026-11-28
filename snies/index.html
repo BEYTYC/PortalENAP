@@ -194,8 +194,9 @@ b[style*="#14233a"]{font-weight:500}
     }
     if (p.puedeCargar && (p.estado === 'pendiente' || p.estado === 'devuelta')) acts = (p.novedades && p.estado === 'devuelta' ? '<button class="btn y" data-a="novedades" data-id="' + p.id + '">Abrir novedades</button>' : '') + '<button class="btn" data-a="cargar" data-id="' + p.id + '">' + (p.archivo ? 'Volver a cargar' : 'Cargar plantilla') + '</button><button class="btn teal" data-a="na" data-id="' + p.id + '">No aplica</button>';
     var icDesc = p.puedeCargar && p.archivo && (p.estado === 'devuelta' || p.estado === 'revision') ? '<button class="ib" data-a="mia" data-id="' + p.id + '" title="Descargar archivo cargado" aria-label="Descargar archivo cargado"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg></button>' : '';
-    if (p.estado === 'devuelta' && icDesc) acts = acts.replace('Volver a cargar</button>', 'Volver a cargar</button>' + icDesc);   /* el icono de descarga va junto a «Volver a cargar» */
-    else if (p.puedeCargar && p.estado === 'revision' && p.archivo) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Volver a cargar</button>' + icDesc;
+    var lnkCr = p.cruceVer && p.puedeCargar && p.archivo && (p.estado === 'devuelta' || p.estado === 'revision') ? '<button class="ib" data-a="cruce-mio" data-id="' + p.id + '" title="Ver qué documentos de tu archivo no están en Participantes" aria-label="Verificar documentos con Participantes" style="width:auto;padding:0 10px;font-size:13px">Verificar con Participantes</button>' : '';
+    if (p.estado === 'devuelta' && icDesc) acts = acts.replace('Volver a cargar</button>', 'Volver a cargar</button>' + icDesc + lnkCr);   /* el icono de descarga va junto a «Volver a cargar» */
+    else if (p.puedeCargar && p.estado === 'revision' && p.archivo) acts = '<button class="btn" data-a="cargar" data-id="' + p.id + '">Volver a cargar</button>' + icDesc + lnkCr;
     var links = '';
     if (p.tieneOficial) links += '<a href="#" data-a="oficial" data-id="' + p.id + '">↓ Plantilla oficial vacía</a>';
     else if (OFICIALES.indexOf(p.id) >= 0) links += '<a href="oficiales/' + p.id + '.xlsx" download>↓ Plantilla oficial vacía</a>';
@@ -233,6 +234,17 @@ b[style*="#14233a"]{font-weight:500}
     leerB64(file).then(function (b64) { enviarArchivo(id, file.name, b64, porEstadistica, null, null); }).catch(function (e) { toast(e.message); });
   }
   /* Envía el archivo (con las correcciones hechas en pantalla, si las hay) y muestra el resultado. */
+  /* Documentos de la entrega que no aparecen en Participantes: informativo, no bloquea; con descarga de Participantes para buscarlos. */
+  function verCruce(id, c) {
+    if (!c || !c.total) { toast('Todos los documentos de tu archivo aparecen en Participantes.'); return; }
+    var filas = c.faltan.map(function (x) { return '<tr><td>' + esc(x.hoja) + '</td><td>' + x.fila + '</td><td>' + esc(x.tipo || '') + '</td><td>' + esc(x.num) + '</td></tr>'; }).join('');
+    var mc = modal('<div style="font-size:18px">Documentos que no aparecen en Participantes</div>'
+      + '<div class="mu">Tu archivo quedó cargado. Estos ' + c.total + ' documento(s) no coinciden con Participantes. Revisa que el número esté bien escrito y, sobre todo, el <b>tipo de documento</b> (CC, CE, PEP, etc.): muchas veces el número es correcto y lo que falla es el tipo. Si todo está bien, puedes dejarlo así.</div>'
+      + '<div style="max-height:44vh;overflow:auto"><table><thead><tr><th>Hoja</th><th>Fila</th><th>Tipo</th><th>Documento</th></tr></thead><tbody>' + filas + '</tbody></table></div>'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><button class="btn sec" id="bpart">Descargar Participantes para buscarlos</button><button class="btn" id="ok">Cerrar</button></div>', 'min(820px,96vw)');
+    mc.querySelector('#ok').onclick = function () { mc.remove(); };
+    mc.querySelector('#bpart').onclick = function () { var b = this; b.disabled = true; api('participantes-descargar', { id: id, verComo: S.verComo || undefined }).then(function (r) { b.disabled = false; bajar(r.nombre, r.datos); }).catch(function (x) { b.disabled = false; toast(x.message); }); };
+  }
   function enviarArchivo(id, nombre, b64, porEstadistica, cambios, borrar) {
     var m = modal('<div style="font-size:18px">Revisando y guardando tu archivo…</div><div class="mu">' + esc(nombre) + '</div><div class="mu">Puede tardar unos segundos; no cierres esta ventana.</div>');
     api('cargar', { id: id, datos: b64, cambios: cambios || undefined, borrar: borrar || undefined, verComo: S.verComo || undefined, porEstadistica: !!porEstadistica, periodo: porEstadistica && S.admin ? S.admin.periodo : undefined }).then(function (r) {
@@ -251,7 +263,7 @@ b[style*="#14233a"]{font-weight:500}
         return;
       }
       toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : 'Plantilla entregada. Quedó En revisión; cuando todas tus plantillas estén validadas te llegará un correo de confirmación.');
-      return refrescar().then(function () { if (S.novedadesVistas) siguienteNovedad(); });
+      return refrescar().then(function () { if (r.cruce && r.cruce.total) verCruce(id, r.cruce); else if (S.novedadesVistas) siguienteNovedad(); });
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
   /* Visor: muestra solo las filas con error, las celdas con error en amarillo; se puede editar cada celda o eliminar la fila completa. */
@@ -545,6 +557,7 @@ b[style*="#14233a"]{font-weight:500}
     else if (a === 'adjunto') api('adjunto-descargar', { id: id, verComo: S.verComo || undefined, periodo: S.admin && S.vista !== 'mis' ? S.admin.periodo : undefined }).then(function (r) { bajar(r.nombre, r.datos, 'application/octet-stream'); }).catch(function (x) { toast(x.message); });
     else if (a === 'cargar-admin') { oculto.value = ''; oculto.onchange = function () { cargarArchivo(id, oculto.files[0], true); }; oculto.click(); }
     else if (a === 'oficial') api('oficial-descargar', { id: id }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
+    else if (a === 'cruce-mio') { b.disabled = true; api('cruce-mio', { id: id, verComo: S.verComo || undefined }).then(function (r) { b.disabled = false; verCruce(id, r.cruce); }).catch(function (x) { b.disabled = false; toast(x.message); }); }
     else if (a === 'mia') api('entrega-descargar', { id: id, actual: true, verComo: S.verComo || undefined }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'anterior') api('entrega-descargar', { id: id, periodoEntrega: b.dataset.p }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); });
     else if (a === 'ver') { var q = S.admin.plantillas.filter(function (x) { return x.id === id; })[0]; api('entrega-descargar', { id: id, periodoEntrega: S.admin.periodo }).then(function (r) { bajar(r.nombre, r.datos); }).catch(function (x) { toast(x.message); }); }
