@@ -136,3 +136,6 @@ Bloquean la entrega: `CODIGO_UNIDAD_ORGANIZACIONAL` distinto de 0101010104 (red 
 - Aplica a Movilidad de docentes hacia el exterior, Movilidad de docentes del exterior hacia Colombia y Docentes Universidad Pública (`CRUCE_AL_CARGAR` en `api/snies.js`; para agregar otra plantilla basta añadir su id).
 - Al cargar, el responsable ve de una vez los documentos que no aparecen en Participantes (hoja, fila, tipo, documento) con la advertencia de revisar sobre todo el tipo de documento. Es informativo: el archivo queda cargado. También puede reabrirlo desde la tarjeta («Verificar con Participantes»).
 - «Descargar Participantes»: entrega la plantilla Participante del periodo si fue cargada; si no, un CSV con tipo y número de la base del SNIES. Acciones `cruce-mio` y `participantes-descargar`; solo el responsable de esa plantilla o Estadística.
+
+## Tipo de documento automático según Participantes (27/11/2026)
+- Si el número de documento aparece en Participantes pero con otro tipo (y Participantes tiene un único tipo para ese número), el Portal cambia solo el tipo en el archivo, sin preguntar: al cargar (`corregirTipoDoc`) y en las plantillas que ya están en revisión (al subir la base de Participantes, al cargar cualquier plantilla y con «Revisar cargadas de nuevo»). Queda en el historial. Si hay varios tipos posibles, no se toca.

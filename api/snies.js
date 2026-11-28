@@ -469,15 +469,15 @@ function cruceParticipantes(bufT, t, bufP, base) {
     const wb = abrir(buf), out = [];
     for (const h of wb.hojas.filter((x) => x !== 'INFO')) {
       const filas = wb.leer(h, { maxCols: 200 }) || [];
-      let e = -1, iN = -1, iT = -1, iNom = [];
+      let e = -1, iN = -1, iT = -1, iNom = [], colT = '';
       for (let r = 0; r < Math.min(8, filas.length) && e < 0; r++) {
         const enc = (filas[r] || []).map((x) => String(x == null ? '' : x).trim().toUpperCase().replace(/\s+/g, ' '));
-        const k = enc.findIndex(esNum); if (k >= 0) { e = r; iN = k; iT = enc.findIndex(esTipo); iNom = NOM.map((c) => enc.indexOf(c)).filter((x) => x >= 0); }
+        const k = enc.findIndex(esNum); if (k >= 0) { e = r; iN = k; iT = enc.findIndex(esTipo); colT = iT < 0 ? '' : enc[iT]; iNom = NOM.map((c) => enc.indexOf(c)).filter((x) => x >= 0); }
       }
       if (e < 0) continue;
       for (let r = e + 1; r < filas.length; r++) {
         const n = norm((filas[r] || [])[iN]); if (!n) continue;
-        out.push({ hoja: h, fila: r + 1, tipo: iT < 0 ? '' : String((filas[r] || [])[iT] || '').trim(), num: String((filas[r] || [])[iN]).trim(), k: n, nom: iNom.length ? claveNombre(iNom.map((x) => (filas[r] || [])[x])) : '' });
+        out.push({ hoja: h, fila: r + 1, colT, tipo: iT < 0 ? '' : String((filas[r] || [])[iT] || '').trim(), num: String((filas[r] || [])[iN]).trim(), k: n, nom: iNom.length ? claveNombre(iNom.map((x) => (filas[r] || [])[x])) : '' });
       }
     }
     return out;
@@ -490,7 +490,7 @@ function cruceParticipantes(bufT, t, bufP, base) {
   const mios = docs(bufT), faltan = [];
   for (const x of mios) {
     const tipos = porDoc.get(x.k);
-    if (tipos) { if (x.tipo && tipos.size && !tipos.has(normTipo(x.tipo))) faltan.push(Object.assign({}, x, { clase: 'tipo', msg: `El tipo de documento ${x.tipo} no coincide con el registrado para este número (${[...tipos].join(' / ')}). Verifique el tipo de documento.` })); continue; }
+    if (tipos) { if (x.tipo && tipos.size && !tipos.has(normTipo(x.tipo))) faltan.push(Object.assign({}, x, { clase: 'tipo', bueno: tipos.size === 1 ? [...tipos][0] : '', msg: `El tipo de documento ${x.tipo} no coincide con el registrado para este número (${[...tipos].join(' / ')}). Verifique el tipo de documento.` })); continue; }
     const par = x.nom && porNombre.get(x.nom);
     if (par && par.length) faltan.push(Object.assign({}, x, { clase: 'nombre', msg: `El nombre aparece registrado con el documento ${par[0].k}${par[0].tipo ? ' (' + par[0].tipo + ')' : ''}. Verifique el número y el tipo de documento cargados.` }));
     else faltan.push(Object.assign({}, x, { clase: 'ausente', msg: 'El número y el tipo de documento no aparecen registrados en la base de datos de la institución. Verifique que sean correctos.' }));
@@ -498,9 +498,22 @@ function cruceParticipantes(bufT, t, bufP, base) {
   const vistos = new Set(), unicos = [];
   for (const x of faltan) { const c = x.hoja + '|' + x.k; if (vistos.has(c)) continue; vistos.add(c); unicos.push({ hoja: x.hoja, fila: x.fila, tipo: x.tipo, num: x.num, clase: x.clase, msg: x.msg }); }
   const cuenta = { ausente: 0, tipo: 0, nombre: 0 }; unicos.forEach((x) => { cuenta[x.clase]++; });
-  return { revisados: new Set(mios.map((x) => x.k)).size, participantes: porDoc.size, faltan: unicos.slice(0, 500), total: unicos.length, cuenta, filas: faltan.slice(0, 2000) };
+  /* Mismo número con otro tipo de documento: el de Participantes manda y se cambia solo (cuando Participantes tiene un único tipo para ese número). */
+  const corregir = faltan.filter((x) => x.clase === 'tipo' && x.bueno && x.colT).map((x) => ({ h: x.hoja, f: x.fila, c: x.colT, v: x.bueno, antes: x.tipo }));
+  return { corregir, revisados: new Set(mios.map((x) => x.k)).size, participantes: porDoc.size, faltan: unicos.slice(0, 500), total: unicos.length, cuenta, filas: faltan.slice(0, 2000) };
 }
 
+/* Cambia automáticamente el tipo de documento por el de Participantes cuando el número existe con otro tipo (la autora, 27/11/2026). Devuelve { buf, n } o null. */
+async function corregirTipoDoc(periodo, est, t, buf, bufPDado) {
+  if (SIN_CRUCE.has(t.id)) return null;
+  const base = (await leerJson('participantes-base.json')).valor, ep = est.participante;
+  const bufP = bufPDado || (ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null);
+  if (!base && !bufP) return null;
+  const c = cruceParticipantes(buf, t, bufP, base);
+  if (!c.corregir.length) return null;
+  const nb = aplicarCorrecciones(buf, t, c.corregir.map((x) => ({ h: x.h, f: x.f, c: x.c, v: x.v })), []);
+  return nb ? { buf: nb, n: c.corregir.length, ejemplo: c.corregir[0] } : null;
+}
 /* Plantillas de docentes: al cargar, el responsable ve de una vez los documentos que no están en Participantes (informativo, no bloquea) y puede descargar Participantes para buscarlos (la autora, 27/11/2026). */
 const CRUCE_AL_CARGAR = new Set(['movilidad-de-docentes-hacia-el-exterior', 'movilidad-de-docentes-del-exterior-hacia-colombia', 'docentes-universidad-publica']);
 async function cruceInfo(periodo, est, t, buf) {
@@ -551,15 +564,20 @@ async function actualizarCruce(periodo, ids, bufs) {
   const ep = est.participante;
   const bufP = (bufs && bufs.participante) || (ep && ep.archivo ? await leerBin(rutaOd(`${periodo}/${ep.archivo}`)) : null);
   if (!base && !bufP) return;
-  const res = {};
+  const res = {}, fix = {};
   for (const id of ids) {
     const t = POR_ID[id], e = est[id]; if (!t || SIN_CRUCE.has(id) || !e || !e.archivo || e.noAplica) continue;
     try {
       const b = (bufs && bufs[id]) || await leerBin(rutaOd(`${periodo}/${e.archivo}`)); if (!b) continue;
-      const c = cruceParticipantes(b, t, bufP, base); res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
+      let c = cruceParticipantes(b, t, bufP, base);
+      if (e.estado === 'revision' && c.corregir.length) {   /* las que ya están en revisión también se corrigen solas */
+        const nb = aplicarCorrecciones(b, t, c.corregir.map((x) => ({ h: x.h, f: x.f, c: x.c, v: x.v })), []);
+        if (nb) { await escribirBin(rutaOd(`${periodo}/${e.archivo}`), nb); fix[id] = c.corregir.length; c = cruceParticipantes(nb, t, bufP, base); }
+      }
+      res[id] = { total: c.total, n: c.revisados, fecha: ahora() };
     } catch (x) { /* si un archivo no se puede leer, no se marca nada */ }
   }
-  if (Object.keys(res).length) await mutar(`estado-${periodo}.json`, () => ({}), (st) => { for (const id of Object.keys(res)) { const x = st[id] = st[id] || {}; x.cruce = res[id]; } });
+  if (Object.keys(res).length) await mutar(`estado-${periodo}.json`, () => ({}), (st) => { for (const id of Object.keys(res)) { const x = st[id] = st[id] || {}; x.cruce = res[id]; if (fix[id]) (x.historial = x.historial || []).push({ f: ahora(), por: 'Portal', t: `El Portal cambió automáticamente el tipo de documento en ${fix[id]} fila${fix[id] === 1 ? '' : 's'} para que coincida con Participantes.` }); } });
 }
 function revisarArchivo(buf, t, oficial, periodo, conDetalle, cursos) {
   const errores = [];
@@ -700,6 +718,9 @@ module.exports = async function handler(req, res) {
       let nota = corregido ? ' Corrigió el archivo en pantalla antes de entregarlo.' : '';
       const sinAjuste = buf; buf = normalizarUnidad(buf, t);
       if (buf !== sinAjuste) nota += ' El Portal ajustó automáticamente el código de la unidad organizacional a ' + CODIGO_UNIDAD + '.';
+      let autoTipo = 0;
+      const ct = await corregirTipoDoc(periodo, est, t, buf).catch(() => null);   /* tipo de documento distinto al de Participantes: se cambia solo, sin preguntar */
+      if (ct) { buf = ct.buf; autoTipo = ct.n; nota += ` El Portal cambió automáticamente el tipo de documento en ${ct.n} fila${ct.n === 1 ? '' : 's'} para que coincida con Participantes.`; }
       const errores = revisarArchivo(buf, t, oficial, periodo, false, await codigosCursos(periodo, est, t));
       if (errores.length && (porEstadistica || (admin && body.guardarNovedades))) {   /* «Guardar y enviar novedades» desde la corrección en pantalla: también al actuar en nombre de otra persona */
         /* Cargada por la Oficina de Estadística en nombre del responsable y con novedades: el archivo SE GUARDA, la plantilla queda Devuelta y NO se envía correo;
@@ -709,7 +730,7 @@ module.exports = async function handler(req, res) {
         await mutar(`estado-${periodo}.json`, () => ({}), (st) => { const x = st[t.id] = st[t.id] || {}; x.estado = 'devuelta'; x.noAplica = false; x.novedades = true; x.archivo = nombreN; x.fecha = ahora(); x.por = yo.correo; x.motivo = motivo; (x.historial = x.historial || []).push({ f: ahora(), por: yo.nombre, t: 'Cargó el archivo en nombre del responsable; tiene novedades y quedó Devuelta (sin correo todavía). ' + motivo }); });
         res.status(200).json({ ok: false, errores, devuelta: true, guardada: true }); return;
       }
-      if (errores.length) { res.status(200).json({ ok: false, errores, detalle: errores.detalle || null, datos: corregido && buf.length < 2800000 ? buf.toString('base64') : undefined }); return; }
+      if (errores.length) { res.status(200).json({ ok: false, errores, detalle: errores.detalle || null, datos: (corregido || autoTipo) && buf.length < 2800000 ? buf.toString('base64') : undefined }); return; }
       const nombre = `${t.nombre.replace(/[\\/:*?"<>|]/g, '')} - ${periodo}.xlsx`;
       await escribirBin(rutaOd(`${periodo}/${nombre}`), buf);
       /* El estado y el correo de confirmación van al mismo tiempo (antes uno esperaba al otro). */
@@ -720,7 +741,7 @@ module.exports = async function handler(req, res) {
       ]);
       await actualizarCruce(periodo, t.id === 'participante' ? TEMPLATES.map((x) => x.id) : [t.id], { [t.id]: buf }).catch(() => {});   /* informativo, solo Estadística */
       const cruce = await cruceInfo(periodo, est, t, buf).catch(() => null);   /* informativo: el archivo ya quedó cargado */
-      res.status(200).json({ ok: true, correo, cruce }); return;
+      res.status(200).json({ ok: true, correo, cruce, autoTipo }); return;
     }
 
     if (a === 'adjunto-descargar') {   /* documento que la Oficina adjuntó al devolver la plantilla */
@@ -763,6 +784,7 @@ module.exports = async function handler(req, res) {
     if (a === 'rehacer-novedades') {   /* vuelve a revisar con las reglas vigentes los archivos ya cargados (devueltas y en revisión) y rehace sus novedades; no envía correos ni cambia estados */
       soloAdmin();
       const ids = TEMPLATES.filter((x) => est[x.id] && est[x.id].archivo && ['devuelta', 'revision'].includes(est[x.id].estado)).map((x) => x.id);
+      await actualizarCruce(periodo, ids.filter((i) => est[i].estado === 'revision')).catch(() => {});   /* tipo de documento según Participantes en las que están en revisión */
       const resu = [];
       for (let i = 0; i < ids.length; i += 4) {
         await Promise.all(ids.slice(i, i + 4).map(async (id) => {

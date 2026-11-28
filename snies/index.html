@@ -263,6 +263,7 @@ b[style*="#14233a"]{font-weight:500}
         return;
       }
       toast(porEstadistica || S.verComo ? 'Plantilla cargada. Quedó En revisión. No se envió ningún correo.' : 'Plantilla entregada. Quedó En revisión; cuando todas tus plantillas estén validadas te llegará un correo de confirmación.');
+      if (r.autoTipo) setTimeout(function () { toast('El Portal cambió automáticamente el tipo de documento en ' + r.autoTipo + ' fila' + (r.autoTipo === 1 ? '' : 's') + ' para que coincida con Participantes.'); }, 600);
       return refrescar().then(function () { if (r.cruce && r.cruce.total) verCruce(id, r.cruce); else if (S.novedadesVistas) siguienteNovedad(); });
     }).catch(function (e) { m.remove(); toast(e.message); });
   }
